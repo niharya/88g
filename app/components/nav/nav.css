@@ -1,0 +1,264 @@
+/* ==========================================================================
+   nav.css — Sheet-stack navigation system
+
+   Components: ProjectPill · ExitPill · ChapterPill · Sheet nav-sled
+
+   To use on another page:
+     1. Import this file in your route layout
+     2. Provide layout tokens: --marker-top, --workbench-pad-x, --sheet-bleed,
+        --stack-gap, --z-chapter-marker, --z-project-marker, --grey-880,
+        --grey-640, --grey-480
+     3. Render <ProjectPill>, <ExitPill>, and <Sheet> with chapters data
+     4. JS sync: MARKER_TOP constant in ChapterPill.tsx must match --marker-top
+
+   Fonts required (loaded in root layout):
+     Material Symbols Rounded — nav icons
+     Google Sans Flex         — exit label
+   ========================================================================== */
+
+
+/* ── Project marker ──────────────────────────────────────────────────────── */
+/* Fixed left pill — measures own right edge for sled alignment.             */
+
+.project-marker {
+  position: fixed;
+  top: var(--marker-top);
+  left: var(--workbench-pad-x);
+  z-index: var(--z-project-marker);
+}
+
+
+/* ── Exit marker ─────────────────────────────────────────────────────────── */
+/* Fixed right pill — mirrors project-marker, links away from the page.      */
+
+.exit-marker {
+  position: fixed;
+  top: var(--marker-top);
+  right: var(--workbench-pad-x);
+  z-index: var(--z-project-marker);
+}
+
+/* Links get pointer + suppress browser underline inside a nav-marker */
+a.nav-marker {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.nav-marker--exit .nav-marker__content {
+  padding: 4px 8px 4px 32px; /* mirrored: generous left gap, tight right edge */
+  gap: 4px;
+  color: #028634;             /* mint-720 */
+}
+
+
+/* ── Nav icons (Material Symbols Rounded) ───────────────────────────────── */
+/* Explicit 20×20 box keeps --pill-h: 32px accurate regardless of font load. */
+
+.nav-icon {
+  font-family: 'Material Symbols Rounded';
+  font-size: 20px;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+}
+
+/* Exit pill: arrow flipped to point upward */
+.nav-marker--exit .nav-icon {
+  transform: rotate(180deg);
+}
+
+.nav-marker__exit-label {
+  font-family: 'Google Sans Flex', sans-serif;
+  font-size: 12px;
+  font-optical-sizing: none;
+  font-variation-settings: 'wght' 880, 'wdth' 130, 'opsz' 24, 'GRAD' 0;
+  letter-spacing: -0.36px;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+
+/* ── Docked border halving ───────────────────────────────────────────────── */
+/* When the chapter pill docks, halve the touching borders (project-right +
+   chapter-left = 2px total). CSS :has() handles this without JS.           */
+
+.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project {
+  border-right-width: 1px;
+}
+
+.chapter-nav.is-docked .nav-marker--chapter:not(.nav-marker--flyout) {
+  border-left-width: 1px;
+}
+
+
+/* ── Nav sled ────────────────────────────────────────────────────────────── */
+/* Absolute wrapper inside each Sheet. Constrains sticky release point.
+   left: derived from --project-marker-right (runtime-measured by ProjectPill).
+   Formula accounts for: workbench border (4px) + workbench-pad-x − sheet-bleed
+   + sheet border (2px) + 1px rounding = 7px total offset.                  */
+
+.nav-sled {
+  position: absolute;
+  top: var(--marker-top);
+  bottom: var(--marker-top);
+  left: calc(var(--project-marker-right, calc(var(--workbench-pad-x) + 128px)) - (var(--workbench-pad-x) - var(--sheet-bleed) + 7px));
+  pointer-events: none;
+  z-index: var(--z-chapter-marker);
+  transition: filter 0.25s ease;
+}
+
+
+/* ── Chapter nav ─────────────────────────────────────────────────────────── */
+/* Sticky containing block for the pill and its flyout items.
+   Switches to position: relative when tray opens (openTray() pre-scrolls
+   sheet top to y=0 so the pill stays visually at MARKER_TOP).              */
+
+.chapter-nav {
+  position: sticky;
+  top: var(--marker-top);
+  display: inline-flex;
+  pointer-events: auto;
+  --pill-h: 32px;  /* 2px border × 2 + 4px pad × 2 + 20px icon — keep in sync */
+  --pill-gap: 8px;
+}
+
+.chapter-nav--open {
+  position: relative;
+  top: 0;
+}
+
+
+/* ── Nav pill ────────────────────────────────────────────────────────────── */
+
+.nav-marker {
+  display: inline-flex;
+  align-items: center;
+  background: white;
+  border: 2px solid var(--grey-880);
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+button.nav-marker {
+  cursor: pointer;
+}
+
+.nav-marker__content {
+  display: flex;
+  align-items: center;
+  padding: 4px 32px 4px 8px; /* 4px top/bottom · 32px right · 8px left */
+}
+
+.nav-marker--project .nav-marker__content {
+  gap: 2px;
+  color: var(--grey-640);
+  opacity: 0.8;
+}
+
+.nav-marker--chapter .nav-marker__content {
+  gap: 4px;
+  color: var(--grey-480);
+  opacity: 0.8;
+}
+
+/* Title underline — dots from t-btn1. Hover: dots dissolve out, solid line in. */
+.nav-marker .nav-marker__title {
+  position: relative;
+  transition: text-decoration-color 0.12s ease;
+}
+
+.nav-marker .nav-marker__title::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.nav-marker:hover .nav-marker__title {
+  text-decoration-color: transparent;
+}
+
+.nav-marker:hover .nav-marker__title::after {
+  opacity: 1;
+}
+
+.nav-marker__year {
+  color: var(--grey-640);
+}
+
+
+/* ── Nav arrow ───────────────────────────────────────────────────────────── */
+/* Rotated by ChapterPill.tsx toward sheet center on every scroll frame.    */
+
+.nav-arrow {
+  flex-shrink: 0;
+  transform-origin: center;
+  transition: transform 0.08s linear;
+  will-change: transform;
+}
+
+
+/* ── Chapter flyout ──────────────────────────────────────────────────────── */
+/* Flyout items are absolute inside .chapter-nav (the sticky/relative block).
+   --fi: signed index — negative above current, positive below.             */
+
+.nav-marker--flyout {
+  position: absolute;
+  left: 0;
+  top: calc(var(--fi) * (var(--pill-h) + var(--pill-gap)));
+  white-space: nowrap;
+}
+
+
+/* ── Mat spreading ───────────────────────────────────────────────────────── */
+/* Tray open: gap triples, pushing sibling sheets off-screen.
+   Tray close: gap contracts (base transition defined in biconomy.css).
+   data-navigating: suppresses gap transition during navigate() so
+   getBoundingClientRect reads the settled position before scroll fires.    */
+
+.sheet-stack[data-tray-open] {
+  gap: calc(var(--stack-gap) * 3);
+  transition: gap 0.3s ease-out;
+}
+
+.sheet-stack[data-navigating] {
+  transition: none;
+}
+
+
+/* ── Tray-open background dim + tilt ─────────────────────────────────────── */
+/* Transitions live on elements at all times — so they ease both in and out. */
+
+.sheet > :not(.nav-sled) {
+  transition: filter 0.25s ease, transform 0.3s ease;
+}
+
+.sheet-stack[data-tray-open] .sheet > :not(.nav-sled) {
+  filter: brightness(0.68) saturate(0.2);
+  transform: rotate(var(--tilt, 0deg)); /* --tilt set per-element by ChapterPill on open */
+}
+
+/* Dim sibling nav-sleds; the open one is excluded */
+.sheet-stack[data-tray-open] .nav-sled:not(:has(.chapter-nav--open)) {
+  filter: brightness(0.68) saturate(0.2);
+}
+
+
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
+/* Nav behaves identically on all screen sizes for now.
+   Mobile-specific adaptations to be added when needed.                     */

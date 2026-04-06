@@ -1,11 +1,9 @@
-// chapters.ts — single source of truth for /biconomy chapter data
-// Used by: page.tsx (sheet order), ChapterPill.tsx (flyout list), Sheet.tsx (id + props)
+// chapters.ts — /biconomy chapter data
+// Chapter type is shared; see app/components/nav/types.ts
 
-export interface Chapter {
-  id:    string  // scroll target id on <section>
-  title: string  // displayed in chapter pill + flyout
-  year:  string  // displayed alongside title
-}
+export type { Chapter } from '../../components/nav/types'
+
+import type { Chapter } from '../../components/nav/types'
 
 export const chapters: Chapter[] = [
   { id: 'ux-audit',         title: 'UX Audit',         year: '2024'    },

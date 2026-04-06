@@ -232,3 +232,210 @@ h1, h2, h3, h4, h5, h6 {
   font-size: inherit;
   font-weight: inherit;
 }
+
+
+/* ==========================================================================
+   Sheet-stack layout system — shared across all portfolio routes
+
+   Object vocabulary: workbench · sheet · mat · surface
+   Spatial rhythm: 8px primary · 4px secondary · 2px micro
+
+   Z-index map:
+     --z-mat             0    paper sheet (mat)
+     --z-surface         1    cards, proof artifacts, images
+     --z-chapter-marker 20    sticky per-section chapter title
+     --z-project-marker 50    persistent project pill
+
+   Route CSS overrides:
+     --mat-line-color    grid line color (biconomy: mint, rr: brown)
+     --mat-bg            sheet background color
+     --workbench-bg      desk background color
+     --surface-color     surface card background color
+   ========================================================================== */
+
+
+/* ── Layout tokens ───────────────────────────────────────────────────────── */
+
+:root {
+  /* Mat (graph-paper grid surface) */
+  --mat-grid-size:    32px;
+  --mat-line-color:   rgba(210, 221, 210, 0.24);  /* override per route */
+  --mat-line-weight:  2px;
+  --mat-bg:           #f9f9f7;
+
+  /* Sheet (paper chapter container) */
+  --sheet-padding-x:  64px;
+  --sheet-padding-y:  112px;
+  --sheet-bleed:      40px;
+  --sheet-border:     2px solid var(--grey-880);
+
+  /* Stack (vertical sheet sequence) */
+  --stack-gap:        96px;
+
+  /* Workbench (page-level field) */
+  --workbench-pad-y:  48px;
+  --workbench-pad-x:  64px;
+  --workbench-bg:     #f2f3ef;
+
+  /* Markers */
+  --marker-top:            24px;
+  --project-marker-right:  calc(var(--workbench-pad-x) + 128px);
+
+  /* Rails (note/annotation side panels) */
+  --rail-width:       240px;
+  --rail-offset:      120px;
+
+  /* Cards and surfaces */
+  --memo-gap:         8px;
+  --surface-padding:  8px;
+  --surface-color:    var(--blue-80);  /* override per route */
+  --card-gap:         40px;
+  --card-inner-x:     64px;
+  --card-inner-y:     48px;
+
+  /* Artifacts */
+  --artifact-frame:   2px;
+
+  /* Tilt */
+  --card-tilt:        1deg;
+
+  /* Z-index */
+  --z-mat:            0;
+  --z-surface:        1;
+  --z-chapter-marker: 20;
+  --z-project-marker: 50;
+}
+
+
+/* ── Font gate ───────────────────────────────────────────────────────────── */
+/* Route layouts add .fonts-ready to <html> once document.fonts is ready.   */
+
+.workbench {
+  opacity: 0;
+}
+html.fonts-ready .workbench {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+
+/* ── Workbench ───────────────────────────────────────────────────────────── */
+
+.workbench {
+  padding: var(--workbench-pad-y) var(--workbench-pad-x);
+  background-color: var(--workbench-bg);
+  min-height: 100vh;
+  border: 4px solid black;
+}
+
+@media (max-width: 768px) {
+  .workbench {
+    padding: 32px 24px;
+  }
+}
+
+
+/* ── Sheet stack ─────────────────────────────────────────────────────────── */
+
+.sheet-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  align-items: center;
+  width: 100%;
+  transition: gap 0.25s ease-in;
+}
+
+
+/* ── Sheet ───────────────────────────────────────────────────────────────── */
+
+.sheet {
+  position: relative;
+  z-index: var(--z-mat);
+  width: calc(100% + calc(2 * var(--sheet-bleed)));
+  margin-left: calc(-1 * var(--sheet-bleed));
+  margin-right: calc(-1 * var(--sheet-bleed));
+  padding: var(--sheet-padding-y) var(--sheet-padding-x);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 128px;
+  border: var(--sheet-border);
+}
+
+@media (max-width: 768px) {
+  .sheet {
+    width: calc(100% + 48px);
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 80px 32px;
+  }
+}
+
+
+/* ── Mat ─────────────────────────────────────────────────────────────────── */
+
+.mat {
+  background-color: var(--mat-bg);
+  background-size: var(--mat-grid-size) var(--mat-grid-size);
+  background-image:
+    linear-gradient(to right,  var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight)),
+    linear-gradient(to bottom, var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight));
+}
+
+.mat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-size: 100px;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFIAAABSCAYAAADHLIObAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAADPRJREFUeJzVXQeUJEUZbn1Od0/P7PSA7GAWdWaOm+6eOzwTRhSzPjMmmF5l1wwKIojxIQaSARXFsANn5HnmiKJ4iAkETGB4YkLELKiAKHLoX71TfdXV9VfqnuX83tvX3RX++qe6uqr+VOu0Rq1bOaYYOS65tBPvEDa5FflLxrQkWJn2fkGuiyOnHcbeXdqx+wTyHMTex+pqQ/T7B2n4fWNC7XG7R67A9A9r4AtvJ3JfQ+8X9l64JZ8P7f+pahut2D1o5713UVV6FPDiHq1XMPEeWWOj3xClww87cZb/XFl9P/HvXBcvphhMwqPYZ3i5vyfXIGlssSIIP/riAsHV3iXtyHsBpF82e/5diYk0fBefRuqVabvnA50d9DlMnN2smNQEdMZf6qQ3nIRnBqPGPqWM3bY4YZ0N1Q06L7Joxf4bTGgEsb8ML/qLsjLwcqX5ObY4gUnbOfgf0ooam6wIcfA3+nek9zBq/lYHTYpW5P1dlN5Pw5dWoPkz7cLtsRvT+4Xhwh5B4r4qIxJ7f7BlIKuf+M+oUn9eGCx1XlmlPgyAy4UZrcRNqhDWBX1B6wn4bUfDQvcoaZnYO4d9hung41aNQUOFioOl7mesCO1C0B117FRjhSDxn40yMQm35+Uif4Xet0fuiC3XHDfvpdMWjIoP2/BIAPPb2cHG4NayMoO0c7IuPRhtN8Cn+UdZGRihL6L3wpWa0Jl0P6hszB/7d5I08lYlgWL562X58MO+jNaN/ONM2iJYSNy9RenkN819zm4mzX3pPfywb8Pl5nNt0BGLe7BCPkxVD/a1n9agrZRI4NN/i6oMBuDzXD7hCt3K7cg/VlXGH/l3sOALBYzmwic4TMNt7PMeG5wFes8OBhMMJp0XmtYZpt0P5A/AZCYGwQg8jVyDyDvFhhFdwEh6N72nczBcz6Jpzbh5e7Y8WTlbkVvY/7HlZQiixt3XaHS/XqTZVQ6GuWCwFL5EmJ52P2dCpz/pvFpVpjVyn07vl6e9H2HlFjZ5Q2H9uLUnSjt2v6Nqv7mpeVtheuw+nn3ujJzdhQSGS+HLVI3c1CDSBay0P62LHhmZ7X3ai3XRc/zN/l6idPjsv4rVacdeSUkhqP9QSd6X+DSR4qMqiDYKOv+XuuXh63tdO/FfKysjFJOJwhSrAHL2MboM7IpYme55zspq7+pC4kwpzQJe4Enss2wAceV+s9ZOr7i1g9XwOK7gZ2fXG3QICxg8kk9TiWkyAB//sK1rAxiZDyBCALR7BHmG/sk7uDPy+lZE+5MwU12xq64IsMKent3Yqps0AD/s15rlLmqP/AcJ8xIv3z/20+7BsFv5aD3cYcxE3ner0oAp4smmdYZp5xB1qUw3uW3t6kpVcaxmiwUrEEDHP6RMH5HItjgNYTq/w2+N/f1ljBXqpuF5DGPXrDHgb8NroHSUsrhK3l4PgIj54Pw+9v5lTKCfhhfUylEFwJdyCYz0p4jyVMqIAgSLDwtdhQxp9Ar4uwqkBencRwCfz/tF6VSmpaOaKCBMJSR+Iw1z7dNM6pfpuRcEceNuJnWGk86bsbyV1cUrReklkTlIvOdAh/7ApOGcgTR8ObkC81fCUL987R6XMCig4083amjstHhxD6WdhqV9qg7IYopKLSKI5krohH+LmepszR/2cnwZ3dbIe7g2EwaAl/WOedDFwCtK9Csm7oFYnmzvJ1MM6wKkpENt61LFBEp75EbEiijKa0V+mt/H7vkyOtCx2tJRASKLG3T21gKTsGEl16raFJhSdsDLeqduedgDnl2lPQxYh88Ny9Oe0NxJAZ1yKrzBk2RldFFBmWKllGbNCzxgl7ARrcirh+oCdKZwUYDP+HmmtFifnmDcuGsVvjBgNhkCWLiOtyJKV94SwUnnXFG6KYaTcLUOOjxYTTk7/5mi8suCnj9Rlt+fdE9ZK9d9G0qjQmernJX6S93DbWnrQleiKy0+8AleujJd/MlcuLIEtYWA9JJtkBdG/v2EBWFfKaODTSO5YsXJFrp/Dibdkn9RxsdsftY2kFEfyXkBVvf7m9YJRt5j2GfYyx66stq7rJi2JuOTxQ86RLgHrhPEC4+3TMLu5vXaBIDhC/k0eKtHicrqItgQ3EZVRuSJVuAh8V6sooHZdlT7zwwKObx2YMb4LA/5IeuFwSQ8gX0mMji9Xxh7G9afIwVEekvi0Zblxe5fVfVlm3r4Iqb0Hj6tq/l8qtmHdk7rbna6KI8a8r8OdGz7Ofpp5018GsxDv9WqzMjjUOca7UYZiNxKmqPGPW1oYSBeyIU2Zw6ssCKfTBUxIpDgAKsGWW2Irq0CPqmSDRnmPOIGA9uYsLSawkT+HyvmKG2QqW3qQaddC532ES7txoIY2nc8vl7JORYSsgowAp6ZXQWeqbBiCv0ZZRtrYAY17mNoJ+4B1OCmC1aCIh5rJnWJca41amw2qZO3dVDnQOi7/+YJ0HFfYQtgtg0R4FM4g3r+42WKzpusQZ6o7Nn5j4IfIfMEtkfl3WRqBY1qEKR/z5amSCsNL6dgBwH6a29+P+cW8MPvq0NXJCKKtnHt2N+PfQ4i/1k69LUADX6t1KBi005U8fCDt8vKUPCj1BQynyA+Gk0HQey+QlWmHblPNKUrBeqArolh2vkUvKhPiPLoPK3Bg1YUBExbhxUSOJES+8LWBTpuLFruwLsoiH8l+bKwELyqEl2tACbfaFs385eEHylT/VMtlTY/GhZLmY9UJQzT7jHkWrfBnm6/2EUFpB50SyTzB+ps9Ab9SfjJ7AEWKlXbsEF/vhaPsVc5AFXdiECfBxtw7RGoCumD+fFiWb4ImJ4TRMqxrB4b1YEBc4kkrs9vZ5+B8WtlhFRBTjamBRNgXrhsfA10yBmW5G9Gb4zF0yD2D9Yty+/BMMCniRqUbIGFp0C6NO6czodwPU+U3xw3b2fCR24Qo/ZczE5BnfRLDHF2HTIfgbx8IdFqr0wXfwzzzXuacfPeUiYQlzsF48aebSrAb7HyMLFCf9J5H70nRyQQWZMvIwtwmgdMxFkdsNs2+luMNT1YaK4K/bRbmFPh7R65874e/R8GbXFRM9JLpPLj983QT19gn4PEfZy40TVHqB1sGvlsyRUmba1DOerQirM+iLpoR/4DSbAUK2ezrn9E8Uuu6EorQVWJrgDR4sKPyJsKrAmButvIgkir2L0xu3+OfPPKAN7EdRUatHKtk9DLV2rWl516i8ziJ7Vh6jcO7esdY4N5wBIQIxIQUnpIBLH7TeLxEMSeUDFRF1Tug9CpHxKnd7JgUPgtn8fqQj98S5TOeu8W4iGpjyRv9lyImvdhn1VHzIgcRjH3Y2zu49sUIUi8R8jyeSWzrcshdDIa8pzlR/7xsMJnQU21RUPYesZiIJ5s7DO15fBetOSYm5nXm9AxANONQnqlUxGoZVQbOgGQFPDZVzr1iX5uIuhocmBLcrhMeUJ9L6t6E/P2HXooVAaQhd9bhXhVWJ1D5hhGLgggWw/siSbuAaJ0IurV3tgMsJF9LL3nY7T/L7Cv00TzaJCiLei+TSQhlAIfVbTYz0YBI0cmBbBBlUPQgaUjGfKMxD2aeBvQZ5OjXKDDlIGXurGEFLrGfxMlCHaMja5y1wg2p/jB4nAYmpd2hSf5scAMYDrbozpBFchUH1urXpU/2guG9HWsgwF1PeYD3skIr40JTegqKmC0P0mVN5x0jyjlyRzzCdggcNuwj9ygb1zPLxnwZYA95s9t2qkDmORUC1DbyMzlj/fCLZWL/QmWh8UCZnQlMYc6hn3Wiki3YyJnMfjMrQ4A0Ibu/MEawfjzKzAaokM/S2WmvRuXp4t5dD+NwSZaeh2+dMAuvhSVFNlcrLKWi0rdAKnrqrnQnZ0qwB6ZUxmyEBAhBPsr9rxc0TGxBPBZac01rGbaNBoM6v4ZOl94RCzraaxSVhiBns4s0obTQzJ40A5T+e7U5nosWWkpiG5Stq80Xdik/ETuU4UZaFxLBfCbcHrYiAy7950Ovdd1t1P5JonmOuz0KRXIMQzY4MowWApP1Zkn2MPQ6Whkbdh8tCksKJkGvkposs4pfdhJz6LDP6oeD1tCc9S4R6kR073STFNsEqRuq0lnLYg6K/tcoYrHqSMSVfSCeCxPe7/K20QOhJ83+mko3SrR0/xlB4ZmUVj4QUPikwXIp0zOwWDKbVUxSwPleegarci5ZUJeYu96ThhAY7WJEwDZ+NNpBud1pxaI2KF0+GMZ2j67ooahnKG0kx2fgG1r1husfrMOYNp0kR/6XEGiTkXp8JLOYu6zACjV4pNZMBX7TXqS6cp0UahTtQ0DYcFGEWsJBTLNiSrQcr1AbebkdAHZv5Kx/ocVdYNXic3rKARTUIdU2Z6X+m6C9HJmVraCThO+sEtt6+b7PhJmhpXRUdaKIDukkwJ1EFUEvBOYLhDkX7Dwplbyn0J06/8PqoGypf5iqvwAAAAASUVORK5CYII=");
+  pointer-events: none;
+}
+
+
+/* ── Surface ─────────────────────────────────────────────────────────────── */
+
+.surface {
+  position: relative;
+  padding: var(--surface-padding);
+}
+
+.surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--surface-color);
+  filter: url(#paper-displace);
+  z-index: -1;
+}
+
+.surface--shadowed {
+  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32);
+}
+
+
+/* ── Text utilities ──────────────────────────────────────────────────────── */
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.text-marker {
+  -webkit-text-stroke: 11px var(--olive-80);
+  paint-order: stroke fill;
+}

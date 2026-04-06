@@ -1,0 +1,30 @@
+/* ==========================================================================
+   rr.css — /rr route-specific styles
+
+   Shared layout system lives in globals.css.
+   This file overrides route tokens and adds RR-specific components.
+
+   Palette reference: vanilla layouts/rr.css
+     --rr-canvas:   #f2f3ef   workbench desk
+     --rr-border:   #d2ddd2   sheet edge
+     --rr-memo-bg:  #ece6d6   surface card background
+   ========================================================================== */
+
+
+/* ── RR route tokens ─────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Geist Pixel';
+  src: url('/images/rr/GeistPixel-Grid.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.workbench {
+  --mat-line-color: rgba(140, 110, 45, 0.11);  /* golden-brown grid */
+  --mat-bg:         #f9f9f7;
+  --workbench-bg:   var(--rr-canvas);
+  --sheet-border:   2px solid var(--rr-border);
+  --surface-color:  var(--rr-memo-bg);
+}

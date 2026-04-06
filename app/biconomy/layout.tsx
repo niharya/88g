@@ -4,7 +4,7 @@
 
 import type { ReactNode } from 'react'
 import Script from 'next/script'
-import './nav/nav.css'
+import '../components/nav/nav.css'
 
 export default function BiconomyLayout({ children }: { children: ReactNode }) {
   return (
