@@ -4,10 +4,10 @@
    Shared layout system lives in globals.css.
    This file overrides route tokens and adds RR-specific components.
 
-   Palette reference: vanilla layouts/rr.css
-     --rr-canvas:   #f2f3ef   workbench desk
+   Route personality: surface colors only — mat/workbench identical to biconomy
      --rr-border:   #d2ddd2   sheet edge
-     --rr-memo-bg:  #ece6d6   surface card background
+     --rr-memo-bg:  #ece6d6   surface card background (parchment)
+     terra/yellow tones from globals for cards and callouts
    ========================================================================== */
 
 
@@ -22,9 +22,7 @@
 }
 
 .workbench {
-  --mat-line-color: rgba(140, 110, 45, 0.11);  /* golden-brown grid */
-  --mat-bg:         #f9f9f7;
-  --workbench-bg:   var(--rr-canvas);
+  /* Mat and workbench identical to biconomy — personality lives in surface colors */
   --sheet-border:   2px solid var(--rr-border);
   --surface-color:  var(--rr-memo-bg);
 }
