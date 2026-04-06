@@ -21,8 +21,389 @@
   font-display: swap;
 }
 
+/* ── RR z-index stack ────────────────────────────────────────────────────── */
+
+:root {
+  --rr-z-story:   2;
+  --rr-z-game:    3;
+  --rr-z-ui:      5;
+}
+
+
+/* ── RR workbench overrides ──────────────────────────────────────────────── */
+
 .workbench {
   /* Mat and workbench identical to biconomy — personality lives in surface colors */
   --sheet-border:   2px solid var(--rr-border);
   --surface-color:  var(--rr-memo-bg);
+}
+
+
+/* ==========================================================================
+   Phase 1 — Introduction
+   ========================================================================== */
+
+
+/* ── Fixed composition canvas ────────────────────────────────────────────── */
+/* 1440×900 composition — all children absolutely positioned relative to this */
+
+.rr-canvas {
+  position: relative;
+  width: 1440px;
+  height: 900px;
+  overflow: hidden;
+}
+
+
+/* ── Story Card ──────────────────────────────────────────────────────────── */
+
+.rr-story-card {
+  position: absolute;
+  top: 152px;
+  left: 536px;
+  width: 430px;
+  min-height: 624px;
+  background: var(--yellow-100);
+  box-shadow: var(--shadow-card);
+  padding: 128px 64px 48px;
+  z-index: var(--rr-z-story);
+  transform-origin: center center;
+  transition:
+    box-shadow 0.52s cubic-bezier(0.45, 0.05, 0.15, 0.95),
+    transform  0.32s cubic-bezier(0.32, 0, 0.08, 1);
+}
+
+.rr-story-card--expanded {
+  box-shadow: var(--shadow-flat);
+  transform: translateX(-400px) scale(0.95);
+}
+
+/* Expand pill — top-right of story card */
+.rr-story-card__expand {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 36px;
+  height: 40px;
+  border-radius: 18px;
+  background: var(--yellow-100);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0px 0.5px 2px 0px var(--yellow-560);
+  color: var(--yellow-720);
+  transition: box-shadow 0.2s ease, background-color 0.15s ease;
+}
+
+.rr-story-card__expand:hover {
+  background: var(--yellow-160);
+  box-shadow: inset 0px 1px 5px 0px var(--yellow-560);
+}
+
+.rr-story-card__expand:active {
+  background: var(--yellow-160);
+  box-shadow: inset 0px 2px 8px 1px var(--yellow-480);
+}
+
+.rr-story-card__expand:focus-visible {
+  outline: 2px solid var(--yellow-800);
+  outline-offset: 2px;
+}
+
+/* Story text */
+.rr-story-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rr-story-card__text {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.5;
+  color: var(--terra-960);
+}
+
+.rr-story-card__text--bold {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  text-transform: capitalize;
+}
+
+.rr-story-card__callout {
+  margin-top: 8px;
+}
+
+
+/* ── Card Stack ──────────────────────────────────────────────────────────── */
+/* Zero-size pivot at story card bottom-left (536, 776).                     */
+/* All pages positioned relative to this pivot (negative top = above pivot). */
+
+.rr-card-stack {
+  position: absolute;
+  top: 776px;
+  left: 536px;
+  width: 0;
+  height: 0;
+  z-index: 1;
+  transition: transform 0.32s cubic-bezier(0.32, 0, 0.08, 1);
+}
+
+.rr-card-stack--expanded {
+  transform: translateX(-400px);
+}
+
+.rr-card-stack__page {
+  position: absolute;
+  display: block;
+  object-fit: cover;
+  background: white;
+  border: 2px solid var(--rr-border);
+  transform-origin: bottom left;
+  transition:
+    width      0.32s cubic-bezier(0.32, 0, 0.08, 1),
+    height     0.32s cubic-bezier(0.32, 0, 0.08, 1),
+    left       0.32s cubic-bezier(0.32, 0, 0.08, 1),
+    top        0.32s cubic-bezier(0.32, 0, 0.08, 1),
+    transform  0.32s cubic-bezier(0.32, 0, 0.08, 1),
+    box-shadow 0.32s cubic-bezier(0.32, 0, 0.08, 1);
+}
+
+/* Collapsed: stacked fan from pivot (sketch aspect ratios preserved) */
+.rr-card-stack__page--1 { width: 255px; height: 519px; left: 0; top: -519px; transform: rotate(-6deg); box-shadow: var(--shadow-float); z-index: 1; }
+.rr-card-stack__page--2 { width: 375px; height: 538px; left: 0; top: -538px; transform: rotate(-5deg); box-shadow: var(--shadow-float); z-index: 2; }
+.rr-card-stack__page--3 { width: 375px; height: 535px; left: 0; top: -535px; transform: rotate(-4deg); box-shadow: var(--shadow-float); z-index: 3; }
+.rr-card-stack__page--4 { width: 375px; height: 549px; left: 0; top: -549px; transform: rotate(-3deg); box-shadow: var(--shadow-float); z-index: 4; }
+.rr-card-stack__page--5 { width: 315px; height: 242px; left: 0; top: -242px; transform: rotate(-2deg); box-shadow: var(--shadow-float); z-index: 5; }
+.rr-card-stack__page--6 { width: 215px; height: 183px; left: 0; top: -183px; transform: rotate(-1deg); box-shadow: var(--shadow-float); z-index: 6; }
+
+/* Expanded: 2×3 flat-lay grid. Container translateX(-400) applied on parent. */
+/* All positions computed to land within 1440×900 canvas. */
+.rr-card-stack--expanded .rr-card-stack__page--1 { width: 172px; height: 350px; left: 482px; top: -625px; transform: rotate(-1deg); box-shadow: var(--shadow-flat); }
+.rr-card-stack--expanded .rr-card-stack__page--2 { width: 210px; height: 301px; left: 990px; top: -305px; transform: rotate(2deg);  box-shadow: var(--shadow-flat); }
+.rr-card-stack--expanded .rr-card-stack__page--3 { width: 211px; height: 301px; left: 953px; top: -625px; transform: rotate(-1deg); box-shadow: var(--shadow-flat); }
+.rr-card-stack--expanded .rr-card-stack__page--4 { width: 249px; height: 364px; left: 681px; top: -625px; transform: rotate(1deg);  box-shadow: var(--shadow-flat); }
+.rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); box-shadow: var(--shadow-flat); }
+.rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 477px; top: -236px; transform: rotate(1deg);  box-shadow: var(--shadow-flat); }
+
+
+/* ── North Star Card ─────────────────────────────────────────────────────── */
+
+.rr-north-star-card {
+  position: absolute;
+  top: 542px;
+  left: 266px;
+  width: 148px;
+  background: var(--rr-memo-bg);
+  box-shadow: var(--shadow-sm);
+  transform: rotate(1deg);
+  padding: 12px 4px 8px;
+  z-index: var(--rr-z-game);
+}
+
+.rr-north-star-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/rr/paper-texture-card.png') top left / 1024px 1024px;
+  mix-blend-mode: color-burn;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.rr-north-star-card__label {
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.96px;
+  text-transform: uppercase;
+  color: var(--terra-960);
+  margin-bottom: 6px;
+}
+
+.rr-north-star-card__text {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: -0.1px;
+  line-height: 1.3;
+  color: var(--terra-960);
+}
+
+
+/* ── Constraints Card ────────────────────────────────────────────────────── */
+
+.rr-constraints-card {
+  position: absolute;
+  top: 376px;
+  left: 18px;
+  z-index: var(--rr-z-ui);
+  transform: rotate(-1deg);
+  padding-top: 8px;
+}
+
+.rr-constraints-card__dot {
+  position: absolute;
+  top: 0;
+  left: 30px;
+  width: 16px;
+  height: 16px;
+  background: var(--orange-720);
+  border-radius: 50%;
+  box-shadow: var(--shadow-dot);
+  z-index: 2;
+}
+
+.rr-constraints-card__inner {
+  position: relative;
+  width: 256px;
+  background: var(--olive-80);
+  box-shadow: var(--shadow-sm);
+  padding: 4px;
+  overflow: hidden;
+}
+
+/* Ruled horizontal lines */
+.rr-constraints-card__border { height: 0; }
+
+.rr-constraints-card__border--top,
+.rr-constraints-card__border--mid,
+.rr-constraints-card__border--bottom {
+  border-top: 1px solid var(--olive-560);
+  opacity: 0.4;
+}
+
+.rr-constraints-card__border--top,
+.rr-constraints-card__border--bottom { margin: 0; }
+
+.rr-constraints-card__border--mid { margin: 6px 0; }
+
+/* Vertical margin lines */
+.rr-constraints-card__vline {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  border-left: 1px solid var(--olive-560);
+  opacity: 0.4;
+}
+
+.rr-constraints-card__vline--l1 { left: 4px;  top: 4px;   bottom: 4px; }
+.rr-constraints-card__vline--r1 { right: 4px; top: 4px;   bottom: 4px; }
+.rr-constraints-card__vline--l2 { left: 12px; top: 39px;  bottom: 4px; }
+.rr-constraints-card__vline--r2 { right: 12px;top: 39px;  bottom: 4px; }
+.rr-constraints-card__vline--l3 { left: 20px; top: 80px;  bottom: 4px; }
+.rr-constraints-card__vline--r3 { right: 20px;top: 80px;  bottom: 4px; }
+
+/* Pairs 4–5: fade in when expanded */
+.rr-constraints-card__vline--l4 { left: 28px; top: 120px; bottom: 4px; opacity: 0; transition: opacity 0.30s cubic-bezier(0.45, 0, 0.15, 1); }
+.rr-constraints-card__vline--r4 { right: 28px;top: 120px; bottom: 4px; opacity: 0; transition: opacity 0.30s cubic-bezier(0.45, 0, 0.15, 1); }
+.rr-constraints-card__vline--l5 { left: 36px; top: 161px; bottom: 4px; opacity: 0; transition: opacity 0.30s cubic-bezier(0.45, 0, 0.15, 1); }
+.rr-constraints-card__vline--r5 { right: 36px;top: 161px; bottom: 4px; opacity: 0; transition: opacity 0.30s cubic-bezier(0.45, 0, 0.15, 1); }
+
+.rr-constraints-card--expanded .rr-constraints-card__vline--l4,
+.rr-constraints-card--expanded .rr-constraints-card__vline--r4 { opacity: 0.4; transition-delay: 0.04s; }
+.rr-constraints-card--expanded .rr-constraints-card__vline--l5,
+.rr-constraints-card--expanded .rr-constraints-card__vline--r5 { opacity: 0.4; transition-delay: 0.08s; }
+
+/* Title */
+.rr-constraints-card__title {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--olive-800);
+  text-transform: capitalize;
+  text-align: center;
+  padding: 6px 0;
+}
+
+/* Constraint rows */
+.rr-constraints-card__item {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.24px;
+  color: var(--olive-800);
+  text-align: center;
+  padding: 6px 0;
+  line-height: 1.3;
+}
+
+/* Hidden section — max-height animates on expand */
+.rr-constraints-card__hidden {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.30s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden {
+  max-height: 160px;
+}
+
+/* Hidden items: fade + slide in on reveal */
+.rr-constraints-card__hidden .rr-constraints-card__item {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity   0.24s cubic-bezier(0.45, 0, 0.15, 1),
+    transform 0.24s cubic-bezier(0.45, 0, 0.15, 1);
+  transition-delay: 0s;
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden p:nth-of-type(2) { transition-delay: 0.048s; }
+.rr-constraints-card--expanded .rr-constraints-card__hidden p:nth-of-type(3) { transition-delay: 0.096s; }
+
+/* Toggle button */
+.rr-constraints-card__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin: 4px 0;
+}
+
+.rr-constraints-card__toggle-label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--olive-800);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  transition: opacity 0.135s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.rr-constraints-card__toggle-icon {
+  font-size: 16px !important;
+  color: var(--olive-800);
+  transition: transform 0.30s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__toggle-icon {
+  transform: rotate(180deg);
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__toggle-label {
+  opacity: 0;
+  pointer-events: none;
 }

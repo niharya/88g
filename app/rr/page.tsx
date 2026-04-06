@@ -4,6 +4,7 @@ import PaperFilter from '../components/PaperFilter'
 import ProjectMarker from '../components/nav/ProjectMarker'
 import ExitMarker from '../components/nav/ExitMarker'
 import Sheet from '../components/Sheet'
+import Intro from './components/Intro'
 
 export const metadata: Metadata = {
   title: 'Rug Rumble — Nihar Bhagat',
@@ -19,7 +20,7 @@ export default function RRPage() {
       <div className="sheet-stack">
         {chapters.map(chapter => (
           <Sheet key={chapter.id} chapter={chapter} chapters={chapters}>
-            {/* Phase 1+ content goes here */}
+            {chapter.id === 'intro' && <Intro />}
           </Sheet>
         ))}
       </div>
