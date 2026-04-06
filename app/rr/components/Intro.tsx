@@ -17,34 +17,17 @@
 //   constraintsOpen: hidden constraint rows reveal (CSS class toggle + max-height)
 
 import { useState } from 'react'
-import { motion, Variants, AnimatePresence } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 
-// ── Constraints line-drawing variants ─────────────────────────────────────
-// Matches the Framer Motion pathLength spring pattern.
-// `custom` drives the stagger delay: delay = i * 0.35s
-// Sequence: outer frame verticals (0) → frame-bottom (0.5) →
-//           inner verticals (1) → hlines (1.5, 2) → items (2.5–3.5)
+// ── Hidden item animation — mirrors vanilla rr-interactions.js stagger ─────
+// opacity + slight translateY slide, staggered by index (i * 0.048s)
 
-const draw: Variants = {
-  hidden: { pathLength: 0, opacity: 0 },
-  visible: (i: number) => {
-    const delay = i * 0.35
-    return {
-      pathLength: 1,
-      opacity: 1,
-      transition: {
-        pathLength: { delay, type: 'spring', duration: 0.8, bounce: 0 },
-        opacity:    { delay, duration: 0.01 },
-      },
-    }
-  },
-}
-
-const itemFade: Variants = {
-  hidden: { opacity: 0 },
+const hiddenItem: Variants = {
+  hidden:  { opacity: 0, y: 4 },
   visible: (i: number) => ({
     opacity: 1,
-    transition: { delay: i * 0.35, duration: 0.2, ease: 'easeOut' },
+    y: 0,
+    transition: { delay: i * 0.048, duration: 0.20, ease: [0.45, 0, 0.15, 1] },
   }),
 }
 
@@ -121,60 +104,33 @@ export default function Intro() {
             <p className="rr-constraints-card__item">A complete match in &lt; two minutes</p>
             <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
 
-            {/* Hidden rows — items fade in after SVG lines are drawn */}
+            {/* Hidden rows — staggered fade+slide matching vanilla rr-interactions.js */}
             <div className="rr-constraints-card__hidden">
-              {(['A memetic visual language', 'No possibility of a tie', 'Visual restraint'] as const)
-                .map((item, i) => (
-                  <motion.p
-                    key={item}
-                    className="rr-constraints-card__item"
-                    variants={itemFade}
-                    custom={2.5 + i * 0.5}
-                    initial="hidden"
-                    animate={constraintsOpen ? 'visible' : 'hidden'}
-                  >
-                    {item}
-                  </motion.p>
-                ))}
+              <motion.p
+                className="rr-constraints-card__item"
+                variants={hiddenItem} custom={0}
+                initial="hidden" animate={constraintsOpen ? 'visible' : 'hidden'}
+              >A memetic visual language</motion.p>
+              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
+              <motion.p
+                className="rr-constraints-card__item"
+                variants={hiddenItem} custom={1}
+                initial="hidden" animate={constraintsOpen ? 'visible' : 'hidden'}
+              >No possibility of a tie</motion.p>
+              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
+              <motion.p
+                className="rr-constraints-card__item"
+                variants={hiddenItem} custom={2}
+                initial="hidden" animate={constraintsOpen ? 'visible' : 'hidden'}
+              >Visual restraint</motion.p>
+              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
             </div>
-
-            {/* SVG line-drawing overlay — pathLength spring, staggered via custom prop.  */}
-            {/* Positioned absolute in inner div; clipped by parent overflow:hidden so    */}
-            {/* lines below the fold are revealed as the hidden section expands.           */}
-            <AnimatePresence>
-              {constraintsOpen && (
-                <motion.svg
-                  className="rr-constraints-card__lines-svg"
-                  width="256"
-                  height="244"
-                  viewBox="0 0 256 244"
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
-                  aria-hidden="true"
-                >
-                  {/* Outer frame verticals (l4 / r4) — custom=0, no delay */}
-                  <motion.line x1="28"  y1="120" x2="28"  y2="240" variants={draw} custom={0} style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-                  <motion.line x1="228" y1="120" x2="228" y2="240" variants={draw} custom={0} style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-
-                  {/* Frame bottom — custom=0.5 */}
-                  <motion.line x1="4"   y1="210" x2="252" y2="210" variants={draw} custom={0.5} style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-
-                  {/* Inner verticals (l5 / r5) — custom=1 */}
-                  <motion.line x1="36"  y1="160" x2="36"  y2="240" variants={draw} custom={1}   style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-                  <motion.line x1="220" y1="160" x2="220" y2="240" variants={draw} custom={1}   style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-
-                  {/* Horizontal dividers between hidden items — custom=1.5, 2 */}
-                  <motion.line x1="4"   y1="160" x2="252" y2="160" variants={draw} custom={1.5} style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-                  <motion.line x1="4"   y1="198" x2="252" y2="198" variants={draw} custom={2}   style={{ stroke: 'var(--olive-560)', strokeWidth: 1, strokeLinecap: 'round', strokeOpacity: 0.4 }} />
-                </motion.svg>
-              )}
-            </AnimatePresence>
 
             <button
               className="rr-constraints-card__toggle"
               type="button"
               aria-expanded={constraintsOpen}
+              onMouseDown={e => e.preventDefault()}
               onClick={() => setConstraintsOpen(s => !s)}
             >
               <span className="rr-constraints-card__toggle-label">+3</span>
@@ -185,14 +141,17 @@ export default function Intro() {
 
             <div className="rr-constraints-card__border rr-constraints-card__border--bottom" />
 
-            {/* Vertical margin lines (decorative) */}
+            {/* Vertical margin lines (decorative) — l4/r4/l5/r5 grow with inner div height */}
             <div className="rr-constraints-card__vline rr-constraints-card__vline--l1" aria-hidden="true" />
             <div className="rr-constraints-card__vline rr-constraints-card__vline--r1" aria-hidden="true" />
             <div className="rr-constraints-card__vline rr-constraints-card__vline--l2" aria-hidden="true" />
             <div className="rr-constraints-card__vline rr-constraints-card__vline--r2" aria-hidden="true" />
             <div className="rr-constraints-card__vline rr-constraints-card__vline--l3" aria-hidden="true" />
             <div className="rr-constraints-card__vline rr-constraints-card__vline--r3" aria-hidden="true" />
-            {/* l4/r4/l5/r5 replaced by SVG motion.line paths above */}
+            <div className="rr-constraints-card__vline rr-constraints-card__vline--l4" aria-hidden="true" />
+            <div className="rr-constraints-card__vline rr-constraints-card__vline--r4" aria-hidden="true" />
+            <div className="rr-constraints-card__vline rr-constraints-card__vline--l5" aria-hidden="true" />
+            <div className="rr-constraints-card__vline rr-constraints-card__vline--r5" aria-hidden="true" />
           </div>
         </div>
 

@@ -298,17 +298,10 @@
 .rr-constraints-card__vline--r2 { right: 12px;top: 39px;  bottom: 4px; }
 .rr-constraints-card__vline--l3 { left: 20px; top: 80px;  bottom: 4px; }
 .rr-constraints-card__vline--r3 { right: 20px;top: 80px;  bottom: 4px; }
-
-/* l4/r4/l5/r5 vlines replaced by motion.svg pathLength animation in Intro.tsx */
-
-/* SVG line-drawing overlay — position absolute inside inner div */
-.rr-constraints-card__lines-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  overflow: visible;
-}
+.rr-constraints-card__vline--l4 { left: 28px; top: 120px; bottom: 4px; }
+.rr-constraints-card__vline--r4 { right: 28px;top: 120px; bottom: 4px; }
+.rr-constraints-card__vline--l5 { left: 36px; top: 160px; bottom: 4px; }
+.rr-constraints-card__vline--r5 { right: 36px;top: 160px; bottom: 4px; }
 
 /* Title */
 .rr-constraints-card__title {
@@ -343,7 +336,7 @@
 }
 
 .rr-constraints-card--expanded .rr-constraints-card__hidden {
-  max-height: 120px; /* 3 items × ~28px each, no border divs */
+  max-height: 160px; /* 3 items × ~28px + 3 border-mids × ~12px = ~120px */
 }
 
 /* Hidden items — styled only, animation via motion.p in Intro.tsx */
