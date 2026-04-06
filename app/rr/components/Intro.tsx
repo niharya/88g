@@ -17,6 +17,7 @@
 //   constraintsOpen: hidden constraint rows reveal (CSS class toggle + max-height)
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -33,7 +34,12 @@ export default function Intro() {
     <div className="rr-canvas">
 
       {/* ── Story Card ──────────────────────────────────────────────────── */}
-      <div className={`rr-story-card${isExpanded ? ' rr-story-card--expanded' : ''}`}>
+      {/* Spring physics matching Biconomy intro__surface: x, rotate, scale  */}
+      <motion.div
+        className={`rr-story-card${isExpanded ? ' rr-story-card--expanded' : ''}`}
+        animate={{ x: isExpanded ? -400 : 0, rotate: isExpanded ? -1 : 0, scale: isExpanded ? 0.95 : 1 }}
+        transition={{ type: 'spring', duration: 0.6, bounce: 0.15 }}
+      >
 
         {/* Expand / collapse pill */}
         <button
@@ -124,7 +130,7 @@ export default function Intro() {
           </div>
         </div>
 
-      </div>{/* end rr-story-card */}
+      </motion.div>{/* end rr-story-card */}
 
       {/* ── Card Stack ──────────────────────────────────────────────────── */}
       {/* Zero-size pivot at story card bottom-left (536px, 776px).         */}
