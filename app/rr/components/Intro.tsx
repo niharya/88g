@@ -16,8 +16,8 @@
 //   isExpanded: story card slides left, card stack fans out (CSS class toggle)
 //   constraintsOpen: hidden constraint rows reveal (CSS class toggle + max-height)
 
-import { useState, Fragment } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -92,41 +92,18 @@ export default function Intro() {
             <p className="rr-constraints-card__item">A complete match in &lt; two minutes</p>
             <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
 
-            {/* Hidden rows — AnimatePresence: spring height, items slide from left */}
-            <AnimatePresence initial={false}>
-              {constraintsOpen && (
-                <motion.div
-                  className="rr-constraints-card__hidden"
-                  initial={{ height: 0 }}
-                  animate={{ height: 'auto' }}
-                  exit={{ height: 0 }}
-                  transition={{ type: 'spring', duration: 0.5, bounce: 0.18 }}
-                  style={{ overflow: 'hidden' }}
-                >
-                  {(['A memetic visual language', 'No possibility of a tie', 'Visual restraint'] as const).map((item, i) => (
-                    <Fragment key={item}>
-                      <motion.p
-                        className="rr-constraints-card__item"
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -10, opacity: 0 }}
-                        transition={{ type: 'spring', duration: 0.38, bounce: 0.1, delay: i * 0.055 }}
-                      >
-                        {item}
-                      </motion.p>
-                      <motion.div
-                        className="rr-constraints-card__border rr-constraints-card__border--mid"
-                        initial={{ scaleX: 0 }}
-                        animate={{ scaleX: 1 }}
-                        exit={{ scaleX: 0 }}
-                        style={{ transformOrigin: 'center' }}
-                        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1], delay: i * 0.055 + 0.04 }}
-                      />
-                    </Fragment>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Hidden rows — CSS only. Class toggle drives line-drawing sequence. */}
+            <div className="rr-constraints-card__hidden">
+              <p className="rr-constraints-card__item">A memetic visual language</p>
+              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
+              <p className="rr-constraints-card__item">No possibility of a tie</p>
+              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
+              <p className="rr-constraints-card__item">Visual restraint</p>
+              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
+            </div>
+
+            {/* Frame bottom — draws left→right after box opens (outside overflow clip) */}
+            <div className="rr-constraints-card__frame-bottom" aria-hidden="true" />
 
             <button
               className="rr-constraints-card__toggle"
@@ -135,14 +112,9 @@ export default function Intro() {
               onClick={() => setConstraintsOpen(s => !s)}
             >
               <span className="rr-constraints-card__toggle-label">+3</span>
-              <motion.span
-                className="rr-constraints-card__toggle-icon material-symbols-rounded"
-                animate={{ rotate: constraintsOpen ? 180 : 0 }}
-                transition={{ type: 'spring', duration: 0.4, bounce: 0.25 }}
-                aria-hidden="true"
-              >
+              <span className="rr-constraints-card__toggle-icon material-symbols-rounded" aria-hidden="true">
                 arrow_drop_down
-              </motion.span>
+              </span>
             </button>
 
             <div className="rr-constraints-card__border rr-constraints-card__border--bottom" />

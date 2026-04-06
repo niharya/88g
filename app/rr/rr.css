@@ -52,6 +52,7 @@
   width: 1440px;
   height: 900px;
   overflow: hidden;
+  z-index: 1; /* paint above mat::after (z-index:auto) — position+z-index creates stacking context */
 }
 
 
@@ -182,13 +183,13 @@
 .rr-card-stack__page--6 { width: 215px; height: 183px; left: 0; top: -183px; transform: rotate(-1deg); z-index: 6; }
 
 /* Expanded: 2×3 flat-lay grid. Container translateX(-400) applied on parent. */
-/* All positions computed to land within 1440×900 canvas. */
-.rr-card-stack--expanded .rr-card-stack__page--1 { width: 172px; height: 350px; left: 482px; top: -625px; transform: rotate(-1deg); box-shadow: var(--shadow-flat); }
-.rr-card-stack--expanded .rr-card-stack__page--2 { width: 210px; height: 301px; left: 990px; top: -305px; transform: rotate(2deg);  box-shadow: var(--shadow-flat); }
-.rr-card-stack--expanded .rr-card-stack__page--3 { width: 211px; height: 301px; left: 953px; top: -625px; transform: rotate(-1deg); box-shadow: var(--shadow-flat); }
-.rr-card-stack--expanded .rr-card-stack__page--4 { width: 249px; height: 364px; left: 681px; top: -625px; transform: rotate(1deg);  box-shadow: var(--shadow-flat); }
-.rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); box-shadow: var(--shadow-flat); }
-.rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 477px; top: -236px; transform: rotate(1deg);  box-shadow: var(--shadow-flat); }
+/* All positions computed to land within 1440×900 canvas. No box-shadow — raw photos only. */
+.rr-card-stack--expanded .rr-card-stack__page--1 { width: 172px; height: 350px; left: 482px; top: -625px; transform: rotate(-1deg); }
+.rr-card-stack--expanded .rr-card-stack__page--2 { width: 210px; height: 301px; left: 990px; top: -305px; transform: rotate(2deg);  }
+.rr-card-stack--expanded .rr-card-stack__page--3 { width: 211px; height: 301px; left: 953px; top: -625px; transform: rotate(-1deg); }
+.rr-card-stack--expanded .rr-card-stack__page--4 { width: 249px; height: 364px; left: 681px; top: -625px; transform: rotate(1deg);  }
+.rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); }
+.rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 477px; top: -236px; transform: rotate(1deg);  }
 
 
 /* ── North Star Card ─────────────────────────────────────────────────────── */
@@ -298,16 +299,26 @@
 .rr-constraints-card__vline--l3 { left: 20px; top: 80px;  bottom: 4px; }
 .rr-constraints-card__vline--r3 { right: 20px;top: 80px;  bottom: 4px; }
 
-/* Pairs 4–5: draw down from top when expanded (art deco vertical rule) */
-.rr-constraints-card__vline--l4 { left: 28px; top: 120px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.28s, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
-.rr-constraints-card__vline--r4 { right: 28px;top: 120px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.28s, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
-.rr-constraints-card__vline--l5 { left: 36px; top: 161px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.28s, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
-.rr-constraints-card__vline--r5 { right: 36px;top: 161px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.28s, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+/* ── Line-drawing animation ───────────────────────────────────────────────── */
+/*                                                                             */
+/* Phase 1 (t=0):   l4/r4 draw top→bottom  (outer frame verticals)           */
+/* Phase 2 (t=0.3): l5/r5 draw top→bottom  (inner verticals)                 */
+/* Phase 2 (t=0.3): 3 hidden hlines draw left→right (staggered)              */
+/* Phase 3 (t=0.5): hidden items fade in (staggered)                         */
+
+/* Outer frame verticals — phase 1, draw immediately */
+.rr-constraints-card__vline--l4 { left: 28px; top: 120px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.01s, transform 0.28s linear; }
+.rr-constraints-card__vline--r4 { right: 28px;top: 120px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.01s, transform 0.28s linear; }
 
 .rr-constraints-card--expanded .rr-constraints-card__vline--l4,
-.rr-constraints-card--expanded .rr-constraints-card__vline--r4 { opacity: 0.4; transform: scaleY(1); transition-delay: 0.08s; }
+.rr-constraints-card--expanded .rr-constraints-card__vline--r4 { opacity: 0.4; transform: scaleY(1); transition-delay: 0s; }
+
+/* Inner verticals — phase 2, after outer frame */
+.rr-constraints-card__vline--l5 { left: 36px; top: 161px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.01s, transform 0.22s linear; }
+.rr-constraints-card__vline--r5 { right: 36px;top: 161px; bottom: 4px; opacity: 0; transform: scaleY(0); transform-origin: top center; transition: opacity 0.01s, transform 0.22s linear; }
+
 .rr-constraints-card--expanded .rr-constraints-card__vline--l5,
-.rr-constraints-card--expanded .rr-constraints-card__vline--r5 { opacity: 0.4; transform: scaleY(1); transition-delay: 0.16s; }
+.rr-constraints-card--expanded .rr-constraints-card__vline--r5 { opacity: 0.4; transform: scaleY(1); transition-delay: 0.30s; }
 
 /* Title */
 .rr-constraints-card__title {
@@ -334,8 +345,61 @@
   line-height: 1.3;
 }
 
-/* Hidden section — height + item animations owned by Framer Motion (AnimatePresence) */
-/* overflow:hidden set inline on motion.div; no CSS needed here */
+/* Hidden section — max-height reveal (overflow clips it while closed) */
+.rr-constraints-card__hidden {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.28s ease-out;
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden {
+  max-height: 200px;
+}
+
+/* Hidden hlines — draw left→right, phase 2 (staggered) */
+.rr-constraints-card__hidden .rr-constraints-card__border--mid {
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0.4;
+  transition: transform 0.20s linear;
+  transition-delay: 0s;
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__border--mid:nth-child(2) { transition-delay: 0.32s; }
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__border--mid:nth-child(4) { transition-delay: 0.40s; }
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__border--mid:nth-child(6) { transition-delay: 0.48s; }
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__border--mid {
+  transform: scaleX(1);
+}
+
+/* Hidden items — fade in phase 3, after grid is drawn */
+.rr-constraints-card__hidden .rr-constraints-card__item {
+  opacity: 0;
+  transition: opacity 0.16s ease-out;
+  transition-delay: 0s;
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__item:nth-child(1) { opacity: 1; transition-delay: 0.50s; }
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__item:nth-child(3) { opacity: 1; transition-delay: 0.56s; }
+.rr-constraints-card--expanded .rr-constraints-card__hidden .rr-constraints-card__item:nth-child(5) { opacity: 1; transition-delay: 0.62s; }
+
+/* Frame bottom — sibling of hidden section, draws left→right after box opens */
+.rr-constraints-card__frame-bottom {
+  height: 0;
+  border-top: 1px solid var(--olive-560);
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s linear, opacity 0.01s;
+  transition-delay: 0s;
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__frame-bottom {
+  opacity: 0.4;
+  transform: scaleX(1);
+  transition-delay: 0.26s;
+}
 
 /* Toggle button */
 .rr-constraints-card__toggle {
@@ -370,7 +434,13 @@
   transition: transform 0.30s cubic-bezier(0.45, 0, 0.15, 1);
 }
 
-/* toggle icon rotation owned by Framer Motion (motion.span) */
+.rr-constraints-card__toggle-icon {
+  transition: transform 0.25s ease-out;
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__toggle-icon {
+  transform: rotate(180deg);
+}
 
 .rr-constraints-card--expanded .rr-constraints-card__toggle-label {
   opacity: 0;
