@@ -1,0 +1,234 @@
+/* ==========================================================================
+   Design Tokens — portfolio
+   Source: vanilla portfolio tokens.css
+   ========================================================================== */
+
+:root {
+  /* ---- Blues ---- */
+  --blue-80:  #E0EFFE;
+  --blue-100: #E0EBF7;
+  --blue-160: #C7E3FE;
+  --blue-240: #AED6FE;
+  --blue-320: #90C8FE;
+  --blue-400: #71BAFF;
+  --blue-480: #49AAFF;
+  --blue-560: #0199FC;
+  --blue-720: #0477C5;
+  --blue-800: #0364A7;
+  --blue-960: #013B66;
+
+  /* ---- Olives ---- */
+  --olive-80:  #E2F6A6;
+  --olive-100: #E7ECDD;
+  --olive-160: #D5E79F;
+  --olive-240: #BEDF01;
+  --olive-320: #B1D006;
+  --olive-400: #A3C004;
+  --olive-480: #96B003;
+  --olive-560: #88A006;
+  --olive-720: #697C05;
+  --olive-800: #596902;
+  --olive-960: #343E00;
+
+  /* ---- Yellows ---- */
+  --yellow-80:  #FFEBBD;
+  --yellow-100: #EFE9DB;
+  --yellow-160: #FADD95;
+  --yellow-240: #FFCA33;
+  --yellow-320: #F0BB01;
+  --yellow-400: #DFAD01;
+  --yellow-480: #CD9F09;
+  --yellow-560: #B99001;
+  --yellow-720: #917004;
+  --yellow-800: #7B5E01;
+  --yellow-960: #493801;
+
+  /* ---- Mints ---- */
+  --mint-80:  #BAFDC3;
+  --mint-100: #E1EDE2;
+  --mint-160: #B1EEB9;
+  --mint-240: #07F063;
+  --mint-320: #02DF5B;
+  --mint-400: #03CF54;
+  --mint-480: #02BD4C;
+  --mint-560: #01AC44;
+  --mint-720: #028634;
+  --mint-800: #04712B;
+  --mint-960: #024317;
+
+  /* ---- Oranges ---- */
+  --orange-80:  #FFE8E2;
+  --orange-100: #F8E6E2;
+  --orange-160: #FFD7CD;
+  --orange-240: #FEC4B4;
+  --orange-320: #FEB09B;
+  --orange-400: #FF997E;
+  --orange-480: #FF805E;
+  --orange-560: #FF5F33;
+  --orange-720: #D23A02;
+  --orange-800: #B23000;
+  --orange-960: #6B1A02;
+
+  /* ---- Terras ---- */
+  --terra-80:  #FFEAD3;
+  --terra-100: #F3E8DC;
+  --terra-160: #FEDAAD;
+  --terra-240: #FEC883;
+  --terra-320: #FFB44C;
+  --terra-400: #F7A207;
+  --terra-480: #E29509;
+  --terra-560: #CD8607;
+  --terra-720: #A16803;
+  --terra-800: #895804;
+  --terra-960: #533301;
+
+  /* ---- Greys ---- */
+  --grey-80:  #141414;
+  --grey-160: #292929;
+  --grey-240: #3D3D3D;
+  --grey-320: #525252;
+  --grey-400: #666666;
+  --grey-480: #7A7A7A;
+  --grey-560: #8F8F8F;
+  --grey-640: #A3A3A3;
+  --grey-720: #B8B8B8;
+  --grey-800: #CCCCCC;
+  --grey-880: #E0E0E0;
+  --grey-960: #F5F5F5;
+
+  /* ---- Surface ---- */
+  --surface-bg: #4C2B18;
+
+  /* ---- Fonts ---- */
+  --font-display: 'Fraunces', serif;
+  --font-body:    'Google Sans', sans-serif;
+  --font-ui:      'Google Sans Flex', sans-serif;
+
+  /* ---- Spacing scale (8/4/2 rhythm) ---- */
+  /* micro: 2px */
+  --space-2:   2px;
+  /* secondary: multiples of 4 */
+  --space-4:   4px;
+  --space-8:   8px;
+  --space-12:  12px;
+  /* primary: multiples of 8 */
+  --space-16:  16px;
+  --space-24:  24px;
+  --space-32:  32px;
+  --space-40:  40px;
+  --space-48:  48px;
+  --space-64:  64px;
+  --space-72:  72px;
+  --space-96:  96px;
+  --space-112: 112px;
+
+  /* ---- Shadows ---- */
+  --shadow-card:  1px 1px 4.8px 0px rgba(0, 0, 0, 0.36);
+  --shadow-hero:  2px 2px 4.8px 0px rgba(0, 0, 0, 0.36);
+  --shadow-inset: inset 1px 1px 4.8px 0px rgba(0, 0, 0, 0.36);
+  --shadow-float: 2px 2px 8px rgba(0, 0, 0, 0.22);
+  --shadow-flat:  0px 1px 4px rgba(0, 0, 0, 0.12);
+  --shadow-sm:    1px 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-dot:   0.5px 0.5px 1px rgba(0, 0, 0, 0.48);
+
+  /* ---- Borders ---- */
+  --border-frame: 4px solid var(--grey-80);
+
+  /* ---- Grid ---- */
+  --grid-line: rgba(140, 110, 45, 0.11);
+
+  /* ---- Canvas colors ---- */
+  --rr-canvas:   #f2f3ef;
+  --rr-border:   #d2ddd2;
+  --rr-memo-bg:  #ece6d6;
+}
+
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+
+.t-h1 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  line-height: 1.15;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+}
+
+.t-h2 {
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.48px;
+  line-height: 1.15;
+}
+
+.t-h5 {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 640;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.t-p2 {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.32px;
+  line-height: 1.35;
+}
+
+.t-p3 {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.28px;
+  line-height: 1.35;
+}
+
+.t-p4 {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.35;
+}
+
+.t-btn1 {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+
+/* ==========================================================================
+   Reset
+   ========================================================================== */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}

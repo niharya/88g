@@ -1,0 +1,2092 @@
+/* ==========================================================================
+   biconomy.css — Layout system for /biconomy
+
+   Spatial rhythm: 8px primary · 4px secondary · 2px micro
+   Object vocabulary: workbench · sheet · mat · surface · marker · rail · memo
+
+   Z-index map:
+     --z-mat             0    paper sheet (mat)
+     --z-surface         1    cards, proof artifacts, images
+     --z-chapter-marker 20    sticky per-section chapter title
+     --z-project-marker 50    persistent project pill
+   ========================================================================== */
+
+
+/* ── Layout tokens ───────────────────────────────────────────────────────── */
+
+:root {
+  /* Mat (graph-paper grid surface) */
+  --mat-grid-size:    32px;
+  --mat-line-color:   rgba(210, 221, 210, 0.24);
+  --mat-line-weight:  2px;    /* 1×2 */
+  --mat-bg:           #f9f9f7;
+
+  /* Sheet (paper chapter container) */
+  --sheet-padding-x:  64px;   /* 8×8 */
+  --sheet-padding-y:  112px;  /* 14×8 */
+  --sheet-bleed:      40px;   /* 5×8 — how far sheets extend past workbench edges */
+  --sheet-border:     2px solid var(--grey-880);
+
+  /* Stack (vertical sheet sequence) */
+  --stack-gap:        96px;   /* 12×8 */
+
+  /* Workbench (page-level field) */
+  --workbench-pad-y:  48px;   /* 6×8 */
+  --workbench-pad-x:  64px;   /* 8×8 */
+  --workbench-bg:     #f2f3ef;
+
+  /* Markers */
+  --marker-top:         24px;   /* 3×8 — sticky top offset + sled top buffer */
+  --project-marker-right: calc(var(--workbench-pad-x) + 128px); /* ~192px; overwritten at runtime by ProjectPill.tsx */
+
+  /* Rails (note/annotation side panels) */
+  --rail-width:       240px;  /* 30×8 */
+  --rail-offset:      120px;  /* 15×8 — how far rail slides out */
+
+  /* Cards and surfaces */
+  --memo-gap:         8px;    /* 1×8 — gap between memo cards */
+  --surface-padding:  8px;    /* 1×8 — paper surface outer padding */
+  --card-gap:         40px;   /* 5×8 — gap within card families */
+  --card-inner-x:     64px;   /* 8×8 — inner horizontal padding */
+  --card-inner-y:     48px;   /* 6×8 — inner vertical padding */
+
+  /* Artifacts (embedded proof objects) */
+  --artifact-frame:   2px;    /* 1×2 — border width */
+
+  /* Tilt (resting angle for docked/tucked states) */
+  --card-tilt:        1deg;
+
+  /* Z-index */
+  --z-mat:           0;
+  --z-surface:         1;
+  --z-chapter-marker: 20;
+  --z-project-marker: 50;
+}
+
+
+/* ── Font gate — hide page until Material Symbols (and all fonts) are ready ── */
+/* Script in biconomy/layout.tsx adds .fonts-ready to <html> on document.fonts.ready */
+.workbench {
+  opacity: 0;
+}
+html.fonts-ready .workbench {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* ── Workbench ───────────────────────────────────────────────────────────── */
+/* Page-level field — the desk everything sits on                            */
+
+.workbench {
+  padding: var(--workbench-pad-y) var(--workbench-pad-x);
+  background-color: var(--workbench-bg);
+  min-height: 100vh;
+  border: 4px solid black;
+}
+
+@media (max-width: 768px) {
+  .workbench {
+    padding: 32px 24px; /* 4×8, 3×8 */
+  }
+}
+
+
+/* ── Sheet stack ─────────────────────────────────────────────────────────── */
+/* Vertical sequence of sheets centered in the workbench                    */
+
+.sheet-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  align-items: center;
+  width: 100%;
+  transition: gap 0.25s ease-in; /* contracts when tray closes */
+}
+
+
+/* ── Sheet ───────────────────────────────────────────────────────────────── */
+/* Paper chapter container — bleeds past workbench padding on both sides    */
+
+.sheet {
+  position: relative;
+  z-index: var(--z-mat);
+  width: calc(100% + calc(2 * var(--sheet-bleed)));
+  margin-left: calc(-1 * var(--sheet-bleed));
+  margin-right: calc(-1 * var(--sheet-bleed));
+  padding: var(--sheet-padding-y) var(--sheet-padding-x);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 128px; /* gap-32 in original — between Nameplate/Intro/Flows/etc. */
+  border: var(--sheet-border);
+}
+
+@media (max-width: 768px) {
+  .sheet {
+    width: calc(100% + 48px); /* 3×16 */
+    margin-left: -24px;
+    margin-right: -24px;
+    padding: 80px 32px; /* 10×8, 4×8 */
+  }
+}
+
+
+/* ── Mat ─────────────────────────────────────────────────────────────────── */
+/* Graph-paper surface — applied to .sheet                                  */
+
+.mat {
+  background-color: var(--mat-bg);
+  background-size: var(--mat-grid-size) var(--mat-grid-size);
+  background-image:
+    linear-gradient(to right,  var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight)),
+    linear-gradient(to bottom, var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight));
+}
+
+/* Subtle paper texture overlay */
+.mat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-size: 100px;
+  background-image: url("data:image/png;base64,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");
+  pointer-events: none;
+}
+
+
+/* ── Surface ─────────────────────────────────────────────────────────────── */
+/* Displaced paper card — applied to cards and proof artifacts               */
+
+.surface {
+  position: relative;
+  padding: var(--surface-padding);
+}
+
+.surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--blue-80);
+  filter: url(#paper-displace);
+  z-index: -1;
+}
+
+.surface--shadowed {
+  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32);
+}
+
+
+/* ── Navigation system ───────────────────────────────────────────────────── */
+/* All nav styles live in nav/nav.css — imported in biconomy/layout.tsx.    */
+/* Edit nav.css to modify pills, sled, tray, docking, and mobile behaviour. */
+
+
+/* ── Text utilities ──────────────────────────────────────────────────────── */
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.text-marker {
+  -webkit-text-stroke: 11px var(--olive-80);
+  paint-order: stroke fill;
+}
+
+
+/* ── Intro section ───────────────────────────────────────────────────────── */
+/*                                                                           */
+/* Closed: surface (z:2) sits over memo cards (z:auto).                     */
+/*         Memo cards are genuinely tucked behind the surface.               */
+/*         Toggle docked to surface right edge, slightly overhanging.        */
+/*                                                                           */
+/* Open:   surface springs left -50%, revealing memo cards from underneath. */
+/*         Last memo card's tilt corrects as it emerges.                     */
+/*         Surface border and text fade toward ghost (20% opacity).          */
+
+.intro {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: fit-content; /* section sized to surface — memo container positions relative to this */
+}
+
+/* Surface — z:10 covers memo cards in closed state */
+.intro__surface {
+  position: relative;
+  z-index: 10;
+  padding: var(--surface-padding); /* 8px (1×8) */
+  transition: box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Inner card: border frame + content */
+.intro__inner {
+  border: 1px solid var(--blue-560);
+  padding: 48px; /* p-12 base */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  max-width: 28rem;
+  gap: var(--card-gap);  /* 40px (5×8) */
+  color: var(--blue-960);
+  transition:
+    color        1s cubic-bezier(.5, .98, .45, 1.025),
+    border-color 1s cubic-bezier(.5, .98, .45, 1.025);
+}
+
+@media (min-width: 768px) {
+  .intro__inner {
+    padding: 64px; /* md:p-16 */
+  }
+}
+
+/* Surface open: content and border ghost back (240ms delay matches original) */
+.intro__inner.is-open {
+  color: rgba(1, 59, 102, 0.2);
+  border-color: rgba(3, 100, 167, 0.2);
+  transition-delay: 240ms;
+}
+
+/* Copy block */
+.intro__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 2×8 */
+}
+
+/* Dashed rule between copy and context */
+.intro__divider {
+  border: none;
+  border-top: 1px dashed var(--blue-320);
+}
+
+/* Context block — second reading half */
+.intro__context {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* 3×8 */
+  max-width: 20rem;
+  color: var(--grey-320);
+}
+
+/* North Star footer — bleeds into inner padding */
+/* -ml-8 -mr-6 -mb-8 mt-8 = -32px left, -24px right, -32px bottom, 32px top */
+.intro__north-star {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* gap-1 */
+  color: var(--grey-480);
+  margin: 32px -24px -32px -32px;
+}
+
+.intro__north-star-label {
+  display: flex;
+  gap: 4px; /* 1×4 */
+  align-items: center;
+}
+
+.intro__north-star-line {
+  height: 1px;
+  flex: 1;
+  background: var(--grey-800);
+}
+
+/* Toggle — fixed handle in memo container, pokes out behind surface right edge */
+/* Entrance spring: x:'50%'→'75%' makes it peek past the surface              */
+.intro__toggle {
+  position: absolute;
+  right: 0;    /* right edge aligns with memo container right */
+  top: 6px;    /* top-1.5 = 6px */
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px; /* 2×8 */
+  width: 112px; /* w-28 */
+  padding: 8px;  /* p-2 */
+  background: rgba(226, 246, 166, 0.6); /* olive-80/60 */
+  cursor: pointer;
+  border: none;
+  transition: background 0.1s ease-out, transform 0.1s ease-out;
+}
+
+.intro__toggle:hover {
+  background: var(--olive-160);
+  transform: scaleY(0.95) scaleX(1.05);
+}
+
+.intro__toggle:focus-visible {
+  outline: 2px solid var(--olive-720);
+  outline-offset: 2px;
+}
+
+/* Three-dot indicator — shifts to signal open state */
+.intro__toggle-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* 1×4 */
+}
+
+.intro__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--olive-400);
+  transition: transform 0.3s ease-out;
+}
+
+.intro__dot.is-top { transform: translateY(2px); }
+.intro__dot.is-mid { transform: translateX(-4px); transition-duration: 0.2s; }
+.intro__dot.is-bot { transform: translateY(-2px); }
+
+/* Memo cards — tucked behind surface (surface z:10, container z:auto) */
+/* At rest: positioned right of section, hidden behind surface           */
+/* On open: surface springs left, cards emerge from underneath           */
+.intro__memo-cards {
+  position: absolute;
+  right: 4px;   /* right-1 = 4px from section right */
+  top: 40px;    /* md:top-10 = 40px */
+  bottom: 0;
+  max-width: 232px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;    /* gap-3 — spread in closed state */
+  transition: gap 0.2s ease-out;
+}
+
+.intro__memo-cards.is-open {
+  gap: 8px; /* gap-2 — settle closer on reveal */
+  pointer-events: auto;
+}
+
+/* Individual memo card */
+.intro__memo-card {
+  background: var(--olive-80);
+  padding: var(--surface-padding); /* p-2 = 8px */
+}
+
+/* First card — z:2 within container, sits on top of toggle */
+.intro__memo-card--z2 {
+  position: relative;
+  z-index: 2;
+}
+
+/* Middle card (Who uses it?) rests at -1deg — implies depth/stacking */
+.intro__memo-card--mid {
+  transform: rotate(-1deg);
+  transition: transform 0.3s ease-out;
+}
+
+/* Middle card corrects on reveal */
+.intro__memo-cards.is-open .intro__memo-card--mid {
+  transform: rotate(0deg);
+}
+
+/* Memo card label row */
+.intro__memo-label {
+  color: var(--olive-720);
+  border: 1px solid var(--olive-560);
+  padding: 4px 8px; /* 1×4, 1×8 */
+  display: block;
+  text-transform: none; /* override t-h5 capitalize — original uses sentence case */
+}
+
+/* Memo card body row */
+.intro__memo-body {
+  color: var(--olive-720);
+  border: 1px solid var(--olive-560);
+  border-top: none;
+  padding: 4px 8px; /* 1×4, 1×8 */
+  display: block;
+}
+
+
+/* ── Flows section ───────────────────────────────────────────────────────── */
+/*                                                                           */
+/* Layout: section is a flex row (main column + notes rail).                 */
+/* Main column shifts left -120px when notes panel opens.                   */
+/* Notes rail is absolutely positioned, rotates 1deg at rest.               */
+
+.flows {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* gap-2.5 */
+  margin-top: 10px; /* gap-2.5 from Intro */
+}
+
+/* Main column — max 1000px, shifts left when notes open */
+.flows__main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* gap-2.5 */
+  max-width: 1000px;
+  width: 100%;
+  transition: transform 0.3s ease-out;
+}
+
+.flows__main.is-notes-open {
+  transform: translateX(-120px);
+}
+
+/* Header row */
+.flows__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.flows__header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flows__title {
+  /* inherits t-h5 from parent */
+}
+
+/* Before/After toggle label — wraps the pill */
+.flows__ba-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  max-height: fit-content;
+}
+
+/* Orange pill container (motion.span with layout) */
+.flows__ba-pill {
+  display: flex;
+  overflow: hidden;
+  background: var(--orange-80);
+  max-width: fit-content;
+  max-height: fit-content;
+  align-items: center;
+  gap: 8px; /* gap-2 */
+  padding: 4px 6px; /* p-1 px-1.5 */
+  border-radius: 8px; /* rounded-lg */
+  transition: background 0.15s ease-out;
+}
+
+.flows__ba-pill:hover {
+  background: var(--orange-160);
+}
+
+.flows__ba-switch-wrap {
+  display: flex;
+  align-items: center;
+}
+
+/* Custom toggle switch — replaces Radix UI Switch */
+/* Track: 32px wide, 18px tall. Thumb: 8px wide, 12px tall. */
+.flows__ba-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 32px;
+  height: 18px;
+  padding: 2px 14px 2px 2px;
+  border-radius: 4px;
+  background: var(--orange-80);
+  box-shadow: 0 0 0 1px var(--orange-560);
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease-out, box-shadow 0.2s ease-out;
+  flex-shrink: 0;
+}
+
+.flows__ba-switch[aria-checked='true'] {
+  background: var(--orange-720);
+  box-shadow: 0 0 0 1px var(--orange-720);
+}
+
+.flows__ba-switch:active .flows__ba-switch-thumb {
+  transform: scaleX(0.9);
+}
+
+.flows__ba-switch-thumb {
+  display: block;
+  width: 8px;  /* w-2 */
+  height: 12px; /* h-3 */
+  border-radius: 2px;
+  background: var(--orange-560);
+  transition: transform 0.2s cubic-bezier(0, 1, 0.31, 1.05), background 0.2s ease-out;
+  transform: translateX(0);
+  flex-shrink: 0;
+}
+
+.flows__ba-switch[aria-checked='true'] .flows__ba-switch-thumb {
+  background: var(--orange-80);
+  transform: translateX(12px); /* translate-x-3 */
+}
+
+/* Before/After label text */
+.flows__ba-label-text {
+  color: var(--orange-560);
+  user-select: none;
+  /* inherits t-h5 from .flows__header */
+}
+
+.flows__ba-label-text.is-after {
+  color: var(--orange-720);
+}
+
+/* Nav controls — fade in/out on scroll via Framer Motion opacity */
+.flows__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* gap-2 */
+}
+
+.flows__nav-counter {
+  color: var(--grey-400); /* text-gray-160 ≈ muted */
+  text-transform: none; /* override t-h5 capitalize from parent */
+}
+
+.flows__nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* gap-2 */
+}
+
+.flows__nav-btn {
+  display: flex;
+  align-items: center;
+  padding: 2px 2px;
+  background: var(--grey-880); /* bg-gray-880 */
+  border-radius: 8px; /* rounded-lg */
+  border: none;
+  cursor: pointer;
+  color: var(--grey-400);
+  transition: transform 0.3s ease-out, color 0.15s ease-out;
+}
+
+.flows__nav-btn:hover {
+  transform: scale(1.05);
+}
+
+.flows__nav-btn:active {
+  transform: scale(1);
+  transition: none;
+}
+
+.flows__chevron {
+  /* color inherited from button */
+  transition: transform 0.3s ease-out;
+}
+
+.flows__chevron--next {
+  transform: rotate(180deg);
+}
+
+.flows__nav-btn:hover .flows__chevron {
+  transform: scale(0.95);
+}
+
+.flows__nav-btn:hover .flows__chevron--next {
+  transform: rotate(180deg) scale(0.95);
+}
+
+/* Image carousel frame */
+.flows__frame {
+  border: 2px solid var(--olive-160);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Individual slide */
+.flows__slide {
+  position: relative;
+}
+
+.flows__slide--hidden {
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+  visibility: hidden;
+}
+
+/* ── Notes rail ──────────────────────────────────────────────────────────── */
+
+.flows__notes-wrap {
+  position: absolute;
+  padding-top: 32px; /* pt-8 */
+  max-width: 1000px;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.flows__notes-rail {
+  max-width: 240px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px; /* gap-0.5 */
+  outline: 1px solid var(--olive-400);
+  outline-offset: -8px;
+  margin: 32px 0; /* my-8 */
+  background: var(--olive-80);
+  color: var(--olive-800);
+  transition: transform 0.3s ease-out;
+  transform: translateX(0) rotate(1deg);
+  position: relative;
+}
+
+.flows__notes-rail.is-open {
+  transform: translateX(120px) rotate(0deg);
+}
+
+/* Vertical tab button — positioned to the right of the rail */
+.flows__notes-tab {
+  order: 1;
+  position: absolute;
+  right: -32px; /* -right-8 */
+  top: 0;
+  height: 100%;
+  background: var(--olive-80);
+  color: var(--olive-800);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+}
+
+.flows__notes-tab-inner {
+  padding: 4px 8px; /* py-1 px-2 */
+  display: flex;
+  align-items: center;
+  gap: 4px; /* gap-1 */
+  writing-mode: vertical-lr;
+  text-orientation: sideways;
+}
+
+.flows__notes-arrow {
+  flex-shrink: 0;
+  transition: transform 0.3s ease-out;
+}
+
+.flows__notes-arrow.is-flipped {
+  transform: rotate(180deg);
+}
+
+/* Notes content area — flex-1 overflow-y-auto max-h-[500px] from original */
+.flows__notes-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.flows__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* gap-6 */
+  margin-top: 16px; /* mt-4 */
+  list-style: none;
+  padding: 24px; /* p-6 — from original's ul */
+}
+
+.flows__note-item {
+  /* inherits t-p4 from list */
+}
+
+/* Internal note toggle button (e.g. "See next step") */
+.flows__note-toggle-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.flows__note-toggle-label {
+  display: inline-flex;
+  color: var(--mint-560);
+  border-bottom: 2px dashed currentColor;
+  padding-top: 8px; /* pt-2 */
+  width: fit-content;
+  font: inherit;
+}
+
+/* ── BeforeAfter ─────────────────────────────────────────────────────────── */
+
+.ba {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.ba__before {
+  position: relative;
+}
+
+.ba__img {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+}
+
+.ba__after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ba__after-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ba__after-main {
+  position: relative;
+  width: 100%;
+}
+
+.ba__internal-note-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ba__notes-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ba__note-pointer {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.ba__note-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--olive-80);
+  color: var(--olive-960);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* ── BIPs section ────────────────────────────────────────────────────────── */
+/*                                                                           */
+/* Layout: 4-col grid. Card (col 2–3) and stats overlay (col 1–4) share     */
+/* row 1. Stats uses align-self: end to anchor to the bottom of row 1.      */
+/* Notion section is in row 2. Notes rail slides out from right edge.       */
+
+.bips {
+  width: 100%;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto auto;
+  gap: 96px; /* gap-24 */
+}
+
+/* ── Header card ── */
+
+.bips__card-col {
+  grid-column: 2 / 4;
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+}
+
+.bips__card-outer {
+  /* .surface provides paper-surface ::after + padding */
+  max-width: fit-content;
+  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32); /* paper-surface-shadow */
+}
+
+.bips__card-inner {
+  color: var(--blue-960);
+  border: 2px solid var(--blue-560);
+  padding: 48px; /* p-12 */
+  display: flex;
+  flex-direction: column;
+  max-width: 448px; /* max-w-md */
+  gap: 40px; /* gap-10 */
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .bips__card-inner {
+    padding-top: 48px;
+    padding: 64px; /* md:p-16 */
+  }
+}
+
+.bips__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* gap-4 */
+}
+
+.bips__h2 {
+  color: var(--blue-800);
+  text-wrap: balance;
+}
+
+.bips__subtitle {
+  text-wrap: balance;
+}
+
+.bips__divider {
+  border: none;
+  border-top: 1px dashed var(--blue-320);
+}
+
+.bips__aside {
+  display: flex;
+  gap: 16px; /* gap-4 */
+  max-width: 320px; /* max-w-xs */
+}
+
+.bips__aside-text {
+  color: var(--grey-320);
+  text-wrap: balance;
+}
+
+/* Footer strip — pulled into the card bleed */
+.bips__card-footer {
+  color: var(--grey-480);
+  margin: 32px -32px -32px -32px; /* mt-8 -ml-8 -mr-6 -mb-8 (approx) */
+}
+
+.bips__footer-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* gap-1 */
+}
+
+.bips__footer-row1 {
+  display: flex;
+  gap: 4px; /* gap-1 */
+  align-items: center;
+}
+
+.bips__footer-rule {
+  height: 1px;
+  width: 100%;
+  background-color: var(--grey-800);
+  flex: 1;
+}
+
+.bips__footer-row2 {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── Stats overlay ── */
+
+.bips__stats-row {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: flex-end; /* self-end equivalent */
+  pointer-events: none; /* don't block card clicks */
+}
+
+.bips__stats {
+  width: 100%;
+  height: fit-content;
+  color: var(--blue-960);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 40px 0; /* py-10 */
+}
+
+.bips__stats-left {
+  grid-column: 1;
+  width: 100%;
+  text-align: center;
+}
+
+.bips__stats-right {
+  grid-column: 4;
+  width: 100%;
+  text-align: center;
+}
+
+/* highlight1 typography — Fraunces display, 24px */
+.t-highlight1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+/* ── Notion + notes section ── */
+
+.bips__notion-section {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* gap-2 */
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 64px; /* pb-16 */
+  padding-left: 128px;  /* px-32 */
+  padding-right: 128px;
+}
+
+.bips__notion-label {
+  text-align: center;
+  color: var(--grey-400);
+}
+
+.bips__notion-wrap {
+  display: flex;
+  position: relative;
+  align-items: center;
+  width: 100%;
+}
+
+/* Iframe column — shifts left when notes open */
+.bips__iframe-col {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+  transition: transform 0.3s ease-in-out;
+}
+
+.bips__iframe-col.is-open {
+  transform: translateX(-128px); /* -translate-x-32 */
+}
+
+/* Reveal overlay button */
+.bips__reveal-btn {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  cursor: zoom-in;
+  border-radius: 8px; /* rounded-lg */
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  transition: opacity 1s ease-out; /* duration-1000 */
+}
+
+.bips__reveal-btn.is-active {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bips__iframe {
+  background: white;
+  border: 4px solid black;
+  display: block;
+  width: 100%;
+}
+
+/* ── Notes rail — olive panel, same pattern as Flows ── */
+
+.bips__notes-rail {
+  display: flex;
+  max-width: 240px;
+  gap: 2px; /* gap-0.5 */
+  align-items: flex-start; /* items-start */
+  background: var(--olive-80);
+  color: var(--olive-800);
+  position: absolute;
+  right: 0;
+  height: 100%;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0) rotate(1deg);
+}
+
+.bips__notes-rail.is-open {
+  transform: translateX(112px) rotate(0deg); /* translate-x-28 */
+}
+
+.bips__notes-tab {
+  order: 1;
+  position: absolute;
+  right: -32px; /* -right-8 */
+  top: 0;
+  height: 100%;
+  background: var(--olive-80);
+  color: var(--olive-800);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+}
+
+.bips__notes-tab-inner {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  writing-mode: vertical-lr;
+  text-orientation: sideways;
+  gap: 4px;
+  text-transform: none; /* override t-h5 capitalize */
+}
+
+.bips__notes-arrow {
+  flex-shrink: 0;
+  transition: transform 0.3s ease-out;
+}
+
+.bips__notes-arrow.is-flipped {
+  transform: rotate(180deg);
+}
+
+.bips__notes-content {
+  padding: 24px; /* p-6 */
+  outline: 1px solid var(--olive-400);
+  outline-offset: -8px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 600px; /* match iframe height */
+}
+
+.bips__notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* gap-6 */
+  margin-top: 16px; /* mt-4 */
+  list-style: none;
+  padding: 0;
+}
+
+.bips__notes-divider {
+  border: none;
+  border-top: 1px solid var(--olive-400);
+  margin: 16px 0; /* my-4 */
+}
+
+.bips__footnote {
+  padding-top: 8px; /* py-2 */
+  text-align: center;
+  color: var(--grey-400);
+}
+
+/* ── Multiverse section ──────────────────────────────────────────────────── */
+/*                                                                           */
+/* Scroll-driven dissolve: before-caption fades out, after-captions fade in */
+/* as the poster passes through viewport center. The motion IS the artifact. */
+/* Do not flatten to static — conviction comes from the earned reveal.       */
+
+.multiverse {
+  width: 100%;
+  z-index: 10;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 96px; /* gap-24 */
+}
+
+/* ── Header card — full-width centered ── */
+
+.multiverse__header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+
+.multiverse__card-outer {
+  max-width: fit-content;
+  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32);
+}
+
+.multiverse__card-inner {
+  color: var(--blue-960);
+  border: 2px solid var(--blue-560);
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  max-width: 448px; /* max-w-md */
+  gap: 40px; /* gap-10 */
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .multiverse__card-inner { padding: 64px; }
+}
+
+.multiverse__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* gap-8 */
+}
+
+.multiverse__h2 {
+  color: var(--blue-800);
+  text-wrap: balance;
+}
+
+.multiverse__subtitle {
+  text-wrap: balance;
+}
+
+.multiverse__divider {
+  border: none;
+  border-top: 1px dashed var(--blue-320);
+}
+
+.multiverse__aside {
+  display: flex;
+  gap: 16px;
+  max-width: 320px; /* max-w-xs */
+}
+
+.multiverse__aside-text {
+  color: var(--grey-320);
+  text-wrap: balance;
+}
+
+/* ── Before-caption — left-anchored in col 1–2 ── */
+
+.multiverse__before-row {
+  width: 100%;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.multiverse__before-text {
+  grid-column: 1 / 3; /* col-span-2 */
+  display: flex;
+  text-wrap: balance;
+  justify-content: flex-start;
+  max-width: 240px;
+  color: var(--grey-480);
+}
+
+/* ── Poster + under-caption — col 2–3 centered ── */
+
+.multiverse__poster-col {
+  grid-column: 2 / 4; /* col-span-2 col-start-2 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px; /* gap-2 */
+}
+
+.multiverse__poster {
+  pointer-events: none;
+  object-fit: contain;
+  max-width: fit-content;
+  max-height: 80vh;
+  z-index: 1;
+  user-select: none;
+  width: 100%;
+  border-radius: 24px; /* rounded-3xl */
+  display: block;
+}
+
+.multiverse__after-sub {
+  text-align: center;
+  width: 100%;
+  color: var(--grey-480);
+}
+
+/* ── After-caption — centered, full-width ── */
+
+.multiverse__after-row {
+  width: 100%;
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.multiverse__after-text {
+  text-align: center;
+  display: flex;
+  text-wrap: balance;
+  max-width: 240px;
+  color: var(--grey-480);
+}
+
+/* ── BiconomyChip — mark punctuation ── */
+
+.multiverse__chip-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-top: 32px; /* mt-8 */
+}
+
+.biconomy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* gap-2 */
+  border-radius: 16px; /* rounded-2xl */
+  border: 1px solid var(--grey-800);
+  background: white;
+  padding: 16px; /* px-4 py-4 */
+}
+
+.biconomy-chip__slot {
+  display: contents;
+}
+
+.biconomy-chip__divider {
+  height: 16px; /* h-4 */
+  width: 1px;
+  flex-shrink: 0;
+  background: var(--grey-800);
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+
+/* ── Demos section ───────────────────────────────────────────────────────── */
+/*                                                                           */
+/* Layout: 4-col grid, gap-24 (96px). Header card centered in col-span-4.  */
+/* Tabs: radio inputs as visually-styled tab labels with overlap borders.   */
+/* Video: scale(0.95) at rest → scale(1) when playing; hover overlay.      */
+
+.demos {
+  width: 100%;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 96px; /* gap-24 */
+}
+
+/* ── Header ── */
+
+.demos__header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+
+.demos__header-card {
+  /* surface (paper-surface equivalent) already handles ::after bg + filter */
+  z-index: 10;
+  box-shadow: 0.5px 0.5px 2.4px 0px hsla(0, 0%, 0%, 0.24);
+  color: var(--blue-960);
+  display: flex;
+  flex-direction: column;
+  max-width: 512px; /* max-w-lg */
+  gap: 40px; /* gap-10 */
+  align-items: center;
+  text-align: center;
+}
+
+.demos__header-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* gap-10 */
+  align-items: center;
+  padding: 48px 0; /* py-12 */
+}
+
+.demos__header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* gap-2 */
+  align-items: center;
+}
+
+.demos__header-h2 {
+  color: var(--blue-800);
+  text-wrap: balance;
+}
+
+.demos__header-sub {
+  max-width: 320px; /* max-w-xs */
+  text-align: center;
+}
+
+/* ── Tabs ── */
+
+.demos__tabs-section {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* gap-4 */
+  width: 100%;
+}
+
+.demos__tab-bar {
+  display: flex;
+  justify-content: center;
+}
+
+.demos__tab-group {
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.demos__tab-radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.demos__tab-label {
+  display: flex;
+  cursor: pointer;
+  margin-left: -1px; /* -ml-px — overlap for connected border feel */
+  max-height: fit-content;
+  border: 1px solid var(--orange-400);
+  color: var(--orange-400);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.demos__tab-label:hover {
+  background-color: var(--orange-100);
+}
+
+.demos__tab-label--active {
+  border-color: var(--orange-560);
+  background-color: var(--orange-560);
+  color: var(--orange-100);
+}
+
+/* Graduated padding — tab weight increases left to right */
+.demos__tab-label--figma { padding: 8px 12px; }  /* py-2 px-3 */
+.demos__tab-label--web   { padding: 10px 14px; } /* py-2.5 px-3.5 */
+.demos__tab-label--game  { padding: 12px 16px; } /* py-3 px-4 */
+
+.demos__tab-disabled {
+  display: flex;
+  margin-left: -1px;
+  max-height: fit-content;
+  padding: 14px 16px; /* py-3.5 px-4 */
+  border: 1px solid var(--grey-720);
+  background-color: var(--grey-880);
+  color: var(--grey-560);
+}
+
+/* ── Media container ── */
+
+.demos__media-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 40px; /* gap-10 */
+}
+
+.demos__title {
+  text-align: center;
+  color: var(--grey-560);
+  text-transform: none; /* override t-h5 capitalize */
+}
+
+/* Figma: two-column row of videos */
+.demos__media-row--figma {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  padding: 0 128px; /* px-32 */
+  max-height: 100dvh;
+  gap: 16px; /* gap-4 */
+}
+
+/* Web / Game: single column */
+.demos__media-row--single {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 128px; /* px-32 */
+  gap: 16px; /* gap-4 */
+}
+
+/* Video item: grows to fill half-width row */
+.demos__video-item {
+  min-width: 0;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+}
+
+.demos__image-item {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* gap-4 */
+}
+
+/* Video frame: square, max 100dvh */
+.demos__video-frame {
+  display: flex;
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  max-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+
+.demos__image-frame {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Video player shell — scales with play state */
+.demos__video-player {
+  position: relative;
+  overflow: clip;
+  border-radius: 30px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--grey-880);
+  transform: scale(0.95);
+  transition: transform 0.3s ease-out;
+  cursor: pointer;
+}
+
+.demos__video-player.is-playing {
+  transform: scale(1);
+}
+
+.demos__video-el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hover / focus overlay */
+.demos__video-controls-overlay {
+  position: absolute;
+  inset: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px; /* gap-3 */
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+  border-radius: 28px; /* matches outer radius - inset */
+}
+
+.demos__video-player:hover .demos__video-controls-overlay,
+.demos__video-player:focus-within .demos__video-controls-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.demos__video-main-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px; /* py-1.5 px-2 */
+  border-radius: 16px; /* rounded-2xl */
+  background-color: rgba(20, 20, 20, 0.8); /* bg-gray-880/80 */
+  border: none;
+  cursor: pointer;
+  color: var(--grey-400);
+  transition: background-color 0.15s ease;
+}
+
+.demos__video-main-btn:hover {
+  background-color: var(--grey-880);
+}
+
+.demos__image-el {
+  width: 100%;
+  border-radius: 12px; /* rounded-xl */
+  max-width: fit-content;
+  height: 70vh;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── Caption row ── */
+
+.demos__caption-row {
+  padding-top: 8px; /* pt-2 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px; /* gap-1 */
+}
+
+.demos__caption-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4ch;
+  position: relative;
+}
+
+.demos__caption-inner--video {
+  max-width: 24rem; /* max-w-sm */
+}
+
+.demos__play-aside {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* gap-2 */
+  position: absolute;
+}
+
+.demos__play-aside--left {
+  left: -16px; /* -left-4 */
+  transform: translateX(-100%);
+}
+
+.demos__play-aside--right {
+  right: -16px; /* -right-4 */
+  transform: translateX(100%);
+}
+
+.demos__play-divider {
+  width: 1px;
+  height: 24px; /* h-6 */
+  background-color: var(--grey-640);
+  flex-shrink: 0;
+}
+
+.demos__play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px; /* p-2 */
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--grey-400);
+  transition: transform 0.3s ease-out;
+}
+
+.demos__play-btn:hover,
+.demos__play-btn:focus-visible {
+  transform: scale(1.1);
+}
+
+.demos__play-btn:active {
+  transform: scale(0.95);
+}
+
+.demos__play-btn--left  { margin-right: -8px; } /* -mr-2 */
+.demos__play-btn--right { margin-left: -8px; }  /* -ml-2 */
+
+.demos__icon-sm { width: 20px; height: 20px; }  /* size-5 */
+.demos__icon-lg { width: 40px; height: 40px; }  /* size-10 */
+
+.demos__caption {
+  text-align: center;
+  color: var(--grey-560);
+  height: fit-content;
+  width: fit-content;
+}
+
+.demos__link {
+  color: var(--yellow-480);
+  text-decoration: underline;
+}
+
+/* ── Quote card ── */
+
+.demos__quote-row {
+  grid-column: 1 / -1;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.demos__quote-card {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 2px solid var(--mint-100);
+  gap: 8px; /* gap-2 */
+  padding: 32px 80px 36px; /* px-20 py-8 pb-9 */
+}
+
+.demos__quote-text {
+  display: flex;
+  color: var(--grey-400);
+  flex-direction: column;
+  max-width: 24rem; /* max-w-sm */
+  gap: 8px;
+}
+
+/* ── Web3 Abstractor ── */
+
+.demos__web3-row {
+  grid-column: 1 / -1;
+  display: flex;
+  padding-bottom: 56px; /* pb-14 */
+  width: 100%;
+  justify-content: center;
+}
+
+.demos__web3-wrap {
+  position: relative;
+}
+
+.demos__web3-img {
+  pointer-events: none;
+  position: relative;
+  user-select: none;
+  z-index: 1;
+  display: block;
+}
+
+.demos__web3-tooltip {
+  position: absolute;
+  opacity: 0;
+  transform: translateX(-8px) rotate(0deg);
+  right: -96px; /* -right-24 = -6rem */
+  top: 0;
+  display: flex;
+  color: var(--grey-560);
+  text-align: center;
+  flex-direction: column;
+  height: fit-content;
+  width: fit-content;
+  padding: 4px 8px; /* py-1 px-2 */
+  border: 2px solid var(--mint-100);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  pointer-events: none;
+}
+
+.demos__web3-wrap:hover .demos__web3-tooltip {
+  opacity: 1;
+  transform: translateX(0) rotate(2deg);
+}
+
+/* ==========================================================================
+   API
+   ========================================================================== */
+
+.api {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  row-gap: 80px;       /* gap-y-20 = 5rem */
+  padding-top: 96px;   /* py-24 = 6rem */
+  padding-bottom: 96px;
+}
+
+/* ── Header card ── */
+
+.api__header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
+
+.api__card-outer {
+  /* surface class provides paper feel */
+  z-index: 10;
+  padding: 48px;           /* p-12 */
+  display: flex;
+  flex-direction: column;
+  max-width: 512px;        /* max-w-lg */
+  gap: 40px;               /* gap-10 */
+  align-items: center;
+  text-align: center;
+  color: var(--blue-960);
+}
+
+.api__card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;               /* gap-8 */
+  align-items: center;
+}
+
+.api__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;               /* gap-8 */
+  align-items: center;
+}
+
+.api__h2 {
+  text-align: center;
+  color: var(--blue-800);
+  text-wrap: balance;
+}
+
+.api__subtitle {
+  text-wrap: balance;
+}
+
+/* ── Two-column area: slider + side ── */
+
+.api__two-col {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 48px;               /* gap-12 = 3rem */
+  width: 100%;
+}
+
+/* ── APISlider ── */
+
+.api__slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  margin-top: 32px;        /* mt-8 */
+}
+
+.api__slider-col {
+  grid-column: 1 / 5;     /* col-span-4 col-start-1 */
+}
+
+.api__slider-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  padding-left: 128px;     /* pl-[128px] — creates depth reveal room */
+  padding-top: 128px;      /* pt-[128px] */
+}
+
+/* Stack container — overflow: visible so offset cards show behind */
+.api__stack-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+  overflow: visible;
+}
+
+.api__card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;               /* gap-4 */
+  width: 100%;
+}
+
+/* Card image frame — black bg, thin border, upward shadow */
+.api__card-frame {
+  position: relative;
+  border: 1px solid var(--grey-240);
+  background: black;
+  box-shadow: 0 -4.84px 4.84px 0 rgba(0, 0, 0, 0.25);
+}
+
+.api__card-img {
+  object-fit: contain;
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Caption + nav row */
+.api__caption-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;                /* gap-2 */
+  padding-top: 8px;        /* py-2 */
+  padding-bottom: 8px;
+}
+
+.api__caption {
+  color: var(--grey-480);
+  text-wrap: balance;
+  text-align: start;
+}
+
+/* Nav buttons */
+.api__nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.api__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--grey-480);
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.api__nav-btn:hover {
+  color: var(--grey-240);
+  background: var(--grey-960);
+}
+
+/* ── Side column ── */
+
+.api__side-col {
+  grid-column: 5 / 7;     /* col-span-2 */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;               /* gap-4 */
+}
+
+.api__send-assets {
+  width: 120px;
+  height: 64px;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+  filter: drop-shadow(0.68px 0.68px 1.37px rgba(0, 0, 0, 0.24));
+}
+
+.api__side-text {
+  text-wrap: balance;
+  max-width: 240px;
+  color: var(--grey-480);
+}
+
+/* ── Twitter section ── */
+
+.api__twitter-row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 48px;               /* gap-12 */
+  width: 100%;
+}
+
+/* Quote card */
+.api__quote-card {
+  position: relative;
+  background: white;
+  max-height: fit-content;
+  max-width: fit-content;
+  padding: 48px;           /* p-12 */
+  padding-bottom: 80px;    /* pb-20 */
+  padding-right: 160px;    /* pr-40 */
+  border: 2px solid var(--mint-100);
+}
+
+.api__quote-text {
+  color: var(--grey-400);
+  max-width: 260px;
+}
+
+/* Spinning badge — absolute bottom-right */
+.api__spin-wrap {
+  aspect-ratio: 1;
+  position: absolute;
+  bottom: 32px;            /* bottom-8 */
+  right: 32px;             /* right-8 */
+  border-radius: 50%;
+  width: 64px;             /* size-16 */
+  height: 64px;
+  background: var(--yellow-240);
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spin animation — 60s, reverse direction */
+@keyframes spin-reverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+.api__spin-icon {
+  animation: spin-reverse 60s linear infinite;
+  width: 56px;
+  height: 56px;
+}
+
+/* Tweet column */
+.api__tweet-col {
+  width: 550px;
+  margin-top: 112px;       /* mt-28 = 7rem */
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.api__tweet-label {
+  color: var(--grey-480);
+}
+
+/* ==========================================================================
+   StayingAnchored
+   ========================================================================== */
+
+.sa {
+  color: var(--grey-320);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;             /* gap-4 */
+  justify-content: center;
+  align-items: center;
+}
+
+.sa__lead {
+  max-width: 384px;      /* max-w-sm */
+  text-align: center;
+  padding-top: 40px;     /* py-10 */
+  padding-bottom: 40px;
+  color: var(--blue-800);
+}
+
+/* 10-column photo/prose grid */
+.sa__grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 16px;             /* gap-4 */
+}
+
+/* Photo base */
+.sa__photo {
+  height: fit-content;
+  border: 1px solid var(--grey-320);
+}
+
+.sa__photo-img {
+  pointer-events: none;
+  user-select: none;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Photo positions — explicit grid placement */
+
+.sa__photo--a {
+  grid-column: 4 / 6;
+  grid-row: 1;
+}
+
+.sa__photo--b {
+  grid-column: 6 / 8;
+  grid-row: 1;
+}
+
+.sa__photo--c {
+  grid-column: 3 / 5;
+  grid-row: 2;
+}
+
+.sa__photo--d {
+  grid-column: 5 / 7;
+  grid-row: 2;
+}
+
+.sa__prose-1 {
+  grid-column: 3 / 7;
+  grid-row: 3;
+}
+
+.sa__photo--e {
+  grid-column: 5 / 7;
+  grid-row: 4;
+  margin-top: 80px;      /* mt-20 = 5rem */
+}
+
+.sa__prose-2 {
+  grid-column: 7 / 10;
+  grid-row: 4 / 6;
+  margin-top: 80px;      /* mt-20 = 5rem */
+  text-wrap: pretty;
+}
+
+.sa__photo--f {
+  grid-column: 3 / 5;
+  grid-row: 5;
+}
+
+.sa__photo--g {
+  grid-column: 5 / 7;
+  grid-row: 5;
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .intro__inner,
+  .intro__surface,
+  .intro__memo-cards,
+  .intro__memo-card--mid,
+  .intro__dot,
+  .intro__toggle {
+    transition: none !important;
+  }
+}
