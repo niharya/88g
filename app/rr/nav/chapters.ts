@@ -1,8 +1,8 @@
 // chapters.ts — /rr chapter data
 
-import type { Chapter } from '../../../components/nav/types'
+import type { Chapter } from '../../components/nav/types'
 
-export type { Chapter } from '../../../components/nav/types'
+export type { Chapter } from '../../components/nav/types'
 
 export const chapters: Chapter[] = [
   { id: 'intro',     title: 'Introduction',  year: 'Sep 2024' },

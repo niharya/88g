@@ -14,22 +14,31 @@
 //
 // Interactions:
 //   isExpanded: story card slides left, card stack fans out (CSS class toggle)
-//   constraintsOpen: hidden constraint rows reveal (CSS class toggle + max-height)
+//   constraintsOpen: hidden constraint rows reveal (Framer Motion height + AnimatePresence)
 
 import { useState } from 'react'
-import { motion, Variants } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
-// ── Hidden item animation — mirrors vanilla rr-interactions.js stagger ─────
-// opacity + slight translateY slide, staggered by index (i * 0.048s)
+// ── Shared motion constants ────────────────────────────────────────────────
+// Single easing curve + base duration — all timings are multiples of DUR
 
-const hiddenItem: Variants = {
-  hidden:  { opacity: 0, y: 4 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.048, duration: 0.20, ease: [0.45, 0, 0.15, 1] },
-  }),
-}
+const EASE: [number, number, number, number] = [0.45, 0, 0.15, 1]
+const DUR = 0.30
+
+// ── Hidden section dimensions ──────────────────────────────────────────────
+// Derived from CSS: item (12px × 1.3 line-height + 2×6 padding = 28px)
+//                   border-mid (1px border + 2×6 margin = 13px)
+// No magic max-height — the motion.div height matches actual content exactly.
+
+const ROW_H = 28
+const DIV_H = 13
+const HIDDEN_OPEN_H = 3 * ROW_H + 3 * DIV_H  // 123px
+
+const HIDDEN_ROWS = [
+  'A memetic visual language',
+  'No possibility of a tie',
+  'Visual restraint',
+]
 
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -104,27 +113,30 @@ export default function Intro() {
             <p className="rr-constraints-card__item">A complete match in &lt; two minutes</p>
             <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
 
-            {/* Hidden rows — staggered fade+slide matching vanilla rr-interactions.js */}
-            <div className="rr-constraints-card__hidden">
-              <motion.p
-                className="rr-constraints-card__item"
-                variants={hiddenItem} custom={0}
-                initial="hidden" animate={constraintsOpen ? 'visible' : 'hidden'}
-              >A memetic visual language</motion.p>
-              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
-              <motion.p
-                className="rr-constraints-card__item"
-                variants={hiddenItem} custom={1}
-                initial="hidden" animate={constraintsOpen ? 'visible' : 'hidden'}
-              >No possibility of a tie</motion.p>
-              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
-              <motion.p
-                className="rr-constraints-card__item"
-                variants={hiddenItem} custom={2}
-                initial="hidden" animate={constraintsOpen ? 'visible' : 'hidden'}
-              >Visual restraint</motion.p>
-              <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
-            </div>
+            {/* ── Hidden rows — Framer Motion height + AnimatePresence ── */}
+            {/* Height animates precisely (no magic max-height).           */}
+            {/* AnimatePresence gives rows a proper exit on collapse.      */}
+            <motion.div
+              className="rr-constraints-card__hidden"
+              animate={{ height: constraintsOpen ? HIDDEN_OPEN_H : 0 }}
+              initial={false}
+              transition={{ duration: DUR, ease: EASE }}
+            >
+              <AnimatePresence>
+                {constraintsOpen && HIDDEN_ROWS.map((text, i) => (
+                  <motion.div
+                    key={text}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    transition={{ duration: DUR * 0.8, ease: EASE, delay: i * 0.048 }}
+                  >
+                    <p className="rr-constraints-card__item">{text}</p>
+                    <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
 
             <button
               className="rr-constraints-card__toggle"

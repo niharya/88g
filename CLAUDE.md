@@ -11,128 +11,195 @@ This is Nihar Bhagat's portfolio site.
 
 - Live site: `https://nihar.works`
 - Repo: `niharya/portfolio`
-- Original Biconomy reference: `https://88g.vercel.app/biconomy`
-- Original Biconomy source: `akshar-dave/88g`
+- Stack: **Next.js 15 (App Router), React 19, Framer Motion 12, TypeScript**
 
-The broader repo contains multiple portfolio routes. There is also a `/rr` route which
-may serve as a structural reference for route-specific vanilla modules — but it is
-**background context only** unless explicitly needed.
+The portfolio has multiple project routes. Each route is a long-form editorial
+case study rendered as a sheet-stack reading environment.
+
+### Reference material
+
+Everything under `reference/` is read-only context — never modify it.
+
+- `reference/88g-source/` — Original Biconomy page (Next.js 16 / React 18 / Tailwind / Jotai).
+  Built by another dev. Used as content/interaction reference for the Biconomy port.
+- `reference/portfolio-vanilla/` — The original vanilla HTML/CSS/JS portfolio site.
+  Contains the source-of-truth content and structure for all routes being ported.
+- `reference/v0-duel-game/` — React/TypeScript port of the Rug Rumble card game.
+  Created with Vercel v0. Game logic is framework-agnostic. UI uses Tailwind + CSS vars.
 
 ---
 
 ## Active working context
 
-**Current focus: `/biconomy` only.**
+**Current focus: `/rr` (Rug Rumble) — porting from vanilla to Next.js.**
 
-All implementation, review, and refinement work is scoped to:
+`/biconomy` is already ported and serves as the **design system donor**. The Biconomy
+route established how the vanilla design language maps to React/Next.js. New routes
+should reuse its patterns (Sheet, surface, mat, ChapterMarker, notes rails) and
+re-skin them for the route's own palette.
 
-- `biconomy/index.html`
-- `biconomy/biconomy-page.js`
-- `biconomy/biconomy-flows.js`
-- `biconomy/biconomy-demos.js`
-- `biconomy/biconomy-interactions.js`
-- `layouts/biconomy.css`
+### Files in play for `/rr`
 
-Shared layers touched by `/biconomy`:
+Route-specific (being created):
+- `app/rr/page.tsx` — main page, sheet-stack composition
+- `app/rr/layout.tsx` — font-ready gate (same pattern as biconomy)
+- `app/rr/rr.css` — route-specific layout and surface tokens
+- `app/rr/nav/` — chapters data, any RR-specific nav overrides
+- `app/rr/components/` — section components and RR-unique interactions
 
-- `tokens.css` — shared design tokens
-- `components/components.css` — shared component styles
+Shared layers (may be touched):
+- `app/globals.css` — design tokens, typography, shared surface classes
+- `app/biconomy/nav/` — ChapterMarker, ProjectMarker, ExitMarker (reuse directly)
+- `app/biconomy/components/Sheet.tsx` — sheet container (reuse directly)
+- `app/biconomy/components/PaperFilter.tsx` — SVG displacement filter (reuse directly)
 
-Do not drift into other routes or shared layers unless the work on `/biconomy` makes
-it strictly unavoidable (route integration, a shared primitive already in use, or an
-unavoidable shared styling dependency). If you need to touch a shared layer, flag it
-explicitly before doing so.
+When a component is reused across routes, consider promoting it from
+`app/biconomy/` to a shared `app/components/` directory. Flag this explicitly.
 
-> Confirm actual file and folder names by inspecting the repo at session start.
-> The structure above reflects the known state as of April 2026 but may have evolved.
+### Files in play for `/biconomy` (maintenance only)
+
+`/biconomy` is complete. Do not modify it unless:
+- A shared component needs to move to `app/components/`
+- A shared CSS class in `globals.css` needs to become parameterizable
+- A bug is found during RR work that traces back to a shared primitive
+
+Route files:
+- `app/biconomy/page.tsx`, `app/biconomy/layout.tsx`, `app/biconomy/biconomy.css`
+- `app/biconomy/components/` — Intro, Flows, Demos, BIPs, Multiverse, API, StayingAnchored, etc.
+- `app/biconomy/nav/` — ChapterMarker, ProjectMarker, ExitMarker, chapters.ts
 
 ---
 
 ## Stack and implementation philosophy
 
-This repo is **vanilla-first**.
+This repo is **Next.js / React / Framer Motion** — but with a vanilla-informed
+sensibility. The original vanilla portfolio was hand-authored with intention.
+The port preserves that.
 
-That means:
+### What this means in practice
 
-- Hand-authored HTML, CSS, and JS wherever possible
-- Local assets
-- Route-specific JS modules
-- No React, Tailwind, or framework additions
-- No build complexity unless something is truly impossible without it
+- CSS handles presentation. Use plain CSS files, not CSS-in-JS or Tailwind utilities.
+- JS/React handles state and interaction. Use `useState`, `useRef`, `useEffect`.
+- Framer Motion handles physics-based animation (springs, AnimatePresence, scroll-driven
+  transforms). Do not wrap everything in `<motion.div>` — only where springs or
+  presence transitions genuinely earn their keep. Simple CSS transitions are fine.
+- Route-specific modules with clear ownership. Each route has its own components/,
+  nav/, and CSS file.
+- No Tailwind. No CSS modules. No styled-components. Plain `.css` imports.
+- Shared tokens live in `globals.css`. Route tokens live in route CSS files.
 
-The original Biconomy page (`akshar-dave/88g`) was built in Next.js / React / Tailwind.
-The goal here is **not** to preserve that stack identity.
-The goal is to preserve the **experience, structure, and poetry** while translating it
-into the portfolio's simpler house language. Preserve the original page's relationships
-and reading experience, not its framework-shaped implementation details.
+### When to use Framer Motion vs CSS transitions
 
-### Shared primitives
+**Framer Motion:** Spring physics, AnimatePresence (mount/unmount animation),
+scroll-driven transforms (useScroll + useTransform), layout animations, staggered
+entry sequences.
 
-There is a lightweight shared CSS layer (`tokens.css`, `components/components.css`).
-Use it where it applies. Do not extend it for route-specific needs.
-
-There is no assumed shared JS utility layer. If one exists, inspect and confirm before
-using it. Do not invent new global abstractions for local Biconomy needs.
+**CSS transitions:** Simple hover states, opacity fades, color changes, transform
+tweens with known durations. If you can express it as `transition: X 0.3s ease`,
+use CSS.
 
 ---
 
-## Current state of `/biconomy`
+## Vanilla → Next.js mapping
 
-This is **not** a rebuild from scratch.
+This is the established translation table. Use it when porting any vanilla page.
 
-`/biconomy` is already a substantial vanilla translation of the original — roughly
-70–80% complete structurally. The remaining work is refinement and recovery, not
-re-architecture.
+| Vanilla concept | Next.js equivalent | Notes |
+|---|---|---|
+| `.layout`, `.pattern-bg` | `.workbench` | Page-level field |
+| Section containers | `<Sheet>` component | Wraps each chapter in `.sheet.mat` |
+| Graph-paper grid background | `.mat` with CSS grid pattern | Biconomy: 32px mint grid. RR: adapt color. |
+| Paper texture overlay | `<PaperFilter>` SVG displacement | Shared across routes |
+| Card surfaces | `.surface` with displaced paper effect | Background color varies per route |
+| Sticky section nav | `<ChapterMarker>` per sheet | Interactive with tray + flyout |
+| Fixed left pill | `<ProjectMarker>` | Route name (e.g. "Rug Rumble") |
+| Fixed right pill | `<ExitMarker>` | Links to `/selection` |
+| `document.querySelector` + class toggles | React state + conditional classNames | — |
+| `IntersectionObserver` | Framer Motion `useInView` or custom hook | — |
+| `setTimeout` cascades | `useEffect` with cleanup returns | — |
+| Scroll listeners | Framer Motion `useScroll` + `useTransform` | — |
+| DOM event pub-sub | React state/context or prop passing | — |
+| `tokens.css` | `globals.css` | 1:1 token mapping (colors, spacing, typography, shadows) |
+| `components/components.css` | `globals.css` utilities section | Merged into global styles |
+| Route-specific CSS | `app/{route}/{route}.css` | Scoped to route |
 
-**Do not:**
-- Rebuild what is already working
-- Port blindly from the React source
-- Do generic cleanup or normalization passes
+---
 
-**Do:**
-- Continue the existing translation
-- Recover relational composition where it has been lost
-- Refine proof artifacts, docking relationships, and interaction credibility
-- Preserve authored values that are doing real compositional work
+## Rug Rumble: section plan
+
+RR has 4 chapters. Each becomes a `<Sheet>` with a `<ChapterMarker>`.
+
+| # | ID | Title | Date | Key content |
+|---|---|---|---|---|
+| 1 | `intro` | Introduction | Sep 2024 | Story card, North Star card, Constraints card, card stack (6 sketches) |
+| 2 | `mechanics` | Game Mechanics | Oct 2024 | Rules card with tabs, game board mount, "incoming" subsection, photo clip |
+| 3 | `cards` | Cards & UI | Nov 2024 | Card fan (5 evolution versions), tab-switching interface panel, notes overlay |
+| 4 | `outcome` | Outcome | Dec 2024 | Outcome text, quote block, scrollable rules showcase strip |
+
+### Component reuse from Biconomy
+
+These Biconomy components apply directly to RR (re-skin colors):
+- `Sheet` — section container with mat and nav-sled
+- `PaperFilter` — SVG displacement texture
+- `ProjectMarker` / `ExitMarker` — fixed nav pills
+- `ChapterMarker` — sticky chapter marker with tray and flyout
+- Notes rail pattern (from Flows) — for Cards & UI section's notes overlay
+
+### RR-unique components to build
+
+- `StoryCard` — text container with decorative strip/callout
+- `NorthStarCard` — icon + label card
+- `ConstraintsCard` — bordered grid with labeled rows
+- `CardStack` — 6 sketch images that fan out on toggle
+- `GameBoard` — mount point for v0-duel-game
+- `RulesCard` — tabbed card container
+- `CardFan` — 5 card versions with hover/click inspection states
+- `InterfacePanel` — mockup viewer with notes
+- `QuoteBlock` — quote with icon (potentially shared)
+- `RulesShowcase` — horizontal scrollable rule card strip
+- `SwitchPill` — two-state toggle
+
+### Game integration
+
+The v0-duel-game (`reference/v0-duel-game/`) provides:
+- `lib/game-logic.ts` — pure functions, framework-agnostic. Copy as-is.
+- `hooks/use-game.ts` — React hook wrapping game state. Copy as-is.
+- `components/game/` — 7 UI components (game-board, number-card, face-down-card,
+  score-tracker, deck-strip, rules-panel, peek-timer). Drop in raw, re-skin to
+  portfolio tokens in a later pass.
+
+The game mounts inside the Mechanics sheet. No shader — use a solid background.
 
 ---
 
 ## Page archetype
 
-Treat `/biconomy` as an **editorial sheet-stack project**:
+Both `/biconomy` and `/rr` are **editorial sheet-stack projects**:
 
-- Long authored route
-- Stacked paper / sheet feeling
-- Chapter markers and structured reading progression
-- Local section interactions
-- Tactile surfaces
-- Designed reading environment
+- Long authored routes with structured reading progression
+- Stacked paper / sheet feeling with chapter markers
+- Local section interactions (carousels, toggles, reveals)
+- Tactile surfaces with paper texture
+- Designed reading environments
 
-This is different from `/rr`, which is a more orchestrated stage experience.
-Do not force `/rr`'s interaction model onto Biconomy.
+`/rr` is more playful than `/biconomy` — it includes an interactive game, a card
+fan with hover states, and a showcase strip. But the underlying architecture
+(sheet-stack, chapter nav, surface cards, notes rails) is the same.
 
 ---
 
-## Core design diagnosis
+## Core design principle
 
-This is the most important sentence for all Biconomy work:
+> **Elements should feel docked, tucked, or suspended with intention —
+> not placed nearby.**
 
-> **The original makes elements feel docked, tucked, or suspended with intention.
-> The replica tends to make them feel placed nearby.**
-
-This is the real problem. The active work is **relational composition recovery** —
-not generic polish, not visual freshening.
-
-Concretely, this means:
+This applies across all project routes. Concretely:
 
 - Notes should feel docked to evidence, not parked beside it
-- Proof artifacts should read as real evidence, not placeholders
+- Cards should feel physically stacked, not listed vertically
 - Reveal states should feel latent and released, not detached and spawned
-- Small punctuation marks should feel curated, not appended
-- Sheets should feel physically related, not just flatly rendered
-
-Keep this diagnosis in mind when evaluating any change. If a fix doesn't address the
-docking / tucking / suspension relationship, it is probably the wrong fix.
+- Interactive controls must work or not look interactive (no dead affordances)
+- Sheets should feel physically related through the mat surface, not flatly rendered
 
 ---
 
@@ -140,117 +207,104 @@ docking / tucking / suspension relationship, it is probably the wrong fix.
 
 ### 1. Proof artifacts must remain proof artifacts
 
-If the original relies on real evidence — Notion embeds, Twitter/X posts, demos,
-screenshots, sketches — the replica must preserve that feeling of proof.
-
-If an external embed is unreliable:
-- Use a faithful local screenshot as a fallback
-- Or build a local artifact / modal fallback
-
-Do **not** leave placeholder emptiness where the original had proof.
+If the original page shows real evidence — sketches, screenshots, game boards,
+card iterations, interface mockups — the port must preserve that feeling of proof.
+Do not leave placeholder emptiness.
 
 ### 2. Controls must not lie
 
-If something looks interactive — tabs, arrows, toggles, reveal states, player icons,
-note markers — it must either:
-- Work correctly, or
-- Be restyled so it no longer implies interactivity
-
-Dead affordances are worse than missing affordances.
+If something looks interactive (tabs, arrows, toggles, reveal states), it must
+either work correctly or be restyled to not imply interactivity.
 
 ### 3. Route-specific ownership
 
-Keep styles, state, and logic close to `/biconomy`.
+Keep styles, state, and logic close to the route. Promote to shared only when
+two routes genuinely need the same component.
 
-Avoid:
-- Route-specific assumptions leaking into global layers
-- App-wide abstractions built for local interactions
-- Framework-shaped architecture
+### 4. Preserve authored values
 
-Prefer:
-- Route folder modules
-- Route-scoped CSS and layout
-- Named vanilla modules with clear ownership
-- Light page orchestrators only when coordination is genuinely needed
+Do not normalize hand-authored spacing, positioning, or sizing decisions.
+These pages are composed by eye. Preserve authored values that contribute
+to the reading environment.
 
-### 4. Preserve authored values when they are doing real work
+### 5. Chapter tray — tilt behavior (do not revert)
 
-Do not aggressively normalize the page because of explicit pixel values or
-hand-authored spacing decisions. This page is composed by eye in many places.
-Preserve that where it contributes to the reading environment.
+When the chapter tray opens, every large element within each sheet
+(`.sheet > :not(.nav-sled)`) gets an individual random tilt. Rules:
 
-### 5. Vanilla-first means minimal machinery, not messiness
-
-- CSS handles presentation
-- JS handles only necessary state and interaction
-- Modules have clear ownership
-- Simple route-specific orchestration only
-
-### 6. Chapter tray — tilt behavior (do not revert)
-
-When the chapter tray opens, every large element within each sheet (`.sheet > :not(.nav-sled)`)
-gets an individual random tilt. Rules:
-
-- Values are from the set `{-2, -1, +1, +2}deg` only — no in-between, no zero
-- Each element within a sheet tilts independently (not the whole sheet as one)
-- Tilts re-randomise on every open (fresh values each time)
-- `--tilt` is set as an inline CSS custom property on each element via JS; CSS consumes it
-- The tray also darkens the background (`brightness(0.68)`) without blur
-- The tray closes automatically when a *different* chapter pill docks (user has scrolled into another chapter)
-- Do not close on "own pill undocks" — the user may scroll up within the open chapter to see the topmost tray items
-
----
-
-## Visual source of truth
-
-Screenshot-based comparison is part of the standard workflow.
-
-**If screenshots are available at session start:**
-Use them as the primary visual source of truth alongside code. Compare the current
-replica against the original before making visual judgements.
-
-**If screenshots are not available:**
-Capture fresh reference screenshots of both the original (`88g.vercel.app/biconomy`)
-and the current replica before beginning any visual work. Do not work from code
-structure alone when the problem is relational or compositional.
-
-Do not assume screenshots are always in hand. Establish visual references first.
-
----
-
-## Session-start rule
-
-Before implementing any chunk, inspect the current `/biconomy` files and confirm
-whether the assumptions in this file still hold. If repo structure, shared primitives,
-or route ownership have changed, update `CLAUDE.md` first before proceeding with
-implementation.
+- Values from `{-2, -1, +1, +2}deg` only — no in-between, no zero
+- Each element tilts independently (not the whole sheet)
+- Tilts re-randomise on every open
+- `--tilt` set as inline CSS custom property via JS; CSS consumes it
+- Tray darkens background (`brightness(0.68)`) without blur
+- Tray closes when a *different* chapter pill docks
+- Do not close on "own pill undocks"
 
 ---
 
 ## Workflow discipline
 
-- Work in **chunks**, not giant all-at-once passes
-- Group changes by section or area — do not mix concerns across a single pass
-- After each chunk: review diffs before moving on
-- Commit after each working chunk with a clear, scoped message
-- If context gets long or ambiguous, explicitly reorient: **"where are we?"**
-- Use screenshots as visual source of truth for all relational / compositional work
-- Compare against the original page and original source repo where relevant
-- Do not proceed past a section if the docking/composition diagnosis still applies
+### The cardinal rule: analyze before you build
+
+The shared layout system (Sheet, mat, surface, PaperFilter, ChapterMarker,
+ProjectMarker, ExitMarker) is **already working and proven**. It is not up
+for reinvention. Every new section must be composed using this vocabulary.
+
+Before implementing any section, you must:
+
+1. **Read the vanilla HTML** for that section only (specific line range).
+2. **Read the corresponding Biconomy component** that's closest in pattern.
+3. **Present a mapping** to the user: "In the vanilla, X is a card surface
+   with Y inside it. In our system, this maps to a `.surface` with Z. The
+   interaction is similar to Biconomy's [component]. Does that read right?"
+4. **Wait for confirmation** before writing code.
+
+Do not skip this. Do not assume. If something in the vanilla doesn't clearly
+map to an existing pattern, say so and ask.
+
+### Respect for design
+
+You are a senior developer working with a designer who cares about every
+placement decision. That means:
+
+- Do not invent layout structure. Map vanilla structure to existing patterns.
+- Do not add spacing, padding, or margins that aren't in the reference.
+- If something looks compositionally intentional in the vanilla (an offset,
+  a rotation, a specific gap), preserve it and ask if unsure.
+- If you're about to build something that has no Biconomy precedent, flag it:
+  "This is new — here's my plan for it. Confirm?"
+
+### Work rhythm
+
+- Work in **chunks** by section or area — do not mix concerns.
+- Every section starts with analysis, not code.
+- After each chunk: review diffs before moving on.
+- Commit after each working chunk with a clear, scoped message.
+- If context gets long or ambiguous: **"where are we?"**
+- Do not proceed past a section if controls don't work or surfaces feel flat.
+
+### What not to read eagerly
+
+Do not read the entire vanilla reference or the entire biconomy codebase at
+session start. Read only what's needed for the current section. This saves
+tokens and keeps focus tight. Specifically:
+
+- Read the vanilla HTML for the section you're about to build (by line range).
+- Read the Biconomy component that's closest in pattern.
+- Read `globals.css` only if you need to check a token value.
+- Do not read JS interaction files until you're implementing that interaction.
 
 ---
 
-## Assumptions flagged
+## Session-start checklist
 
-The following are based on the known state as of April 2026. Confirm at session start:
+Before implementing anything, confirm:
 
-- Actual file names and folder structure in `/biconomy`
-- Whether a shared JS utility layer exists (assumed: none)
-- Whether any new shared primitives have been added to `tokens.css` or
-  `components/components.css` since last session
-- Whether screenshot references are already in the working folder or need to be
-  captured fresh
+- [ ] Current file/folder structure matches this document
+- [ ] Shared components referenced here still exist where stated
+- [ ] `globals.css` tokens haven't changed since last session
+- [ ] Any components promoted to shared are imported from the new location
 
 ---
 
-*Last updated: April 2026. Update this file when the active working context changes.*
+*Last updated: April 2026. Update when active working context changes.*

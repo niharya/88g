@@ -1,15 +1,15 @@
 /* ==========================================================================
    nav.css — Sheet-stack navigation system
 
-   Components: ProjectPill · ExitPill · ChapterPill · Sheet nav-sled
+   Components: ProjectMarker · ExitMarker · ChapterMarker · Sheet nav-sled
 
    To use on another page:
      1. Import this file in your route layout
      2. Provide layout tokens: --marker-top, --workbench-pad-x, --sheet-bleed,
         --stack-gap, --z-chapter-marker, --z-project-marker, --grey-880,
         --grey-640, --grey-480
-     3. Render <ProjectPill>, <ExitPill>, and <Sheet> with chapters data
-     4. JS sync: MARKER_TOP constant in ChapterPill.tsx must match --marker-top
+     3. Render <ProjectMarker>, <ExitMarker>, and <Sheet> with chapters data
+     4. JS sync: MARKER_TOP constant in ChapterMarker.tsx must match --marker-top
 
    Fonts required (loaded in root layout):
      Material Symbols Rounded — nav icons
@@ -100,7 +100,7 @@ a.nav-marker {
 
 /* ── Nav sled ────────────────────────────────────────────────────────────── */
 /* Absolute wrapper inside each Sheet. Constrains sticky release point.
-   left: derived from --project-marker-right (runtime-measured by ProjectPill).
+   left: derived from --project-marker-right (runtime-measured by ProjectMarker).
    Formula accounts for: workbench border (4px) + workbench-pad-x − sheet-bleed
    + sheet border (2px) + 1px rounding = 7px total offset.                  */
 
@@ -203,7 +203,7 @@ button.nav-marker {
 
 
 /* ── Nav arrow ───────────────────────────────────────────────────────────── */
-/* Rotated by ChapterPill.tsx toward sheet center on every scroll frame.    */
+/* Rotated by ChapterMarker.tsx toward sheet center on every scroll frame.    */
 
 .nav-arrow {
   flex-shrink: 0;
@@ -250,7 +250,7 @@ button.nav-marker {
 
 .sheet-stack[data-tray-open] .sheet > :not(.nav-sled) {
   filter: brightness(0.68) saturate(0.2);
-  transform: rotate(var(--tilt, 0deg)); /* --tilt set per-element by ChapterPill on open */
+  transform: rotate(var(--tilt, 0deg)); /* --tilt set per-element by ChapterMarker on open */
 }
 
 /* Dim sibling nav-sleds; the open one is excluded */

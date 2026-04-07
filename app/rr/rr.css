@@ -328,20 +328,10 @@
   line-height: 1.3;
 }
 
-/* Hidden section — max-height reveal; box opens as SVG lines draw in */
+/* Hidden section — height animated by Framer Motion (Intro.tsx), not CSS max-height */
 .rr-constraints-card__hidden {
-  max-height: 0;
   overflow: hidden;
-  transition: max-height 0.32s ease-out;
-}
-
-.rr-constraints-card--expanded .rr-constraints-card__hidden {
-  max-height: 160px; /* 3 items × ~28px + 3 border-mids × ~12px = ~120px */
-}
-
-/* Hidden items — styled only, animation via motion.p in Intro.tsx */
-.rr-constraints-card__hidden .rr-constraints-card__item {
-  /* layout/typography from .rr-constraints-card__item base rule */
+  /* height: Framer Motion sets 0 → HIDDEN_OPEN_H; overflow clips during transition */
 }
 
 /* Toggle button */
@@ -389,3 +379,4 @@
   opacity: 0;
   pointer-events: none;
 }
+
