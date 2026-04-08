@@ -129,6 +129,14 @@ remove dead flyout keyframes from biconomy.css
 
 Scope to what changed. Don't describe the intent — describe the action.
 
+---
+
+## ◐ Versioning
+
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). The version lives in `package.json` and is the source of truth — bump it in the same commit (or a dedicated `release: vX.Y.0` commit) before pushing, and tag the tip of the push with `git tag vX.Y.0`.
+
+This is SemVer-lite: the format is standard, the rule is simple — no judgment per push.
+
 <br />
 
 ...and now...

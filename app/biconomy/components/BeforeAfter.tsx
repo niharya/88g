@@ -77,9 +77,11 @@ export default function BeforeAfter({
   const hasShownAfterRef = useRef(false)
 
   const isFirstAfter = showAfter && !hasShownAfterRef.current
+  // First reveal uses a slow spring; subsequent toggles use a quick tween.
+  // (`easeOut` is an ease curve, not a `type` — framer-motion v12 enforces this.)
   const transition = isFirstAfter
     ? { type: 'spring' as const, bounce: 0, duration: 1.35 }
-    : { type: 'easeOut' as const, duration: 0.25 }
+    : { type: 'tween' as const, ease: 'easeOut' as const, duration: 0.25 }
 
   const showingInternalNote =
     showAfter &&

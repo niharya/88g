@@ -1,0 +1,774 @@
+/* ==========================================================================
+   game.css — Number Duel game styles, scoped to .rr-game-panel
+
+   All values flow through the --u scale on .rr-game-panel — change --panel-w
+   and the entire component re-sizes coherently.
+
+   Color tokens map to globals tokens (orange / terra). Tiny shifts vs the
+   original v0 hex are intentional and acceptable; visuals will be revisited
+   in the visuals phase.
+   ========================================================================== */
+
+
+/* Register --stack-lift so keyframes can interpolate it across frames —
+   without @property, a custom-property @keyframes just snaps between values. */
+@property --stack-lift {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+
+
+/* ── Game Board container — slot in the rr-canvas composition ────────────── */
+
+.rr-game-board {
+  position: absolute;
+  left: 240px;
+  top: 76px;
+  width: 259px;
+  height: 624px;
+  z-index: var(--rr-z-game);
+  box-shadow: var(--shadow-card);
+}
+
+
+/* ── Game Panel — owns the scale system + theme tokens ──────────────────── */
+
+.rr-game-panel {
+  /* Scale system — every dimension derived from --panel-w via --u */
+  --panel-w: 256px;
+  --u: calc(var(--panel-w) / 256);
+
+  --panel-pad: calc(24 * var(--u));
+  --panel-radius: calc(8 * var(--u));
+
+  --card-w: calc(80 * var(--u));
+  --card-h-lg: calc(160 * var(--u));
+  --card-h-sm: calc(120 * var(--u));
+  --card-radius: calc(4 * var(--u));
+  --card-border: max(1px, calc(2 * var(--u)));
+  --card-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(0, 0, 0, 0.25);
+  --card-shadow-active: 0 calc(2 * var(--u)) calc(8 * var(--u)) rgba(0, 0, 0, 0.36);
+
+  --num-lg: clamp(44px, calc(var(--card-h-lg) * 0.53), 88px);
+  --num-sm: clamp(26px, calc(var(--card-h-sm) * 0.40), 52px);
+  --num-tracking: -0.02em;
+
+  --fd-sm-w: calc(40 * var(--u));
+  --fd-sm-h: calc(48 * var(--u));
+  --fd-md-w: var(--card-w);
+  --fd-md-h: var(--card-h-sm);
+  --fd-lg-w: var(--card-w);
+  --fd-lg-h: var(--card-h-lg);
+
+  --chip-w: calc(32 * var(--u));
+  --chip-h: calc(36 * var(--u));
+
+  --opp-scale: 1.0;
+
+  /* Game-specific theme tokens — mapped to globals (orange / terra) */
+  --rr-game-ink:        var(--orange-800);   /* primary rust stroke */
+  --rr-game-ink-deep:   var(--orange-960);   /* deepest brown — face-down bg */
+  --rr-game-paper:      var(--terra-100);    /* cream interior */
+  --rr-game-shell:      var(--terra-160);    /* shell border / skewer rest */
+  --rr-game-skewer:     var(--terra-160);
+  --rr-game-accent:     var(--orange-400);   /* salmon highlight */
+  --rr-game-accent-hi:  var(--orange-480);   /* darker salmon */
+  --rr-game-mute:       var(--orange-800);   /* dusty mid */
+
+  --rr-font-game: 'Google Sans Flex', sans-serif;
+  --rr-font-axes: 'wdth' 56, 'wght' 560, 'ROND' 100, 'opsz' 18;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--panel-pad);
+  gap: 0;
+  box-sizing: border-box;
+  /* Two-sheet: yellow full panel, terra from midpoint down */
+  background: linear-gradient(to bottom, var(--yellow-100) 50%, var(--terra-100) 50%);
+  font-family: var(--rr-font-game);
+  font-variation-settings: var(--rr-font-axes);
+  font-optical-sizing: none;
+}
+
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes crackIn {
+  0%   { opacity: 0; transform: scale(0); }
+  50%  { opacity: 0.8; transform: scale(1.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.rr-egg-anim {
+  transition: fill 500ms ease-out, stroke 500ms ease-out;
+}
+
+@keyframes rr-game-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+
+/* ── Idle state ──────────────────────────────────────────────────────────── */
+/* IDLE reuses the active-game panel structure (same grid positions) and
+   layers modifier rules on top. Active-only zones fade out; the player hand
+   fans into a held-hand pose; the scorecard skewer extends to the panel
+   edges; the "NUMBER DUEL" title sits in the verdict slot. */
+
+/* Hide active-game-only zones; preserve their flow so scorecard stays midpoint */
+.rr-game-panel--idle .rr-game__round-label,
+.rr-game-panel--idle .rr-game__opp-hand,
+.rr-game-panel--idle .rr-game__status,
+.rr-game-panel--idle .rr-deck-strip {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Fan layout — cards stay in their natural flex positions but rotate from
+   the bottom-center pivot so they fan out like a held hand of cards.
+   Transition carries over when --idle is removed for the spread animation. */
+.rr-game-panel--idle .rr-game__player-card {
+  transition: transform 0.5s ease;
+  transform-origin: bottom center;
+}
+.rr-game-panel--idle .rr-game__player-card--left {
+  transform: translateX(calc(32 * var(--u))) rotate(-10deg);
+}
+.rr-game-panel--idle .rr-game__player-card--right {
+  transform: translateX(calc(-32 * var(--u))) rotate(10deg);
+}
+
+/* In idle, the scorecard escapes the panel's padding box so the skewer can
+   reach the actual panel borders (not just the content edge). On game start
+   the negative margin transitions back to 0 and the line "shortens". */
+.rr-game__scorecard {
+  transition: margin 0.5s ease, width 0.5s ease;
+}
+.rr-game-panel--idle .rr-game__scorecard {
+  margin-left: calc(-1 * var(--panel-pad));
+  margin-right: calc(-1 * var(--panel-pad));
+  width: calc(100% + 2 * var(--panel-pad));
+}
+
+/* "NUMBER DUEL" title — shares the .rr-game__verdict slot + font styling,
+   only overriding size + tracking to read as a title rather than a verdict. */
+.rr-game__verdict--idle {
+  font-size: calc(16 * var(--u));
+  letter-spacing: 0.08em;
+  /* Idle title is a static label, not a game-over reveal, so skip the
+     scramble/fade-in animation used by the active verdict. */
+  opacity: 1;
+  animation: none;
+}
+
+
+/* ── Active game layout ──────────────────────────────────────────────────── */
+
+.rr-game__round-label {
+  text-align: center;
+  margin-bottom: calc(var(--panel-pad) * 0.67);
+  transition: transform 0.45s ease;
+}
+
+/* At --final: Game Over drops down to sit right above the Defeat text */
+.rr-game-panel--final .rr-game__round-label {
+  transform: translateY(calc(32 * var(--u)));
+}
+
+.rr-game__round-text {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--orange-400);
+}
+
+.rr-game__round-text--pulse {
+  animation: rr-game-pulse 1s ease-in-out infinite;
+}
+
+.rr-game__opp-hand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--card-h-sm);
+  margin-bottom: var(--panel-pad);
+}
+
+/* Opponent card slot — animates between resting and unused-after-pick states */
+.rr-game__opp-card {
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.rr-game__opp-card--unused {
+  transform: scale(0.9);
+  opacity: 0.3;
+}
+
+.rr-game__scorecard {
+  margin-bottom: calc(var(--panel-pad) / 3);
+  width: 100%;
+}
+
+.rr-game__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  margin-bottom: calc(var(--panel-pad) / 3);
+}
+
+.rr-game__status-text {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--orange-720);
+}
+
+.rr-game__outcome-text {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rr-game__outcome-text--win  { color: var(--orange-560); }
+.rr-game__outcome-text--lose { color: var(--orange-960); }
+
+/* Player hand — committed fan with overlap, pivoting from the bottom */
+.rr-game__player-hand {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: var(--card-h-lg);
+  margin-bottom: calc(var(--panel-pad) * 0.67);
+  gap: 0;
+}
+
+.rr-game__player-card {
+  transform-origin: bottom center;
+  transition: transform 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+
+.rr-game__player-card--left  {
+  transform: rotate(-2deg);
+  margin-right: calc(6 * var(--u));
+}
+.rr-game__player-card--right {
+  transform: rotate(2deg);
+  margin-left: calc(6 * var(--u));
+}
+
+.rr-game__player-card--chosen {
+  transform: rotate(0deg) scale(1.02);
+  z-index: 1;
+}
+
+.rr-game__player-card--unused {
+  opacity: 0.4;
+}
+
+.rr-game__player-card--left.rr-game__player-card--unused  { transform: rotate(-2deg) scale(0.9); }
+.rr-game__player-card--right.rr-game__player-card--unused { transform: rotate(2deg) scale(0.9); }
+
+/* Upright stance during PEEK — cards aligned, no tilt, no overlap */
+.rr-game__player-hand--upright .rr-game__player-card--left,
+.rr-game__player-hand--upright .rr-game__player-card--right {
+  transform: rotate(0deg);
+  margin-left: calc(4 * var(--u));
+  margin-right: calc(4 * var(--u));
+}
+
+/* ── Flip Card (3D wrapper for game-over flip) ──────────────────────────── */
+
+.rr-flip-card {
+  position: relative;
+  display: inline-block;
+  perspective: 800px;
+}
+.rr-flip-card__inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+}
+.rr-flip-card[data-flipped="true"] .rr-flip-card__inner {
+  transform: rotateY(180deg);
+}
+.rr-flip-card__face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.rr-flip-card__face--back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+/* ── Number Card ─────────────────────────────────────────────────────────── */
+
+.rr-num-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--card-w);
+  user-select: none;
+  border-style: solid;
+  border-width: var(--card-border);
+  border-radius: var(--card-radius);
+  font-family: var(--rr-font-game);
+  font-variation-settings: var(--rr-font-axes);
+  font-optical-sizing: none;
+  font-weight: normal;
+  letter-spacing: var(--num-tracking);
+  line-height: 1;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.rr-num-card--lg { height: var(--card-h-lg); font-size: var(--num-lg); }
+.rr-num-card--sm { height: var(--card-h-sm); font-size: var(--num-sm); }
+
+/* Opponent — pale cream, ink numeral */
+.rr-num-card--opponent,
+.rr-num-card--opponent-selected {
+  background: var(--orange-100);
+  border-color: var(--orange-160);
+  cursor: default;
+  transform: scale(var(--opp-scale));
+}
+.rr-num-card--opponent-selected {
+  border-color: var(--orange-400);
+  box-shadow: var(--card-shadow-active);
+}
+
+/* Player active — bright salmon, pale numeral */
+.rr-num-card--player {
+  background: var(--orange-560);
+  border-color: var(--orange-720);
+}
+/* Player chosen/revealed — deep brown, salmon numeral */
+.rr-num-card--player-selected {
+  background: var(--orange-960);
+  border-color: var(--orange-560);
+  box-shadow: var(--card-shadow-active);
+}
+
+.rr-num-card--hoverable        { cursor: pointer; }
+.rr-num-card--hoverable:hover  { transform: translateY(-2px); box-shadow: var(--card-shadow-active); }
+.rr-num-card--hoverable:active { transform: translateY(0); }
+
+.rr-num-card__num {
+  position: relative;
+}
+
+.rr-num-card__stroke {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-text-stroke: var(--card-border) var(--orange-240);
+  color: transparent;
+  pointer-events: none;
+}
+
+/* Opponent numeral — deep rust */
+.rr-num-card__face          { position: relative; color: var(--orange-720); }
+/* Player active numeral — pale/white, one weight step lighter */
+.rr-num-card__face--player  {
+  color: var(--orange-100);
+  filter: drop-shadow(0 1px 2px rgba(60, 10, 0, 0.3));
+  font-variation-settings: 'wdth' 56, 'wght' 480, 'ROND' 100, 'opsz' 18;
+}
+
+/* Player chosen — salmon numeral over dark bg */
+.rr-num-card--player-selected .rr-num-card__face--player {
+  color: var(--orange-560);
+}
+
+
+/* ── Face Down Card ──────────────────────────────────────────────────────── */
+
+.rr-face-down-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rr-game-ink-deep);
+  border-style: solid;
+  border-color: var(--orange-960);
+  border-width: var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow:
+    0 calc(1 * var(--u)) calc(2 * var(--u)) rgba(0, 0, 0, 0.28),
+    0 calc(3 * var(--u)) calc(8 * var(--u)) rgba(0, 0, 0, 0.22);
+}
+
+/* Thin inset hairline ring — like the first blue card in biconomy */
+.rr-face-down-card::before {
+  content: '';
+  position: absolute;
+  inset: calc(5 * var(--u));
+  border: 1px solid var(--orange-720);
+  border-radius: calc(var(--card-radius) - calc(3 * var(--u)));
+  pointer-events: none;
+}
+
+.rr-face-down-card--sm { width: var(--fd-sm-w); height: var(--fd-sm-h); }
+.rr-face-down-card--md {
+  width: var(--fd-md-w);
+  height: var(--fd-md-h);
+  border-width: 0;
+}
+.rr-face-down-card--lg {
+  width: var(--fd-lg-w);
+  height: var(--fd-lg-h);
+  border-width: 0;
+}
+
+.rr-face-down-card--md .rr-face-down-card__icon { width: 26%; }
+.rr-face-down-card--md .rr-face-down-card__icon--heart,
+.rr-face-down-card--md .rr-face-down-card__icon--spade { width: 52%; }
+.rr-face-down-card--lg .rr-face-down-card__icon { width: 22%; }
+.rr-face-down-card--lg .rr-face-down-card__icon--heart,
+.rr-face-down-card--lg .rr-face-down-card__icon--spade { width: 44%; }
+
+.rr-face-down-card__icon {
+  width: 38%;
+  height: auto;
+  opacity: 0.9;
+  pointer-events: none;
+  user-select: none;
+}
+
+
+/* ── Deck Strip ──────────────────────────────────────────────────────────── */
+
+.rr-deck-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.rr-deck-strip__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.rr-deck-strip__hr {
+  flex: 1;
+  height: 1px;
+  background: var(--rr-game-shell);
+  border: none;
+}
+
+.rr-deck-strip__label {
+  font-family: var(--rr-font-game);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--rr-game-mute);
+  white-space: nowrap;
+  transition: opacity 0.25s ease;
+}
+
+/* ── Game-over choreography: text fade (step 1+) ─────────────────────────── */
+.rr-game-panel--ending .rr-deck-strip__label {
+  opacity: 0;
+}
+
+/* ── Game-over choreography: horizontal collapse (step 3+) ───────────────── */
+/* Slot wrappers all need a transform transition for the collapse to ease */
+.rr-game-panel--ending .rr-game__opp-card,
+.rr-game-panel--ending .rr-game__player-card,
+.rr-game-panel--ending .rr-deck-strip__chips > * {
+  transition: transform 0.5s ease, translate 0.35s ease-out;
+  transform-origin: center center;
+  /* Stack-lift rides on top of the transform via the separate `translate`
+     property. --stack-lift is set by merged/final states for the nudge. */
+  translate: 0 var(--stack-lift, 0px);
+}
+
+/* Settle (step 5): tighter, clean ease-out as tilts go from ±2° to 0° */
+.rr-game-panel--revealed .rr-game__opp-card,
+.rr-game-panel--revealed .rr-game__player-card,
+.rr-game-panel--revealed .rr-deck-strip__chips > * {
+  transition: transform 0.3s ease-out, translate 0.35s ease-out;
+}
+
+/* Opponent pair collapses to its own center */
+.rr-game-panel.rr-game-panel--collapsed .rr-game__opp-card:nth-child(1) {
+  transform: translateX(calc(var(--card-w) / 2 + 4px)) rotate(var(--tilt-opp-0, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-game__opp-card:nth-child(2) {
+  transform: translateX(calc(var(--card-w) / -2 - 4px)) rotate(var(--tilt-opp-1, 0deg));
+}
+
+/* Player pair collapses to its own center (overrides existing left/right tilt) */
+.rr-game-panel.rr-game-panel--collapsed .rr-game__player-card--left {
+  transform: translateX(calc(var(--card-w) / 2 + 6 * var(--u))) rotate(var(--tilt-pl-0, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-game__player-card--right {
+  transform: translateX(calc(var(--card-w) / -2 - 6 * var(--u))) rotate(var(--tilt-pl-1, 0deg));
+}
+
+/* Deck (3×2 grid) collapses to its own center */
+.rr-game-panel.rr-game-panel--collapsed .rr-deck-strip__chips > *:nth-child(1) {
+  transform: translateX(calc(var(--chip-w) + 4px)) translateY(calc((var(--chip-h) + 4px) / 2)) rotate(var(--tilt-dk-0, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-deck-strip__chips > *:nth-child(2) {
+  transform: translateX(0) translateY(calc((var(--chip-h) + 4px) / 2)) rotate(var(--tilt-dk-1, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-deck-strip__chips > *:nth-child(3) {
+  transform: translateX(calc(var(--chip-w) * -1 - 4px)) translateY(calc((var(--chip-h) + 4px) / 2)) rotate(var(--tilt-dk-2, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-deck-strip__chips > *:nth-child(4) {
+  transform: translateX(calc(var(--chip-w) + 4px)) translateY(calc((var(--chip-h) + 4px) / -2)) rotate(var(--tilt-dk-3, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-deck-strip__chips > *:nth-child(5) {
+  transform: translateX(0) translateY(calc((var(--chip-h) + 4px) / -2)) rotate(var(--tilt-dk-4, 0deg));
+}
+.rr-game-panel.rr-game-panel--collapsed .rr-deck-strip__chips > *:nth-child(6) {
+  transform: translateX(calc(var(--chip-w) * -1 - 4px)) translateY(calc((var(--chip-h) + 4px) / -2)) rotate(var(--tilt-dk-5, 0deg));
+}
+
+/* Unused-card opacity goes back to 1 during collapse — every card joins */
+.rr-game-panel--collapsed .rr-game__opp-card--unused,
+.rr-game-panel--collapsed .rr-game__player-card--unused {
+  opacity: 1;
+}
+
+/* ── Merge: opp pair + deck grid translate vertically into player row ── */
+.rr-game-panel.rr-game-panel--merged .rr-game__opp-card:nth-child(1) {
+  transform: translateX(calc(var(--card-w) / 2 + 4px)) translateY(var(--merge-opp-y, 0px)) rotate(var(--tilt-opp-0, 0deg));
+}
+.rr-game-panel.rr-game-panel--merged .rr-game__opp-card:nth-child(2) {
+  transform: translateX(calc(var(--card-w) / -2 - 4px)) translateY(var(--merge-opp-y, 0px)) rotate(var(--tilt-opp-1, 0deg));
+}
+
+.rr-game-panel.rr-game-panel--merged .rr-deck-strip__chips > *:nth-child(1) {
+  transform: translateX(calc(var(--chip-w) + 4px)) translateY(calc((var(--chip-h) + 4px) / 2 + var(--merge-deck-y, 0px))) rotate(var(--tilt-dk-0, 0deg));
+}
+.rr-game-panel.rr-game-panel--merged .rr-deck-strip__chips > *:nth-child(2) {
+  transform: translateX(0) translateY(calc((var(--chip-h) + 4px) / 2 + var(--merge-deck-y, 0px))) rotate(var(--tilt-dk-1, 0deg));
+}
+.rr-game-panel.rr-game-panel--merged .rr-deck-strip__chips > *:nth-child(3) {
+  transform: translateX(calc(var(--chip-w) * -1 - 4px)) translateY(calc((var(--chip-h) + 4px) / 2 + var(--merge-deck-y, 0px))) rotate(var(--tilt-dk-2, 0deg));
+}
+.rr-game-panel.rr-game-panel--merged .rr-deck-strip__chips > *:nth-child(4) {
+  transform: translateX(calc(var(--chip-w) + 4px)) translateY(calc((var(--chip-h) + 4px) / -2 + var(--merge-deck-y, 0px))) rotate(var(--tilt-dk-3, 0deg));
+}
+.rr-game-panel.rr-game-panel--merged .rr-deck-strip__chips > *:nth-child(5) {
+  transform: translateX(0) translateY(calc((var(--chip-h) + 4px) / -2 + var(--merge-deck-y, 0px))) rotate(var(--tilt-dk-4, 0deg));
+}
+.rr-game-panel.rr-game-panel--merged .rr-deck-strip__chips > *:nth-child(6) {
+  transform: translateX(calc(var(--chip-w) * -1 - 4px)) translateY(calc((var(--chip-h) + 4px) / -2 + var(--merge-deck-y, 0px))) rotate(var(--tilt-dk-5, 0deg));
+}
+
+/* Merged state carries a small downward bias so the Lift beat has somewhere
+   to rise from. Lifted away at --final. */
+.rr-game-panel--merged {
+  --stack-lift: calc(5 * var(--u));
+}
+
+/* ── Settle: straighten all tilts to 0 (no peek) ── */
+.rr-game-panel--revealed {
+  --tilt-opp-0: 0deg;
+  --tilt-opp-1: 0deg;
+  --tilt-pl-0: 0deg;
+  --tilt-pl-1: 0deg;
+  --tilt-dk-0: 0deg;
+  --tilt-dk-1: 0deg;
+  --tilt-dk-2: 0deg;
+  --tilt-dk-3: 0deg;
+  --tilt-dk-4: 0deg;
+  --tilt-dk-5: 0deg;
+}
+
+/* ── Lift: Mario-brick jerky nudge (via interpolable --stack-lift) ── */
+.rr-game-panel--final {
+  animation: rr-stack-nudge 0.5s cubic-bezier(0.2, 1.4, 0.3, 1) forwards;
+}
+
+@keyframes rr-stack-nudge {
+  0%   { --stack-lift: calc(5 * var(--u)); }
+  22%  { --stack-lift: calc(-2 * var(--u)); }  /* gentle punch past target */
+  36%  { --stack-lift: calc(-2 * var(--u)); }  /* brief hold at the peak */
+  60%  { --stack-lift: calc(0.6 * var(--u)); } /* small fall past rest */
+  100% { --stack-lift: 0px; }
+}
+
+/* Magician shake on every face-down card — swap of face prop happens in
+   React at this exact moment, so the shake reads as "the reveal" */
+.rr-game-panel--final .rr-face-down-card {
+  animation: rr-card-shake 0.42s cubic-bezier(0.36, 0, 0.66, 1);
+}
+
+/* Hide the smaller opp backs + deck chips at --final so the stack reads as
+   a single clean stack of player-sized cards — no size-mismatch peeking. */
+.rr-game-panel--ending .rr-game__opp-card,
+.rr-game-panel--ending .rr-deck-strip__chips > * {
+  transition: transform 0.5s ease, translate 0.35s ease-out, opacity 0.25s ease;
+}
+.rr-game-panel--final .rr-game__opp-card,
+.rr-game-panel--final .rr-deck-strip__chips > * {
+  opacity: 0;
+}
+
+@keyframes rr-card-shake {
+  0%   { transform: rotate(0); }
+  18%  { transform: rotate(1.4deg); }
+  36%  { transform: rotate(-1.4deg); }
+  54%  { transform: rotate(0.9deg); }
+  72%  { transform: rotate(-0.5deg); }
+  100% { transform: rotate(0); }
+}
+
+/* Icon pop — the new heart/spade glyph scales in with a little wobble */
+.rr-game-panel--final .rr-face-down-card__icon {
+  animation: rr-icon-pop 0.5s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+@keyframes rr-icon-pop {
+  0%   { transform: scale(0.1) rotate(-30deg); opacity: 0; }
+  45%  { transform: scale(1.35) rotate(10deg); opacity: 1; }
+  70%  { transform: scale(0.92) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* Larger heart/spade icons on the played-chip backs */
+.rr-deck-strip__chip-icon--heart,
+.rr-deck-strip__chip-icon--spade {
+  width: 48%;
+}
+
+/* Verdict text — sits between Game Over and scorecard, in the now-empty opp-hand area */
+.rr-game__verdict {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--panel-pad) + 24 * var(--u) + var(--card-h-sm) / 2);
+  transform: translate(-50%, -50%);
+  font-family: var(--rr-font-game);
+  font-variation-settings: 'wdth' 56, 'wght' 480, 'ROND' 100, 'opsz' 18;
+  font-optical-sizing: none;
+  font-size: calc(var(--num-lg) / 2);
+  letter-spacing: 0.04em;
+  color: var(--orange-400);
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  animation: rr-verdict-in 0.4s ease 0.2s forwards;
+}
+@keyframes rr-verdict-in {
+  to { opacity: 1; }
+}
+
+/* Play Again — .t-btn1 text-style, positioned below the Defeat text.
+   Nudges into existence from just below its final position. */
+.rr-game-play-again {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--panel-pad) + 24 * var(--u) + var(--card-h-sm) / 2 + 36 * var(--u));
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--orange-720);
+  white-space: nowrap;
+  transform: translateX(-50%) translateY(calc(7 * var(--u)));
+  opacity: 0;
+  animation: rr-play-again-nudge 0.35s ease-out 0.05s forwards;
+}
+.rr-game-play-again:hover {
+  color: var(--orange-560);
+}
+@keyframes rr-play-again-nudge {
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.rr-deck-strip__chips {
+  display: grid;
+  grid-template-columns: repeat(3, var(--chip-w));
+  gap: 4px;
+  justify-content: center;
+}
+
+.rr-deck-strip__chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--chip-w);
+  height: var(--chip-h);
+  border-radius: var(--card-radius);
+  border-style: solid;
+  border-width: max(1px, calc(var(--card-border) / 2));
+  border-color: var(--orange-100);
+  background: var(--orange-240);
+  color: var(--orange-720);
+  font-size: calc(12 * var(--u));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* Played card — face-down, dark brown with diamond */
+.rr-deck-strip__chip--played {
+  background: var(--orange-960);
+  border-width: 0;
+}
+
+.rr-deck-strip__chip-icon {
+  width: 35%;
+  height: auto;
+  opacity: 0.85;
+  pointer-events: none;
+  user-select: none;
+}
+
+
+/* ── Scorecard ───────────────────────────────────────────────────────────── */
+
+.rr-scorecard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.rr-scorecard__svg {
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+.rr-scorecard__skewer {
+  transition: stroke-width 300ms ease-out;
+}
+
+/* Idle-state skewer — DOM line that spans the real container width.
+   Sits behind the SVG so eggs render on top of it. Stretches edge-to-edge
+   regardless of any drift between --panel-w and actual panel width. */
+.rr-scorecard__idle-skewer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--rr-game-accent);
+  transform: translateY(-0.5px);
+  z-index: 0;
+}

@@ -11,15 +11,16 @@
    ========================================================================== */
 
 
-/* ── RR route tokens ─────────────────────────────────────────────────────── */
+/* ── Geist Pixel — pixel display font for structure view ─────────────────── */
 
 @font-face {
   font-family: 'Geist Pixel';
   src: url('/images/rr/GeistPixel-Grid.woff2') format('woff2');
-  font-weight: normal;
+  font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
+
 
 /* ── RR z-index stack ────────────────────────────────────────────────────── */
 
@@ -378,5 +379,805 @@
 .rr-constraints-card--expanded .rr-constraints-card__toggle-label {
   opacity: 0;
   pointer-events: none;
+}
+
+
+/* ==========================================================================
+   Phase 1 — Mechanics
+   ========================================================================== */
+
+
+/* ── Interstitial text (between Intro and Mechanics sheets) ──────────────── */
+
+.rr-interstitial-text {
+  width: 432px;
+  margin: var(--stack-gap) 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  line-height: 1.35;
+  color: #3b4b5c;
+  text-align: center;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+}
+
+.rr-interstitial-text p + p {
+  margin-top: 24px;
+}
+
+
+
+/* ── Rules Rail ──────────────────────────────────────────────────────────── */
+/* Mirrors the biconomy notes rail pattern exactly.                          */
+/* Sits behind the game board (z-index 2 < game board z-index 3).            */
+/* body left:280px width:220px → right edge at 500px (game board ends 499). */
+/* Tab extends right:-32px, always physically clear of game board → visible. */
+/* Closed: translateX(0) rotate(1deg) — tucked under game board right edge.  */
+/* Open:   translateX(140px) rotate(0deg) — slides right into gap, in touch. */
+
+.rr-rules-rail {
+  position: absolute;
+  left: 324px;
+  top: 140px;
+  width: 175px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  outline: 1px solid var(--yellow-400);
+  outline-offset: -8px;
+  background: var(--yellow-80);
+  color: var(--terra-800);
+  z-index: var(--rr-z-story);
+}
+
+/* Vertical tab button — positioned to the right of the rail body */
+.rr-rules-rail__tab {
+  position: absolute;
+  right: -32px;
+  top: 0;
+  height: 100%;
+  background: var(--yellow-80);
+  color: var(--terra-800);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+}
+
+.rr-rules-rail__tab-inner {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  writing-mode: vertical-lr;
+  text-orientation: sideways;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--yellow-560);
+}
+
+.rr-rules-rail__arrow {
+  flex-shrink: 0;
+  transition: transform 0.3s ease-out;
+}
+
+.rr-rules-rail__arrow.is-flipped {
+  transform: rotate(180deg);
+}
+
+/* Content area — flex:1, height flows with content (no max-height) */
+.rr-rules-rail__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rr-rules-rail__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  padding: 16px;
+  margin: 0;
+  gap: 0;
+}
+
+.rr-rules-rail__item {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.28px;
+  color: var(--terra-960);
+  line-height: 1.35;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--yellow-240);
+}
+
+.rr-rules-rail__item:last-child {
+  border-bottom: none;
+}
+
+
+/* ── Note Rail ───────────────────────────────────────────────────────────── */
+/* Same tucked-tab pattern as the rules rail. Tab stacks directly below the  */
+/* rules tab. Body height flows naturally from the Figma callout content.    */
+/* Frame: 8px terra-720 outer ring around terra-480 inner card (matches the  */
+/* double-rectangle structure in the Figma).                                 */
+
+.rr-note-rail {
+  position: absolute;
+  left: 279px;
+  top: 482px;
+  width: 220px;
+  padding: 8px;
+  background: var(--yellow-960);
+  color: var(--yellow-480);
+  z-index: var(--rr-z-story);
+}
+
+/* Icon-only tab — positioned at the right edge of the rail, full height */
+.rr-note-rail__tab {
+  position: absolute;
+  right: -32px;
+  top: 0;
+  height: 100%;
+  width: 32px;
+  background: var(--yellow-960);
+  border: none;
+  color: var(--yellow-480);
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 14px 0 0;
+}
+
+.rr-note-rail__tab-icon {
+  font-size: 20px;
+  color: var(--yellow-480);
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+}
+
+/* Inner card — natural height from the figma callout content */
+.rr-note-rail__content {
+  background: var(--yellow-960);
+  border: 1px solid var(--yellow-320);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.rr-note-rail__title {
+  margin: 0 -8px;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--yellow-320);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--yellow-480);
+}
+
+.rr-note-rail__text {
+  margin: 0;
+  padding-top: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.28px;
+  color: var(--yellow-480);
+  line-height: 1.35;
+}
+
+
+/* ── Mechanics story card ────────────────────────────────────────────────── */
+
+.rr-story-card--mechanics {
+  top: 76px;
+  left: 815px;
+  width: 400px;
+  height: 688px;
+  min-height: unset;
+  padding: 104px 16px 24px;
+  isolation: isolate;
+  overflow: hidden;
+  /* Yellow paper background for story state */
+  background: url('/images/rr/story-yellow-bg.png') center / cover no-repeat, var(--yellow-100);
+}
+
+/* Terra paper background for structure state */
+.rr-story-card--mechanics.rr-story-card--structure {
+  background: url('/images/rr/story-terra-bg.png') center / cover no-repeat, var(--terra-100);
+}
+
+.rr-story-card--mechanics::before {
+  display: none; /* replaced by reference paper backgrounds above */
+}
+
+
+/* ── Story card header strip (skewer line + live eggs) ──────────────────── */
+
+.rr-story-card__strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+
+.rr-story-card__strip-line {
+  position: absolute;
+  top: 37px;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid var(--yellow-320);
+}
+
+/* Egg container — left-anchored at 16px, vertically centered on strip line.  */
+/* SVG MID_Y ≈ 26px; strip-line is at top:37px → container top = 37 - 26 = 11px */
+/* Recolour: override the CSS vars that Scorecard uses for egg + skewer colours */
+.rr-story-card__eggs {
+  position: absolute;
+  top: 11px;
+  left: 16px;
+  --orange-720: var(--yellow-560);     /* filled egg fill + crack X markers   */
+  --rr-game-accent: var(--yellow-560); /* skewer line + cracked egg stroke     */
+  --rr-game-paper: var(--terra-100);   /* cracked egg interior — not in scope outside game board */
+}
+
+/* Suppress the Scorecard's own internal skewer and idle DOM line —            */
+/* the CSS strip-line above serves as the full-width skewer in this context.   */
+.rr-story-card__eggs .rr-scorecard__skewer,
+.rr-story-card__eggs .rr-scorecard__idle-skewer {
+  display: none;
+}
+
+/* Remove any default container layout from rr-scorecard */
+.rr-story-card__eggs .rr-scorecard {
+  display: block;
+}
+
+
+/* ── Story text variants ─────────────────────────────────────────────────── */
+
+.rr-story-card__text--ind1 { padding-left: 24px; }
+.rr-story-card__text--ind2 { padding-left: 48px; }
+
+.rr-story-card__text--link {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+
+/* ── Dotted path SVG ─────────────────────────────────────────────────────── */
+
+.rr-story-card__dotted-path {
+  position: absolute;
+  /* top + left driven by JS — anchored to "only test" span, ends at North Star center */
+  width: 160px;
+  height: 320px;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+
+/* ── North Star — inside mechanics story card ────────────────────────────── */
+/* Base .rr-north-star-card has top: 542px; left: 266px.                     */
+/* --incoming shifts left only.                                               */
+
+.rr-north-star-card--incoming {
+  left: 204px;
+}
+
+
+/* ── Story ↔ Structure toggle (mechanics card) ──────────────────────────── */
+
+/* Terra state — strip line recolour */
+.rr-story-card--structure .rr-story-card__strip-line {
+  border-top-color: var(--terra-320);
+}
+
+/* Terra state — egg colours */
+.rr-story-card--structure .rr-story-card__eggs {
+  --orange-720: var(--terra-560);
+  --rr-game-accent: var(--terra-560);
+  --rr-game-paper: var(--yellow-100); /* cracked egg interior — contrast on terra bg */
+}
+
+
+/* ── Two-slot toggle pill ───────────────────────────────────────────────── */
+
+.rr-switch-pill {
+  position: absolute;
+  top: 16px;
+  right: 8px;
+  z-index: 2;
+  width: 36px;
+  height: 74px;
+  border-radius: 18px;
+  background: var(--yellow-100);
+  box-shadow: inset 0px 0.5px 2px 0px var(--yellow-560);
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.28s ease, box-shadow 0.28s ease;
+}
+
+.rr-switch-pill:hover {
+  box-shadow: inset 0px 1px 5px 0px var(--yellow-560);
+}
+.rr-switch-pill:active {
+  background: var(--yellow-160);
+  box-shadow: inset 0px 2px 8px 1px var(--yellow-480);
+}
+.rr-switch-pill:focus-visible {
+  outline: 2px solid var(--yellow-800);
+  outline-offset: 2px;
+}
+
+.rr-switch-pill__knob {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 28px;
+  height: 32px;
+  border-radius: 14px;
+  background: var(--yellow-240);
+  transition: top 0.28s cubic-bezier(0.45, 0, 0.15, 1), background 0.28s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rr-switch-pill__slot {
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.rr-switch-pill__slot--top {
+  color: var(--yellow-720);
+}
+.rr-switch-pill__slot--bottom {
+  color: var(--yellow-560);
+}
+
+.rr-switch-pill__icon {
+  font-size: 20px;
+  display: block;
+  pointer-events: none;
+}
+
+/* Terra state — pill */
+.rr-story-card--structure .rr-switch-pill {
+  background: var(--terra-100);
+  box-shadow: inset 0px 0.5px 2px 0px var(--terra-560);
+}
+.rr-story-card--structure .rr-switch-pill:hover {
+  box-shadow: inset 0px 1px 5px 0px var(--terra-560);
+}
+.rr-story-card--structure .rr-switch-pill:active {
+  background: var(--terra-160);
+  box-shadow: inset 0px 2px 8px 1px var(--terra-480);
+}
+.rr-story-card--structure .rr-switch-pill:focus-visible {
+  outline: 2px solid var(--terra-800);
+}
+.rr-story-card--structure .rr-switch-pill__knob {
+  top: 38px;
+  background: var(--terra-240);
+}
+.rr-story-card--structure .rr-switch-pill__slot--top {
+  color: var(--terra-560);
+}
+.rr-story-card--structure .rr-switch-pill__slot--bottom {
+  color: var(--terra-720);
+}
+
+
+/* ── Story / Structure view swap ────────────────────────────────────────── */
+
+.rr-story-card__structure {
+  display: none;
+}
+.rr-story-card--structure .rr-story-card__body,
+.rr-story-card--structure .rr-north-star-card {
+  display: none;
+}
+.rr-story-card--structure .rr-story-card__structure {
+  display: flex;
+  flex-direction: column;
+}
+.rr-story-card--structure .rr-story-card__dotted-path {
+  display: none;
+}
+
+
+/* ── Structure content ──────────────────────────────────────────────────── */
+
+.rr-story-card__structure {
+  position: absolute;
+  top: 54px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  overflow-y: auto;
+}
+
+.rr-story-card__structure-title {
+  font-family: 'Geist Pixel', monospace;
+  font-weight: 400;
+  font-size: 24px;
+  letter-spacing: 0;
+  color: var(--terra-560);
+  margin-bottom: 32px;
+}
+
+/* Wrapper that holds the three mono sections — pushed to card bottom */
+.rr-mono-sections {
+  margin-top: auto;
+}
+
+.rr-mono-section {
+  margin-bottom: 18px;
+}
+
+.rr-mono-label {
+  font-family: 'Geist Pixel', monospace;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0;
+  margin-bottom: 6px;
+}
+.rr-mono-label--mech { color: var(--yellow-560); }
+.rr-mono-label--dyn  { color: var(--terra-560); }
+
+.rr-mono-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rr-mono-list li {
+  font-family: 'Geist Pixel', monospace;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0;
+  line-height: 1.4;
+  color: var(--yellow-800);
+  padding: 5px 0;
+  border-top: 1px dashed var(--yellow-320);
+}
+
+.rr-mono-list--terra li {
+  color: var(--terra-800);
+  border-top-color: var(--terra-320);
+}
+
+.rr-mono-item--bold {
+  font-style: italic;
+}
+
+
+/* ==========================================================================
+   Phase 1 — Cards & UI (Section 3)
+   ========================================================================== */
+
+.rr-canvas--cards-evo {
+  background: transparent;
+}
+
+/* ── Header ── */
+.rr-cards-header {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  z-index: var(--rr-z-ui); /* above rr-card-fan which has inset:0 */
+}
+
+.rr-cards-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -2.16px;
+  color: var(--mint-100);
+  text-align: center;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.rr-cards-subtitle {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--mint-160);
+  text-align: center;
+  text-transform: capitalize;
+  margin: 4px 0 24px;
+}
+
+/* Hide subtitle when interface tab is active */
+.rr-canvas--cards-evo[data-tab="interface"] .rr-cards-subtitle {
+  visibility: hidden;
+}
+
+.rr-cards-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.rr-cards-tab {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--mint-100);
+  text-transform: capitalize;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rr-cards-tab--active {
+  color: var(--orange-240);
+}
+
+.rr-cards-tab-sep {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+
+/* ── Card fan ── */
+.rr-card-fan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* container is non-interactive; cards inside re-enable */
+}
+
+.rr-card-item {
+  position: absolute;
+  cursor: pointer;
+  user-select: none;
+  pointer-events: auto;
+  /* Springier overshoot than the original 1.18 — pushes the bounce a bit further */
+  transition: transform 0.46s cubic-bezier(0.34, 1.42, 0.50, 1), filter 0.22s ease, z-index 0s;
+}
+
+/* Hover lift — only when nothing selected */
+.rr-card-fan:not(.rr-card-fan--has-selection) .rr-card-item:hover {
+  z-index: 10 !important;
+}
+
+.rr-card-item__label {
+  position: absolute;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--mint-80);
+  text-transform: capitalize;
+  top: -22px;
+  left: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.rr-card-item__img {
+  display: block;
+  width: 224px;
+  height: 316px;
+  object-fit: contain;
+  pointer-events: none;
+  /* Default: card resting on surface — short, close shadow */
+  filter: drop-shadow(-2px 4px 8px rgba(0,0,0,0.38));
+  transition: filter 0.38s cubic-bezier(0.34, 1.18, 0.64, 1);
+}
+
+/* Lifted card: higher above surface → longer, softer, darker shadow */
+.rr-card-item--selected .rr-card-item__img {
+  filter: drop-shadow(-3px 18px 22px rgba(0,0,0,0.52));
+}
+
+/* Pushed-back cards: lying flat on desk → almost no shadow */
+.rr-card-fan--has-selection .rr-card-item:not(.rr-card-item--selected) .rr-card-item__img {
+  filter: drop-shadow(-1px 1px 3px rgba(0,0,0,0.22)) brightness(0.78);
+}
+
+/* Hovering a pushed-back card: slight lift off desk → partial shadow + brightness restore */
+.rr-card-fan--has-selection .rr-card-item--hovered:not(.rr-card-item--selected) .rr-card-item__img {
+  filter: drop-shadow(-1px 3px 6px rgba(0,0,0,0.32)) brightness(0.90);
+}
+
+.rr-card-item__caption {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 224px;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--mint-80);
+  text-transform: capitalize;
+  text-align: left;
+  white-space: normal;
+  word-wrap: break-word;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+
+.rr-card-item--selected .rr-card-item__caption {
+  opacity: 1;
+}
+
+/* Per-card default positions — transform-origin pivots fan from bottom centre */
+.rr-card-item--v1 { left: 376px; top: 348px; z-index: 1; }
+.rr-card-item--v2 { left: 500px; top: 345px; z-index: 2; }
+.rr-card-item--v3 { left: 623px; top: 344px; z-index: 3; }
+.rr-card-item--v4 { left: 741px; top: 344px; z-index: 4; }
+.rr-card-item--v5 { left: 864px; top: 346px; z-index: 5; }
+
+
+/* ── Interface panel ── */
+.rr-interface-panel {
+  position: absolute;
+  inset: 0;
+}
+
+.rr-interface-desktop {
+  position: absolute;
+  left: 272px;
+  top: 202px;
+  width: 897px;
+  height: 638px;
+  z-index: 2;
+  transition: transform 0.52s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.rr-interface-desktop__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.36);
+}
+
+/* Annotation sticky note — sits behind the arena image */
+.rr-interface-notes {
+  position: absolute;
+  z-index: 1;
+  left: 971px;
+  top: 210px;
+  width: 224px;
+  height: 530px;
+  transform: rotate(1deg);
+  background: #ffebbd;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  transition: transform 0.52s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+/* Revealed state: arena slides left, note slides right — ~6px gap between them */
+.rr-interface-panel--revealed .rr-interface-desktop {
+  transform: translateX(-110px);
+}
+.rr-interface-panel--revealed .rr-interface-notes {
+  transform: rotate(1deg) translateX(94px);
+}
+
+/* Inner yellow border frame */
+.rr-interface-notes__frame {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid #f0bb01;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Notes body — top ~22% is empty, content sits below */
+.rr-interface-notes__body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22%;
+  bottom: 0;
+  padding: 0 14px 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.rr-interface-note {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: #3b4b5c;
+  letter-spacing: -0.12px;
+  line-height: 1.5;
+  padding: 7px 0;
+  margin: 0;
+}
+
+.rr-interface-note__divider {
+  border: none;
+  border-top: 1px solid #f0bb01;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* "Details" button — inside card, top-right corner, vertical text reading upward */
+.rr-interface-notes__details {
+  position: absolute;
+  right: 12px;
+  top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.rr-interface-notes__arrow {
+  font-size: 14px;
+  color: #cd9f09;
+  display: block;
+  line-height: 1;
+  transform: rotate(0deg);          /* → right by default (peeking out) */
+  transition: transform 0.4s cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+/* Arrow flips left when note is revealed */
+.rr-interface-panel--revealed .rr-interface-notes__arrow {
+  transform: rotate(180deg);        /* ← left (close / return) */
+}
+
+.rr-interface-notes__label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: #cd9f09;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-transform: capitalize;
+  white-space: nowrap;
 }
 
