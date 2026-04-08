@@ -1181,3 +1181,129 @@
   white-space: nowrap;
 }
 
+
+/* ==========================================================================
+   Phase 2 — Mechanics: scroll-bound mat split
+   --------------------------------------------------------------------------
+   Two real mats live as siblings inside a sticky stage. The mechanics sheet
+   section provides the scroll distance via a 200vh scene wrapper; the inner
+   stage is sticky 100vh so both mats stay glued to the viewport. A single
+   CSS variable `--rr-mech-progress` (set on the stage by Mechanics.tsx)
+   drives the choreography: both mats are fixed at 678px wide and translate
+   horizontally — the primary slides from stage-center to flush-left, the
+   secondary slides in from off the right edge to a 28px gap from primary.
+   Neither mat ever resizes, so the grid cells inside them are never clipped
+   mid-animation. Reversible — scrolling back up reverses the split.
+
+   The section itself stays a normal sheet (no width animation, no border),
+   only its `.mat::after` paper noise is suppressed because it would scroll
+   inside the pinned 200vh wrapper. The visible mats render their own grid
+   and noise via the `.mat` class from globals.css.
+   ========================================================================== */
+
+#mechanics {
+  /* Section is structural only — visible mats live inside the stage. */
+  padding: 0;
+  display: block;
+  gap: 0;
+  border: none;
+  background: none;
+}
+
+/* Suppress the section's `.mat::after` paper noise — it would scroll with
+   the 200vh scene wrapper. The visible mats render their own noise. */
+#mechanics::after { display: none; }
+
+.rr-mech-scene {
+  position: relative;
+  width: 100%;
+  height: 200vh;
+}
+
+.rr-mech-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  /* Choreography variables live on the stage so both mats (sibling children)
+     inherit. JS writes --rr-mech-progress here on scroll. */
+  --rr-mech-progress: 0;
+  --rr-mech-gap:   28px;
+  --rr-mech-w-end: 678px;
+}
+
+/* ── Primary mat ─────────────────────────────────────────────────────────── */
+/* Real mat surface — `.mat` class brings grid + noise from globals.css.
+   FIXED width (678px from the start) so the grid cells inside it never get
+   clipped by a resize animation — that looked like the paper itself was
+   shrinking. Instead the mat translates horizontally:
+     p=0 → centered in the stage  (left = (100% - 678px) / 2)
+     p=1 → flush with the stage's left edge  (left = 0)
+   Border + the noise pseudo-element from `.mat::after` apply automatically. */
+.rr-mat--primary {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: var(--rr-mech-w-end, 678px);
+  left: calc(
+    (1 - var(--rr-mech-progress)) * ((100% - var(--rr-mech-w-end)) / 2)
+  );
+  border: var(--sheet-border);
+  /* Stacking context so .mat::after noise is clipped to this mat and the
+     family below can layer cleanly above it. */
+  z-index: 1;
+}
+
+/* Family bbox — game board + rails + note. Centered in the primary mat via
+   50%/transform so it rides along as the mat translates from center to left.
+   Rails overflow the right edge into the gap (option a, as agreed). */
+.rr-mech-family {
+  position: absolute;
+  left: 50%;
+  top:  50%;
+  transform: translate(-50%, -50%);
+  width: 520px;
+  height: 720px;
+  /* Above the .mat::after paper-noise overlay. */
+  z-index: 1;
+}
+
+/* Re-anchor the absolutely-positioned family pieces from rr-canvas (1440-wide)
+   coordinates into the smaller mech-family bbox. */
+.rr-mech-family .rr-game-board { left: 130px; }
+.rr-mech-family .rr-rules-rail { left: 214px; }
+.rr-mech-family .rr-note-rail  { left: 169px; }
+
+/* ── Secondary mat ───────────────────────────────────────────────────────── */
+/* Fixed-width sibling that slides in from the right as the primary slides left.
+   `left` is interpolated from the same progress variable (inherited from the
+   shared parent stage):
+     p=0 → left = 100% (just off the stage's right edge → off-screen)
+     p=1 → left = 678 + 28 = 706px (28px gap from primary's right edge)
+   Translate-only, like the primary — no width animation. */
+.rr-mat--secondary {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: var(--rr-mech-w-end, 678px);
+  left: calc(
+    (1 - var(--rr-mech-progress, 0)) * 100%
+    + var(--rr-mech-progress, 0) * (var(--rr-mech-w-end, 678px) + var(--rr-mech-gap, 28px))
+  );
+  overflow: hidden;
+  /* Hidden until the primary mat marks the split as active (avoids stray
+     border rendering at the seam when secondary is still off-screen). */
+  visibility: hidden;
+}
+
+.rr-mat--primary.is-split ~ .rr-mat--secondary {
+  visibility: visible;
+  border: var(--sheet-border);
+}
+
+/* Story card centered in the fixed-width secondary mat.
+   50% of 678px = 339px. Card: 400w × 688h. */
+.rr-mat--secondary .rr-story-card--mechanics {
+  top:  calc(50% - 344px);
+  left: calc(50% - 200px);
+}

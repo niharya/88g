@@ -43,12 +43,19 @@ export default function ChapterMarker({ chapter, chapters }: ChapterMarkerProps)
     const sheet = nav.closest('.sheet') as HTMLElement | null
     if (!sheet) return
 
-    const update = () => {
-      const navRect   = nav.getBoundingClientRect()
-      const sheetRect = sheet.getBoundingClientRect()
+    // Arrow points toward the sheet's visual center. For sections that house
+    // a pinned scroll scene (taller than viewport), prefer the inner stage so
+    // the arrow tracks what the user actually sees rather than the off-screen
+    // section midpoint. Falls through to the sheet for normal sections.
+    const target = sheet.querySelector('[data-arrow-target]') as HTMLElement | null
+                ?? sheet
 
-      const dx = (sheetRect.left + sheetRect.width  / 2) - (navRect.left + navRect.width  / 2)
-      const dy = (sheetRect.top  + sheetRect.height / 2) - (navRect.top  + navRect.height / 2)
+    const update = () => {
+      const navRect    = nav.getBoundingClientRect()
+      const targetRect = target.getBoundingClientRect()
+
+      const dx = (targetRect.left + targetRect.width  / 2) - (navRect.left + navRect.width  / 2)
+      const dy = (targetRect.top  + targetRect.height / 2) - (navRect.top  + navRect.height / 2)
       arrow.style.transform = `rotate(${Math.atan2(dy, dx) * (180 / Math.PI) - 90}deg)`
 
       nav.classList.toggle('is-docked', Math.abs(navRect.top - MARKER_TOP) < 4)

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useScroll, useMotionValueEvent, useTransform, useSpring } from 'framer-motion'
 import type { RoundOutcome } from './game/game-logic'
 import { GameBoard } from './game/GameBoard'
 import RulesRail from './RulesRail'
@@ -9,21 +10,17 @@ import StoryCard from './StoryCard'
 
 const NOTE_REVEALED_KEY = 'rr-note-revealed'
 
+// Choreography tuning
+const HOLD = 0.15  // first 15% of pinned scroll = mat held centered, no movement
+
 export default function Mechanics() {
   const [results, setResults] = useState<RoundOutcome[]>([])
 
-  // Note rail reveal:
-  // - hidden by default; appears the first time the player reaches a
-  //   game-end state (victory or defeat). Once revealed, persisted in
-  //   localStorage so future visits show it immediately.
-  // - `noteRevealed`: render the rail at all
-  // - `justRevealed`: it became revealed in *this* session, so play the
-  //   gentle pop-in animation and start it open. On return visits this
-  //   stays false → rail renders instantly, closed, with no flourish.
+  // Note rail reveal — same gating as before. Hidden until first game-end,
+  // persisted in localStorage so return visits show it instantly.
   const [noteRevealed, setNoteRevealed] = useState(false)
   const [justRevealed, setJustRevealed] = useState(false)
 
-  // Read persisted state after mount (avoids SSR/hydration mismatch)
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (window.localStorage.getItem(NOTE_REVEALED_KEY) === '1') {
@@ -35,6 +32,19 @@ export default function Mechanics() {
     setResults(r)
   }, [])
 
+  // ── Scroll-bound mat split ────────────────────────────────────────────────
+  // Scene wrapper is 200vh tall; the inner stage is sticky (100vh) so both
+  // mats stay glued to the viewport while progress 0 → 1 drives the split.
+  // Reversible — scrolling back up reverses the split.
+  const sceneRef   = useRef<HTMLDivElement>(null)
+  const stageRef   = useRef<HTMLDivElement>(null)
+  const primaryRef = useRef<HTMLDivElement>(null)
+
+  const { scrollYProgress } = useScroll({
+    target: sceneRef,
+    offset: ['start start', 'end end'],
+  })
+
   const handleGameOver = useCallback(() => {
     setNoteRevealed(prev => {
       if (prev) return prev
@@ -42,30 +52,77 @@ export default function Mechanics() {
       try { window.localStorage.setItem(NOTE_REVEALED_KEY, '1') } catch {}
       return true
     })
-  }, [])
+
+    // Auto-advance the split to its locked end formation. Only fires when the
+    // user is currently inside the mechanics scene and the split hasn't
+    // already completed — won't yank scroll position if they've moved on.
+    const scene = sceneRef.current
+    if (!scene) return
+    const rect = scene.getBoundingClientRect()
+    const inView = rect.bottom > 0 && rect.top < window.innerHeight
+    if (!inView) return
+    if (scrollYProgress.get() >= 0.999) return
+
+    // Document-relative top of the scene's *end* (when its bottom edge meets
+    // the viewport bottom). offsetTop is relative to the offset parent, not
+    // the document, so use getBoundingClientRect + scrollY instead.
+    const sceneDocTop = rect.top + window.scrollY
+    const target = sceneDocTop + scene.offsetHeight - window.innerHeight
+    window.scrollTo({ top: target, behavior: 'smooth' })
+  }, [scrollYProgress])
+
+  // Hold zone — first HOLD of progress is dead time so the user reads the
+  // full-width mat before anything moves. Remap [HOLD, 1] → [0, 1].
+  const animProgress = useTransform(scrollYProgress, [HOLD, 1], [0, 1], { clamp: true })
+
+  // Spring follower — uses the duration/bounce API instead of stiffness/mass
+  // because it maps more directly to feel: `duration` is how long the spring
+  // takes to settle, `bounce` is how much it overshoots. Underdamped enough
+  // to be visibly springy on settle. Still scroll-bound — the spring chases
+  // scrollYProgress, so dragging the scrollbar still drives it.
+  const springProgress = useSpring(animProgress, {
+    duration: 0.55,
+    bounce: 0.35,
+    restDelta: 0.0005,
+  })
+
+  // Write progress as a CSS variable on the stage so both mats (primary and
+  // secondary, siblings inside the stage) inherit it. The .is-split class
+  // flips on the primary mat the moment progress leaves 0 so the secondary's
+  // border doesn't render as a stray line when its position is still off-screen.
+  useMotionValueEvent(springProgress, 'change', v => {
+    stageRef.current?.style.setProperty('--rr-mech-progress', String(v))
+    primaryRef.current?.classList.toggle('is-split', v > 0.0005)
+  })
 
   return (
-    <div className="rr-canvas">
+    <div ref={sceneRef} className="rr-mech-scene">
+      <div ref={stageRef} className="rr-mech-stage">
 
-      {/* Story card — story ↔ structure toggle, reflects live game results */}
-      <StoryCard results={results} />
+        {/* Primary mat — fixed-width (678px) mat surface that translates from
+            stage center to flush-left as progress goes 0 → 1. Carries .mat
+            class so it inherits grid + paper noise from globals.
+            data-arrow-target hooks ChapterMarker's arrow rotation. */}
+        <div ref={primaryRef} className="rr-mat--primary mat" data-arrow-target>
+          <div className="rr-mech-family">
+            <RulesRail />
+            <div className="rr-game-board">
+              <GameBoard
+                onResultsChange={handleResultsChange}
+                onGameOver={handleGameOver}
+              />
+            </div>
+            {noteRevealed && <NoteRail playReveal={justRevealed} />}
+          </div>
+        </div>
 
-      {/* Rules rail — slides from right of game board */}
-      <RulesRail />
+        {/* Secondary mat — fixed-width (678px) sibling that slides in from the
+            right as the primary slides left. Reads the same --rr-mech-progress. */}
+        <div className="rr-mat--secondary mat">
+          <StoryCard results={results} />
+        </div>
 
-      {/* Note rail — hidden until first game-end, then persisted */}
-      {noteRevealed && (
-        <NoteRail playReveal={justRevealed} />
-      )}
-
-      {/* Game board */}
-      <div className="rr-game-board">
-        <GameBoard
-          onResultsChange={handleResultsChange}
-          onGameOver={handleGameOver}
-        />
       </div>
-
     </div>
   )
 }

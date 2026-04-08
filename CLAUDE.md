@@ -25,21 +25,11 @@ Everything under `reference/` is read-only context. Never modify it.
 
 **Current focus: `/rr` (Rug Rumble).**
 
-`/biconomy` is complete and acts as the **design system donor** for the new repo.
-
-That means `/rr` should reuse proven patterns from `/biconomy` wherever appropriate:
-
-* `Sheet`
-* mat / surface structure
-* `PaperFilter`
-* `ChapterMarker`
-* `ProjectMarker`
-* `ExitMarker`
-* notes rail patterns where relevant
+`/biconomy` is complete. The patterns it established have been promoted into the shared design system layer (see *Shared design system* below) and are consumed by `/rr` from there.
 
 Do not modify `/biconomy` unless:
 
-* a shared primitive genuinely needs to move to a shared location
+* a shared primitive genuinely needs to move into the shared layer
 * a shared bug is discovered during `/rr` work
 * a shared global token/class must become parameterizable
 
@@ -62,6 +52,19 @@ Rug Rumble should be built in **two distinct phases**.
 
 Do not combine Phase 1 and Phase 2 by default.
 
+## Shared design system
+
+`app/components/` and `app/globals.css` together are the project's shared design system layer. Both `/biconomy` and `/rr` consume from it directly. Neither route imports from the other.
+
+What currently lives in shared:
+
+* `app/components/` — `Sheet`, `PaperFilter`, `ChapterMarker`, `ProjectMarker`, `ExitMarker`
+* `app/globals.css` — design tokens, the `.mat` surface (grid + paper noise), `.fonts-ready` gating, typography scale
+
+**Promotion rule.** A primitive moves into shared the **second** time it's needed, not the first. Flag the move before doing it — don't silent-promote. If you find yourself copying a pattern from one route to another, stop and promote instead. If you find yourself touching a shared primitive, grep both routes first.
+
+`/biconomy` was built before `/rr`, so much of what's currently in shared was originally prototyped there. That makes it the historical donor — but it is not a code dependency. New shared primitives can originate in any route once they're needed twice.
+
 ## Files in play for `/rr`
 
 Route-local:
@@ -72,12 +75,10 @@ Route-local:
 * `app/rr/nav/`
 * `app/rr/components/`
 
-Shared layers that may be touched carefully:
+Shared layers (see *Shared design system* above):
 
+* `app/components/`
 * `app/globals.css`
-* shared nav / sheet / paper primitives already established in `/biconomy`
-
-When something is used by two routes and clearly deserves promotion, flag it first before moving it.
 
 ## Stack and implementation philosophy
 
