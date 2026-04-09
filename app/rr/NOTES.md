@@ -82,6 +82,31 @@ Things we tried, removed, and should not bring back without revisiting the origi
 
 ---
 
+## Cards section — shader + grid stacking
+
+Lives in `app/rr/components/Cards.tsx` + `app/rr/components/RugShader.tsx` + `app/rr/rr.css` (~line 908).
+
+### `overflow: clip`, not `hidden`
+- `#cards.mat` uses `overflow: clip` to contain the shader within the mat boundary.
+- **Do not change to `overflow: hidden`.** `hidden` creates a scroll container that breaks `position: sticky` on ChapterMarker. `clip` clips visually without affecting scroll/sticky behavior.
+
+### RugShader is a mat-level sibling, not a canvas child
+- `Cards.tsx` returns a Fragment: `<RugShader />` + `<div className="rr-canvas ...">`.
+- Both are direct children of the mat (via Sheet's `{children}`).
+- Why: the shader must fill the entire mat height (1128px), but `.rr-canvas` is only 900px tall. Placing the shader inside the canvas left 114px gaps top and bottom. Do not nest the shader back inside the canvas.
+
+### Grid is promoted to `::before`
+- `#cards.mat` sets `background-image: none` to suppress the default `.mat` grid.
+- The grid is redrawn on `#cards::before` at `z-index: 1` with `mix-blend-mode: color-burn; opacity: 0.4`.
+- Why: the shader sits at `z-index: 0`. The default grid is part of `background-image` and can't be z-indexed above the shader. The pseudo-element solves this. Paper noise (`::after`) stays at `z-index: 2`.
+
+### Card fan vertical stagger (`BASE_Y`)
+- `CardFan.tsx` uses `BASE_Y = [-4, -12, -14, -9, 2]` alongside `BASE_ROT` for per-card vertical offsets.
+- `BASE_Y` feeds into all three transform functions: `restTransform`, `hoverTransform`, `spreadTransform`.
+- Values are hand-tuned to match the Figma reference — do not normalize to a computed curve.
+
+---
+
 ## Don't-touch list (without reading why first)
 
 - `--rr-mech-progress` cascade location — must be on the stage, not a mat
@@ -90,3 +115,7 @@ Things we tried, removed, and should not bring back without revisiting the origi
 - `#mechanics::after { display: none }`
 - The `?? sheet` fallback in `ChapterMarker.tsx`
 - `rect.top + window.scrollY` (not `offsetTop`) in `handleGameOver`
+- `overflow: clip` on `#cards.mat` — `hidden` breaks ChapterMarker sticky
+- `#cards.mat { background-image: none }` + `#cards::before` grid — z-index control over shader
+- RugShader as Fragment sibling, not nested inside `.rr-canvas`
+- `BASE_Y` values in `CardFan.tsx` — Figma-matched, hand-tuned
