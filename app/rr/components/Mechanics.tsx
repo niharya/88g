@@ -21,6 +21,11 @@ export default function Mechanics() {
   const [noteRevealed, setNoteRevealed] = useState(false)
   const [justRevealed, setJustRevealed] = useState(false)
 
+  // True once the spring follower is essentially at its locked end position.
+  // Passed to StoryCard so its dotted-path one-shot can fire after the mat
+  // has visually settled (with its own 500ms delay).
+  const [splitSettled, setSplitSettled] = useState(false)
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (window.localStorage.getItem(NOTE_REVEALED_KEY) === '1') {
@@ -90,9 +95,12 @@ export default function Mechanics() {
   // secondary, siblings inside the stage) inherit it. The .is-split class
   // flips on the primary mat the moment progress leaves 0 so the secondary's
   // border doesn't render as a stray line when its position is still off-screen.
+  // splitSettled flips at ~0.95 so downstream one-shot animations (StoryCard's
+  // dotted path) know the mat is essentially in place.
   useMotionValueEvent(springProgress, 'change', v => {
     stageRef.current?.style.setProperty('--rr-mech-progress', String(v))
     primaryRef.current?.classList.toggle('is-split', v > 0.0005)
+    setSplitSettled(v > 0.95)
   })
 
   return (
@@ -119,7 +127,7 @@ export default function Mechanics() {
         {/* Secondary mat — fixed-width (678px) sibling that slides in from the
             right as the primary slides left. Reads the same --rr-mech-progress. */}
         <div className="rr-mat--secondary mat">
-          <StoryCard results={results} />
+          <StoryCard results={results} splitSettled={splitSettled} />
         </div>
 
       </div>

@@ -585,7 +585,7 @@
   min-height: unset;
   padding: 104px 16px 24px;
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
   /* Yellow paper background for story state */
   background: url('/images/rr/story-yellow-bg.png') center / cover no-repeat, var(--yellow-100);
 }
@@ -666,6 +666,32 @@
   pointer-events: none;
   z-index: 1;
   overflow: visible;
+}
+
+
+/* ── Deck-fan overlay (mechanics story card) ────────────────────────────── */
+/* Photo of a hand holding a fan of physical cards. Sits half on / half off
+   the bottom-left of the StoryCard. Transform is driven by --rr-mech-progress
+   (inherited from .rr-mech-stage), so the fan animates in lockstep with the
+   mat split — no JS coupling. Pivot is bottom-of-hand (~95% from top of img). */
+.rr-story-card__deck-fan {
+  position: absolute;
+  bottom: -24px;
+  left: -110px;
+  width: 240px;
+  height: auto;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: 50% 95%;
+  transform:
+    rotate(calc(-23deg + 8deg * var(--rr-mech-progress, 0)))
+    scale(calc(0.8 + 0.2 * var(--rr-mech-progress, 0)));
+  /* Suppress in structure view — story-only overlay. */
+}
+
+.rr-story-card--structure .rr-story-card__deck-fan {
+  display: none;
 }
 
 

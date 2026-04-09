@@ -1,15 +1,18 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, animate, useMotionValue } from 'framer-motion'
 import type { RoundOutcome } from './game/game-logic'
 import { Scorecard } from './game/Scorecard'
 
 interface StoryCardProps {
   results: RoundOutcome[]
+  /** True once the mat split has essentially settled at the locked end position.
+   *  Drives the one-shot dotted-path draw, which fires 500ms after this flips true. */
+  splitSettled?: boolean
 }
 
-export default function StoryCard({ results }: StoryCardProps) {
+export default function StoryCard({ results, splitSettled = false }: StoryCardProps) {
   const [isStructure, setIsStructure] = useState(false)
   const isIdle = results.length === 0
 
@@ -34,13 +37,30 @@ export default function StoryCard({ results }: StoryCardProps) {
     document.fonts.ready.then(measure)
   }, [])
 
-  // Scroll-bound stroke — draws as the card scrolls into view
+  // One-shot stroke — fires 500ms after Mechanics tells us the split has
+  // settled. Pinned scroll scenes mean the StoryCard never "scrolls into view"
+  // in the normal sense (the secondary mat is glued to the viewport), so a
+  // local scroll-bound trigger wouldn't fire reliably. The 500ms delay lets the
+  // mat-split spring visually relax before the path draws itself in.
   const pathRef = useRef<SVGPathElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: cardRef,
-    offset: ['start 0.85', 'start 0.2'],
-  })
-  const strokeDashoffset = useTransform(scrollYProgress, [0, 1], [2000, 0])
+  const strokeDashoffset = useMotionValue(2000)
+
+  useEffect(() => {
+    if (!splitSettled) {
+      // Reverse: if the user scrolls back out of the lock, snap the path away
+      // quickly so it can re-draw cleanly the next time the mat settles.
+      const controls = animate(strokeDashoffset, 2000, { duration: 0.25 })
+      return () => controls.stop()
+    }
+    let controls: ReturnType<typeof animate> | null = null
+    const t = setTimeout(() => {
+      controls = animate(strokeDashoffset, 0, { duration: 1.5, ease: 'easeOut' })
+    }, 500)
+    return () => {
+      clearTimeout(t)
+      controls?.stop()
+    }
+  }, [splitSettled, strokeDashoffset])
 
   return (
     <div
@@ -147,10 +167,10 @@ export default function StoryCard({ results }: StoryCardProps) {
             ref={pathRef}
             d="M 2 0 C 20 80, 130 130, 110 210 C 90 275, 30 290, 47 315"
             stroke="var(--yellow-800)"
-            strokeWidth="1.5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeDasharray="0 8"
+            strokeDasharray="0 5"
             style={{ strokeDashoffset }}
           />
         </motion.svg>
@@ -163,6 +183,17 @@ export default function StoryCard({ results }: StoryCardProps) {
           A game that people can enjoy and want to come back to
         </p>
       </div>
+
+      {/* Deck-fan overlay — sits half on / half off the bottom-left of the
+          card. Transform is driven entirely by --rr-mech-progress (inherited
+          from the stage), so it animates in lockstep with the mat split. */}
+      <img
+        src="/images/rr/rr-hand-deck-fan.png"
+        alt=""
+        aria-hidden="true"
+        className="rr-story-card__deck-fan"
+        draggable={false}
+      />
     </div>
   )
 }
