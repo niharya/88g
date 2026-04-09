@@ -31,6 +31,7 @@
 }
 
 
+
 /* ── RR workbench overrides ──────────────────────────────────────────────── */
 
 .workbench {
@@ -905,21 +906,88 @@
    Phase 1 — Cards & UI (Section 3)
    ========================================================================== */
 
-.rr-canvas--cards-evo {
-  background: transparent;
+
+/* Clip shader + canvas to the mat boundary.
+   Background matches shader's dominant green so the sheet padding
+   areas (above/below the 900px canvas) blend seamlessly. */
+/* overflow: clip (not hidden) — clips the shader visually but preserves
+   position: sticky for the chapter nav inside. hidden would break sticky. */
+#cards.mat {
+  overflow: clip;
+}
+
+/* ── Cards section layer stack ──────────────────────────────────────────────
+   Everything lives inside .rr-canvas--cards-evo (1440×900, overflow:hidden,
+   creates its own stacking context at z-index:1 on the mat).
+
+   Layer order inside the canvas (bottom → top):
+     <canvas> shader         z-index: 0   Balatro paint
+     ::before grid           z-index: 1   mat grid lines redrawn on top
+     ::after  noise          z-index: 2   paper noise texture
+     .rr-cards-body          z-index: 3   card fan / interface panel
+     .rr-cards-header        z-index: 5   title, subtitle, tabs
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Shader canvas — fills the entire mat, behind grid + noise + canvas content */
+.rr-rug-shader {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Suppress the mat's own grid — we redraw it on ::before at a controlled z-index */
+#cards.mat {
+  background-image: none;
+}
+
+/* Grid overlay — fills the mat, above the shader */
+#cards::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: color-burn;
+  opacity: 0.4;
+  background-size: var(--mat-grid-size) var(--mat-grid-size);
+  background-image:
+    linear-gradient(to right,  var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight)),
+    linear-gradient(to bottom, var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight));
+}
+
+/* Paper noise — fills the mat, above grid. Replaces .mat::after for this section. */
+#cards.mat::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.15;
+  background-size: 100px;
+  background-image: url("data:image/png;base64,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");
+}
+
+/* ── Tab body wrapper — hosts CardFan or InterfacePanel ── */
+.rr-cards-body {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
 }
 
 /* ── Header ── */
 .rr-cards-header {
   position: absolute;
-  top: 80px;
+  top: 40px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
-  z-index: var(--rr-z-ui); /* above rr-card-fan which has inset:0 */
+  z-index: var(--rr-z-ui); /* 5 — above everything */
 }
 
 .rr-cards-title {
@@ -940,21 +1008,26 @@
   font-weight: 800;
   font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
   letter-spacing: -0.24px;
-  color: var(--mint-160);
+  color: var(--mint-100);
   text-align: center;
   text-transform: capitalize;
   margin: 4px 0 24px;
 }
 
-/* Hide subtitle when interface tab is active */
-.rr-canvas--cards-evo[data-tab="interface"] .rr-cards-subtitle {
-  visibility: hidden;
+/* Fixed-height subtitle slot so tabs don't shift when AnimatePresence removes the subtitle */
+.rr-cards-subtitle-slot {
+  height: 40px; /* 12px font + 4px top margin + 24px bottom margin */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
 .rr-cards-tabs {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
+  margin-top: 8px;
+  margin-left: 8px;
 }
 
 .rr-cards-tab {
@@ -963,23 +1036,60 @@
   font-weight: 800;
   font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
   letter-spacing: -0.24px;
-  color: var(--mint-100);
+  color: var(--mint-160);
   text-transform: capitalize;
   background: none;
+  transition: color 0.15s ease, transform 0.15s ease;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 8px 12px;
+  margin: -8px -12px;
+}
+
+.rr-cards-tab:hover {
+  color: var(--mint-100);
+}
+
+.rr-cards-tab:active {
+  transform: scale(0.94);
+  transition: transform 0s;
 }
 
 .rr-cards-tab--active {
-  color: var(--orange-240);
+  color: var(--mint-240);
+}
+
+.rr-cards-tab--active:hover {
+  color: var(--mint-240);
 }
 
 .rr-cards-tab-sep {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: -8px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--mint-160);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.rr-cards-tab-sep svg {
+  width: 16px;
+  height: 16px;
+}
+
+.rr-cards-tab-sep:hover {
+  color: var(--mint-100);
+}
+
+.rr-cards-tab-sep:active {
+  transform: scale(0.85);
+  transition: transform 0s;
 }
 
 
@@ -1013,8 +1123,8 @@
   letter-spacing: -0.24px;
   color: var(--mint-80);
   text-transform: capitalize;
-  top: -22px;
-  left: 4px;
+  top: -16px;
+  left: 6px;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -1047,8 +1157,8 @@
 
 .rr-card-item__caption {
   position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  top: calc(100% - 1px);
+  left: 10px;
   width: 224px;
   margin: 0;
   font-family: var(--font-ui);
@@ -1071,11 +1181,13 @@
 }
 
 /* Per-card default positions — transform-origin pivots fan from bottom centre */
-.rr-card-item--v1 { left: 376px; top: 348px; z-index: 1; }
-.rr-card-item--v2 { left: 500px; top: 345px; z-index: 2; }
-.rr-card-item--v3 { left: 623px; top: 344px; z-index: 3; }
-.rr-card-item--v4 { left: 741px; top: 344px; z-index: 4; }
-.rr-card-item--v5 { left: 864px; top: 346px; z-index: 5; }
+.rr-card-item--v1 { left: 376px; top: 316px; z-index: 1; }
+.rr-card-item--v2 { left: 498px; top: 316px; z-index: 2; }
+.rr-card-item--v3 { left: 650px; top: 316px; z-index: 3; }
+.rr-card-item--v4 { left: 758px; top: 316px; z-index: 4; }
+.rr-card-item--v5 { left: 864px; top: 316px; z-index: 5; }
+.rr-card-item--v5 .rr-card-item__label { left: 22px; }
+.rr-card-item--v5 .rr-card-item__caption { left: 26px; }
 
 
 /* ── Interface panel ── */

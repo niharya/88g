@@ -19,6 +19,7 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 
 const BASE_ROT = [-12, -6, 0, 4, 10]
+const BASE_Y   = [-4, -12, -14, -9, 2]   // stagger from Figma: v2 highest, v3/v4 near, v5 drops
 const HOVER_NUDGE = 18
 const HOVER_LIFT = -28
 const CLICK_SPREAD = 22
@@ -35,15 +36,15 @@ const CARDS = [
 type CardTransform = { x: number; y: number; rotate: number; scale: number }
 
 function restTransform(i: number): CardTransform {
-  return { x: 0, y: 0, rotate: BASE_ROT[i], scale: 1 }
+  return { x: 0, y: BASE_Y[i], rotate: BASE_ROT[i], scale: 1 }
 }
 
 function hoverTransform(i: number, hIdx: number): CardTransform {
-  if (i === hIdx) return { x: 0, y: HOVER_LIFT, rotate: BASE_ROT[i] * 0.5, scale: 1.06 }
+  if (i === hIdx) return { x: 0, y: BASE_Y[i] + HOVER_LIFT, rotate: BASE_ROT[i] * 0.5, scale: 1.06 }
   const dir = i < hIdx ? -1 : 1
   const dist = Math.abs(i - hIdx)
   const nudge = dir * HOVER_NUDGE * (dist === 1 ? 1 : 0.4)
-  return { x: nudge, y: 0, rotate: BASE_ROT[i], scale: 1 }
+  return { x: nudge, y: BASE_Y[i], rotate: BASE_ROT[i], scale: 1 }
 }
 
 function spreadTransform(i: number, sIdx: number): CardTransform {
@@ -53,7 +54,7 @@ function spreadTransform(i: number, sIdx: number): CardTransform {
   const x = dir * CLICK_SPREAD * dist
   const extraRot = dir * dist * 3
   const totalRot = Math.max(-8, Math.min(8, BASE_ROT[i] + extraRot))
-  return { x, y: 8, rotate: totalRot, scale: 0.94 }
+  return { x, y: BASE_Y[i] + 8, rotate: totalRot, scale: 0.94 }
 }
 
 export default function CardFan() {
