@@ -511,7 +511,7 @@
   position: absolute;
   left: 279px;
   top: 482px;
-  width: 220px;
+  width: 248px;
   padding: 8px;
   background: var(--yellow-960);
   color: var(--yellow-480);
@@ -676,9 +676,9 @@
    mat split — no JS coupling. Pivot is bottom-of-hand (~95% from top of img). */
 .rr-story-card__deck-fan {
   position: absolute;
-  bottom: -24px;
-  left: -110px;
-  width: 240px;
+  bottom: -72px;
+  left: -60px;
+  width: 307px;
   height: auto;
   z-index: 10;
   pointer-events: none;

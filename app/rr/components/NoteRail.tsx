@@ -20,7 +20,7 @@ export default function NoteRail({ playReveal = false }: NoteRailProps) {
       className={`rr-note-rail${isOpen ? ' is-open' : ''}`}
       initial={playReveal ? { x: -32, rotate: 1 } : false}
       animate={{
-        x: isOpen ? 220 : 0,
+        x: isOpen ? 248 : 0,
         rotate: isOpen ? 0 : 1,
       }}
       transition={

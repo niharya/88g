@@ -21,9 +21,10 @@ import {
 interface GameBoardProps {
   onResultsChange?: (results: RoundOutcome[]) => void
   onGameOver?: () => void
+  onGameStart?: () => void
 }
 
-export function GameBoard({ onResultsChange, onGameOver }: GameBoardProps = {}) {
+export function GameBoard({ onResultsChange, onGameOver, onGameStart }: GameBoardProps = {}) {
   const { state, pickCard, start, restart, forceGameOver, peekProgress } = useGame(5)
 
   useEffect(() => {
@@ -167,10 +168,11 @@ export function GameBoard({ onResultsChange, onGameOver }: GameBoardProps = {}) 
 
       {/* ── Idle overlay elements ───────────────────────────────────────── */}
 
-      {/* "NUMBER DUEL" — same position + font as VICTORY / DEFEAT */}
+      {/* "NUMBER DUEL" — two stacked lines, same slot as VICTORY / DEFEAT */}
       {isIdle && (
         <div className="rr-game__verdict rr-game__verdict--idle">
-          NUMBER DUEL
+          <span>Number</span>
+          <span>Duel</span>
         </div>
       )}
 
@@ -179,7 +181,7 @@ export function GameBoard({ onResultsChange, onGameOver }: GameBoardProps = {}) 
         <button
           type="button"
           className="rr-game-play-again t-btn1"
-          onClick={start}
+          onClick={() => { onGameStart?.(); start() }}
         >
           Start game
         </button>

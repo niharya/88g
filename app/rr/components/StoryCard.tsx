@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion, animate, useMotionValue } from 'framer-motion'
+import { motion, animate, useMotionValue, useTransform } from 'framer-motion'
 import type { RoundOutcome } from './game/game-logic'
 import { Scorecard } from './game/Scorecard'
 
@@ -37,30 +37,37 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
     document.fonts.ready.then(measure)
   }, [])
 
-  // One-shot stroke — fires 500ms after Mechanics tells us the split has
-  // settled. Pinned scroll scenes mean the StoryCard never "scrolls into view"
-  // in the normal sense (the secondary mat is glued to the viewport), so a
-  // local scroll-bound trigger wouldn't fire reliably. The 500ms delay lets the
-  // mat-split spring visually relax before the path draws itself in.
-  const pathRef = useRef<SVGPathElement>(null)
-  const strokeDashoffset = useMotionValue(2000)
+  // One-shot path draw — fires 3s after the mat split has settled.
+  // Uses a clipPath rect that grows from height 0 → 340 to reveal the dotted
+  // path top-to-bottom, rather than scrolling the dot pattern (old dashoffset
+  // approach). The path itself is always fully drawn; the clip controls visibility.
+  const pathProgress = useMotionValue(0)
+  // 340 = viewBox height (320) + small overshoot so the clip fully clears the bottom
+  const clipHeight = useTransform(pathProgress, [0, 1], [0, 340])
+  // Once drawn, the path stays — never resets on scroll-back.
+  const hasDrawn = useRef(false)
 
   useEffect(() => {
     if (!splitSettled) {
-      // Reverse: if the user scrolls back out of the lock, snap the path away
-      // quickly so it can re-draw cleanly the next time the mat settles.
-      const controls = animate(strokeDashoffset, 2000, { duration: 0.25 })
+      // Only snap back if it was never drawn yet
+      if (hasDrawn.current) return
+      const controls = animate(pathProgress, 0, { duration: 0.25 })
       return () => controls.stop()
     }
+    if (hasDrawn.current) return
     let controls: ReturnType<typeof animate> | null = null
     const t = setTimeout(() => {
-      controls = animate(strokeDashoffset, 0, { duration: 1.5, ease: 'easeOut' })
-    }, 500)
+      controls = animate(pathProgress, 1, {
+        duration: 1.5,
+        ease: 'easeOut',
+        onComplete: () => { hasDrawn.current = true },
+      })
+    }, 1000)
     return () => {
       clearTimeout(t)
       controls?.stop()
     }
-  }, [splitSettled, strokeDashoffset])
+  }, [splitSettled, pathProgress])
 
   return (
     <div
@@ -150,7 +157,7 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
         </div>
       </div>
 
-      {/* Dotted path — plain div for positioning, motion.svg for animation */}
+      {/* Dotted path — clipPath rect grows top-to-bottom to reveal dots progressively */}
       <div
         className="rr-story-card__dotted-path"
         style={{ top: pathPos.top, left: pathPos.left }}
@@ -163,15 +170,20 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
           fill="none"
           overflow="visible"
         >
-          <motion.path
-            ref={pathRef}
+          <defs>
+            <clipPath id="rr-dot-path-clip">
+              {/* x/width over-extend left/right so curved portions aren't clipped horizontally */}
+              <motion.rect x="-30" y="-10" width="220" style={{ height: clipHeight }} />
+            </clipPath>
+          </defs>
+          <path
             d="M 2 0 C 20 80, 130 130, 110 210 C 90 275, 30 290, 47 315"
             stroke="var(--yellow-800)"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeDasharray="0 5"
-            style={{ strokeDashoffset }}
+            clipPath="url(#rr-dot-path-clip)"
           />
         </motion.svg>
       </div>

@@ -155,13 +155,16 @@
   width: calc(100% + 2 * var(--panel-pad));
 }
 
-/* "NUMBER DUEL" title — shares the .rr-game__verdict slot + font styling,
-   only overriding size + tracking to read as a title rather than a verdict. */
+/* "NUMBER / DUEL" title — two stacked lines sharing the verdict slot.
+   Tight leading so the pair reads as a single lockup. */
 .rr-game__verdict--idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
   font-size: calc(16 * var(--u));
   letter-spacing: 0.08em;
-  /* Idle title is a static label, not a game-over reveal, so skip the
-     scramble/fade-in animation used by the active verdict. */
+  line-height: 0.85;
   opacity: 1;
   animation: none;
 }
@@ -680,7 +683,7 @@
 .rr-game-play-again {
   position: absolute;
   left: 50%;
-  top: calc(var(--panel-pad) + 24 * var(--u) + var(--card-h-sm) / 2 + 36 * var(--u));
+  top: calc(var(--panel-pad) + 24 * var(--u) + var(--card-h-sm) / 2 + 48 * var(--u));
   background: transparent;
   border: 0;
   padding: 0;

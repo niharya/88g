@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+
+const RULES_SEEN_KEY = 'rr-rules-seen'
 
 function ArrowBackIcon({ className }: { className?: string }) {
   return (
@@ -16,8 +18,45 @@ function ArrowBackIcon({ className }: { className?: string }) {
   )
 }
 
-export default function RulesRail() {
+interface RulesRailProps {
+  /** External signal to dismiss the first-visit overlay (e.g. "Start game" click). */
+  dismiss?: boolean
+}
+
+export default function RulesRail({ dismiss = false }: RulesRailProps) {
+  // First visit: rules slide out after a 1s delay so the viewer notices them.
+  // After dismissal (click sheet / Start game) it tucks back and stays tucked.
+  const [firstVisit, setFirstVisit] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (window.localStorage.getItem(RULES_SEEN_KEY) !== '1') {
+      setFirstVisit(true)
+      const t = setTimeout(() => setIsOpen(true), 1000)
+      return () => clearTimeout(t)
+    }
+  }, [])
+
+  // External dismiss (e.g. "Start game" button)
+  useEffect(() => {
+    if (dismiss && firstVisit) dismissRules()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dismiss])
+
+  function dismissRules() {
+    setFirstVisit(false)
+    setIsOpen(false)
+    try { window.localStorage.setItem(RULES_SEEN_KEY, '1') } catch {}
+  }
+
+  function handleToggle() {
+    if (firstVisit) {
+      dismissRules()
+      return
+    }
+    setIsOpen(o => !o)
+  }
 
   return (
     <motion.div
@@ -29,7 +68,7 @@ export default function RulesRail() {
       {/* Vertical tab button */}
       <button
         className="rr-rules-rail__tab"
-        onClick={() => setIsOpen(o => !o)}
+        onClick={handleToggle}
         type="button"
         aria-label={isOpen ? 'Close rules' : 'Open rules'}
       >
@@ -42,14 +81,13 @@ export default function RulesRail() {
       {/* Rules list — clicking anywhere on the open sheet closes it */}
       <div
         className="rr-rules-rail__content"
-        onClick={() => { if (isOpen) setIsOpen(false) }}
+        onClick={() => { if (isOpen) { firstVisit ? dismissRules() : setIsOpen(false) } }}
       >
         <ul className="rr-rules-rail__list">
-          <li className="rr-rules-rail__item">5 rounds</li>
-          <li className="rr-rules-rail__item">6 cards each</li>
-          <li className="rr-rules-rail__item">Higher number wins</li>
+          <li className="rr-rules-rail__item">5 rounds, 6 cards each</li>
+          <li className="rr-rules-rail__item">Higher number wins the round</li>
           <li className="rr-rules-rail__item">5 beats any two-digit card</li>
-          <li className="rr-rules-rail__item">Played cards go to discard</li>
+          <li className="rr-rules-rail__item">Played cards are discarded</li>
           <li className="rr-rules-rail__item">Unused cards shuffle back into the deck</li>
         </ul>
       </div>

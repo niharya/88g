@@ -16,6 +16,10 @@ const HOLD = 0.15  // first 15% of pinned scroll = mat held centered, no movemen
 export default function Mechanics() {
   const [results, setResults] = useState<RoundOutcome[]>([])
 
+  // Dismiss signal for the first-visit rules overlay — flips true when the
+  // game starts (i.e. the user clicked "Start game").
+  const [rulesDismissed, setRulesDismissed] = useState(false)
+
   // Note rail reveal — same gating as before. Hidden until first game-end,
   // persisted in localStorage so return visits show it instantly.
   const [noteRevealed, setNoteRevealed] = useState(false)
@@ -50,6 +54,9 @@ export default function Mechanics() {
     offset: ['start start', 'end end'],
   })
 
+  // Timer ref for the delayed auto-scroll so we can clean up on unmount.
+  const autoScrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const handleGameOver = useCallback(() => {
     setNoteRevealed(prev => {
       if (prev) return prev
@@ -58,23 +65,30 @@ export default function Mechanics() {
       return true
     })
 
-    // Auto-advance the split to its locked end formation. Only fires when the
-    // user is currently inside the mechanics scene and the split hasn't
-    // already completed — won't yank scroll position if they've moved on.
-    const scene = sceneRef.current
-    if (!scene) return
-    const rect = scene.getBoundingClientRect()
-    const inView = rect.bottom > 0 && rect.top < window.innerHeight
-    if (!inView) return
-    if (scrollYProgress.get() >= 0.999) return
+    // Wait for the game-over choreography to fully complete (~2.7s) before
+    // auto-advancing the mat split. Without this the secondary mat slides in
+    // abruptly while cards are still animating.
+    if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
+    autoScrollTimer.current = setTimeout(() => {
+      const scene = sceneRef.current
+      if (!scene) return
+      const rect = scene.getBoundingClientRect()
+      const inView = rect.bottom > 0 && rect.top < window.innerHeight
+      if (!inView) return
+      if (scrollYProgress.get() >= 0.999) return
 
-    // Document-relative top of the scene's *end* (when its bottom edge meets
-    // the viewport bottom). offsetTop is relative to the offset parent, not
-    // the document, so use getBoundingClientRect + scrollY instead.
-    const sceneDocTop = rect.top + window.scrollY
-    const target = sceneDocTop + scene.offsetHeight - window.innerHeight
-    window.scrollTo({ top: target, behavior: 'smooth' })
+      const sceneDocTop = rect.top + window.scrollY
+      const target = sceneDocTop + scene.offsetHeight - window.innerHeight
+      window.scrollTo({ top: target, behavior: 'smooth' })
+    }, 3000)
   }, [scrollYProgress])
+
+  // Clean up auto-scroll timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
+    }
+  }, [])
 
   // Hold zone — first HOLD of progress is dead time so the user reads the
   // full-width mat before anything moves. Remap [HOLD, 1] → [0, 1].
@@ -113,11 +127,12 @@ export default function Mechanics() {
             data-arrow-target hooks ChapterMarker's arrow rotation. */}
         <div ref={primaryRef} className="rr-mat--primary mat" data-arrow-target>
           <div className="rr-mech-family">
-            <RulesRail />
+            <RulesRail dismiss={rulesDismissed} />
             <div className="rr-game-board">
               <GameBoard
                 onResultsChange={handleResultsChange}
                 onGameOver={handleGameOver}
+                onGameStart={() => setRulesDismissed(true)}
               />
             </div>
             {noteRevealed && <NoteRail playReveal={justRevealed} />}
