@@ -299,6 +299,9 @@ h1, h2, h3, h4, h5, h6 {
   /* Tilt */
   --card-tilt:        1deg;
 
+  /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
+  --backseat-dim:     brightness(0.68) saturate(0.2);
+
   /* Z-index */
   --z-mat:            0;
   --z-surface:        1;
@@ -325,7 +328,18 @@ html.fonts-ready .workbench {
   padding: var(--workbench-pad-y) var(--workbench-pad-x);
   background-color: var(--workbench-bg);
   min-height: 100vh;
-  border: 4px solid black;
+  overflow-x: clip;
+}
+
+/* Viewport frame — fixed to screen edges, content scrolls behind it.
+   Sits above everything (z-index 9999) but passes clicks through. */
+.workbench::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  border: 8px solid black;
+  pointer-events: none;
+  z-index: 9999;
 }
 
 @media (max-width: 768px) {
@@ -383,6 +397,7 @@ html.fonts-ready .workbench {
   background-image:
     linear-gradient(to right,  var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight)),
     linear-gradient(to bottom, var(--mat-line-color) var(--mat-line-weight), transparent var(--mat-line-weight));
+  overflow: clip;
 }
 
 .mat::after {

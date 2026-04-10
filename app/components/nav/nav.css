@@ -249,13 +249,13 @@ button.nav-marker {
 }
 
 .sheet-stack[data-tray-open] .sheet > :not(.nav-sled) {
-  filter: brightness(0.68) saturate(0.2);
+  filter: var(--backseat-dim);
   transform: rotate(var(--tilt, 0deg)); /* --tilt set per-element by ChapterMarker on open */
 }
 
 /* Dim sibling nav-sleds; the open one is excluded */
 .sheet-stack[data-tray-open] .nav-sled:not(:has(.chapter-nav--open)) {
-  filter: brightness(0.68) saturate(0.2);
+  filter: var(--backseat-dim);
 }
 
 

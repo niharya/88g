@@ -238,19 +238,21 @@
   border-color: rgba(255, 255, 255, 0.30);
 }
 
-.rr-enlarged__constraint {
+.rr-enlarged__scroll {
   width: 1440px;
   flex: 1;
-  padding-top: 32px;
-  overflow: hidden;
-}
-
-.rr-enlarged__strip {
+  margin-top: 32px;
   display: flex;
   gap: 16px;
   padding: 0 32px;
-  width: max-content;
-  will-change: transform;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;          /* Firefox */
+}
+
+.rr-enlarged__scroll::-webkit-scrollbar {
+  display: none;                  /* Chrome / Safari */
 }
 
 .rr-enlarged__image {
@@ -260,24 +262,33 @@
   flex-shrink: 0;
   user-select: none;
   -webkit-user-drag: none;
-  pointer-events: none;
 }
 
-/* When enlarged, dim the story card */
+/* ── Overlay backseat choreography — intro enlarged ────────────────────── */
+/* Content recedes: desaturate, shrink, tilt. Mat bg → blue-960.           */
+/* Same visual language as chapter tray dim, scoped to this interaction.    */
+/* Note: story card uses Framer Motion inline transform, so we use the     */
+/* separate CSS `scale` property (doesn't conflict with FM's transform).   */
+
+.rr-story-card {
+  transition:
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.3s ease,
+    scale 0.3s ease;
+}
+
 .rr-canvas:has([data-enlarged]) .rr-story-card {
-  opacity: 0.15;
+  filter: var(--backseat-dim);
+  scale: 0.9;
   pointer-events: none;
 }
 
-
-/* ── Mat dimming for enlarged state (same pattern as rules panel) ───────── */
 #intro.mat {
-  overflow: clip;
   transition: background-color 0.35s ease;
 }
 
 #intro.mat:has([data-enlarged]) {
-  background-color: rgba(0, 8, 18, 0.45);
+  background-color: var(--blue-960);
 }
 
 
@@ -999,9 +1010,7 @@
    areas (above/below the 900px canvas) blend seamlessly. */
 /* overflow: clip (not hidden) — clips the shader visually but preserves
    position: sticky for the chapter nav inside. hidden would break sticky. */
-#cards.mat {
-  overflow: clip;
-}
+/* overflow: clip inherited from .mat base class */
 
 /* ── Cards section layer stack ──────────────────────────────────────────────
    Everything lives inside .rr-canvas--cards-evo (1440×900, overflow:hidden,
@@ -1450,6 +1459,7 @@
   top: 0;
   height: 100vh;
   width: 100%;
+  overflow: clip;
   /* Choreography variables live on the stage so both mats (sibling children)
      inherit. JS writes --rr-mech-progress here on scroll. */
   --rr-mech-progress: 0;
@@ -1666,17 +1676,27 @@
 }
 
 
-/* Clip rules + all content within the mat boundary.
-   overflow: clip (not hidden) preserves position: sticky for nav. */
+/* ── Overlay backseat choreography — outcome rules expanded ────────────── */
+/* Same language as intro enlarged: desaturate, shrink, tilt, bg → blue-960 */
+
 #outcome.mat {
-  overflow: clip;
   transition: background-color 0.35s ease;
 }
 
-/* Mat-level backdrop — dims entire mat when rules are expanded.
-   No extra overlay element: the mat's own background changes. */
 #outcome.mat:has([data-rules-expanded]) {
-  background-color: rgba(0, 8, 18, 0.25);
+  background-color: var(--blue-960);
+}
+
+.rr-outcome-card,
+.rr-outcome-quote {
+  transition: filter 0.3s ease, scale 0.3s ease;
+}
+
+.rr-canvas--outcome[data-rules-expanded] .rr-outcome-card,
+.rr-canvas--outcome[data-rules-expanded] .rr-outcome-quote {
+  filter: var(--backseat-dim);
+  scale: 0.9;
+  pointer-events: none;
 }
 
 
