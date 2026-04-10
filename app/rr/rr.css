@@ -70,8 +70,10 @@
   box-shadow: var(--shadow-card);
   padding: 128px 64px 48px;
   z-index: var(--rr-z-story);
-  /* transform owned by Framer Motion — only shadow transitions via CSS */
-  transition: box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  /* transform owned by Framer Motion — only shadow + opacity transitions via CSS */
+  transition:
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease;
 }
 
 .rr-story-card--expanded {
@@ -193,37 +195,41 @@
 .rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); }
 .rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 440px; top: -200px; transform: rotate(1deg);  }
 
-/* Dimmed state — fades grid when lightbox is open */
-.rr-card-stack--dimmed .rr-card-stack__page {
+/* ── Enlarged state — horizontal row ────────────────────────────────────── */
+/* All 6 images at uniform 265px height, 16px gaps, centered in 1440px.     */
+/* Positions are pivot-relative (pivot at x=536, y=700).                    */
+/* translateX resets to 0 so the row centers in the canvas.                 */
+
+.rr-card-stack--enlarged {
+  transform: translateX(0);
+  z-index: 5;
+}
+
+.rr-card-stack--enlarged .rr-card-stack__page {
+  transform: rotate(0deg);
+}
+
+.rr-card-stack--enlarged .rr-card-stack__page--1 { width: 130px; height: 265px; left: -526px; top: -350px; }
+.rr-card-stack--enlarged .rr-card-stack__page--2 { width: 185px; height: 265px; left: -380px; top: -350px; }
+.rr-card-stack--enlarged .rr-card-stack__page--3 { width: 186px; height: 265px; left: -179px; top: -350px; }
+.rr-card-stack--enlarged .rr-card-stack__page--4 { width: 181px; height: 265px; left:   23px; top: -350px; }
+.rr-card-stack--enlarged .rr-card-stack__page--5 { width: 346px; height: 265px; left:  220px; top: -350px; }
+.rr-card-stack--enlarged .rr-card-stack__page--6 { width: 313px; height: 265px; left:  582px; top: -350px; }
+
+/* When enlarged, dim the story card so images + close button are the focus */
+.rr-canvas:has([data-enlarged]) .rr-story-card {
   opacity: 0.15;
-  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 
-/* ── Lightbox ────────────────────────────────────────────────────────────── */
-/* Full-canvas overlay with horizontal drag-scroll strip.                    */
-/* Backdrop dims via rr-canvas:has(.rr-lightbox) on the mat.                */
-
-.rr-lightbox {
+/* ── Enlarged close button ─────────────────────────────────────────────── */
+.rr-enlarged-close {
   position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.rr-lightbox__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 8, 18, 0.65);
-  cursor: pointer;
-}
-
-.rr-lightbox__close {
-  position: relative;
-  z-index: 2;
+  top: 270px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -235,50 +241,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.rr-lightbox__close:hover {
+.rr-enlarged-close:hover {
   background: rgba(255, 255, 255, 0.20);
   border-color: rgba(255, 255, 255, 0.30);
 }
 
-.rr-lightbox__constraint {
-  position: relative;
-  z-index: 2;
-  width: 1440px;
-  height: 480px;
-  flex-shrink: 0;
-  overflow: visible;
-}
 
-.rr-lightbox__strip {
-  display: flex;
-  gap: 36px;
-  padding: 0 64px;
-  width: max-content;
-  will-change: transform;
-}
-
-.rr-lightbox__image {
-  display: block;
-  object-fit: cover;
-  border-radius: 6px;
-  flex-shrink: 0;
-  user-select: none;
-  -webkit-user-drag: none;
-  pointer-events: none;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
-}
-
-/* ── Mat dimming for lightbox (same pattern as rules panel) ─────────────── */
+/* ── Mat dimming for enlarged state (same pattern as rules panel) ───────── */
 #intro.mat {
   overflow: clip;
   transition: background-color 0.35s ease;
 }
 
-#intro.mat:has(.rr-lightbox) {
+#intro.mat:has([data-enlarged]) {
   background-color: rgba(0, 8, 18, 0.45);
 }
 
