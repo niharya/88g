@@ -9,14 +9,16 @@
 //   │   ├── rr-story-card__body (text + callout)
 //   │   ├── rr-north-star-card (absolute, nested — moves with card)
 //   │   └── rr-constraints-card (absolute, nested — moves with card)
-//   └── rr-card-stack (absolute, pivot at story card bottom-left)
-//       └── 6 sketch images fan out on expand
+//   ├── rr-card-stack (absolute, pivot at story card bottom-left)
+//   │   └── 6 sketch images fan out on expand
+//   └── rr-lightbox (overlay — horizontal drag-scroll gallery)
 //
 // Interactions:
 //   isExpanded: story card slides left, card stack fans out (CSS class toggle)
 //   constraintsOpen: hidden constraint rows reveal (Framer Motion height + AnimatePresence)
+//   lightboxIndex: click image → full lightbox with drag-scroll strip
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ── Shared motion constants ────────────────────────────────────────────────
@@ -40,9 +42,25 @@ const HIDDEN_ROWS = [
   'Visual restraint',
 ]
 
+// ── Lightbox image dimensions (large preview) ────────────────────────────
+// Each sketch gets a fixed large height; width follows its natural aspect ratio.
+const SKETCH_ASPECTS: Record<number, number> = {
+  1: 172 / 350,   // tall portrait
+  2: 210 / 301,
+  3: 211 / 301,
+  4: 249 / 364,   // tall portrait
+  5: 240 / 184,   // landscape
+  6: 177 / 150,   // landscape
+}
+const LB_HEIGHT = 480
+const LB_GAP = 36
+
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [constraintsOpen, setConstraintsOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  const constraintRef = useRef<HTMLDivElement>(null)
 
   // Per-card transition delay — matches vanilla rr-interactions.js initCardStackFan()
   // Expand: reverse order (top card fans first). Collapse: forward order.
@@ -50,6 +68,18 @@ export default function Intro() {
     isExpanded
       ? `${((5 - i) * 0.045).toFixed(3)}s`
       : `${(i * 0.035).toFixed(3)}s`
+
+  // Compute initial drag offset to center the clicked image
+  const computeInitialX = (idx: number) => {
+    let offset = 0
+    for (let i = 0; i < idx; i++) {
+      offset += LB_HEIGHT * (SKETCH_ASPECTS[i + 1] ?? 1) + LB_GAP
+    }
+    const currentWidth = LB_HEIGHT * (SKETCH_ASPECTS[idx + 1] ?? 1)
+    // Canvas is 1440px wide; center the clicked image
+    const center = (1440 - currentWidth) / 2
+    return -(offset - center + 64) // 64 is left padding
+  }
 
   return (
     <div className="rr-canvas">
@@ -70,14 +100,14 @@ export default function Intro() {
           onClick={() => setIsExpanded(s => !s)}
         >
           {isExpanded ? (
-            // Compress icon — arrows pointing inward
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M8.25 11.77H5.75c-.28 0-.52.1-.72.3-.2.2-.3.44-.3.72 0 .28.1.52.3.72.2.2.44.3.72.3H9.25c.28 0 .52-.1.72-.3.2-.2.3-.44.3-.72V9.25c0-.28-.1-.52-.3-.72-.2-.2-.44-.3-.72-.3-.28 0-.52.1-.72.3-.2.2-.3.44-.3.72v2.52zm3.5-3.54H14.25c.28 0 .52-.1.72-.3.2-.2.3-.44.3-.72 0-.28-.1-.52-.3-.72-.2-.2-.44-.3-.72-.3H10.75c-.28 0-.52.1-.72.3-.2.2-.3.44-.3.72v3.5c0 .28.1.52.3.72.2.2.44.3.72.3.28 0 .52-.1.72-.3.2-.2.3-.44.3-.72V8.23z" fill="currentColor"/>
+            // Compress icon — two arrows pointing inward
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6.5 9.5H3.5M6.5 9.5V12.5M6.5 9.5L2.5 13.5M9.5 6.5H12.5M9.5 6.5V3.5M9.5 6.5L13.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           ) : (
-            // Expand icon — arrows pointing outward
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M6.77 13.23H9.25c.28 0 .52.1.72.3.2.2.3.44.3.72 0 .28-.1.52-.3.72-.2.2-.44.3-.72.3H5.75c-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72V10.75c0-.28.1-.52.3-.72.2-.2.44-.3.72-.3.28 0 .52.1.72.3.2.2.3.44.3.72v2.48zM13.23 6.77H10.75c-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72 0-.28.1-.52.3-.72.2-.2.44-.3.72-.3h3.5c.28 0 .52.1.72.3.2.2.3.44.3.72v3.5c0 .28-.1.52-.3.72-.2.2-.44.3-.72.3-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72V6.77z" fill="currentColor"/>
+            // Expand icon — two arrows pointing outward
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2.5 6.5V2.5H6.5M2.5 2.5L6.5 6.5M13.5 9.5V13.5H9.5M13.5 13.5L9.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           )}
         </button>
@@ -173,8 +203,8 @@ export default function Intro() {
       {/* Zero-size pivot at story card bottom-left (536px, 776px).         */}
       {/* All pages are absolutely positioned relative to this point.       */}
       <div
-        className={`rr-card-stack${isExpanded ? ' rr-card-stack--expanded' : ''}`}
-        aria-hidden="true"
+        className={`rr-card-stack${isExpanded ? ' rr-card-stack--expanded' : ''}${lightboxIndex !== null ? ' rr-card-stack--dimmed' : ''}`}
+        aria-hidden={lightboxIndex !== null ? 'true' : undefined}
       >
         {([1, 2, 3, 4, 5, 6] as const).map((n, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -183,10 +213,77 @@ export default function Intro() {
             src={`/images/rr/rr-sketch-${n}.jpg`}
             alt=""
             className={`rr-card-stack__page rr-card-stack__page--${n}`}
-            style={{ transitionDelay: cardDelay(i) }}
+            style={{
+              transitionDelay: cardDelay(i),
+              cursor: isExpanded ? 'pointer' : undefined,
+            }}
+            onClick={() => { if (isExpanded) setLightboxIndex(i) }}
           />
         ))}
       </div>
+
+      {/* ── Lightbox ──────────────────────────────────────────────────────── */}
+      {/* Full-canvas overlay with horizontal drag-scroll strip of sketches   */}
+      <AnimatePresence>
+        {lightboxIndex !== null && (
+          <motion.div
+            className="rr-lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={(e) => {
+              // Dismiss if clicking backdrop area (not images or close button)
+              const target = e.target as HTMLElement
+              if (target.closest('.rr-lightbox__strip') || target.closest('.rr-lightbox__close')) return
+              setLightboxIndex(null)
+            }}
+          >
+            {/* Backdrop — visual dimming layer */}
+            <div className="rr-lightbox__backdrop" />
+
+            {/* Close button — centered above the strip */}
+            <button
+              className="rr-lightbox__close"
+              type="button"
+              aria-label="Close lightbox"
+              onClick={() => setLightboxIndex(null)}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            {/* Drag strip — horizontal drag-scroll with momentum */}
+            <div className="rr-lightbox__constraint" ref={constraintRef}>
+              <motion.div
+                className="rr-lightbox__strip"
+                drag="x"
+                dragConstraints={constraintRef}
+                dragElastic={0.08}
+                initial={{ x: computeInitialX(lightboxIndex) }}
+                style={{ cursor: 'grab' }}
+                whileDrag={{ cursor: 'grabbing' }}
+              >
+                {([1, 2, 3, 4, 5, 6] as const).map((n) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={n}
+                    src={`/images/rr/rr-sketch-${n}.jpg`}
+                    alt={`Sketch ${n}`}
+                    className="rr-lightbox__image"
+                    draggable={false}
+                    style={{
+                      height: LB_HEIGHT,
+                      width: LB_HEIGHT * (SKETCH_ASPECTS[n] ?? 1),
+                    }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   )

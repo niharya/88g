@@ -191,7 +191,96 @@
 .rr-card-stack--expanded .rr-card-stack__page--3 { width: 211px; height: 301px; left: 953px; top: -625px; transform: rotate(-1deg); }
 .rr-card-stack--expanded .rr-card-stack__page--4 { width: 249px; height: 364px; left: 681px; top: -625px; transform: rotate(1deg);  }
 .rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); }
-.rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 477px; top: -236px; transform: rotate(1deg);  }
+.rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 440px; top: -200px; transform: rotate(1deg);  }
+
+/* Dimmed state — fades grid when lightbox is open */
+.rr-card-stack--dimmed .rr-card-stack__page {
+  opacity: 0.15;
+  transition: opacity 0.3s ease;
+}
+
+
+/* ── Lightbox ────────────────────────────────────────────────────────────── */
+/* Full-canvas overlay with horizontal drag-scroll strip.                    */
+/* Backdrop dims via rr-canvas:has(.rr-lightbox) on the mat.                */
+
+.rr-lightbox {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.rr-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 8, 18, 0.65);
+  cursor: pointer;
+}
+
+.rr-lightbox__close {
+  position: relative;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.rr-lightbox__close:hover {
+  background: rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.30);
+}
+
+.rr-lightbox__constraint {
+  position: relative;
+  z-index: 2;
+  width: 1440px;
+  height: 480px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.rr-lightbox__strip {
+  display: flex;
+  gap: 36px;
+  padding: 0 64px;
+  width: max-content;
+  will-change: transform;
+}
+
+.rr-lightbox__image {
+  display: block;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Mat dimming for lightbox (same pattern as rules panel) ─────────────── */
+#intro.mat {
+  overflow: clip;
+  transition: background-color 0.35s ease;
+}
+
+#intro.mat:has(.rr-lightbox) {
+  background-color: rgba(0, 8, 18, 0.45);
+}
 
 
 /* ── North Star Card ─────────────────────────────────────────────────────── */
@@ -1444,4 +1533,887 @@
 .rr-mat--secondary .rr-story-card--mechanics {
   top:  calc(50% - 344px);
   left: calc(50% - 200px);
+}
+
+
+/* ==========================================================================
+   Section 4 — Outcome
+   ========================================================================== */
+
+.rr-canvas--outcome { background: transparent; }
+
+
+/* ── Outcome card (left column) ── */
+
+.rr-outcome-card {
+  position: absolute;
+  left: 152px;
+  top: 274px;
+  width: 288px;
+  height: 330px;
+  background: #533301;
+  padding: 8px;
+}
+
+.rr-outcome-card__inner {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #a16803;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rr-outcome-card__text {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  color: #fedaad;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.rr-outcome-card__divider {
+  border: none;
+  border-top: 1px solid #a16803;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.rr-outcome-card__text + .rr-outcome-card__divider {
+  margin-top: auto;
+}
+
+.rr-outcome-card__divider + .rr-outcome-stats {
+  margin-top: 24px;
+}
+
+.rr-outcome-stats + .rr-outcome-card__divider {
+  margin-top: auto;
+}
+
+.rr-outcome-card__divider + .rr-outcome-card__text {
+  margin-top: 24px;
+}
+
+.rr-outcome-stats {
+  display: flex;
+  gap: 32px;
+  flex-shrink: 0;
+}
+
+.rr-outcome-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rr-outcome-stat__num {
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  color: #fedaad;
+  line-height: 1;
+}
+
+.rr-outcome-stat__label {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.24px;
+  color: #fedaad;
+  text-transform: capitalize;
+  line-height: 1.35;
+  white-space: pre-line;
+}
+
+
+/* ── Closing quote (bottom left) ── */
+
+.rr-outcome-quote {
+  position: absolute;
+  left: 152px;
+  top: 728px;
+  width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.rr-outcome-quote__icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+}
+
+.rr-outcome-quote__icon img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rr-outcome-quote__text {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 100, 'wght' 800, 'GRAD' 0;
+  font-style: normal;
+  text-transform: capitalize;
+  letter-spacing: -0.24px;
+  color: #f3e8dc;
+  line-height: normal;
+  margin: 0;
+}
+
+
+/* Clip rules + all content within the mat boundary.
+   overflow: clip (not hidden) preserves position: sticky for nav. */
+#outcome.mat {
+  overflow: clip;
+  transition: background-color 0.35s ease;
+}
+
+/* Mat-level backdrop — dims entire mat when rules are expanded.
+   No extra overlay element: the mat's own background changes. */
+#outcome.mat:has([data-rules-expanded]) {
+  background-color: rgba(0, 8, 18, 0.25);
+}
+
+
+/* ── Rules group (label + panel — Framer Motion translates as unit) ── */
+
+.rr-rules-group {
+  position: absolute;
+  left: 792px;
+  top: 136px;
+  z-index: 2;
+}
+
+.rr-rules-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.rr-rules-label__text {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  color: #b3b3b3;
+  white-space: nowrap;
+}
+
+.rr-rules-label__note {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: #b3b3b3;
+  letter-spacing: -0.12px;
+}
+
+
+/* ── Rules inner panel (scale driven by Framer Motion) ── */
+
+.rr-rules-inner {
+  position: relative;
+  width: 1349px;
+  height: 653px;
+  background: rgba(5, 21, 35, 0.9);
+  border: 3.8px solid #ffecb2;
+  border-radius: 34px;
+  backdrop-filter: blur(33.5px);
+  box-sizing: border-box;
+  cursor: pointer;
+  /* scale + hover handled by Framer Motion — no CSS transform/transition */
+}
+
+
+/* ── Close button (next to panel's right edge, visibility via AnimatePresence) ── */
+
+.rr-rules-close {
+  position: absolute;
+  left: 1091px;
+  top: 37px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,236,178,0.12);
+  border: 1px solid rgba(255,236,178,0.3);
+  color: #ffecb2;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+.rr-rules-close:hover {
+  background: rgba(255,236,178,0.22);
+}
+
+
+/* ==========================================================================
+   Rule cards — shared base
+   ========================================================================== */
+
+.rr-rule-card {
+  position: absolute;
+  background: #020305;
+  border: 1px solid #333350;
+  border-radius: 23px;
+  box-shadow: 0px 3.8px 11.4px 0px rgba(19,215,245,0.5);
+  box-sizing: border-box;
+  padding: 21px;
+  transition: transform 0.22s cubic-bezier(0.45,0,0.15,1);
+}
+
+.rr-rule-card:hover {
+  transform: scale(1.012);
+  z-index: 5;
+  box-shadow: 0px 4px 18px 2px rgba(19,215,245,0.65);
+}
+
+.rr-rule-card__head {
+  margin-bottom: 10px;
+}
+
+.rr-rule-card__title {
+  font-family: 'Londrina Solid', sans-serif;
+  font-size: 19px;
+  font-weight: 400;
+  color: #ffefab;
+  margin: 0 0 10px;
+  letter-spacing: -0.37px;
+}
+
+.rr-rule-card__divider {
+  height: 1px;
+  background: #333350;
+  border-radius: 10px;
+}
+
+
+/* ── Card positions (Figma 2D grid within 1349×653 panel) ── */
+
+.rr-rule-card--basics    { left: 17px;  top: 18px;  width: 574px; height: 345px; }
+.rr-rule-card--gameplay  { left: 612px; top: 18px;  width: 716px; height: 250px; }
+.rr-rule-card--howto     { left: 612px; top: 291px; width: 315px; height: 127px; display: flex; align-items: center; justify-content: center; border: 3px solid #333350; background: #10101a; border-radius: 19px; }
+.rr-rule-card--types     { left: 17px;  top: 386px; width: 419px; height: 245px; }
+.rr-rule-card--resolving { left: 459px; top: 434px; width: 315px; height: 197px; }
+.rr-rule-card--winning   { left: 949px; top: 291px; width: 381px; height: 327px; }
+
+.rr-rule-howto__title {
+  font-family: 'Londrina Solid', sans-serif;
+  font-size: 37px;
+  font-weight: 400;
+  color: #c4c4ff;
+  letter-spacing: -0.74px;
+  text-align: center;
+  margin: 0;
+}
+
+
+/* ==========================================================================
+   1. Basics — internals
+   ========================================================================== */
+
+.rr-rule-basics-top {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  background: #000d26;
+  border-radius: 17px;
+  padding: 12px;
+  margin-bottom: 11px;
+}
+
+.rr-rule-basics-desc {
+  flex: 1;
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ccc;
+  line-height: 1.4;
+  margin: 0;
+  padding-right: 12px;
+}
+
+.rr-rule-basics-desc strong {
+  font-family: 'Playpen Sans', sans-serif;
+  font-weight: 800;
+  color: #fff7d3;
+}
+
+.rr-rule-basics-divider {
+  width: 1px;
+  background: #707070;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.rr-rule-stat-group {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.rr-rule-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 4px 16px;
+  border-right: 1px solid #707070;
+  gap: 4px;
+  height: 72px;
+}
+.rr-rule-stat:last-child { border-right: none; }
+
+.rr-rule-stat__label {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,247,211,0.8);
+  letter-spacing: -0.25px;
+}
+
+.rr-rule-stat__val {
+  font-family: 'Gluten', serif;
+  font-size: 36px;
+  font-weight: 600;
+  color: #fff7d3;
+  line-height: 1;
+}
+
+.rr-rule-basics-bottom {
+  display: flex;
+  gap: 13px;
+  align-items: stretch;
+}
+
+
+/* ── Energy block ── */
+
+.rr-rule-energy-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  border: 2.85px solid #ebbb4c;
+  border-radius: 17px;
+  padding: 21px;
+  width: 196px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: #020305;
+}
+
+.rr-rule-energy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #13182c;
+  border: 2px solid #ebbb4c;
+  border-radius: 14px;
+  padding: 9px;
+  align-self: flex-start;
+}
+
+.rr-rule-energy-badge__num {
+  font-family: 'Gluten', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff7d3;
+  line-height: 1;
+}
+
+.rr-rule-energy-badge__icon { font-size: 18px; line-height: 1; }
+
+.rr-rule-energy-text {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1d491;
+  margin: 0;
+  line-height: 1.4;
+  letter-spacing: -0.25px;
+}
+
+.rr-rule-energy-text em {
+  font-style: normal;
+  font-weight: 700;
+  color: #f1c660;
+}
+
+
+/* ── Vitals ── */
+
+.rr-rule-vitals {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  flex: 1;
+}
+
+.rr-rule-vital {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-radius: 17px;
+  padding: 12px;
+  flex: 1;
+}
+
+.rr-rule-vital--health { background: #26110e; }
+.rr-rule-vital--shield { background: #111d2e; }
+
+.rr-rule-vital__badge {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  border-radius: 14px;
+  padding: 9px;
+  flex-shrink: 0;
+}
+
+.rr-rule-vital--health .rr-rule-vital__badge {
+  background: #13182c;
+  border: 2px solid #ff7564;
+}
+
+.rr-rule-vital--shield .rr-rule-vital__badge {
+  background: #0e1325;
+  border: 2px solid #297bf1;
+}
+
+.rr-rule-vital__num {
+  font-family: 'Gluten', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff7d3;
+  line-height: 1;
+}
+
+.rr-rule-vital p {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+  letter-spacing: -0.25px;
+}
+
+.rr-rule-vital--health p { color: #f19c91; }
+.rr-rule-vital--shield p { color: #91b8f1; }
+
+.rr-rule-vital__max {
+  font-weight: 400;
+  display: block;
+}
+
+
+/* ==========================================================================
+   2. Gameplay — steps + diagrams
+   ========================================================================== */
+
+.rr-rule-gameplay-steps {
+  display: flex;
+  gap: 12px;
+  height: calc(100% - 56px);
+}
+
+.rr-rule-step {
+  flex: 1;
+  background: #10101a;
+  border: 1px solid #333350;
+  border-radius: 17px;
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.rr-rule-step__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  padding: 9px 9px 12px;
+  justify-content: flex-end;
+}
+
+.rr-rule-step__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rr-rule-step__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #30304b;
+  border: 1px solid #404064;
+  border-radius: 50%;
+  font-family: 'Londrina Solid', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #c4c4ff;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  letter-spacing: -0.37px;
+}
+
+.rr-rule-step__title {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #c4c4ff;
+  margin: 0;
+  letter-spacing: -0.21px;
+}
+
+.rr-rule-step__desc {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  color: #ccc;
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: -0.19px;
+}
+
+.rr-rule-step__diagram {
+  background: #020305;
+  padding: 6px;
+  border-radius: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+
+
+/* ── Mini cards ── */
+
+.rr-mini-row {
+  display: flex;
+  gap: 7px;
+}
+
+.rr-mini-card {
+  width: 28px;
+  height: 42px;
+  border-radius: 3px;
+  border: 0.8px solid;
+}
+
+.rr-mini-card--down     { background: #201e4e; border-color: #43408c; }
+.rr-mini-card--up       { background: #4038fd; border-color: #43408c; }
+.rr-mini-card--up-you   { background: #4038fd; border-color: #ffefab; }
+.rr-mini-card--down-you { background: #201e4e; border-color: #ffefab; }
+
+.rr-mini-label {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 6px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.rr-mini-label--top { color: rgba(255,255,255,0.5); }
+.rr-mini-label--bot { color: #ffefab; }
+
+
+/* ==========================================================================
+   3. Card Types
+   ========================================================================== */
+
+.rr-rule-types-grid {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.rr-rule-types-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0;
+  background: #0f111a;
+  border-radius: 12px;
+  padding: 13px;
+}
+
+.rr-rule-type-badge {
+  padding: 6px;
+  border-radius: 10px;
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: #ffefab;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 158px;
+}
+
+.rr-rule-type-badge--special { background: rgb(171,50,223); }
+.rr-rule-type-badge--defense { background: rgb(65,80,241); }
+.rr-rule-type-badge--heal    { background: rgb(0,175,167); color: #201e4e; }
+.rr-rule-type-badge--attack  { background: rgb(187,46,46); }
+
+.rr-type-num {
+  font-family: 'Playpen Sans', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+}
+
+.rr-rule-types-right {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+}
+
+.rr-rule-type-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.rr-rule-type-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.rr-rule-type-dot--special { background: rgb(171,50,223); }
+.rr-rule-type-dot--defense { background: rgb(65,80,241); }
+.rr-rule-type-dot--heal    { background: rgb(0,175,167); }
+.rr-rule-type-dot--attack  { background: rgb(187,46,46); }
+
+.rr-rule-type-desc {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: #ccc;
+  line-height: 1.3;
+}
+
+
+/* ==========================================================================
+   4. Resolving the Round
+   ========================================================================== */
+
+.rr-rule-card--resolving {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  overflow: hidden;
+}
+
+.rr-rule-resolving-top {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.rr-rule-resolving-top-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.rr-rule-resolving-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.rr-rule-resolving-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rr-rule-resolving-intro {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ccc;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.22px;
+}
+
+.rr-rule-resolving-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rr-rule-order {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.rr-rule-order-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rr-order-label {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px;
+  border-radius: 2px 1px 1px 2px;
+  letter-spacing: -0.22px;
+  line-height: 1.125;
+  white-space: nowrap;
+}
+
+.rr-order-arrow-box, .rr-order-check-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 1px 2px 2px 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rr-order--power   .rr-order-label     { background: #ab32df; color: #f0ccff; }
+.rr-order--power   .rr-order-arrow-box { background: #ab32df; color: #e19aff; }
+.rr-order--defense .rr-order-label     { background: #343aab; color: #ccd0ff; }
+.rr-order--defense .rr-order-arrow-box { background: #343aab; color: #9aa2ff; }
+.rr-order--heal    .rr-order-label     { background: #00afa7; color: #ccfffc; }
+.rr-order--heal    .rr-order-arrow-box { background: #00afa7; color: #9afffa; }
+.rr-order--attack  .rr-order-label     { background: #bb2e2e; color: #ffcccc; }
+.rr-order--attack  .rr-order-check-box { background: #bb2e2e; color: #ff9a9a; }
+
+.rr-rule-resolving-note {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #ccc;
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: -0.21px;
+  opacity: 0.8;
+}
+
+
+/* ==========================================================================
+   5. Winning the Match
+   ========================================================================== */
+
+.rr-rule-winning-intro {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ccc;
+  margin: 0 0 12px;
+  line-height: 1.35;
+  letter-spacing: -0.21px;
+}
+.rr-rule-winning-intro strong { font-weight: 800; }
+
+.rr-rule-winning-scenarios {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.rr-rule-scenario {
+  flex: 1;
+  background: #10101a;
+  border: 1px solid #333350;
+  border-radius: 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 21px;
+  overflow: hidden;
+}
+
+.rr-rule-scenario__when {
+  font-family: 'Londrina Solid', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: #c4c4ff;
+  display: block;
+  text-align: center;
+  letter-spacing: -0.25px;
+  align-self: stretch;
+}
+
+.rr-rule-scenario__div {
+  height: 1px;
+  background: #333350;
+  align-self: stretch;
+}
+
+.rr-rule-scenario__text {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: #ccc;
+  margin: 0;
+  line-height: 1.35;
+  text-align: center;
+  letter-spacing: -0.19px;
+}
+
+.rr-rule-hp-display {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 5px;
+  background: #13182c;
+  border-radius: 14px;
+  padding: 9px;
+}
+
+.rr-rule-hp-display--winner { border: 2px solid #ff7564; }
+.rr-rule-hp-display--loser  { opacity: 0.5; }
+
+.rr-rule-hp-row {
+  display: flex;
+  gap: 12px;
+}
+
+.rr-rule-hp-num {
+  font-family: 'Gluten', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff7d3;
+  line-height: 1;
+}
+
+.rr-rule-tiebreaker {
+  font-family: 'Playpen Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #ccc;
+  margin: 8px 0 0;
+  line-height: 1.35;
+  letter-spacing: -0.21px;
 }

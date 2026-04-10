@@ -26,6 +26,11 @@ export default function RRLayout({ children }: { children: ReactNode }) {
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Gluten:wght@400;600&display=swap"
       />
+      {/* Fraunces — outcome stats display */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&display=swap"
+      />
       <Script id="rr-font-gate" strategy="afterInteractive">{`
         var done = function() { document.documentElement.classList.add('fonts-ready'); };
         var t = setTimeout(done, 3000);
