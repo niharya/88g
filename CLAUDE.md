@@ -143,10 +143,11 @@ Do not change the established chapter tray tilt behavior unless explicitly asked
 
 Before implementing any section:
 
-1. Read only the relevant vanilla source for that section
-2. Read only the closest existing pattern from `/biconomy` or shared primitives
-3. Present a short mapping of vanilla structure to the current system
-4. Wait for confirmation before writing code
+1. Read the route's `NOTES.md` for decisions, anomalies, and don't-touch items
+2. Read only the relevant vanilla source for that section
+3. Read only the closest existing pattern from `/biconomy` or shared primitives
+4. Present a short mapping of vanilla structure to the current system
+5. Wait for confirmation before writing code
 
 Do not skip this.
 
@@ -195,5 +196,6 @@ Before implementing anything, confirm:
 * shared primitives still exist where expected
 * `globals.css` tokens have not materially changed
 * anything promoted to shared is imported from the new location
+* read the `NOTES.md` for the route you are about to work on — it contains decisions, anomalies, and don't-touch items you will not find in the code alone
 
 *Last updated: April 2026.*
