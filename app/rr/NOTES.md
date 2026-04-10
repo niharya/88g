@@ -107,6 +107,44 @@ Lives in `app/rr/components/Cards.tsx` + `app/rr/components/RugShader.tsx` + `ap
 
 ---
 
+## Global mat containment (`overflow: clip`)
+
+Added in v0.10.0. `overflow: clip` now lives on the `.mat` base class in `globals.css` — every mat clips its children. This was introduced to prevent the mechanics secondary mat from causing horizontal page scroll, and to enforce the principle that all content lives within its mat.
+
+### Biconomy clipping anomaly
+
+Two biconomy sections have pre-existing content that extends past the mat edge and now clips:
+
+- **ux-audit** — intro surface card clips at the right mat boundary
+- **demos** — header card and text clip at the right mat boundary
+
+These are not regressions — the content was always overflowing, just never visually caught. They need layout adjustment during biconomy fine-tuning.
+
+### Why `clip` not `hidden`
+
+`overflow: hidden` creates a scroll container that breaks `position: sticky` on ChapterMarker. `clip` clips visually without affecting scroll/sticky behavior. This was already established for `#cards.mat` — now it's the base rule.
+
+---
+
+## Overlay backseat choreography
+
+Two interactions use a shared "backseat" pattern where background content recedes to give the foreground overlay clear focus:
+
+1. **Intro enlarged scans** — triggered by `data-enlarged` on `.rr-canvas`
+2. **Outcome rules panel** — triggered by `data-rules-expanded` on `.rr-canvas--outcome`
+
+### What happens
+
+- Mat background → `var(--blue-960)`
+- Background content → `filter: var(--backseat-dim)` + `scale: 0.9` + `pointer-events: none`
+- `--backseat-dim` is `brightness(0.68) saturate(0.2)`, defined in `globals.css` — shared with the chapter tray dim in `nav.css`
+
+### Story card + Framer Motion transform
+
+The story card uses Framer Motion inline `transform` (spring-animated `x`, `rotate`, `scale`). The backseat uses the CSS `scale` property (separate from `transform`) to avoid conflict. Do not switch to `transform: scale()` — it would be overridden by FM's inline style.
+
+---
+
 ## Don't-touch list (without reading why first)
 
 - `--rr-mech-progress` cascade location — must be on the stage, not a mat
@@ -115,7 +153,8 @@ Lives in `app/rr/components/Cards.tsx` + `app/rr/components/RugShader.tsx` + `ap
 - `#mechanics::after { display: none }`
 - The `?? sheet` fallback in `ChapterMarker.tsx`
 - `rect.top + window.scrollY` (not `offsetTop`) in `handleGameOver`
-- `overflow: clip` on `#cards.mat` — `hidden` breaks ChapterMarker sticky
+- `overflow: clip` on `.mat` base class — `hidden` breaks ChapterMarker sticky
 - `#cards.mat { background-image: none }` + `#cards::before` grid — z-index control over shader
 - RugShader as Fragment sibling, not nested inside `.rr-canvas`
 - `BASE_Y` values in `CardFan.tsx` — Figma-matched, hand-tuned
+- CSS `scale` (not `transform: scale()`) on `.rr-story-card` backseat — FM owns `transform`
