@@ -195,43 +195,32 @@
 .rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); }
 .rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 440px; top: -200px; transform: rotate(1deg);  }
 
-/* ── Enlarged state — horizontal row ────────────────────────────────────── */
-/* All 6 images at uniform 265px height, 16px gaps, centered in 1440px.     */
-/* Positions are pivot-relative (pivot at x=536, y=700).                    */
-/* translateX resets to 0 so the row centers in the canvas.                 */
-
-.rr-card-stack--enlarged {
-  transform: translateX(0);
-  z-index: 5;
-}
-
-.rr-card-stack--enlarged .rr-card-stack__page {
-  transform: rotate(0deg);
-}
-
-.rr-card-stack--enlarged .rr-card-stack__page--1 { width: 130px; height: 265px; left: -526px; top: -350px; }
-.rr-card-stack--enlarged .rr-card-stack__page--2 { width: 185px; height: 265px; left: -380px; top: -350px; }
-.rr-card-stack--enlarged .rr-card-stack__page--3 { width: 186px; height: 265px; left: -179px; top: -350px; }
-.rr-card-stack--enlarged .rr-card-stack__page--4 { width: 181px; height: 265px; left:   23px; top: -350px; }
-.rr-card-stack--enlarged .rr-card-stack__page--5 { width: 346px; height: 265px; left:  220px; top: -350px; }
-.rr-card-stack--enlarged .rr-card-stack__page--6 { width: 313px; height: 265px; left:  582px; top: -350px; }
-
-/* When enlarged, dim the story card so images + close button are the focus */
-.rr-canvas:has([data-enlarged]) .rr-story-card {
-  opacity: 0.15;
+/* Card stack hidden when enlarged strip is active */
+.rr-card-stack--hidden {
+  opacity: 0;
   pointer-events: none;
 }
 
 
-/* ── Enlarged close button ─────────────────────────────────────────────── */
-.rr-enlarged-close {
+/* ── Enlarged strip ────────────────────────────────────────────────────── */
+/* Full-height drag-scroll carousel. Layout:                                */
+/*   32px → close button (44px) → 32px → images (760px) → 32px = 900px     */
+/* Mat dims via :has([data-enlarged]) — no overlay, same as rules panel.     */
+
+.rr-enlarged {
   position: absolute;
-  top: 270px;
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 32px;
+}
+
+.rr-enlarged__close {
   width: 44px;
   height: 44px;
+  flex-shrink: 0;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.10);
@@ -244,9 +233,40 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.rr-enlarged-close:hover {
+.rr-enlarged__close:hover {
   background: rgba(255, 255, 255, 0.20);
   border-color: rgba(255, 255, 255, 0.30);
+}
+
+.rr-enlarged__constraint {
+  width: 1440px;
+  flex: 1;
+  padding-top: 32px;
+  overflow: hidden;
+}
+
+.rr-enlarged__strip {
+  display: flex;
+  gap: 16px;
+  padding: 0 32px;
+  width: max-content;
+  will-change: transform;
+}
+
+.rr-enlarged__image {
+  display: block;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* When enlarged, dim the story card */
+.rr-canvas:has([data-enlarged]) .rr-story-card {
+  opacity: 0.15;
+  pointer-events: none;
 }
 
 

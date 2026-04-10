@@ -9,15 +9,16 @@
 //   │   ├── rr-story-card__body (text + callout)
 //   │   ├── rr-north-star-card (absolute, nested — moves with card)
 //   │   └── rr-constraints-card (absolute, nested — moves with card)
-//   └── rr-card-stack (absolute, pivot at story card bottom-left)
-//       └── 6 sketch images: stacked fan → expanded grid → enlarged row
+//   ├── rr-card-stack (absolute, pivot at story card bottom-left)
+//   │   └── 6 sketch images: stacked fan → expanded grid (hidden when enlarged)
+//   └── rr-enlarged (absolute, drag-scroll strip — 760px tall images)
 //
 // Interactions:
 //   isExpanded: story card slides left, card stack fans out (CSS class toggle)
 //   constraintsOpen: hidden constraint rows reveal (Framer Motion height + AnimatePresence)
-//   isEnlarged: images rearrange into a horizontal row, mat dims (CSS class toggle)
+//   isEnlarged: card stack hides, enlarged strip appears, mat dims
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ── Shared motion constants ────────────────────────────────────────────────
@@ -41,10 +42,23 @@ const HIDDEN_ROWS = [
   'Visual restraint',
 ]
 
+// ── Enlarged strip dimensions ──────────────────────────────────────────────
+// 760px uniform height. Width follows each sketch's natural aspect ratio.
+const ENLARGED_H = 760
+const SKETCH_ASPECTS: Record<number, number> = {
+  1: 172 / 350,
+  2: 210 / 301,
+  3: 211 / 301,
+  4: 249 / 364,
+  5: 240 / 184,
+  6: 177 / 150,
+}
+
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [isEnlarged, setIsEnlarged] = useState(false)
+  const constraintRef = useRef<HTMLDivElement>(null)
 
   // Per-card transition delay — matches vanilla rr-interactions.js initCardStackFan()
   // Expand: reverse order (top card fans first). Collapse: forward order.
@@ -59,7 +73,7 @@ export default function Intro() {
       onClick={(e) => {
         if (!isEnlarged) return
         const target = e.target as HTMLElement
-        if (target.closest('.rr-card-stack') || target.closest('.rr-enlarged-close')) return
+        if (target.closest('.rr-enlarged') || target.closest('.rr-card-stack')) return
         setIsEnlarged(false)
       }}
     >
@@ -181,13 +195,10 @@ export default function Intro() {
 
       {/* ── Card Stack ──────────────────────────────────────────────────── */}
       {/* Zero-size pivot at story card bottom-left (536px, 776px).         */}
-      {/* Three states via CSS classes:                                      */}
-      {/*   default  → stacked fan                                          */}
-      {/*   expanded → 2×3 grid                                             */}
-      {/*   enlarged → horizontal row, mat dims                             */}
+      {/* Two CSS states: default (stacked fan) → expanded (2×3 grid).      */}
+      {/* Hidden when enlarged (the enlarged strip takes over).              */}
       <div
-        className={`rr-card-stack${isExpanded ? ' rr-card-stack--expanded' : ''}${isEnlarged ? ' rr-card-stack--enlarged' : ''}`}
-        data-enlarged={isEnlarged || undefined}
+        className={`rr-card-stack${isExpanded ? ' rr-card-stack--expanded' : ''}${isEnlarged ? ' rr-card-stack--hidden' : ''}`}
       >
         {([1, 2, 3, 4, 5, 6] as const).map((n, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -197,7 +208,7 @@ export default function Intro() {
             alt=""
             className={`rr-card-stack__page rr-card-stack__page--${n}`}
             style={{
-              transitionDelay: isEnlarged ? undefined : cardDelay(i),
+              transitionDelay: cardDelay(i),
               cursor: isExpanded ? 'pointer' : undefined,
             }}
             onClick={() => { if (isExpanded && !isEnlarged) setIsEnlarged(true) }}
@@ -205,24 +216,59 @@ export default function Intro() {
         ))}
       </div>
 
-      {/* ── Enlarged close button ─────────────────────────────────────────── */}
-      {/* Sits in the canvas (not in card stack), above the enlarged row.     */}
+      {/* ── Enlarged strip ────────────────────────────────────────────────── */}
+      {/* Full-height horizontal carousel with drag-to-scroll.                */}
+      {/* Layout: 32px → close button → 32px → images (760px) → 32px.        */}
+      {/* Mat dims via :has([data-enlarged]) — no overlay element.             */}
       <AnimatePresence>
         {isEnlarged && (
-          <motion.button
-            className="rr-enlarged-close"
-            type="button"
-            aria-label="Close enlarged view"
+          <motion.div
+            className="rr-enlarged"
+            data-enlarged
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setIsEnlarged(false)}
+            transition={{ duration: 0.25 }}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </motion.button>
+            {/* Close button */}
+            <button
+              className="rr-enlarged__close"
+              type="button"
+              aria-label="Close enlarged view"
+              onClick={() => setIsEnlarged(false)}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            {/* Drag strip — constraint clips, strip drags within */}
+            <div className="rr-enlarged__constraint" ref={constraintRef}>
+              <motion.div
+                className="rr-enlarged__strip"
+                drag="x"
+                dragConstraints={constraintRef}
+                dragElastic={0.08}
+                style={{ cursor: 'grab' }}
+                whileDrag={{ cursor: 'grabbing' }}
+              >
+                {([1, 2, 3, 4, 5, 6] as const).map((n) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={n}
+                    src={`/images/rr/rr-sketch-${n}.jpg`}
+                    alt={`Sketch ${n}`}
+                    className="rr-enlarged__image"
+                    draggable={false}
+                    style={{
+                      height: ENLARGED_H,
+                      width: Math.round(ENLARGED_H * (SKETCH_ASPECTS[n] ?? 1)),
+                    }}
+                  />
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
