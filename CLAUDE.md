@@ -177,6 +177,17 @@ Before pushing:
 
 Confirm with the user before pushing. Don't push unannounced.
 
+## Known anomalies
+
+### Biconomy mat clipping
+
+`overflow: clip` was added to the `.mat` base class in `globals.css` (v0.10.0). This is the correct containment rule — all content should live within its mat. However, two biconomy sections have pre-existing content that extends past the mat edge:
+
+* **ux-audit** — intro surface card clips at the right mat boundary
+* **demos** — header card and text clip at the right mat boundary
+
+These are not regressions — the content was always overflowing, just never visually caught. They need layout adjustment during biconomy fine-tuning.
+
 ## Session-start checklist
 
 Before implementing anything, confirm:
