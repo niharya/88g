@@ -65,6 +65,15 @@ What currently lives in shared:
 
 `/biconomy` was built before `/rr`, so much of what's currently in shared was originally prototyped there. That makes it the historical donor — but it is not a code dependency. New shared primitives can originate in any route once they're needed twice.
 
+## Route-level notes
+
+Each route has a `NOTES.md` file that documents architectural decisions, anomalies, cross-file wiring, and don't-touch items specific to that route. These are not code tours — they record things you would not figure out by reading the code in isolation.
+
+* `app/rr/NOTES.md`
+* `app/biconomy/NOTES.md`
+
+**Log anomalies in the route they affect.** If a global change (e.g. a shared primitive update) causes a side effect in a specific route, document it in that route's `NOTES.md`. If it affects multiple routes, document it in each.
+
 ## Files in play for `/rr`
 
 Route-local:
@@ -74,6 +83,7 @@ Route-local:
 * `app/rr/rr.css`
 * `app/rr/nav/`
 * `app/rr/components/`
+* `app/rr/NOTES.md`
 
 Shared layers (see *Shared design system* above):
 
