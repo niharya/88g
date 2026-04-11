@@ -38,6 +38,50 @@
   /* Mat and workbench identical to biconomy — personality lives in surface colors */
   --sheet-border:   2px solid var(--rr-border);
   --surface-color:  var(--rr-memo-bg);
+  /* Gentle scroll snap — proximity so it nudges without hijacking */
+  scroll-snap-type: y mandatory;
+}
+
+.workbench .sheet {
+  scroll-snap-align: start;
+}
+
+
+/* ── Page load entrance sequence ────────────────────────────────────────── */
+/* Staggered: mat fades in → markers descend → content settles.
+   Builds on top of the fonts-ready gate in globals.css. */
+
+@keyframes rr-mat-enter {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rr-marker-descend {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rr-content-settle {
+  from { opacity: 0; transform: translateY(16px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Hide everything until fonts-ready triggers the sequence */
+html.fonts-ready .workbench .sheet {
+  animation: rr-mat-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+html.fonts-ready .workbench .project-marker,
+html.fonts-ready .workbench .exit-marker {
+  animation: rr-marker-descend 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+}
+
+html.fonts-ready .workbench .nav-sled {
+  animation: rr-marker-descend 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+
+html.fonts-ready .workbench .sheet > :not(.nav-sled) {
+  animation: rr-content-settle 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both;
 }
 
 
@@ -55,6 +99,26 @@
   height: 900px;
   overflow: hidden;
   z-index: 1; /* paint above mat::after (z-index:auto) — position+z-index creates stacking context */
+}
+
+
+/* ── Scroll settle — objects "placed on mat" feel ───────────────────────── */
+/* useMatSettle sets --settle-scale (1.012→1) and --settle-shadow (12px→3px)
+   on the canvas. CSS `scale` composes with FM's `transform` — no conflict. */
+
+.rr-story-card,
+.rr-card-stack {
+  scale: var(--settle-scale, 1);
+  opacity: var(--settle-opacity, 1);
+  rotate: var(--settle-rotate, 0deg);
+  filter: drop-shadow(0 var(--settle-shadow, 3px) calc(var(--settle-shadow, 3px) * 2) rgba(0,0,0,0.10));
+}
+
+.rr-mech-family {
+  scale: var(--settle-scale, 1);
+  opacity: var(--settle-opacity, 1);
+  rotate: var(--settle-rotate, 0deg);
+  filter: drop-shadow(0 var(--settle-shadow, 3px) calc(var(--settle-shadow, 3px) * 2) rgba(0,0,0,0.10));
 }
 
 
@@ -528,6 +592,7 @@
   background: var(--yellow-80);
   color: var(--terra-800);
   z-index: var(--rr-z-story);
+  cursor: pointer;
 }
 
 /* Vertical tab button — positioned to the right of the rail body */
@@ -539,7 +604,6 @@
   background: var(--yellow-80);
   color: var(--terra-800);
   border: none;
-  cursor: pointer;
   display: flex;
   padding: 0;
 }
@@ -1077,8 +1141,8 @@
 .rr-cards-header {
   position: absolute;
   top: 40px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1096,6 +1160,13 @@
   text-align: center;
   white-space: nowrap;
   margin: 0;
+  animation: title-press 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes title-press {
+  0%   { transform: scale(0.93); }
+  55%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
 }
 
 .rr-cards-subtitle {
@@ -1315,7 +1386,7 @@
 .rr-interface-notes {
   position: absolute;
   z-index: 1;
-  left: 971px;
+  left: 980px;
   top: 210px;
   width: 224px;
   height: 530px;
@@ -1323,6 +1394,7 @@
   background: #ffebbd;
   box-shadow: 0 1px 2px rgba(0,0,0,0.25);
   transition: transform 0.52s cubic-bezier(0.45, 0, 0.15, 1);
+  cursor: pointer;
 }
 
 /* Revealed state: arena slides left, note slides right — ~6px gap between them */
@@ -1330,7 +1402,7 @@
   transform: translateX(-110px);
 }
 .rr-interface-panel--revealed .rr-interface-notes {
-  transform: rotate(1deg) translateX(94px);
+  transform: rotate(1deg) translateX(85px);
 }
 
 /* Inner yellow border frame */
@@ -1376,30 +1448,30 @@
 /* "Details" button — inside card, top-right corner, vertical text reading upward */
 .rr-interface-notes__details {
   position: absolute;
-  right: 12px;
-  top: 14px;
+  right: 8px;
+  top: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   background: none;
   border: none;
-  padding: 0;
-  cursor: pointer;
+  padding: 4px 2px;
 }
 
 .rr-interface-notes__arrow {
-  font-size: 14px;
   color: #cd9f09;
   display: block;
-  line-height: 1;
-  transform: rotate(0deg);          /* → right by default (peeking out) */
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transform: rotate(180deg);         /* points right (peeking out) */
   transition: transform 0.4s cubic-bezier(0.45, 0, 0.15, 1);
 }
 
 /* Arrow flips left when note is revealed */
 .rr-interface-panel--revealed .rr-interface-notes__arrow {
-  transform: rotate(180deg);        /* ← left (close / return) */
+  transform: rotate(0deg);           /* points left (close / return) */
 }
 
 .rr-interface-notes__label {
@@ -1480,6 +1552,8 @@
   top: 0;
   height: 100%;
   width: var(--rr-mech-w-end, 678px);
+  /* Spring can overshoot past 1.0 — negative left nudges the mat further left,
+     giving the feel of the secondary pushing it aside before it settles back. */
   left: calc(
     (1 - var(--rr-mech-progress)) * ((100% - var(--rr-mech-w-end)) / 2)
   );
@@ -1507,7 +1581,7 @@
    coordinates into the smaller mech-family bbox. */
 .rr-mech-family .rr-game-board { left: 130px; }
 .rr-mech-family .rr-rules-rail { left: 214px; }
-.rr-mech-family .rr-note-rail  { left: 169px; }
+.rr-mech-family .rr-note-rail  { left: 141px; }
 
 /* ── Secondary mat ───────────────────────────────────────────────────────── */
 /* Fixed-width sibling that slides in from the right as the primary slides left.
@@ -1551,16 +1625,25 @@
 .rr-canvas--outcome { background: transparent; }
 
 
+/* ── Expand/collapse dim transition (card + quote) ── */
+
+.rr-outcome-card,
+.rr-outcome-quote {
+  transition: filter 0.3s ease, scale 0.3s ease;
+}
+
+
 /* ── Outcome card (left column) ── */
 
 .rr-outcome-card {
   position: absolute;
   left: 152px;
-  top: 274px;
+  top: 137px;
   width: 288px;
   height: 330px;
   background: #533301;
   padding: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .rr-outcome-card__inner {
@@ -1643,7 +1726,7 @@
 .rr-outcome-quote {
   position: absolute;
   left: 152px;
-  top: 728px;
+  top: 591px;
   width: 420px;
   display: flex;
   align-items: center;
@@ -1687,11 +1770,6 @@
   background-color: var(--blue-960);
 }
 
-.rr-outcome-card,
-.rr-outcome-quote {
-  transition: filter 0.3s ease, scale 0.3s ease;
-}
-
 .rr-canvas--outcome[data-rules-expanded] .rr-outcome-card,
 .rr-canvas--outcome[data-rules-expanded] .rr-outcome-quote {
   filter: var(--backseat-dim);
@@ -1705,7 +1783,7 @@
 .rr-rules-group {
   position: absolute;
   left: 792px;
-  top: 136px;
+  top: 68px;
   z-index: 2;
 }
 

@@ -5,19 +5,22 @@
 // Architecture:
 //   #outcome.mat              — overflow: clip; bg dims via CSS :has()
 //   └── rr-canvas--outcome    — 1440×900 composition area
-//       ├── rr-outcome-text   — closing narrative + stats
-//       ├── rr-outcome-quote  — icon + testimonial
-//       └── rr-rules-group    — motion.div translates label + panel as unit
+//       ├── rr-outcome-card   — scroll-linked: sweeps in from left with rotation
+//       ├── rr-outcome-quote  — scroll-linked: sweeps in from left (slightly delayed)
+//       └── rr-rules-group    — scroll-linked entrance (mirrors card from right),
+//                                then FM spring for expand/collapse
 //           ├── rr-rules-label   — "Rules of the game" header
 //           ├── rr-rules-inner   — motion.div scales the 6-card grid
-//           └── rr-rules-close   — close button (right of panel, AnimatePresence)
+//           └── rr-rules-close   — close button (AnimatePresence)
 //
+// Scroll entrance: useScroll on the outcome .mat section maps scroll progress
+//   to x, rotate, opacity. Fully reversible — scroll up and they part away.
 // Expand: spring translates group to canvas centre, scales panel 0.82 → 0.8.
 //         Mat bg dims via CSS :has([data-rules-expanded]).
 // Collapse: close button, click anywhere outside group, or Escape.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useInView } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView } from 'framer-motion'
 
 /* ── SVG icons ── */
 
@@ -35,7 +38,7 @@ const ShieldIcon = () => (
 
 /* ── Animated counter ── */
 
-function AnimatedNumber({ to, suffix = '', duration = 1.2 }: { to: number; suffix?: string; duration?: number }) {
+function AnimatedNumber({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '-50px' })
   const motionVal = useMotionValue(0)
@@ -49,13 +52,10 @@ function AnimatedNumber({ to, suffix = '', duration = 1.2 }: { to: number; suffi
   return <motion.span ref={ref}>{display}</motion.span>
 }
 
-/* ── Animation config ── */
+/* ── Expand/collapse config ── */
 
 const spring = { type: 'spring' as const, stiffness: 170, damping: 26, mass: 1 }
 
-// Group: translate the label + panel unit to canvas centre.
-// Collapsed pos: (792, 136). At scale 0.8 the visual content is ~1079×559.
-// Centre in 1440×900: dx = (1440-1079)/2 - 792 ≈ -612, dy = (900-559)/2 - 136 ≈ 35.
 const GROUP_COLLAPSED = { x: 0, y: 0 }
 const GROUP_EXPANDED  = { x: -612, y: 35 }
 
@@ -67,6 +67,46 @@ const PANEL_EXPANDED  = { scale: 0.8 }
 export default function Outcome() {
   const [expanded, setExpanded] = useState(false)
   const groupRef = useRef<HTMLDivElement>(null)
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+
+  // Grab the parent .mat section for useScroll target (canvas is inside it)
+  useEffect(() => {
+    if (canvasRef.current) {
+      sectionRef.current = canvasRef.current.closest('.mat') as HTMLElement
+    }
+  }, [])
+
+  // Scroll progress: 0 = section just entering bottom of viewport, 1 = top of section at top of viewport
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'start start'],
+  })
+
+  // Spring config: high stiffness keeps it tight to scroll, low damping adds subtle settle
+  const scrollSpring = { stiffness: 400, damping: 30, mass: 0.3 }
+
+  // ── Card (left): sweep in from left with rotation ──
+  const cardXRaw       = useTransform(scrollYProgress, [0.4, 0.85], [-120, 0])
+  const cardRotateRaw  = useTransform(scrollYProgress, [0.4, 0.85], [-1.5, 0])
+  const cardOpacityRaw = useTransform(scrollYProgress, [0.4, 0.8], [0, 1])
+  const cardX       = useSpring(cardXRaw, scrollSpring)
+  const cardRotate  = useSpring(cardRotateRaw, scrollSpring)
+  const cardOpacity = useSpring(cardOpacityRaw, scrollSpring)
+
+  // ── Quote (bottom left): sweep in from left, slightly behind card ──
+  const quoteXRaw       = useTransform(scrollYProgress, [0.45, 0.9], [-80, 0])
+  const quoteOpacityRaw = useTransform(scrollYProgress, [0.45, 0.85], [0, 1])
+  const quoteX       = useSpring(quoteXRaw, scrollSpring)
+  const quoteOpacity = useSpring(quoteOpacityRaw, scrollSpring)
+
+  // ── Rules group (right): mirror of card — sweep in from right with rotation ──
+  const rulesXRaw       = useTransform(scrollYProgress, [0.4, 0.85], [120, 0])
+  const rulesRotateRaw  = useTransform(scrollYProgress, [0.4, 0.85], [1.5, 0])
+  const rulesOpacityRaw = useTransform(scrollYProgress, [0.4, 0.8], [0, 1])
+  const rulesX       = useSpring(rulesXRaw, scrollSpring)
+  const rulesRotate  = useSpring(rulesRotateRaw, scrollSpring)
+  const rulesOpacity = useSpring(rulesOpacityRaw, scrollSpring)
 
   const collapse = useCallback(() => setExpanded(false), [])
 
@@ -86,7 +126,6 @@ export default function Outcome() {
         collapse()
       }
     }
-    // Defer so the expanding click doesn't immediately collapse
     const id = requestAnimationFrame(() => {
       document.addEventListener('mousedown', onClickOutside, true)
       document.addEventListener('click', onClickOutside, true)
@@ -100,12 +139,16 @@ export default function Outcome() {
 
   return (
     <div
+      ref={canvasRef}
       className="rr-canvas rr-canvas--outcome"
       data-rules-expanded={expanded || undefined}
     >
 
       {/* ── Left: Outcome card ── */}
-      <div className="rr-outcome-card">
+      <motion.div
+        className="rr-outcome-card"
+        style={{ x: cardX, rotate: cardRotate, opacity: cardOpacity }}
+      >
         <div className="rr-outcome-card__inner">
           <p className="rr-outcome-card__text">The final game launched with instant traction. Low rule overhead, quick matches, and meme energy made it an easy pick-up.</p>
           <hr className="rr-outcome-card__divider" />
@@ -126,20 +169,28 @@ export default function Outcome() {
           <hr className="rr-outcome-card__divider" />
           <p className="rr-outcome-card__text">The adoption was so strong that the two people leading the project left the company to form a startup with Rug Rumble.</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Bottom left: closing quote ── */}
-      <div className="rr-outcome-quote">
+      <motion.div
+        className="rr-outcome-quote"
+        style={{ x: quoteX, opacity: quoteOpacity }}
+      >
         <div className="rr-outcome-quote__icon" aria-hidden="true">
           <img src="/images/rr/rr-quote-icon.svg" alt="" width={48} height={48} />
         </div>
         <p className="rr-outcome-quote__text">What started as a laugh in Baku became a live product with thousands of players, a proof that a simple, well-balanced mechanic can travel far.</p>
-      </div>
+      </motion.div>
 
-      {/* ── Rules group (label + panel) — translates as unit ── */}
+      {/* ── Rules group (label + panel) ── */}
       <motion.div
         className="rr-rules-group"
         ref={groupRef}
+        style={
+          expanded
+            ? undefined
+            : { x: rulesX, rotate: rulesRotate, opacity: rulesOpacity }
+        }
         animate={expanded ? GROUP_EXPANDED : GROUP_COLLAPSED}
         transition={spring}
       >
@@ -174,17 +225,17 @@ export default function Outcome() {
               <p className="rr-rule-basics-desc"><strong>Rug Rumble</strong> is a fast-paced card game for 2 players, played with 7 cards per deck over 5 rounds.</p>
               <div className="rr-rule-basics-divider" />
               <div className="rr-rule-stat-group">
-                <div className="rr-rule-stat"><span className="rr-rule-stat__label">Players</span><span className="rr-rule-stat__val">2</span></div>
+                <div className="rr-rule-stat"><span className="rr-rule-stat__label">Players</span><span className="rr-rule-stat__val"><AnimatedNumber to={2} /></span></div>
                 <div className="rr-rule-basics-divider" />
-                <div className="rr-rule-stat"><span className="rr-rule-stat__label">Cards</span><span className="rr-rule-stat__val">7</span></div>
+                <div className="rr-rule-stat"><span className="rr-rule-stat__label">Cards</span><span className="rr-rule-stat__val"><AnimatedNumber to={7} /></span></div>
                 <div className="rr-rule-basics-divider" />
-                <div className="rr-rule-stat"><span className="rr-rule-stat__label">Rounds</span><span className="rr-rule-stat__val">5</span></div>
+                <div className="rr-rule-stat"><span className="rr-rule-stat__label">Rounds</span><span className="rr-rule-stat__val"><AnimatedNumber to={5} /></span></div>
               </div>
             </div>
             <div className="rr-rule-basics-bottom">
               <div className="rr-rule-energy-block">
                 <div className="rr-rule-energy-badge">
-                  <span className="rr-rule-energy-badge__num">12</span>
+                  <span className="rr-rule-energy-badge__num"><AnimatedNumber to={12} /></span>
                   <span className="rr-rule-energy-badge__icon">⚡</span>
                 </div>
                 <p className="rr-rule-energy-text">Each card costs 1 to 4 Energy. You get 12 per match. <em>Use it wisely.</em></p>
@@ -192,14 +243,14 @@ export default function Outcome() {
               <div className="rr-rule-vitals">
                 <div className="rr-rule-vital rr-rule-vital--health">
                   <div className="rr-rule-vital__badge">
-                    <span className="rr-rule-vital__num">100</span>
+                    <span className="rr-rule-vital__num"><AnimatedNumber to={100} /></span>
                     <HeartIcon w={18} h={16} />
                   </div>
                   <p>This is your health<br /><span className="rr-rule-vital__max">Max: 100</span></p>
                 </div>
                 <div className="rr-rule-vital rr-rule-vital--shield">
                   <div className="rr-rule-vital__badge">
-                    <span className="rr-rule-vital__num">34</span>
+                    <span className="rr-rule-vital__num"><AnimatedNumber to={34} /></span>
                     <ShieldIcon />
                   </div>
                   <p>This is your shield</p>
@@ -347,7 +398,7 @@ export default function Outcome() {
                 <span className="rr-rule-scenario__when">At any time</span>
                 <div className="rr-rule-scenario__div" />
                 <div className="rr-rule-hp-display">
-                  <span className="rr-rule-hp-num">0</span>
+                  <span className="rr-rule-hp-num"><AnimatedNumber to={0} /></span>
                   <HeartIcon />
                 </div>
                 <p className="rr-rule-scenario__text">A player&apos;s health drops to zero</p>
@@ -357,11 +408,11 @@ export default function Outcome() {
                 <div className="rr-rule-scenario__div" />
                 <div className="rr-rule-hp-row">
                   <div className="rr-rule-hp-display rr-rule-hp-display--loser">
-                    <span className="rr-rule-hp-num">27</span>
+                    <span className="rr-rule-hp-num"><AnimatedNumber to={27} /></span>
                     <HeartIcon />
                   </div>
                   <div className="rr-rule-hp-display rr-rule-hp-display--winner">
-                    <span className="rr-rule-hp-num">35</span>
+                    <span className="rr-rule-hp-num"><AnimatedNumber to={35} /></span>
                     <HeartIcon />
                   </div>
                 </div>

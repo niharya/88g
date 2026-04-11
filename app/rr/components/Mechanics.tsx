@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useScroll, useMotionValueEvent, useTransform, useSpring } from 'framer-motion'
+import useMatSettle from './useMatSettle'
 import type { RoundOutcome } from './game/game-logic'
 import { GameBoard } from './game/GameBoard'
 import RulesRail from './RulesRail'
@@ -11,7 +12,7 @@ import StoryCard from './StoryCard'
 const NOTE_REVEALED_KEY = 'rr-note-revealed'
 
 // Choreography tuning
-const HOLD = 0.15  // first 15% of pinned scroll = mat held centered, no movement
+const HOLD = 0.08  // first 8% of pinned scroll = mat held centered, no movement
 
 export default function Mechanics() {
   const [results, setResults] = useState<RoundOutcome[]>([])
@@ -48,6 +49,7 @@ export default function Mechanics() {
   const sceneRef   = useRef<HTMLDivElement>(null)
   const stageRef   = useRef<HTMLDivElement>(null)
   const primaryRef = useRef<HTMLDivElement>(null)
+  useMatSettle(sceneRef)
 
   const { scrollYProgress } = useScroll({
     target: sceneRef,
@@ -100,8 +102,9 @@ export default function Mechanics() {
   // to be visibly springy on settle. Still scroll-bound — the spring chases
   // scrollYProgress, so dragging the scrollbar still drives it.
   const springProgress = useSpring(animProgress, {
-    duration: 0.55,
-    bounce: 0.35,
+    stiffness: 500,
+    damping: 32,
+    mass: 0.2,
     restDelta: 0.0005,
   })
 

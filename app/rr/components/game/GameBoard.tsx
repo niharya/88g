@@ -191,7 +191,7 @@ export function GameBoard({ onResultsChange, onGameOver, onGameStart }: GameBoar
 
       {endStep >= 5 && (
         <div className="rr-game__verdict">
-          <ScrambleText text={playerWon ? 'VICTORY' : 'DEFEAT'} duration={700} />
+          <ScrambleText text={playerWon ? 'VICTORY' : 'DEFEAT'} profile="minimal" duration={700} />
         </div>
       )}
 
