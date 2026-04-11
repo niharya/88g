@@ -63,26 +63,22 @@ export default function RulesRail({ dismiss = false }: RulesRailProps) {
       className={`rr-rules-rail${isOpen ? ' is-open' : ''}`}
       animate={{ x: isOpen ? 175 : 0, rotate: isOpen ? 0 : 1 }}
       transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.7 }}
+      onClick={handleToggle}
+      role="button"
+      aria-label={isOpen ? 'Close rules' : 'Open rules'}
+      aria-expanded={isOpen}
     >
 
-      {/* Vertical tab button */}
-      <button
-        className="rr-rules-rail__tab"
-        onClick={handleToggle}
-        type="button"
-        aria-label={isOpen ? 'Close rules' : 'Open rules'}
-      >
+      {/* Vertical tab — visual only, click is on the whole rail */}
+      <div className="rr-rules-rail__tab">
         <span className="rr-rules-rail__tab-inner">
           <ArrowBackIcon className={`rr-rules-rail__arrow${isOpen ? '' : ' is-flipped'}`} />
           Rules
         </span>
-      </button>
+      </div>
 
-      {/* Rules list — clicking anywhere on the open sheet closes it */}
-      <div
-        className="rr-rules-rail__content"
-        onClick={() => { if (isOpen) { firstVisit ? dismissRules() : setIsOpen(false) } }}
-      >
+      {/* Rules list */}
+      <div className="rr-rules-rail__content">
         <ul className="rr-rules-rail__list">
           <li className="rr-rules-rail__item">5 rounds, 6 cards each</li>
           <li className="rr-rules-rail__item">Higher number wins the round</li>

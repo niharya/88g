@@ -23,6 +23,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import useMatSettle from './useMatSettle'
 
 // ── Shared motion constants ────────────────────────────────────────────────
 // Single easing curve + base duration — all timings are multiples of DUR
@@ -62,6 +63,8 @@ export default function Intro() {
   const [constraintsOpen, setConstraintsOpen] = useState(false)
   const [isEnlarged, setIsEnlarged] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  useMatSettle(canvasRef)
 
   // Per-card transition delay — matches vanilla rr-interactions.js initCardStackFan()
   // Expand: reverse order (top card fans first). Collapse: forward order.
@@ -72,6 +75,7 @@ export default function Intro() {
 
   return (
     <div
+      ref={canvasRef}
       className="rr-canvas"
       onClick={(e) => {
         if (!isEnlarged) return
@@ -96,17 +100,9 @@ export default function Intro() {
           aria-label={isExpanded ? 'Collapse sketches' : 'Expand sketches'}
           onClick={() => setIsExpanded(s => !s)}
         >
-          {isExpanded ? (
-            // Compress icon — two arrows pointing inward
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M6.5 9.5H3.5M6.5 9.5V12.5M6.5 9.5L2.5 13.5M9.5 6.5H12.5M9.5 6.5V3.5M9.5 6.5L13.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          ) : (
-            // Expand icon — two arrows pointing outward
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M2.5 6.5V2.5H6.5M2.5 2.5L6.5 6.5M13.5 9.5V13.5H9.5M13.5 13.5L9.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
+          <span className="material-symbols-rounded" aria-hidden="true" style={{ fontSize: 18, fontVariationSettings: "'wght' 500" }}>
+            {isExpanded ? 'collapse_content' : 'expand_content'}
+          </span>
         </button>
 
         {/* Body text */}
@@ -200,6 +196,8 @@ export default function Intro() {
       {/* Two CSS states: stacked fan → expanded grid. Hidden when enlarged. */}
       <div
         className={`rr-card-stack${isExpanded ? ' rr-card-stack--expanded' : ''}${isEnlarged ? ' rr-card-stack--hidden' : ''}`}
+        onClick={() => { if (!isExpanded) setIsExpanded(true) }}
+        style={{ cursor: isExpanded ? undefined : 'pointer' }}
       >
         {([1, 2, 3, 4, 5, 6] as const).map((n, i) => (
           // eslint-disable-next-line @next/next/no-img-element

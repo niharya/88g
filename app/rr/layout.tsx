@@ -7,7 +7,6 @@ import Script from 'next/script'
 import '../components/nav/nav.css'
 import './rr.css'
 import './components/game/game.css'
-
 export default function RRLayout({ children }: { children: ReactNode }) {
   return (
     <>
