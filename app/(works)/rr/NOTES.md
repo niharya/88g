@@ -2,7 +2,7 @@
 
 This file is **not** a tour of the codebase. It is a list of decisions, anomalies,
 and cross-file wiring that you would not figure out by reading the code in
-isolation. Read it before changing anything in `app/rr/`. Update it when an
+isolation. Read it before changing anything in `app/(works)/rr/`. Update it when an
 architectural decision changes — not on every edit.
 
 For project-level rules see `CLAUDE.md`.
@@ -11,7 +11,7 @@ For project-level rules see `CLAUDE.md`.
 
 ## Mechanics scene — scroll-bound mat split
 
-Lives in `app/rr/components/Mechanics.tsx` + `app/rr/rr.css` (Phase 2 block, ~line 1185).
+Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (Phase 2 block, ~line 1185).
 
 ### Sticky scene pattern
 - `.rr-mech-scene` is **200vh** tall; `.rr-mech-stage` is `position: sticky; height: 100vh`.
@@ -84,7 +84,7 @@ Things we tried, removed, and should not bring back without revisiting the origi
 
 ## Cards section — shader + grid stacking
 
-Lives in `app/rr/components/Cards.tsx` + `app/rr/components/RugShader.tsx` + `app/rr/rr.css` (~line 908).
+Lives in `app/(works)/rr/components/Cards.tsx` + `app/(works)/rr/components/RugShader.tsx` + `app/(works)/rr/rr.css` (~line 908).
 
 ### `overflow: clip`, not `hidden`
 - `#cards.mat` uses `overflow: clip` to contain the shader within the mat boundary.
@@ -142,6 +142,24 @@ Two interactions use a shared "backseat" pattern where background content recede
 ### Story card + Framer Motion transform
 
 The story card uses Framer Motion inline `transform` (spring-animated `x`, `rotate`, `scale`). The backseat uses the CSS `scale` property (separate from `transform`) to avoid conflict. Do not switch to `transform: scale()` — it would be overridden by FM's inline style.
+
+---
+
+## Section entrance animations
+
+`rr.css` no longer has a page-level entrance sequence (the `rr-mat-enter`,
+`rr-marker-descend`, `rr-content-settle` keyframes were removed). Section
+entrances are now handled by two systems:
+
+- **Hard load / scroll:** `useReveal` hook on Sheet + `.section-reveal` CSS in
+  globals.css. Three-phase stagger: mat → content → chapter marker.
+- **Client-side navigation:** TransitionSlot animates the first sheet directly
+  via Web Animations API (same stagger choreography), then adds `.revealed` to
+  hand off to CSS. Below-fold sheets reveal on scroll via useReveal.
+
+Route-specific entrance timing can be customized in `rr.css` by overriding
+`--reveal-delay`, `--reveal-y`, or the content/marker transition-delays on
+specific sheet IDs.
 
 ---
 

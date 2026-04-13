@@ -348,6 +348,86 @@ html.fonts-ready .workbench {
   }
 }
 
+/* Shell nav hidden on /selected — that page renders its own docked nav row */
+.shell-nav-hidden {
+  display: none;
+}
+
+
+/* ── Transition pane ────────────────────────────────────────────────────── */
+/* Page transition system — DOM ghost-clone approach.
+   transition-slot is the containing block. During transitions, a clone of
+   the outgoing page is appended as .transition-ghost (positioned absolute,
+   styled entirely via JS inline styles — no CSS class needed).
+   TransitionSlot.tsx orchestrates both ghost exit and new content enter. */
+
+.transition-slot {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+}
+
+.transition-pane {
+  transform-origin: top center;
+  will-change: transform, opacity;
+}
+
+/* Disable scroll-snap during transitions to prevent snap fighting */
+.workbench.transitioning {
+  scroll-snap-type: none !important;
+}
+
+/* ── Section reveal ────────────────────────────────────────────────────── */
+/* Three-phase entrance: mat slides in → content settles → marker docks.
+   useReveal hook adds .revealed via IntersectionObserver.
+   TransitionSlot also adds .revealed after its own WAAPI entrance.
+   Route CSS can override timing via custom properties. */
+
+/* Phase 1 — sheet mat slides in */
+.section-reveal {
+  opacity: 0;
+  transform: translateY(var(--reveal-y, 14px));
+  transition:
+    opacity  0.35s ease,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0s);
+}
+
+.section-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Phase 2 — content inside sheet settles after mat */
+.section-reveal > :not(.nav-sled) {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity  0.4s ease,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--reveal-delay, 0s) + 0.12s);
+}
+
+.section-reveal.revealed > :not(.nav-sled) {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Phase 3 — nav sled (chapter marker) docks last */
+.section-reveal > .nav-sled {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity  0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--reveal-delay, 0s) + 0.22s);
+}
+
+.section-reveal.revealed > .nav-sled {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 
 /* ── Sheet stack ─────────────────────────────────────────────────────────── */
 

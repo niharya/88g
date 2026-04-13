@@ -4,9 +4,11 @@
 //
 // Styles: import './nav.css' in your route layout to activate the nav system.
 // Data:   each route defines its own Chapter[] in its nav/chapters.ts.
-// Sync:   MARKER_TOP in ChapterMarker.tsx must match --marker-top in nav.css (24px).
+// Sync:   MARKER_TOP in useDockedMarker.ts must match --marker-top in nav.css (24px).
 
 export { default as ChapterMarker } from './ChapterMarker'
 export { default as ProjectMarker } from './ProjectMarker'
 export { default as ExitMarker }    from './ExitMarker'
+export { default as MarkerSlot }    from './MarkerSlot'
+export { useDockedMarker }          from './useDockedMarker'
 export type { Chapter }             from './types'

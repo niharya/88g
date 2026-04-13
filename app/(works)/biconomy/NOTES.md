@@ -2,7 +2,7 @@
 
 This file is **not** a tour of the codebase. It is a list of decisions, anomalies,
 and cross-file wiring that you would not figure out by reading the code in
-isolation. Read it before changing anything in `app/biconomy/`. Update it when an
+isolation. Read it before changing anything in `app/(works)/biconomy/`. Update it when an
 architectural decision changes — not on every edit.
 
 For project-level rules see `CLAUDE.md`.

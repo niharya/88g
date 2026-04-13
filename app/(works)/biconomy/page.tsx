@@ -1,10 +1,6 @@
 import type { Metadata } from 'next'
-import './biconomy.css'
 import { chapters } from './nav/chapters'
-import PaperFilter from '../components/PaperFilter'
-import ProjectMarker from '../components/nav/ProjectMarker'
-import ExitMarker from '../components/nav/ExitMarker'
-import Sheet from '../components/Sheet'
+import Sheet from '../../components/Sheet'
 import Intro from './components/Intro'
 import Flows from './components/Flows'
 import Demos from './components/Demos'
@@ -29,11 +25,7 @@ const sheetContent: Record<string, React.ReactNode> = {
 
 export default function BiconomyPage() {
   return (
-    <main className="workbench">
-      <PaperFilter />
-      <ProjectMarker />
-      <ExitMarker />
-
+    <div className="route-biconomy">
       <div className="sheet-stack">
         {chapters.map(chapter => (
           <Sheet key={chapter.id} chapter={chapter} chapters={chapters}>
@@ -41,6 +33,6 @@ export default function BiconomyPage() {
           </Sheet>
         ))}
       </div>
-    </main>
+    </div>
   )
 }

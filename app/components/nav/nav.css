@@ -100,15 +100,16 @@ a.nav-marker {
 
 /* ── Nav sled ────────────────────────────────────────────────────────────── */
 /* Absolute wrapper inside each Sheet. Constrains sticky release point.
-   left: derived from --project-marker-right (runtime-measured by ProjectMarker).
-   Formula accounts for: workbench border (4px) + workbench-pad-x − sheet-bleed
-   + sheet border (2px) + 1px rounding = 7px total offset.                  */
+   left: derived from --project-marker-right (runtime-measured by MarkerSlot).
+   Formula converts viewport-based measurement to sheet-relative coordinate:
+     project-marker-right − (workbench-pad-x − sheet-bleed + sheet-border)
+   where sheet-border = 2px (from --sheet-border).                           */
 
 .nav-sled {
   position: absolute;
   top: var(--marker-top);
   bottom: var(--marker-top);
-  left: calc(var(--project-marker-right, calc(var(--workbench-pad-x) + 128px)) - (var(--workbench-pad-x) - var(--sheet-bleed) + 7px));
+  left: calc(var(--project-marker-right, calc(var(--workbench-pad-x) + 128px)) - (var(--workbench-pad-x) - var(--sheet-bleed) + 2px));
   pointer-events: none;
   z-index: var(--z-chapter-marker);
   transition: filter 0.25s ease;
@@ -132,6 +133,11 @@ a.nav-marker {
 .chapter-nav--open {
   position: relative;
   top: 0;
+}
+
+/* Static mode — inert pill used on /selected, no sticky/scroll behavior */
+.chapter-nav--static {
+  position: static;
 }
 
 

@@ -64,8 +64,8 @@ Do not combine Phase 1 and Phase 2 by default.
 
 What currently lives in shared:
 
-* `app/components/` — `Sheet`, `PaperFilter`, `ChapterMarker`, `ProjectMarker`, `ExitMarker`
-* `app/globals.css` — design tokens, the `.mat` surface (grid + paper noise), `.fonts-ready` gating, typography scale
+* `app/components/` — `Sheet`, `PaperFilter`, `useReveal`, `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker`
+* `app/globals.css` — design tokens, the `.mat` surface (grid + paper noise), `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout
 
 **Promotion rule.** A primitive moves into shared the **second** time it's needed, not the first. Flag the move before doing it — don't silent-promote. If you find yourself copying a pattern from one route to another, stop and promote instead. If you find yourself touching a shared primitive, grep both routes first.
 
@@ -75,8 +75,9 @@ What currently lives in shared:
 
 Each route has a `NOTES.md` file that documents architectural decisions, anomalies, cross-file wiring, and don't-touch items specific to that route. These are not code tours — they record things you would not figure out by reading the code in isolation.
 
-* `app/rr/NOTES.md`
-* `app/biconomy/NOTES.md`
+* `app/(works)/rr/NOTES.md`
+* `app/(works)/biconomy/NOTES.md`
+* `app/(works)/selected/NOTES.md`
 * `app/components/nav/NOTES.md`
 
 **Log anomalies in the route they affect.** If a global change (e.g. a shared primitive update) causes a side effect in a specific route, document it in that route's `NOTES.md`. If it affects multiple routes, document it in each.
@@ -85,12 +86,17 @@ Each route has a `NOTES.md` file that documents architectural decisions, anomali
 
 Route-local:
 
-* `app/rr/page.tsx`
-* `app/rr/layout.tsx`
-* `app/rr/rr.css`
-* `app/rr/nav/`
-* `app/rr/components/`
-* `app/rr/NOTES.md`
+* `app/(works)/rr/page.tsx`
+* `app/(works)/rr/layout.tsx`
+* `app/(works)/rr/rr.css`
+* `app/(works)/rr/components/`
+* `app/(works)/rr/NOTES.md`
+
+Shell (persistent across routes):
+
+* `app/(works)/layout.tsx` — workbench, PaperFilter, ShellNav, TransitionSlot
+* `app/(works)/TransitionSlot.tsx` — page transitions (DOM ghost-clone + WAAPI)
+* `app/(works)/ShellNav.tsx` — persistent ProjectMarker + ExitMarker
 
 Shared layers (see *Shared design system* above):
 

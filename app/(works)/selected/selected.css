@@ -9,7 +9,7 @@
 
 /* ── Route tokens ───────────────────────────────────────────────────────── */
 
-.selected-workbench {
+.workbench:has(.selected-workbench) {
   --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
 
   /* Page-local project colors — derived from brand hex values */
@@ -67,12 +67,12 @@
   align-items: flex-start;
 }
 
-/* Override project-marker from fixed to static within the docked row */
+/* Override project-marker (MarkerSlot) from fixed to static within the docked row */
 .selected-workbench .project-marker {
   position: static;
 }
 
-/* Halve touching borders — project-marker right + works pill left */
+/* Halve touching borders — project-marker right + chapter-nav left */
 .selected-nav-row .nav-marker--project {
   border-right-width: 1px;
 }
@@ -167,13 +167,6 @@
 
 .selected-mat--archive-open {
   min-height: 1201px;
-}
-
-
-/* ── "Works" pill ───────────────────────────────────────────────────────── */
-
-.selected-works-pill {
-  /* flows in flex row within .selected-nav-row */
 }
 
 

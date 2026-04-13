@@ -11,7 +11,7 @@
 
 /* ── Biconomy route tokens ───────────────────────────────────────────────── */
 
-.workbench {
+.workbench:has(.route-biconomy) {
   --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
 }
 

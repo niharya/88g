@@ -1,10 +1,7 @@
 import type { Metadata } from 'next'
 import { Fragment } from 'react'
 import { chapters } from './nav/chapters'
-import PaperFilter from '../components/PaperFilter'
-import ProjectMarker from '../components/nav/ProjectMarker'
-import ExitMarker from '../components/nav/ExitMarker'
-import Sheet from '../components/Sheet'
+import Sheet from '../../components/Sheet'
 import Intro from './components/Intro'
 import Mechanics from './components/Mechanics'
 import Cards from './components/Cards'
@@ -17,11 +14,7 @@ export const metadata: Metadata = {
 
 export default function RRPage() {
   return (
-    <main className="workbench">
-      <PaperFilter />
-      <ProjectMarker projectName="Rug Rumble" />
-      <ExitMarker />
-
+    <div className="route-rr">
       <div className="sheet-stack">
         {chapters.map(chapter => (
           <Fragment key={chapter.id}>
@@ -36,6 +29,6 @@ export default function RRPage() {
           </Fragment>
         ))}
       </div>
-    </main>
+    </div>
   )
 }

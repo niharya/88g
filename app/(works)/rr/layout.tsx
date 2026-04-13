@@ -1,12 +1,10 @@
-// Rug Rumble route layout — font-ready gate + RR-specific fonts
-// Waits for all fonts (including Material Symbols + RR web fonts) before
-// revealing the page. Falls back after 3s so a network failure never blocks.
+// Rug Rumble route layout — RR-specific fonts and CSS only.
+// Font gate and nav.css live in the (works) shared layout.
 
 import type { ReactNode } from 'react'
-import Script from 'next/script'
-import '../components/nav/nav.css'
 import './rr.css'
 import './components/game/game.css'
+
 export default function RRLayout({ children }: { children: ReactNode }) {
   return (
     <>
@@ -30,11 +28,6 @@ export default function RRLayout({ children }: { children: ReactNode }) {
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&display=swap"
       />
-      <Script id="rr-font-gate" strategy="afterInteractive">{`
-        var done = function() { document.documentElement.classList.add('fonts-ready'); };
-        var t = setTimeout(done, 3000);
-        document.fonts.ready.then(function() { clearTimeout(t); done(); });
-      `}</Script>
       {children}
     </>
   )

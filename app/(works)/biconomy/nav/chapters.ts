@@ -1,9 +1,9 @@
 // chapters.ts — /biconomy chapter data
 // Chapter type is shared; see app/components/nav/types.ts
 
-export type { Chapter } from '../../components/nav/types'
+export type { Chapter } from '../../../components/nav/types'
 
-import type { Chapter } from '../../components/nav/types'
+import type { Chapter } from '../../../components/nav/types'
 
 export const chapters: Chapter[] = [
   { id: 'ux-audit',         title: 'UX Audit',         year: '2024'    },
