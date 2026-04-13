@@ -1,0 +1,826 @@
+/* ==========================================================================
+   selected.css — /selected route-specific styles
+
+   Shared layout system (workbench, mat, tokens) lives in globals.css.
+   Nav pill styles live in nav.css.
+   This file contains only /selected-specific layout and components.
+   ========================================================================== */
+
+
+/* ── Route tokens ───────────────────────────────────────────────────────── */
+
+.selected-workbench {
+  --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
+
+  /* Page-local project colors — derived from brand hex values */
+
+  /* Connektion — Teal #01F2F5 (h:181), grey-green #CDDAD9 (h:171) */
+  --connektion-100: hsl(181, 28%, 93%);
+  --connektion-240: hsl(181, 90%, 48%);
+  --connektion-800: hsl(181, 65%, 30%);
+  --connektion-960: hsl(181, 55%, 22%);
+
+  /* Aleyr — Purple #723CC5 (h:264), Pink #FF5581 (h:344) */
+  --aleyr-100: hsl(264, 28%, 94%);
+  --aleyr-240: hsl(344, 80%, 62%);   /* Pink — hover fill */
+  --aleyr-800: hsl(264, 42%, 38%);
+  --aleyr-960: hsl(264, 36%, 28%);
+
+  /* Ecochain — Green #4CB400 (h:95), Charcoal #212121 */
+  --ecochain-100: hsl(95, 24%, 93%);
+  --ecochain-240: hsl(0, 0%, 96%);   /* Off-white #F9F9F9 — hover fill */
+  --ecochain-800: hsl(95, 55%, 28%);
+  --ecochain-960: hsl(95, 45%, 20%);
+
+  /* Codezeros — Orange-red #FF4B3F (h:4), Golden #F9A12E (h:34) */
+  --codezeros-100: hsl(34, 30%, 94%);
+  --codezeros-240: hsl(34, 92%, 58%);
+  --codezeros-800: hsl(4, 60%, 40%);
+  --codezeros-960: hsl(4, 50%, 30%);
+}
+
+
+/* ── Page layout ────────────────────────────────────────────────────────── */
+/* About card left, mat right — mirrors vanilla absolute positioning.       */
+
+.selected-layout {
+  position: relative;
+  width: 100%;
+  min-height: 777px;
+}
+
+.selected-layout:has(.selected-mat--archive-open) {
+  min-height: 1249px;
+}
+
+
+/* ── Nav row — docked pills ────────────────────────────────────────────── */
+/* "Nihar" and "Works" pills sit docked together above the mat, mirroring  */
+/* the project-marker + chapter-marker docking on project routes.          */
+
+.selected-nav-row {
+  position: absolute;
+  left: 560px;
+  top: 10px;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Override project-marker from fixed to static within the docked row */
+.selected-workbench .project-marker {
+  position: static;
+}
+
+/* Halve touching borders — project-marker right + works pill left */
+.selected-nav-row .nav-marker--project {
+  border-right-width: 1px;
+}
+
+
+/* ── About card ─────────────────────────────────────────────────────────── */
+
+.about-card-p {
+  position: absolute;
+  left: 24px;
+  top: 88px;
+  border: 2px solid var(--mint-100);
+  padding: 48px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 432px;
+  background: white;
+}
+
+.about-card-p__text {
+  position: relative;
+  width: 336px;
+  color: var(--grey-400);
+}
+
+.about-card-p__quote {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.about-card-p__heading {
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 500;
+  font-variation-settings: 'wght' 500, 'GRAD' 0, 'opsz' 18;
+  letter-spacing: -0.48px;
+  line-height: 1.2;
+  margin-top: 12px;
+  width: 336px;
+}
+
+.about-card-p__body {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.2;
+  margin-top: 12px;
+  width: 250px;
+}
+
+.about-card-p__divider {
+  position: relative;
+  width: 336px;
+  height: 1px;
+  background: var(--grey-320);
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.about-card-p__cta {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  color: var(--grey-320);
+  line-height: 1.2;
+  width: 292px;
+  position: relative;
+}
+
+
+/* ── Mat ────────────────────────────────────────────────────────────────── */
+/* Smaller mat containing timeline, cards, and archive.                     */
+
+.selected-mat {
+  position: absolute;
+  left: 536px;
+  top: 24px;
+  width: 688px;
+  border: 2px solid var(--mint-100);
+  padding: 0;
+  padding-bottom: 48px;
+  min-height: 729px;
+  transition: min-height 0.38s cubic-bezier(0.25, 0, 0, 1);
+}
+
+.selected-mat--archive-open {
+  min-height: 1201px;
+}
+
+
+/* ── "Works" pill ───────────────────────────────────────────────────────── */
+
+.selected-works-pill {
+  /* flows in flex row within .selected-nav-row */
+}
+
+
+/* ── Timeline ───────────────────────────────────────────────────────────── */
+
+.selected-tl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Now dot */
+.selected-tl__dot {
+  position: absolute;
+  left: 143px;
+  top: 64px;
+  width: 16px;
+  height: 16px;
+  background: var(--yellow-240);
+  border-radius: 8px;
+}
+
+.selected-tl__label-now {
+  position: absolute;
+  left: 139px;
+  top: 72px;
+  transform: translate(-100%, -50%);
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--yellow-720);
+  line-height: 1;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.selected-tl__greeting {
+  position: absolute;
+  left: 163px;
+  top: 64px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  color: var(--yellow-720);
+  text-transform: capitalize;
+  white-space: nowrap;
+  line-height: 1.33;
+}
+
+/* Dot clusters */
+.selected-tl__dots {
+  position: absolute;
+  left: 148px;
+  width: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selected-tl__dots--top  { top: 92px; }
+.selected-tl__dots--bot  { top: 512px; }
+
+.selected-tl__dots span {
+  display: block;
+  width: 4px;
+  height: 2px;
+  background: var(--grey-720);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Timeline bars */
+.selected-tl__bar-blue {
+  position: absolute;
+  left: 148px;
+  top: 126px;
+  width: 4px;
+  height: 374px;
+  background: var(--blue-80);
+  border: 1px solid var(--blue-800);
+  transform-origin: top center;
+}
+
+.selected-tl__bar-yellow {
+  position: absolute;
+  left: 148px;
+  top: 256px;
+  width: 4px;
+  height: 46px;
+  background: var(--yellow-100);
+  border: 1px solid var(--yellow-800);
+  transform-origin: top center;
+}
+
+/* Year labels */
+.selected-tl__year {
+  position: absolute;
+  left: 144px;
+  transform: translate(-100%, -50%);
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--blue-800);
+  text-align: right;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.selected-tl__year--2025  { top: 136px; }
+.selected-tl__year--q425  { top: 280px; color: var(--yellow-800); }
+.selected-tl__year--23    { top: 478px; }
+
+
+/* ── Project cards ──────────────────────────────────────────────────────── */
+
+.selected-card-terra {
+  position: absolute;
+  left: 164px;
+  top: 126px;
+  pointer-events: auto;
+}
+
+.selected-card-blue {
+  position: absolute;
+  left: 164px;
+  top: 324px;
+  pointer-events: auto;
+}
+
+.project-card {
+  position: relative;
+  width: 408px;
+  height: 176px;
+  border-width: 1px;
+  border-style: solid;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.project-card:hover {
+  box-shadow: var(--shadow-float);
+  transform: translateY(-2px);
+}
+
+.project-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.project-card--terra {
+  background: var(--yellow-100);
+  border-color: var(--yellow-800);
+}
+.project-card--blue {
+  background: var(--blue-80);
+  border-color: var(--blue-800);
+}
+
+.project-card__title {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 308px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  line-height: 1.2;
+}
+.project-card--terra .project-card__title { color: var(--terra-720); }
+.project-card--blue  .project-card__title { color: var(--blue-800); }
+
+.project-card__body {
+  position: absolute;
+  top: 88px;
+  left: 16px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.2;
+}
+.project-card--terra .project-card__body { color: var(--terra-720); width: 304px; }
+.project-card--blue  .project-card__body { color: var(--blue-800); width: 244px; }
+
+.project-card__divider {
+  position: absolute;
+  top: 136px;
+  left: 16px;
+  width: 376px;
+  height: 1px;
+  opacity: 0.35;
+}
+.project-card--terra .project-card__divider { background: var(--terra-720); }
+.project-card--blue  .project-card__divider { background: var(--blue-800); }
+
+.project-card__footer {
+  position: absolute;
+  top: 144px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.project-card__role {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1.2;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.project-card--terra .project-card__role { color: var(--terra-720); }
+.project-card--blue  .project-card__role { color: var(--blue-800); }
+
+.project-card--terra .project-card__arrow { color: var(--terra-720); }
+.project-card--blue  .project-card__arrow { color: var(--blue-800); }
+
+.project-card__arrow {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.project-card__arrow .icon-chevron-shaft {
+  transition: translate 0.3s ease-in-out;
+}
+.project-card:hover .project-card__arrow .icon-chevron-shaft {
+  translate: 3px 0;
+}
+
+/* Illustrations */
+.project-card__illus {
+  position: absolute;
+  pointer-events: none;
+}
+
+.project-card__illus--hov {
+  top: 20px;
+  right: 62px;
+  width: 20px;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-card__diamond {
+  width: 18px;
+  height: 18px;
+  background: var(--terra-720);
+  transform: rotate(41deg);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.project-card__illus--notes {
+  top: 62px;
+  left: 288px;
+  width: 104px;
+  height: 56px;
+}
+
+.project-card__illus--notes img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ── Nameplates ─────────────────────────────────────────────────────────── */
+/* Individual positioned pills with dot clusters between them, maintaining  */
+/* the same vertical rhythm as the upper timeline.                          */
+
+.selected-nameplate {
+  position: absolute;
+  left: 133px;
+  pointer-events: auto;
+}
+
+.selected-nameplate--names { top: 545px; }
+.selected-nameplate--marks { top: 595px; }
+
+.selected-nameplate .nav-marker {
+  cursor: default;
+}
+
+.selected-nameplate .nav-marker__content {
+  color: var(--grey-640);
+  opacity: 0.8;
+}
+
+.selected-nameplate .nav-icon {
+  color: var(--grey-640);
+}
+
+/* Single dots between nameplates and before archive */
+.selected-tl__dot-single {
+  position: absolute;
+  left: 148px;
+  width: 4px;
+  height: 2px;
+  background: var(--grey-720);
+  border-radius: 8px;
+}
+
+.selected-tl__dot-single--mid1 { top: 585px; }
+.selected-tl__dot-single--mid2 { top: 635px; }
+
+
+/* ── Timeline hover highlights ─────────────────────────────────────────── */
+/* Same pattern as archive: filter: opacity() to avoid Framer inline clash */
+
+.selected-tl > * {
+  transition: filter 0.35s ease-in-out, background 0.35s ease-in-out;
+}
+
+/* Dim all when any project card is hovered */
+.selected-tl:has(.selected-card-terra:hover) > *,
+.selected-tl:has(.selected-card-blue:hover) > * {
+  filter: opacity(0.35);
+}
+
+/* Terra (Rug Rumble) — highlight yellow bar + card + Q4•25 */
+.selected-tl:has(.selected-card-terra:hover) .selected-card-terra,
+.selected-tl:has(.selected-card-terra:hover) .selected-tl__bar-yellow,
+.selected-tl:has(.selected-card-terra:hover) .selected-tl__year--q425 {
+  filter: opacity(1);
+}
+.selected-tl:has(.selected-card-terra:hover) .selected-tl__bar-yellow {
+  background: var(--yellow-240);
+}
+
+/* Blue (Biconomy) — highlight blue bar + card + years 2025 & 23 */
+.selected-tl:has(.selected-card-blue:hover) .selected-card-blue,
+.selected-tl:has(.selected-card-blue:hover) .selected-tl__bar-blue,
+.selected-tl:has(.selected-card-blue:hover) .selected-tl__year--2025,
+.selected-tl:has(.selected-card-blue:hover) .selected-tl__year--23 {
+  filter: opacity(1);
+}
+.selected-tl:has(.selected-card-blue:hover) .selected-tl__bar-blue {
+  background: var(--blue-160);
+}
+
+
+/* ── Archive nav button ─────────────────────────────────────────────────── */
+
+.selected-nav-archive {
+  position: absolute;
+  left: 133px;
+  top: 645px;
+  pointer-events: auto;
+}
+
+
+/* ── Archive panel ──────────────────────────────────────────────────────── */
+
+.selected-archive-panel {
+  position: absolute;
+  left: 148px;
+  top: 685px;
+  width: 340px;
+  height: 468px;
+  pointer-events: auto;
+}
+
+/* Archive year labels */
+.selected-ap-year {
+  position: absolute;
+  left: -3px;
+  transform: translate(-100%, -50%);
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  text-align: right;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.selected-ap-year--yellow     { top: 81px;  color: var(--connektion-800); }
+.selected-ap-year--mint-top   { top: 124px; color: var(--mint-800); }
+.selected-ap-year--aleyr      { top: 169px; color: var(--aleyr-800); }
+.selected-ap-year--olive      { top: 257px; color: var(--ecochain-800); }
+.selected-ap-year--codezeros  { top: 345px; color: var(--codezeros-800); }
+.selected-ap-year--mint       { top: 433px; color: var(--mint-800); }
+
+/* Mini timeline dots */
+.selected-ap-dots {
+  position: absolute;
+  left: 1px;
+  width: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selected-ap-dots--top { top: 2px; }
+
+.selected-ap-dots span {
+  display: block;
+  width: 4px;
+  height: 2px;
+  background: var(--grey-720);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Mini timeline bars */
+.selected-ap-bar {
+  position: absolute;
+  left: 1px;
+  width: 4px;
+  transform-origin: top center;
+}
+
+.selected-ap-bar--yellow    { top: 36px;  height: 55px;  background: var(--connektion-100); border: 1px solid var(--connektion-800); }
+.selected-ap-bar--mint      { top: 114px; height: 329px; background: var(--mint-80);      border: 1px solid var(--mint-960); }
+.selected-ap-bar--aleyr     { top: 159px; height: 20px;  background: var(--aleyr-100);    border: 1px solid var(--aleyr-960); }
+.selected-ap-bar--olive     { top: 247px; height: 20px;  background: var(--ecochain-100); border: 1px solid var(--ecochain-960); }
+.selected-ap-bar--codezeros { top: 335px; height: 20px;  background: var(--codezeros-100); border: 1px solid var(--codezeros-960); }
+
+/* Archive entries */
+.ap-entry {
+  position: absolute;
+  left: 17px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+}
+
+.ap-entry--yellow    { top: 36px; }
+.ap-entry--aleyr     { top: 124px; }
+.ap-entry--olive     { top: 212px; }
+.ap-entry--codezeros { top: 300px; }
+.ap-entry--mint      { top: 388px; }
+
+.ap-entry__title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.28px;
+  color: var(--grey-320);
+  line-height: 1.2;
+  height: 36px;
+}
+
+.ap-entry__meta {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 640;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ap-entry__meta .icon-ext {
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.ap-entry__meta .icon-ext .icon-ext-arrow {
+  transition: translate 0.3s ease-in-out;
+}
+a.ap-entry:hover .icon-ext .icon-ext-arrow {
+  translate: 2px -2px;
+}
+
+.ap-entry--yellow    .ap-entry__meta { color: var(--connektion-800); }
+.ap-entry--aleyr     .ap-entry__meta { color: var(--aleyr-800); }
+.ap-entry--olive     .ap-entry__meta { color: var(--ecochain-800); }
+.ap-entry--codezeros .ap-entry__meta { color: var(--codezeros-800); }
+.ap-entry--mint      .ap-entry__meta { color: var(--mint-800); }
+
+/* Hover: dissolving underline */
+.ap-entry__meta span:first-child {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.35s ease-in-out;
+}
+a.ap-entry:hover .ap-entry__meta span:first-child {
+  text-decoration-color: currentColor;
+}
+
+/* "opens in new tab" hint — hidden by default, slides in on hover */
+.ap-entry__hint {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  border: 1px solid;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 4px;
+  opacity: 0;
+  translate: 0 -4px;
+  transition: opacity 0.3s ease-in-out, translate 0.3s ease-in-out;
+  pointer-events: none;
+}
+a.ap-entry:hover .ap-entry__hint {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* Hint pill — neutral shell, themed text only */
+.ap-entry__hint {
+  background: var(--grey-960);
+  border-color: var(--grey-880);
+}
+.ap-entry--yellow    .ap-entry__hint { color: var(--connektion-800); }
+.ap-entry--aleyr     .ap-entry__hint { color: var(--aleyr-800); }
+.ap-entry--olive     .ap-entry__hint { color: var(--ecochain-800); }
+.ap-entry--codezeros .ap-entry__hint { color: var(--codezeros-800); }
+.ap-entry--mint      .ap-entry__hint { color: var(--mint-800); }
+
+/* Push adjacent entries away by 4px on hover — uses CSS translate to avoid Framer Motion clash */
+.ap-entry {
+  translate: 0 0;
+}
+.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--aleyr,
+.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--olive,
+.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--codezeros,
+.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--mint      { translate: 0 4px; }
+
+.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--yellow    { translate: 0 -4px; }
+.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--olive,
+.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--codezeros,
+.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--mint      { translate: 0 4px; }
+
+.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--yellow,
+.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--aleyr     { translate: 0 -4px; }
+.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--codezeros,
+.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--mint      { translate: 0 4px; }
+
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--yellow,
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--aleyr,
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--olive  { translate: 0 -4px; }
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--mint   { translate: 0 4px; }
+
+.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--yellow,
+.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--aleyr,
+.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--olive,
+.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--codezeros   { translate: 0 -4px; }
+
+
+/* ── Hover highlights ──────────────────────────────────────────────────── */
+/* filter: opacity() avoids clashing with Framer Motion inline opacity.    */
+
+.selected-archive-panel .selected-ap-bar,
+.selected-archive-panel .selected-ap-year,
+.selected-archive-panel .selected-ap-dots {
+  transition: filter 0.35s ease-in-out, background 0.35s ease-in-out;
+}
+.selected-archive-panel .ap-entry {
+  transition: filter 0.35s ease-in-out, translate 0.35s ease-in-out;
+}
+
+/* Dim everything when any entry is hovered */
+.selected-archive-panel:has(.ap-entry:hover) .selected-ap-bar,
+.selected-archive-panel:has(.ap-entry:hover) .selected-ap-year,
+.selected-archive-panel:has(.ap-entry:hover) .ap-entry,
+.selected-archive-panel:has(.ap-entry:hover) .selected-ap-dots {
+  filter: opacity(0.35);
+}
+
+/* Connektion (yellow) — highlight bar + year 21 */
+.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--yellow,
+.selected-archive-panel:has(.ap-entry--yellow:hover) .selected-ap-bar--yellow,
+.selected-archive-panel:has(.ap-entry--yellow:hover) .selected-ap-year--yellow {
+  filter: opacity(1);
+}
+.selected-archive-panel:has(.ap-entry--yellow:hover) .selected-ap-bar--yellow {
+  background: var(--connektion-240);
+}
+
+/* Aleyr — highlight bar + year 20 */
+.selected-archive-panel:has(.ap-entry--aleyr:hover) .ap-entry--aleyr,
+.selected-archive-panel:has(.ap-entry--aleyr:hover) .selected-ap-bar--aleyr,
+.selected-archive-panel:has(.ap-entry--aleyr:hover) .selected-ap-year--aleyr {
+  filter: opacity(1);
+}
+.selected-archive-panel:has(.ap-entry--aleyr:hover) .selected-ap-bar--aleyr {
+  background: var(--aleyr-240);
+}
+
+/* Ecochain (olive) — highlight bar + year 19 */
+.selected-archive-panel:has(.ap-entry--olive:hover) .ap-entry--olive,
+.selected-archive-panel:has(.ap-entry--olive:hover) .selected-ap-bar--olive,
+.selected-archive-panel:has(.ap-entry--olive:hover) .selected-ap-year--olive {
+  filter: opacity(1);
+}
+.selected-archive-panel:has(.ap-entry--olive:hover) .selected-ap-bar--olive {
+  background: var(--ecochain-240);
+}
+
+/* Codezeros — highlight bar + year 18 */
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--codezeros,
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .selected-ap-bar--codezeros,
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .selected-ap-year--codezeros {
+  filter: opacity(1);
+}
+.selected-archive-panel:has(.ap-entry--codezeros:hover) .selected-ap-bar--codezeros {
+  background: var(--codezeros-240);
+}
+
+/* Slangbusters (mint) — highlight bar + entry + years 20 & 18 */
+.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--mint,
+.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-bar--mint,
+.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-year--mint-top,
+.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-year--mint {
+  filter: opacity(1);
+}
+.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-bar--mint {
+  background: var(--mint-240);
+}
+
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card {
+    transition: none;
+  }
+
+  .ap-entry {
+    transition: none;
+  }
+}
