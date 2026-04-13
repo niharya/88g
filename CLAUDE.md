@@ -5,13 +5,19 @@ Read it at the start of every session. Do not drift from it without explicit ins
 
 ## Project
 
-This is Nihar Bhagat's portfolio site.
+This is Nihar Bhagat's portfolio site — built for studio heads, creative directors, and product leaders.
 
 * Live site: `https://nihar.works`
 * Repo: `niharya/88g`
 * Stack: **Next.js 15 (App Router), React 19, Framer Motion 12, TypeScript**
 
 The portfolio contains long-form editorial project routes built as sheet-stack reading environments.
+
+Tone: precise, calm, human. Avoid hype and abstraction.
+
+Protect: evidence, docking relationships, material coherence.
+
+Common failure modes: over-cleaning, generic polish, broken relationships.
 
 ## Reference material
 
@@ -71,6 +77,7 @@ Each route has a `NOTES.md` file that documents architectural decisions, anomali
 
 * `app/rr/NOTES.md`
 * `app/biconomy/NOTES.md`
+* `app/components/nav/NOTES.md`
 
 **Log anomalies in the route they affect.** If a global change (e.g. a shared primitive update) causes a side effect in a specific route, document it in that route's `NOTES.md`. If it affects multiple routes, document it in each.
 
@@ -187,6 +194,17 @@ Before pushing:
 5. Push commits **and** tags: `git push && git push --tags`
 
 Confirm with the user before pushing. Don't push unannounced.
+
+## Agent usage
+
+Before implementation, select the relevant agent(s):
+
+* **portfolio-guardian** → tone, integrity, portfolio fit
+* **route-auditor** → before touching any route; checks NOTES.md and constraints
+* **frontend-craft** → layout, motion, CSS, interaction decisions
+* **anomaly-librarian** → when a non-obvious constraint or side-effect is discovered
+
+Before writing code: identify the task, select agent(s), summarize constraints briefly, then implement. Do not make agent usage verbose in responses.
 
 ## Session-start checklist
 
