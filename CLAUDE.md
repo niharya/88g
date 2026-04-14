@@ -130,7 +130,7 @@ All motion in the portfolio follows a paper-physical language. Things glide, set
 
 Mats are loose sheets in a stack. Scrolling browses through them.
 
-* **Phase 1 — mat glides in.** Translates 32px upward, 0.8s. Feels like a mat sliding to rest against the previous one.
+* **Phase 1 — mat glides in.** Translates 32px upward, opacity 0.7s / transform 0.8s. Feels like a mat sliding to rest against the previous one.
 * **Phase 2 — content placed.** Objects on the mat settle with a random micro-rotation (±1.5°, truly random per visit) and a shadow that shrinks as they land. Shadow goes from lifted (diffuse, 8px offset) to resting (tight, 1px offset). 0.7s, staggered 0.15s after mat.
 * **Phase 3 — nav-sled docks.** Chapter marker settles last. 0.5s, staggered 0.25s after mat.
 

@@ -50,7 +50,7 @@ Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (Ph
 
 ## Global nav coupling — `[data-arrow-target]`
 
-Lives in `app/components/nav/ChapterMarker.tsx:50-51`.
+Lives in `app/components/nav/useDockedMarker.ts:53-54`.
 
 - ChapterMarker's rotating arrow normally points at the sheet's visual center.
 - That breaks for sections with a pinned scroll scene (like Mechanics): the section is taller than the viewport, so the section center is always off-screen and the arrow points at nothing useful.

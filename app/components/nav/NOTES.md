@@ -187,9 +187,9 @@ they can still be server components rendered by the parent page.
 Sheet adds `.section-reveal` to every `<section>` and calls `useReveal(sectionRef)`.
 This produces a three-phase entrance when the section scrolls into view:
 
-1. **Mat slides in** — sheet opacity + translateY (0.45s)
-2. **Content settles** — children (`:not(.nav-sled)`) fade in (+0.12s delay)
-3. **Chapter marker docks** — nav-sled fades in and descends (+0.22s delay)
+1. **Mat glides in** — sheet opacity (0.7s) + translateY 32px (0.8s)
+2. **Content placed** — children (`:not(.nav-sled)`) settle with rotation + shadow (+0.15s delay, 0.7s)
+3. **Chapter marker docks** — nav-sled fades in and descends (+0.25s delay, 0.5s)
 
 CSS lives in `globals.css` (`.section-reveal` / `.revealed` block).
 
@@ -227,3 +227,113 @@ immediately. The first viewport's sections reveal as fonts load.
 - `.project-marker` class name on MarkerSlot (targeted by 4 CSS sites)
 - `.section-reveal` class on Sheet — consumed by globals.css and by TransitionSlot
 - `.transitioning` on `.workbench` — the contract between TransitionSlot and useReveal
+
+---
+
+## TransitionSlot scroll/ghost positioning (TransitionSlot.tsx)
+
+### scrollY must be captured during render, not in useLayoutEffect
+
+`window.scrollY` read inside `useLayoutEffect` is **already clamped** by the
+browser if the new route's DOM is shorter than the previous route's. The scroll
+position reflects the new document height, not the old one. The fix is to capture
+`scrollY` during the React render phase (before commit), where the old DOM is
+still the active document.
+
+**What breaks if you move the read into an effect:** the ghost clone is
+positioned at the clamped scroll offset, causing a visible jump at the start of
+the transition.
+
+### Ghost must use `position: absolute`, not `fixed`
+
+The ghost clone must share the same containing block as the original content
+(the workbench). `position: fixed` uses the viewport as its containing block,
+which causes a horizontal shift because the workbench has padding/margins that
+the viewport does not.
+
+**What breaks if changed to fixed:** horizontal misalignment between the ghost
+and the original content position.
+
+### `slot.style.minHeight` preserves document height
+
+The transition slot's `minHeight` must be set to the outgoing content's full
+height before the route swap. Without it, the document can shrink immediately,
+triggering the browser's scroll clamping (see scrollY issue above) and causing
+the ghost to land in the wrong position.
+
+**What breaks if removed:** scroll clamping during transition; ghost jumps.
+
+### `scrollbar-gutter: stable` on `html`
+
+Set on the `<html>` element to prevent layout shift from the scrollbar
+appearing/disappearing during transitions. Without it, routes that are shorter
+than the viewport (no scrollbar) cause a ~15px horizontal shift when
+transitioning to/from routes that are longer (scrollbar visible).
+
+**Lives in:** `globals.css` on the `html` rule.
+**What breaks if removed:** horizontal jitter during cross-route transitions.
+
+### useLayoutEffect, not useEffect
+
+TransitionSlot uses `useLayoutEffect` because `useEffect` fires after paint.
+Using `useEffect` leaves one exposed frame where the old content is gone but the
+ghost has not yet been injected — a visible flash.
+
+---
+
+## Sheet scroll-linked card placement (Sheet.tsx)
+
+### `useScroll` offset thresholds
+
+```ts
+offset: ['start 0.85', 'start 0.4']
+```
+
+The `0.85` threshold means the card glide triggers when the section's top is
+~150px above the viewport bottom, not at the actual bottom edge. This is
+intentional — starting the animation earlier gives the card time to settle before
+the user's eye reaches it.
+
+**Don't change** the 0.85 value without checking every route's card entrance
+feel.
+
+### `surfaceRef` via querySelector
+
+`surfaceRef` is resolved by `querySelector('.surface')` inside a `useEffect`,
+not by a React ref. This is because the `.surface` element is rendered by the
+route's children, not by Sheet itself. If a section has no `.surface` element,
+the scroll-linked shadow handler gracefully no-ops.
+
+**What breaks if you switch to a ref:** Sheet would need to inject a ref into
+arbitrary children, which is not possible without cloneElement or context.
+
+### Random rotation seeded via useRef
+
+The per-card random rotation is stored in a `useRef`, not `useState`. This
+avoids a re-render on mount. The value is set once and read by the style prop.
+
+---
+
+## Section reveal shadow override (globals.css + Sheet.tsx)
+
+### `--place-rotate` CSS custom property
+
+Set by JS (Sheet.tsx) on mount. If JS does not run, the fallback is `0deg` (no
+rotation). The CSS transition still works — the card just enters without the
+random tilt.
+
+### CSS shadow animation vs. scroll-linked shadow
+
+The `.section-reveal` CSS animation includes a shadow phase (Phase 2) on
+`.surface` elements. However, the scroll-linked shadow applied by
+`useMotionValueEvent` in Sheet.tsx sets an inline `boxShadow` style that takes
+precedence over the CSS animation. Both exist in the codebase, but the inline
+style wins at runtime once the scroll handler fires.
+
+**Why both exist:** the CSS shadow provides the entrance look before the scroll
+handler attaches. The scroll-linked shadow takes over once the user begins
+scrolling. Removing the CSS shadow would leave `.surface` elements shadowless
+during the reveal entrance.
+
+**Don't remove either** without checking: (a) entrance appearance on hard load,
+(b) scroll-linked shadow continuity after reveal completes.
