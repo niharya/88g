@@ -6,34 +6,42 @@ Each project page is a composed reading environment — not a template filled wi
 
 ---
 
-## ◎ Current focus
+## ◎ Status
 
-`/biconomy` is the proving ground for the house system. It is the first full project page, and the one where all structural and interaction patterns are being established. Three more pages are staged for migration once Biconomy is locked.
+The site is live with four routes:
+
+| Route | Description | Status |
+|-------|-------------|--------|
+| `/` | Landing page — spectrum color selector, contact form | Complete |
+| `/selected` | Works index — timeline, archive panel, project cards | Complete |
+| `/biconomy` | Biconomy case study — 6 chapters, UX audit through staying anchored | Complete |
+| `/rr` | Rug Rumble case study — card game design and development | In progress |
+
+Next work: fine-tuning, replacing placeholder images, responsive.
 
 ---
 
 ## ◈ Stack
 
-- **Next.js App Router** — infrastructure, not the product
-- **React** — component authoring; no state management library
-- **Framer Motion** — spring-driven flyout animations in the nav system
-- **CSS** — route-local stylesheets; a minimal shared primitive layer (`globals.css`)
-- **Vanilla JS** — any route-specific behavior that doesn't need React
-- No Tailwind. No component libraries. No build complexity beyond what Next requires.
+- **Next.js 15** (App Router) — infrastructure, not the product
+- **React 19** — component authoring; no state management library
+- **Framer Motion 12** — spring physics, scroll-linked transforms, presence transitions
+- **TypeScript**
+- **CSS** — route-local stylesheets + shared token layer (`globals.css`). No Tailwind, no CSS modules, no styled-components.
 
 ---
 
-## ◇ Working principles
-
-**Next.js is infrastructure.** The stack identity is the design, not the framework.
+## ◇ Design principles
 
 **Authored, not templated.** Each route is composed by hand. Shared primitives exist for genuine reuse — not to impose structure.
 
-**Preserve relational composition.** The real risk in porting from the reference source is losing docking relationships — notes that feel tucked to evidence, markers that feel flush rather than placed nearby. This is the primary quality signal.
+**Elements should feel docked, tucked, or suspended with intention — not placed nearby.** Notes docked to evidence. Cards stacked, not listed. Reveals feel latent and released, not spawned.
 
-**8 → 4 → 2.** Spatial increments follow 8px as the base unit, with 4px and 2px for tight relationships. Avoid arbitrary values unless they are doing real compositional work.
+**Paper-physical motion.** Everything glides, settles, and lands. One easing curve (`--ease-paper`), long durations (0.5–0.9s), no bounce, no overshoot. Native scroll — no hijacking.
 
-**Don't abstract early.** Keep logic local. A route-specific module is always preferred over a shared abstraction that hasn't earned its place.
+**Proof artifacts must remain proof artifacts.** Sketches, screenshots, game boards — preserve the feeling of evidence.
+
+**Controls must not lie.** If something looks interactive, it works, or it stops implying interaction.
 
 ---
 
@@ -41,56 +49,61 @@ Each project page is a composed reading environment — not a template filled wi
 
 ```
 app/
-  biconomy/               — Active project route
-    nav/                  — Navigation system (ChapterMarker, ProjectMarker, ExitMarker)
-    components/           — Route-specific components (Sheet, Intro, Flows, etc.)
-    biconomy.css          — Route styles
-    page.tsx              — Route entry
-    layout.tsx            — Route layout (imports nav.css, font gate script)
-  globals.css             — Shared design tokens and typography primitives
-  layout.tsx              — Root layout (font links, global imports)
+  page.tsx                    Landing page
+  layout.tsx                  Root layout (fonts, font-gate script)
+  globals.css                 Shared design tokens, typography, motion system
+  landing.css                 Landing page styles
+  _landing/                   Landing page components
 
-reference/
-  88g-source/             — Original Biconomy source (Next.js / React / Tailwind)
-  portfolio-vanilla/      — Intermediate vanilla translation reference
+  (works)/                    Work route group (persistent shell)
+    layout.tsx                Workbench shell (PaperFilter, ShellNav, TransitionSlot)
+    ShellNav.tsx              Persistent ProjectMarker + ExitMarker
+    TransitionSlot.tsx        Page transitions (DOM ghost-clone + WAAPI)
 
-public/                   — Static assets
+    selected/                 Works index
+    biconomy/                 Biconomy case study
+    rr/                       Rug Rumble case study
 
-CLAUDE.md                 — Working contract for Claude Code sessions
+  components/                 Shared design system
+    Sheet.tsx                 Paper chapter container + scroll-linked card placement
+    PaperFilter.tsx           Paper texture overlay (SVG displacement)
+    useReveal.ts              Scroll-triggered entrance animation
+    nav/                      Navigation system
+      ChapterMarker.tsx       Sticky chapter pill (dynamic + static modes)
+      ProjectMarker.tsx       Fixed project name pill
+      ExitMarker.tsx          Fixed exit pill
+      MarkerSlot.tsx          Positioning wrapper + CSS var measurement
+      useDockedMarker.ts      Scroll-coupled nav behaviors
+      nav.css                 Navigation styles
+
+reference/                    Read-only source material
+  88g-source/                 Original Biconomy source
+  portfolio-vanilla/          Vanilla portfolio source
+  v0-duel-game/              Rug Rumble game source
+
+CLAUDE.md                     Working contract for Claude Code sessions
 ```
-
----
-
-## ↗ Reference sources
-
-`reference/88g-source`
-↳ The original Biconomy implementation from `akshar-dave/88g`. Use this to understand the intended experience and recover behaviors that haven't been ported yet. Do not port the framework identity — port the reading experience.
-
-`reference/portfolio-vanilla`
-↳ An intermediate vanilla translation. Use as a structural reference when recovering layout or interaction patterns.
 
 ---
 
 ## § Vocabulary
 
-Terms used consistently across code, CSS, and conversation:
-
 | Term | Meaning |
 |---|---|
-| **Workbench** | The outermost layout container for a project page. Sets the horizontal bounds. |
-| **Sheet Stack** | The vertical sequence of sheets on a project page. Gap triples when a tray is open. |
-| **Sheet** | A single paper-like chapter unit. Contains a nav sled and its section content. |
-| **Mat** | The textured surface on a sheet. Grid pattern, subtle. |
-| **Project Marker** | Fixed left pill. Shows project name. Measures its right edge for nav alignment. |
-| **Chapter Marker** | Sticky pill per sheet. Shows chapter title and year. Opens the chapter tray on dock. |
-| **Exit Marker** | Fixed right pill. Links back to the project index. |
-| **Nav Sled** | Absolute-positioned wrapper inside each sheet that constrains the sticky chapter marker's release point. |
-| **Tray** | The flyout menu that opens from a docked Chapter Marker. Lists all chapters for navigation. |
-| **Proof Artifact** | Real evidence embedded in a section — screenshot, embed, demo, sketch. Not a placeholder. |
-| **Note Rail** | Side-aligned annotation column. Notes should feel docked to their evidence, not parked beside it. |
-| **Memo Card** | A small card-format component for compact structured information. |
-| **Deck / Card Stack** | A stacked set of cards that can be revealed or browsed. |
-| **Surface** | A distinct material layer within a sheet — elevated, inset, or textured differently from the mat. |
+| **Workbench** | Outermost layout container for work pages. Sets horizontal bounds. |
+| **Sheet Stack** | Vertical sequence of sheets. Gap triples when a tray is open. |
+| **Sheet** | A paper-like chapter unit. Contains a nav sled and section content. |
+| **Mat** | Textured surface on a sheet. Grid pattern + paper noise. |
+| **Project Marker** | Fixed left pill. Shows project name. Cross-fades on route change. |
+| **Chapter Marker** | Sticky pill per sheet. Opens the chapter tray on dock. Arrow rotates toward sheet center. |
+| **Exit Marker** | Fixed right pill. Links back to the works index. |
+| **Nav Sled** | Absolute wrapper inside each sheet. Constrains the sticky marker's release point. |
+| **Tray** | Flyout menu from a docked Chapter Marker. Lists all chapters. |
+| **Surface** | Elevated material layer within a sheet. Blue card with paper displacement filter. |
+| **Proof Artifact** | Real evidence — screenshot, embed, demo, sketch. Not a placeholder. |
+| **Note Rail** | Side-aligned annotation column. Notes docked to their evidence. |
+| **Section Reveal** | Three-phase entrance: mat glides in → content placed with rotation + shadow → marker docks. |
+| **TransitionSlot** | Ghost-clone page transition. Captures DOM snapshot before route swap, animates exit/entrance. |
 
 ---
 
@@ -98,18 +111,16 @@ Terms used consistently across code, CSS, and conversation:
 
 ```bash
 npm install
-npm run dev     # starts at localhost:3000
+npm run dev
 ```
 
-Active routes: `/biconomy`
+Active routes: `/`, `/selected`, `/biconomy`, `/rr`
 
 ---
 
 ## ↻ Workflow
 
-Work route by route. Don't touch shared layers unless the route work makes it unavoidable — and flag it explicitly when you do.
-
-Use the references before making visual judgements. The primary quality signal is whether elements feel docked and tucked, not whether they are technically correct. Read `CLAUDE.md` before starting any session — it carries the working contract, the active diagnosis, and the session-start rules.
+Work route by route. Read `CLAUDE.md` before starting any session — it carries the working contract, constraints, and session-start checklist. Each route has a `NOTES.md` with architectural decisions and don't-touch items.
 
 ---
 
@@ -121,21 +132,16 @@ Messages are imperative, scoped, and short. One sentence. No period.
 
 ```
 add ExitMarker with Google Sans Flex exit label
-rename ChapterPill → ChapterMarker across nav module
-extract nav styles into nav/nav.css
+paper-settle motion system: graceful transitions, scroll-linked card placement
+landing page: spectrum card, contact form, btn1 hover
 fix scroll alignment after tray close using data-navigating
-remove dead flyout keyframes from biconomy.css
 ```
-
-Scope to what changed. Don't describe the intent — describe the action.
 
 ---
 
 ## ◐ Versioning
 
-Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). The version lives in `package.json` and is the source of truth — bump it in the same commit (or a dedicated `release: vX.Y.0` commit) before pushing, and tag the tip of the push with `git tag vX.Y.0`.
-
-This is SemVer-lite: the format is standard, the rule is simple — no judgment per push.
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` …). Tag the tip with `git tag vX.Y.0`. Current: **v0.16.0**.
 
 <br />
 
