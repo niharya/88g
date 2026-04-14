@@ -4,13 +4,16 @@
 // Renders nav-sled with ChapterMarker, and exposes section id for scroll targeting.
 // chapters[] is passed through so ChapterMarker stays decoupled from its data source.
 //
-// 'use client' is required because Sheet creates a ref for the section element
-// and passes it to ChapterMarker as containerRef for scroll-coupled behaviors.
-//
 // Section reveal: useReveal adds .revealed via IntersectionObserver for one-shot
-// entrance animation. The .section-reveal base state is in globals.css.
+// mat entrance animation. The .section-reveal base state is in globals.css.
+//
+// Card placement: the first .surface element in each sheet gets a scroll-linked
+// glide — subtle translateY + rotation + shadow that settles as the section
+// enters the viewport. Driven by useScroll → useMotionValueEvent, writing
+// inline styles directly on the surface element.
 
-import { useRef, type ReactNode } from 'react'
+import { useRef, useEffect, type ReactNode } from 'react'
+import { useScroll, useMotionValueEvent } from 'framer-motion'
 import ChapterMarker from './nav/ChapterMarker'
 import { useReveal } from './useReveal'
 import type { Chapter } from './nav/types'
@@ -23,7 +26,52 @@ interface SheetProps {
 
 export default function Sheet({ chapter, chapters, children }: SheetProps) {
   const sectionRef = useRef<HTMLElement>(null)
+  const surfaceRef = useRef<HTMLElement | null>(null)
+  const rotationRef = useRef((Math.random() - 0.5) * 3) // ±1.5°, stable per mount
   useReveal(sectionRef)
+
+  // Find the first .surface in this sheet for scroll-linked card placement.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+    surfaceRef.current = section.querySelector<HTMLElement>('.surface')
+  }, [])
+
+  // Assign random micro-rotation to non-surface content blocks (CSS reveal).
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+    section.querySelectorAll<HTMLElement>(':scope > :not(.nav-sled)').forEach(el => {
+      const deg = (Math.random() - 0.5) * 3
+      el.style.setProperty('--place-rotate', `${deg.toFixed(2)}deg`)
+    })
+  }, [])
+
+  // ── Scroll-linked card placement ──────────────────────────────────────
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start 0.85', 'start 0.4'],
+  })
+
+  // Drive transform + shadow on the surface element as the section scrolls in.
+  // progress 0 = just entering viewport (card lifted, rotated, diffuse shadow)
+  // progress 1 = settled in place (card at rest, tight shadow)
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    const el = surfaceRef.current
+    if (!el) return
+    const ease = 1 - (1 - p) * (1 - p) // quadratic ease-out for smoother settle
+
+    const y = 20 * (1 - ease)
+    const rotate = rotationRef.current * (1 - ease)
+
+    // Shadow: crisp and dark, not diffuse gray.
+    const shadowY     = 4 - 3 * ease       // 4 → 1
+    const shadowBlur  = 6 - 4 * ease        // 6 → 2
+    const shadowAlpha = 0.08 + 0.07 * ease  // 0.08 → 0.15
+
+    el.style.transform = `translateY(${y.toFixed(1)}px) rotate(${rotate.toFixed(2)}deg)`
+    el.style.boxShadow = `0 ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px 0px rgba(0, 0, 0, ${shadowAlpha.toFixed(3)})`
+  })
 
   return (
     <section id={chapter.id} className="sheet mat section-reveal" ref={sectionRef}>

@@ -161,6 +161,28 @@
 .intro__dot.is-mid { transform: translateX(-4px); transition-duration: 0.2s; }
 .intro__dot.is-bot { transform: translateY(-2px); }
 
+/* Highlighter icon — tip fills on open (like touching paper) */
+.intro__hl-icon {
+  flex-shrink: 0;
+  color: var(--olive-560);
+}
+
+.intro__hl-icon .icon-hl-tip {
+  transition: translate 0.3s var(--ease-paper), fill 0.4s var(--ease-paper);
+  fill: none;
+}
+.intro__hl-icon .icon-hl-barrel {
+  transition: translate 0.3s var(--ease-paper);
+}
+
+.intro__hl-icon.is-active .icon-hl-tip {
+  translate: -1px 1px;
+  fill: var(--olive-560);
+}
+.intro__hl-icon.is-active .icon-hl-barrel {
+  translate: -1px 1px;
+}
+
 /* Memo cards — tucked behind surface (surface z:10, container z:auto) */
 /* At rest: positioned right of section, hidden behind surface           */
 /* On open: surface springs left, cards emerge from underneath           */
@@ -645,7 +667,7 @@
 .bips__card-outer {
   /* .surface provides paper-surface ::after + padding */
   max-width: fit-content;
-  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32); /* paper-surface-shadow */
+  box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.15); /* paper-surface-shadow */
 }
 
 .bips__card-inner {
@@ -949,7 +971,7 @@
 
 .multiverse__card-outer {
   max-width: fit-content;
-  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.15);
 }
 
 .multiverse__card-inner {
@@ -1120,7 +1142,7 @@
 .demos__header-card {
   /* surface (paper-surface equivalent) already handles ::after bg + filter */
   z-index: 10;
-  box-shadow: 0.5px 0.5px 2.4px 0px hsla(0, 0%, 0%, 0.24);
+  box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.15);
   color: var(--blue-960);
   display: flex;
   flex-direction: column;
@@ -1555,6 +1577,7 @@
   /* surface class provides paper feel */
   z-index: 10;
   padding: 48px;           /* p-12 */
+  box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   max-width: 512px;        /* max-w-lg */

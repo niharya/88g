@@ -114,6 +114,30 @@ Shared layers (see *Shared design system* above):
 
 If a simple CSS transition is enough, use CSS.
 
+## Motion vocabulary
+
+All motion in the portfolio follows a paper-physical language. Things glide, settle, and land — never snap, bounce, or overshoot.
+
+### Rules
+
+1. **One easing curve.** `--ease-paper: cubic-bezier(0.5, 0, 0.2, 1)` — confident start, long gentle deceleration. Used for section reveals, page transitions, and all CSS transitions. Defined in `globals.css`, mirrored as `EASE` in `TransitionSlot.tsx`.
+2. **Long durations.** 0.5–0.9s range. Nothing should feel fast or urgent.
+3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic.
+4. **Native scroll.** No smooth-scroll libraries, no scroll hijacking. The browser's physics stay in control.
+5. **Scroll-mapped transforms where useful.** `useScroll` + `useTransform` + `useSpring` for elements that respond to scroll position — not just trigger-on-intersection.
+
+### Section reveal choreography
+
+Mats are loose sheets in a stack. Scrolling browses through them.
+
+* **Phase 1 — mat glides in.** Translates 32px upward, 0.8s. Feels like a mat sliding to rest against the previous one.
+* **Phase 2 — content placed.** Objects on the mat settle with a random micro-rotation (±1.5°, truly random per visit) and a shadow that shrinks as they land. Shadow goes from lifted (diffuse, 8px offset) to resting (tight, 1px offset). 0.7s, staggered 0.15s after mat.
+* **Phase 3 — nav-sled docks.** Chapter marker settles last. 0.5s, staggered 0.25s after mat.
+
+All three phases use `--ease-paper`.
+
+Random rotation is set via `--place-rotate` CSS custom property, assigned by `Sheet.tsx` on mount.
+
 ## Core design principle
 
 **Elements should feel docked, tucked, or suspended with intention — not placed nearby.**

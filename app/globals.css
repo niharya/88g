@@ -247,6 +247,12 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Prevent layout shift when scrollbar appears/disappears during
+     page transitions (e.g. short /selected → tall project page). */
+  scrollbar-gutter: stable;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
 }
@@ -322,6 +328,10 @@ h1, h2, h3, h4, h5, h6 {
   /* Tilt */
   --card-tilt:        1deg;
 
+  /* Motion — paper-settle vocabulary.
+     One curve for almost everything. Long durations. No bounce. */
+  --ease-paper:       cubic-bezier(0.5, 0, 0.2, 1);
+
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);
 
@@ -341,7 +351,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 html.fonts-ready .workbench {
   opacity: 1;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s var(--ease-paper);
 }
 
 
@@ -406,13 +416,15 @@ html.fonts-ready .workbench {
    TransitionSlot also adds .revealed after its own WAAPI entrance.
    Route CSS can override timing via custom properties. */
 
-/* Phase 1 — sheet mat slides in */
+/* Phase 1 — mat glides into place.
+   Larger travel (32px), longer duration. Feels like a loose mat
+   sliding up to rest against the previous one in the stack. */
 .section-reveal {
   opacity: 0;
-  transform: translateY(var(--reveal-y, 14px));
+  transform: translateY(var(--reveal-y, 32px));
   transition:
-    opacity  0.35s ease,
-    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity   0.7s var(--ease-paper),
+    transform 0.8s var(--ease-paper);
   transition-delay: var(--reveal-delay, 0s);
 }
 
@@ -421,29 +433,34 @@ html.fonts-ready .workbench {
   transform: translateY(0);
 }
 
-/* Phase 2 — content inside sheet settles after mat */
+/* Phase 2 — content placed on the mat.
+   Objects settle with a random micro-rotation (--place-rotate, set by JS)
+   and shadow that shrinks as they land on the surface. */
 .section-reveal > :not(.nav-sled) {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(16px) rotate(var(--place-rotate, 0deg));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   transition:
-    opacity  0.4s ease,
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: calc(var(--reveal-delay, 0s) + 0.12s);
+    opacity    0.7s var(--ease-paper),
+    transform  0.7s var(--ease-paper),
+    box-shadow 0.9s var(--ease-paper);
+  transition-delay: calc(var(--reveal-delay, 0s) + 0.15s);
 }
 
 .section-reveal.revealed > :not(.nav-sled) {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) rotate(0deg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.015);
 }
 
-/* Phase 3 — nav sled (chapter marker) docks last */
+/* Phase 3 — nav sled docks last */
 .section-reveal > .nav-sled {
   opacity: 0;
   transform: translateY(-8px);
   transition:
-    opacity  0.3s ease,
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: calc(var(--reveal-delay, 0s) + 0.22s);
+    opacity   0.5s var(--ease-paper),
+    transform 0.5s var(--ease-paper);
+  transition-delay: calc(var(--reveal-delay, 0s) + 0.25s);
 }
 
 .section-reveal.revealed > .nav-sled {
@@ -531,9 +548,8 @@ html.fonts-ready .workbench {
 }
 
 .surface--shadowed {
-  box-shadow: 0 1px 4px 0px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.15);
 }
-
 
 /* ── Text utilities ──────────────────────────────────────────────────────── */
 

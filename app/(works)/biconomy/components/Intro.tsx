@@ -18,6 +18,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import IconHighlighter from './IconHighlighter'
 
 export default function Intro() {
   const [open, setOpen] = useState(false)
@@ -44,13 +45,7 @@ export default function Intro() {
           aria-label="Reveal context"
           type="button"
         >
-          {/* Star glyph */}
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
-            <path
-              d="M8 1L10.472 5.528L15.6085 6.382L11.9043 10.072L12.7023 15.118L8 12.728L3.29772 15.118L4.09574 10.072L0.391548 6.382L5.52786 5.528L8 1Z"
-              fill="var(--olive-560)"
-            />
-          </svg>
+          <IconHighlighter size={20} className={`intro__hl-icon${open ? ' is-active' : ''}`} />
           {/* Three dots — shift on open to signal state change */}
           <div className="intro__toggle-dots">
             <span className={`intro__dot${open ? ' is-top' : ''}`} />
