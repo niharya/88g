@@ -211,6 +211,29 @@
   text-decoration-style: dotted;
   text-decoration-thickness: 2px;
   text-underline-offset: 2px;
+  position: relative;
+  transition: text-decoration-color 0.12s ease;
+}
+
+.t-btn1::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+.t-btn1:hover {
+  text-decoration-color: transparent;
+}
+
+.t-btn1:hover::after {
+  opacity: 1;
 }
 
 
