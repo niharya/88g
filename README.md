@@ -1,5 +1,7 @@
 # niharya / portfolio
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/76387b47-eed1-4d9d-b051-20a4b284cce4/deploy-status)](https://app.netlify.com/projects/nihar-works/deploys)
+
 Nihar Bhagat's portfolio. → [nihar.works](https://nihar.works)
 
 Each project page is a composed reading environment — not a template filled with content, but a structure built around the work. The goal is to make the work feel like it was designed to be read, not displayed.
