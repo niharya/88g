@@ -1,0 +1,11 @@
+# Netlify project configuration.
+# Keeps build settings version-controlled so a repo relink / rename can't
+# drift them. Values here win over the Netlify dashboard UI.
+
+[build]
+  command  = "npm run build"
+  publish  = ".next"
+
+[build.environment]
+  # Pin Node to match local (node --version → v22). Keeps CI builds reproducible.
+  NODE_VERSION = "22"
