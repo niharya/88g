@@ -132,7 +132,7 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
           </div>
           <div className="rr-mono-section">
             <p className="rr-mono-label rr-mono-label--dyn">
-              \ Dynamics (The actions a player takes)
+              // Dynamics (The actions a player takes)
             </p>
             <ul className="rr-mono-list rr-mono-list--terra">
               <li className="rr-mono-item--bold">
@@ -150,7 +150,7 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
           <div className="rr-mono-section">
             <p className="rr-mono-label rr-mono-label--mech">// Aesthetics (What the player feels)</p>
             <ul className="rr-mono-list">
-              <li>Visual treatment → web3 mematic universe</li>
+              <li>Visual treatment → web3 memetic universe</li>
               <li>Overarching feeling: Bullishness / Winning / Pride</li>
             </ul>
           </div>

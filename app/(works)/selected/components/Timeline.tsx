@@ -7,6 +7,7 @@
 
 import { motion } from 'framer-motion'
 import ProjectCard from './ProjectCard'
+import { getGreeting } from '../../../lib/greeting'
 
 
 const SPRING = { type: 'spring' as const, duration: 0.5, bounce: 0.15 }
@@ -47,13 +48,6 @@ const D = {
   marks:      1.20,
   dotMid2:    1.24,
   archive:    1.28,
-}
-
-function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good Morning'
-  if (h < 17) return 'Good Afternoon'
-  return 'Good Evening'
 }
 
 interface TimelineProps {
@@ -256,7 +250,7 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
               {isArchiveOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
             </span>
             <span className="nav-marker__title t-btn1">Works from the previous portfolio</span>
-            <span className="nav-marker__year t-p4">2018-22</span>
+            <span className="nav-marker__year t-p4">2018–22</span>
           </span>
         </button>
       </motion.div>

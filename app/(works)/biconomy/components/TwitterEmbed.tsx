@@ -6,13 +6,18 @@
 import Script from 'next/script'
 import { useEffect, useRef } from 'react'
 
+// Minimal type for the twitter widgets global — avoids `any` casts.
+declare global {
+  interface Window {
+    twttr?: { widgets: { load: (el: HTMLElement | null) => void } }
+  }
+}
+
 export default function TwitterEmbed({ tweetId, className }: { tweetId: string; className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).twttr?.widgets) {
-      ;(window as any).twttr.widgets.load(containerRef.current)
-    }
+    window.twttr?.widgets.load(containerRef.current)
   }, [tweetId])
 
   if (!tweetId) return null
@@ -25,9 +30,7 @@ export default function TwitterEmbed({ tweetId, className }: { tweetId: string; 
         src="https://platform.twitter.com/widgets.js"
         strategy="lazyOnload"
         onLoad={() => {
-          if ((window as any).twttr?.widgets) {
-            ;(window as any).twttr.widgets.load(containerRef.current)
-          }
+          window.twttr?.widgets.load(containerRef.current)
         }}
       />
       <blockquote

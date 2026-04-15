@@ -66,6 +66,10 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
   const snapshotRef = useRef<HTMLElement | null>(null)
   const scrollRef = useRef(0)
   const isFirstRender = useRef(true)
+  // Pending choreography timers. Cleared when a new transition starts or on
+  // unmount so a rapid second nav can't fire stale setTimeouts against a
+  // page that's already moved on.
+  const timersRef = useRef<number[]>([])
 
   // ── Prefetch project routes for smoother transitions ─────────────────
   useEffect(() => {
@@ -94,6 +98,10 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     if (prevSegment.current === segment) return
     const oldSegment = prevSegment.current
     prevSegment.current = segment
+
+    // Clear any pending timers from a previous (unfinished) transition.
+    timersRef.current.forEach(id => clearTimeout(id))
+    timersRef.current = []
 
     const slot = slotRef.current
     const content = contentRef.current
@@ -135,6 +143,12 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
 
     // ── 4. GHOST EXIT ─────────────────────────────────────────────────
     //    Phase A: inner content dims
+    //    NOTE: This selector is the load-bearing contract between
+    //    TransitionSlot and every route's top-level markup. Routes with a
+    //    `.sheet` stack (rr, biconomy) expose each sheet's inner content;
+    //    `/selected` uses `.selected-workbench > *`. A fourth route with a
+    //    different top-level class would silently fall through to no
+    //    inner-content dim — add its selector here before landing it.
     const ghostContentEls = ghost.querySelectorAll(
       '.sheet > :not(.nav-sled), .selected-workbench > *'
     )
@@ -163,10 +177,10 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     //    Ghost is nearly invisible, new content held at opacity 0 by
     //    fill:both. Safe to jump scroll without visible shift.
     //    Also release the minHeight — no longer needed.
-    setTimeout(() => {
+    timersRef.current.push(window.setTimeout(() => {
       window.scrollTo({ top: scrollTarget, behavior: 'instant' as ScrollBehavior })
       slot.style.minHeight = ''
-    }, GHOST_DELAY + GHOST_DUR - 40)
+    }, GHOST_DELAY + GHOST_DUR - 40))
 
     // ── 5. NEW CONTENT ENTER ──────────────────────────────────────────
     const sheets = content.querySelectorAll('.sheet')
@@ -213,12 +227,18 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     }
 
     // ── 6. Clean up ───────────────────────────────────────────────────
-    setTimeout(() => {
+    timersRef.current.push(window.setTimeout(() => {
       wb?.classList.remove('transitioning')
       if (firstSheet) firstSheet.classList.add('revealed')
-    }, totalDur + 30)
+    }, totalDur + 30))
 
   }, [segment])
+
+  // Clear any pending timers if the component unmounts mid-transition.
+  useEffect(() => () => {
+    timersRef.current.forEach(id => clearTimeout(id))
+    timersRef.current = []
+  }, [])
 
   return (
     <div ref={slotRef} className="transition-slot">

@@ -2,7 +2,7 @@
 // Variants: 'terra' (Rug Rumble) and 'blue' (Biconomy).
 
 import Link from 'next/link'
-import IconChevronRight from './IconChevronRight'
+import IconChevronRight from '../../../components/icons/IconChevronRight'
 
 interface ProjectCardProps {
   variant: 'terra' | 'blue'

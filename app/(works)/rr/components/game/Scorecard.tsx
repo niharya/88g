@@ -79,7 +79,7 @@ function Egg({ x, y, tilt, state, animating }: {
     <g
       style={{
         transform: `translate(${x}px, ${y}px) rotate(${tilt}deg)`,
-        transition: 'transform 0.55s cubic-bezier(0.25, 1.2, 0.4, 1)',
+        transition: 'transform 0.55s cubic-bezier(0.5, 0, 0.2, 1)',
       }}
     >
       <ellipse

@@ -99,7 +99,9 @@ function createShader(gl: WebGLRenderingContext, type: number, src: string) {
   gl.shaderSource(s, src)
   gl.compileShader(s)
   if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-    console.error('RugShader compile:', gl.getShaderInfoLog(s))
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('RugShader compile:', gl.getShaderInfoLog(s))
+    }
     gl.deleteShader(s)
     return null
   }
@@ -123,7 +125,10 @@ export default function RugShader() {
     canvas.height = H
 
     const gl = canvas.getContext('webgl', { alpha: false, antialias: false })
-    if (!gl) { console.error('RugShader: no WebGL'); return }
+    if (!gl) {
+      if (process.env.NODE_ENV !== 'production') console.error('RugShader: no WebGL')
+      return
+    }
 
     const vs = createShader(gl, gl.VERTEX_SHADER, VERT)
     const fs = createShader(gl, gl.FRAGMENT_SHADER, FRAG)
@@ -134,7 +139,9 @@ export default function RugShader() {
     gl.attachShader(prog, fs)
     gl.linkProgram(prog)
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.error('RugShader link:', gl.getProgramInfoLog(prog))
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('RugShader link:', gl.getProgramInfoLog(prog))
+      }
       return
     }
     gl.useProgram(prog)

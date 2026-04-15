@@ -35,7 +35,7 @@ export default function ShellNav() {
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.25, ease: [0.5, 0, 0.2, 1] }}
           >
             <ProjectMarker projectName={projectName} />
           </motion.div>

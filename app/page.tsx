@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
-import IconArrowRight from './_landing/IconArrowRight'
+import IconArrowRight from './components/icons/IconArrowRight'
+import { getGreeting } from './lib/greeting'
 import './landing.css'
 
 const EMAILJS_SERVICE  = 'service_76t20oq'
@@ -25,14 +26,6 @@ const PALETTES: Palette[] = [
   // YR / B — orange ↔ blue
   { cells: [null,null,null,'#d9c4b6',null,null,null,null,null,null,null,'#bfa99c','#9bb1b7',null,null,null,null,null,'#b38b71','#a58f82','#81979d','#6b9ba8','#4b9eb3','#00a1bf',null,'#a46d46','#987158','#8a7569','#687d83','#50818e','#2d849a',null,'#904f1b','#88532f','#7f573f','#715c4f','#4e646a','#356776',null,null,null,null,null,'#584338','#354b52',null,null,null,null,null,null,null,'#21343a',null,null,null], leftLabel: '#904f1b', rightLabel: '#00a1bf' },
 ]
-
-/* ---- Greeting ---- */
-function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h >= 5 && h < 12) return 'Good morning'
-  if (h >= 12 && h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
 
 /* ---- Pill SVG icons ---- */
 function ExpandIcon() {
@@ -428,10 +421,10 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Projects */}
+          {/* Works */}
           <div className="landing__section--projects">
             <Link href="/selected" className="projects-btn">
-              <span className="projects-btn__label t-btn1">Projects</span>
+              <span className="projects-btn__label t-btn1">Works</span>
               <svg className="projects-btn__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -488,7 +481,7 @@ export default function LandingPage() {
                   <span className="spectrum__label spectrum__label--right t-h5" style={{ color: palette.rightLabel }}>Application</span>
                   <div className="spectrum__footer">
                     <div className="spectrum__footer-line" />
-                    <Link className="spectrum__link t-btn1" href="/selected">My work</Link>
+                    <Link className="spectrum__link t-btn1" href="/selected">Works</Link>
                   </div>
                 </div>
               </div>

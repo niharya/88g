@@ -5,7 +5,7 @@
 // Framer Motion AnimatePresence for staggered entry reveals with springs.
 
 import { motion, AnimatePresence } from 'framer-motion'
-import IconExternalLink from './IconExternalLink'
+import IconExternalLink from '../../../components/icons/IconExternalLink'
 
 
 const SPRING = { type: 'spring' as const, duration: 0.4, bounce: 0.15 }
