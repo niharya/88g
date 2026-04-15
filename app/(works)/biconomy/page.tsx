@@ -10,7 +10,17 @@ import API from './components/API'
 import StayingAnchored from './components/StayingAnchored'
 
 export const metadata: Metadata = {
-  title: 'Biconomy — Nihar Bhagat',
+  title: 'Biconomy',
+  description:
+    'A long-form UX case study on Biconomy — rethinking the platform Web3 developers use to manage smart contracts and gas tanks.',
+  alternates: { canonical: '/biconomy' },
+  openGraph: {
+    title: 'Biconomy — Nihar Bhagat',
+    description:
+      'A long-form UX case study on Biconomy — rethinking the platform Web3 developers use to manage smart contracts and gas tanks.',
+    url: '/biconomy',
+    images: ['/og-image.png'],
+  },
 }
 
 // Sheet content keyed by chapter id — keeps page.tsx readable without a giant switch

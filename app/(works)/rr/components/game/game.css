@@ -28,7 +28,7 @@
   width: 259px;
   height: 624px;
   z-index: var(--rr-z-game);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-resting);
 }
 
 
@@ -599,6 +599,13 @@
   --tilt-dk-5: 0deg;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   DOCUMENTED MOTION EXCEPTION — the only overshoot curves in the portfolio.
+   The paper-settle rule (see CLAUDE.md) forbids bounce/overshoot globally.
+   The two animations below (rr-stack-nudge, rr-icon-pop) are the intentional
+   exception: they supply the game-feel punch at match-end. Do not propagate.
+   ────────────────────────────────────────────────────────────────────────── */
+
 /* ── Lift: Mario-brick jerky nudge (via interpolable --stack-lift) ── */
 .rr-game-panel--final {
   animation: rr-stack-nudge 0.5s cubic-bezier(0.2, 1.4, 0.3, 1) forwards;
@@ -615,7 +622,7 @@
 /* Magician shake on every face-down card — swap of face prop happens in
    React at this exact moment, so the shake reads as "the reveal" */
 .rr-game-panel--final .rr-face-down-card {
-  animation: rr-card-shake 0.42s cubic-bezier(0.36, 0, 0.66, 1);
+  animation: rr-card-shake 0.42s var(--ease-paper);
 }
 
 /* Hide the smaller opp backs + deck chips at --final so the stack reads as
@@ -724,7 +731,7 @@
   background: var(--orange-240);
   color: var(--orange-720);
   font-size: calc(12 * var(--u));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-flat);
 }
 
 /* Played card — face-down, dark brown with diamond */

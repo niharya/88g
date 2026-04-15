@@ -163,6 +163,50 @@ specific sheet IDs.
 
 ---
 
+## RR card shadow tokens — route-scoped, not the global ladder
+
+Lives at the top of `rr.css` as `--rr-card-shadow-{rest,lifted,flat,hover}`.
+
+RR cards sit on the rug shader (dark, saturated, high-contrast) — not on the
+cream `.mat` that the rest of the portfolio uses. The global elevation ladder
+(`--shadow-flat` / `-resting` / `-raised` / `-overlay` in `globals.css`) is
+calibrated for cream and would read as washed-out foam on the rug.
+
+The RR card tokens carry:
+
+- **Steeper alpha** (0.22–0.52 vs the global 0.10–0.26)
+- **Horizontal bias** (`-2px` / `-3px` X-offset) — matches the rug's overhead-
+  raking-light vibe; globals ladder casts straight-down
+- **Larger blur radii** — cards feel suspended on a soft surface, not planted
+
+Used by `.rr-story-card` (resting), `.rr-north-star-card` (flat),
+`.rr-constraints-card__inner` (flat), `.rr-interface-desktop__img` (lifted),
+`.rr-interface-notes` (rest), `.rr-outcome-card` (lifted).
+
+**Do not migrate these to the global ladder.** The separation is intentional:
+the global ladder is paper-on-cream, the RR tokens are paper-on-rug.
+
+---
+
+## RugShader palette is CSS-coupled
+
+The GLSL palette in `app/(works)/rr/components/RugShader.tsx` (`COLOUR_1` /
+`COLOUR_2` / `COLOUR_3`) was picked against the green-grain reference and is
+used by `rr.css` as the reading environment for RR cards. There is a comment
+block in `rr.css` at the top of the cards section noting this coupling.
+
+If you change any of the three GLSL colors, re-check:
+- card backgrounds and borders in the cards sheet (all `.rr-*-card` surfaces)
+- story card callout and text-bold weights (they rely on contrast against rug)
+- the `--rr-card-shadow-*` alpha ladder (darker rug may need heavier shadows)
+
+Shader port credit: direct GLSL port of localthunk's Balatro background
+(Shadertoy `XXtBRr`), tuned slower (`SPIN_SPEED 3.0` vs original `7.0`) and
+softer (`CONTRAST 3.0` vs `3.5`) for a reading environment instead of a game
+loop. See also the `COLOPHON.md` at the repo root.
+
+---
+
 ## Don't-touch list (without reading why first)
 
 - `--rr-mech-progress` cascade location — must be on the stage, not a mat

@@ -122,13 +122,29 @@
   --space-96:  96px;
   --space-112: 112px;
 
-  /* ---- Shadows ---- */
-  --shadow-card:  1px 1px 4.8px 0px rgba(0, 0, 0, 0.36);
-  --shadow-hero:  2px 2px 4.8px 0px rgba(0, 0, 0, 0.36);
+  /* ---- Elevation ladder ------------------------------------------------
+     Four restrained tiers for paper/object surfaces. Depth should come from
+     surface + edge + spacing first; shadow is a tuning aid, not the primary
+     signal. All offsets are vertical (pure overhead light). Keep alphas low
+     — cream absorbs contrast, so heavier shadows read muddy, not deep.
+
+       flat     — subordinate: inner paper tucked inside a parent
+       resting  — default: standalone cards/surfaces on the mat
+       raised   — hover / lifted / active
+       overlay  — inspect / modal / image-as-object (only 2-layer)
+     -------------------------------------------------------------------- */
+  --shadow-flat:     0 1px 2px 0 rgba(0, 0, 0, 0.10);
+  --shadow-resting:  0 1px 3px 0 rgba(0, 0, 0, 0.24);
+  --shadow-raised:   0 3px 8px -1px rgba(0, 0, 0, 0.26);
+  --shadow-overlay:  0 2px 4px 0 rgba(0, 0, 0, 0.12),
+                     0 12px 28px -4px rgba(0, 0, 0, 0.20);
+
+  /* ---- Off-ladder shadow tokens ----------------------------------------
+     These describe different mechanics, not elevation — keep separate.
+     --shadow-inset: recessed/tucked feel (about-card long)
+     --shadow-dot:   pin-mark effect on tiny timeline markers
+     -------------------------------------------------------------------- */
   --shadow-inset: inset 1px 1px 4.8px 0px rgba(0, 0, 0, 0.36);
-  --shadow-float: 2px 2px 8px rgba(0, 0, 0, 0.22);
-  --shadow-flat:  0px 1px 4px rgba(0, 0, 0, 0.12);
-  --shadow-sm:    1px 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-dot:   0.5px 0.5px 1px rgba(0, 0, 0, 0.48);
 
   /* ---- Borders ---- */
@@ -418,7 +434,11 @@ html.fonts-ready .workbench {
 
 /* Phase 1 — mat glides into place.
    Larger travel (32px), longer duration. Feels like a loose mat
-   sliding up to rest against the previous one in the stack. */
+   sliding up to rest against the previous one in the stack.
+
+   --reveal-y and --reveal-delay are intentional fallbacks: routes can set
+   them on a specific sheet to customise travel or timing without patching
+   globals. See rr/NOTES.md "Route-specific entrance timing." */
 .section-reveal {
   opacity: 0;
   transform: translateY(var(--reveal-y, 32px));
@@ -548,7 +568,7 @@ html.fonts-ready .workbench {
 }
 
 .surface--shadowed {
-  box-shadow: 0 1px 2px 0px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-flat);
 }
 
 /* ── Text utilities ──────────────────────────────────────────────────────── */

@@ -36,3 +36,22 @@ during the reveal entrance on all biconomy sections.
 
 **What breaks if the inline shadow is removed:** surface shadow does not respond
 to scroll position; cards feel static during reading.
+
+### Shadow token migration (v0.17.0)
+
+Four biconomy card outers (`.bips__card-outer`, `.multiverse__card-outer`,
+`.demos__card-outer`, `.api__card-outer`) previously carried a hardcoded
+`0 1px 2px rgba(0,0,0,0.15)` shadow repeated in-place. These were unified onto
+`var(--shadow-flat)` (0.10 alpha) as part of the four-tier elevation ladder
+(flat / resting / raised / overlay) in `globals.css`.
+
+Two biconomy shadows remain **off-ladder by design** and are annotated in the
+CSS:
+
+- `.api__card-frame` — upward-cast backlight (`0 -4.84px 4.84px rgba(0,0,0,0.25)`).
+  Not elevation; simulates a panel backlit from below. Do not migrate to the ladder.
+- The 1px hairline inside the api card — structural edge, not a shadow.
+
+If you find yourself authoring a new shadow on a biconomy surface, use the
+ladder first. Only introduce a new hardcoded value if it expresses a mechanic
+the ladder cannot (motion-state, glow, inset press) and document why inline.

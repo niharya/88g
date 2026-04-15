@@ -337,3 +337,17 @@ during the reveal entrance.
 
 **Don't remove either** without checking: (a) entrance appearance on hard load,
 (b) scroll-linked shadow continuity after reveal completes.
+
+### Motion-state shadow endpoint matches `--shadow-flat`
+
+The scroll-linked handler in `Sheet.tsx` lerps between an entrance shadow
+(diffuse, lifted — `0 4px 6px rgba(0,0,0,0.08)`) and a resting shadow that
+matches the `--shadow-flat` token from the elevation ladder
+(`0 1px 2px rgba(0,0,0,0.10)`). The endpoint is deliberately on-ladder: once
+the card has settled, it should read as any other flat surface in the design
+system.
+
+The inline values are kept in JS (not CSS) because they're lerped per frame —
+there is no CSS-only path for per-frame interpolation of a box-shadow string.
+If the `--shadow-flat` token is retuned, update the three constants in
+`Sheet.tsx` (`shadowY`, `shadowBlur`, `shadowAlpha`) to match.

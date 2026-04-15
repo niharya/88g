@@ -7,8 +7,17 @@ import AboutCard from './components/AboutCard'
 import SelectedContent from './components/SelectedContent'
 
 export const metadata: Metadata = {
-  title: 'Nihar Bhagat — Works',
-  description: 'Selected works by Nihar Bhagat — product, systems, and brand design from 2018 to 2025.',
+  title: 'Works',
+  description:
+    'Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward.',
+  alternates: { canonical: '/selected' },
+  openGraph: {
+    title: 'Works — Nihar Bhagat',
+    description:
+      'Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward.',
+    url: '/selected',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function SelectedPage() {

@@ -9,7 +9,17 @@ import Outcome from './components/Outcome'
 import InterstitialText from './components/InterstitialText'
 
 export const metadata: Metadata = {
-  title: 'Rug Rumble — Nihar Bhagat',
+  title: 'Rug Rumble',
+  description:
+    'Rug Rumble — a strategy card game designed around bluffing, momentum, and the feel of placing a real object on a table.',
+  alternates: { canonical: '/rr' },
+  openGraph: {
+    title: 'Rug Rumble — Nihar Bhagat',
+    description:
+      'A strategy card game designed around bluffing, momentum, and the feel of placing a real object on a table.',
+    url: '/rr',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function RRPage() {

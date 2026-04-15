@@ -55,7 +55,12 @@ export default function Sheet({ chapter, chapters, children }: SheetProps) {
 
   // Drive transform + shadow on the surface element as the section scrolls in.
   // progress 0 = just entering viewport (card lifted, rotated, diffuse shadow)
-  // progress 1 = settled in place (card at rest, tight shadow)
+  // progress 1 = settled in place (resolves to the --shadow-flat token tier)
+  //
+  // This is a motion-state shadow, off the elevation ladder by design: the
+  // endpoint matches --shadow-flat (0 1px 2px / 0.10) so the resting state
+  // reads the same as any other flat surface; the entrance value is a bit
+  // more diffuse to suggest paper gliding onto the desk.
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     const el = surfaceRef.current
     if (!el) return
@@ -64,10 +69,11 @@ export default function Sheet({ chapter, chapters, children }: SheetProps) {
     const y = 20 * (1 - ease)
     const rotate = rotationRef.current * (1 - ease)
 
-    // Shadow: crisp and dark, not diffuse gray.
-    const shadowY     = 4 - 3 * ease       // 4 → 1
-    const shadowBlur  = 6 - 4 * ease        // 6 → 2
-    const shadowAlpha = 0.08 + 0.07 * ease  // 0.08 → 0.15
+    // Shadow interpolates from gliding (more blur, slightly heavier) to settled
+    // (matches --shadow-flat). Kept inline because values are lerped per frame.
+    const shadowY     = 4 - 3 * ease       // 4 → 1  (matches --shadow-flat Y)
+    const shadowBlur  = 6 - 4 * ease        // 6 → 2  (matches --shadow-flat blur)
+    const shadowAlpha = 0.08 + 0.02 * ease  // 0.08 → 0.10 (matches --shadow-flat alpha)
 
     el.style.transform = `translateY(${y.toFixed(1)}px) rotate(${rotate.toFixed(2)}deg)`
     el.style.boxShadow = `0 ${shadowY.toFixed(1)}px ${shadowBlur.toFixed(1)}px 0px rgba(0, 0, 0, ${shadowAlpha.toFixed(3)})`

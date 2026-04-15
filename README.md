@@ -39,6 +39,8 @@ Next work: fine-tuning, replacing placeholder images, responsive.
 
 **Paper-physical motion.** Everything glides, settles, and lands. One easing curve (`--ease-paper`), long durations (0.5–0.9s), no bounce, no overshoot. Native scroll — no hijacking.
 
+**Four-tier elevation ladder.** `--shadow-flat` · `--shadow-resting` · `--shadow-raised` · `--shadow-overlay` in `globals.css`. Semantic structure (Atlassian), restrained alpha (Radix-style). Off-ladder shadows (insets, motion-state, backlight, pin-mark) are kept separate and annotated where they live.
+
 **Proof artifacts must remain proof artifacts.** Sketches, screenshots, game boards — preserve the feeling of evidence.
 
 **Controls must not lie.** If something looks interactive, it works, or it stops implying interaction.
@@ -121,6 +123,8 @@ Active routes: `/`, `/selected`, `/biconomy`, `/rr`
 ## ↻ Workflow
 
 Work route by route. Read `CLAUDE.md` before starting any session — it carries the working contract, constraints, and session-start checklist. Each route has a `NOTES.md` with architectural decisions and don't-touch items.
+
+See [`COLOPHON.md`](./COLOPHON.md) for credits — the visual grammar this site borrows from, the libraries it rides on, and the small tools behind specific pieces.
 
 ---
 

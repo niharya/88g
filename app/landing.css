@@ -10,8 +10,7 @@
   --unit: 48px;
   --gutter: 16px;
 
-  --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-quick: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Motion: one curve for the whole site. See globals.css --ease-paper. */
 
   /* Vertical anchors */
   --hero-top: 224px;
@@ -36,7 +35,17 @@
   position: relative;
   overflow: hidden;
   height: 900px;
-  transition: height 0.45s var(--ease-out);
+  transition: height 0.45s var(--ease-paper);
+
+  /* Font gate — matches the .workbench reveal. Root layout adds
+     .fonts-ready to <html> once web fonts load. */
+  opacity: 0;
+}
+html.fonts-ready .landing {
+  opacity: 1;
+  transition:
+    opacity 0.5s var(--ease-paper),
+    height  0.45s var(--ease-paper);
 }
 
 .landing--expanded {
@@ -99,8 +108,8 @@ html:has(.landing), html:has(.landing) body {
 /* Projects: transition */
 .landing__section--projects {
   transition:
-    top 0.5s var(--ease-out),
-    transform 0.5s var(--ease-out);
+    top 0.5s var(--ease-paper),
+    transform 0.5s var(--ease-paper);
 }
 
 /* Expanding sections — base = collapse */
@@ -108,16 +117,16 @@ html:has(.landing), html:has(.landing) body {
 .landing__section--about-long,
 .landing__section--contact {
   transition:
-    top 0.5s var(--ease-out),
+    top 0.5s var(--ease-paper),
     opacity 0.3s ease,
-    transform 0.5s var(--ease-out);
+    transform 0.5s var(--ease-paper);
 }
 
 .landing__section--spectrum {
   transition:
-    top 0.5s var(--ease-out),
+    top 0.5s var(--ease-paper),
     opacity 0.3s ease,
-    transform 0.5s var(--ease-out);
+    transform 0.5s var(--ease-paper);
 }
 
 
@@ -190,9 +199,9 @@ html:has(.landing), html:has(.landing) body {
   pointer-events: auto;
   z-index: 2;
   transition:
-    top 0.3s var(--ease-quick) 0.02s,
+    top 0.3s var(--ease-paper) 0.02s,
     opacity 0.25s ease 0.02s,
-    transform 0.3s var(--ease-quick) 0.02s;
+    transform 0.3s var(--ease-paper) 0.02s;
 }
 
 /* Projects: stays behind hero */
@@ -210,9 +219,9 @@ html:has(.landing), html:has(.landing) body {
   pointer-events: auto;
   z-index: 3;
   transition:
-    top 0.3s var(--ease-quick) 0.04s,
+    top 0.3s var(--ease-paper) 0.04s,
     opacity 0.25s ease 0.04s,
-    transform 0.3s var(--ease-quick) 0.04s;
+    transform 0.3s var(--ease-paper) 0.04s;
 }
 
 .landing--expanded .landing__section--about-long .about-card {
@@ -227,9 +236,9 @@ html:has(.landing), html:has(.landing) body {
   pointer-events: auto;
   z-index: 4;
   transition:
-    top 0.3s var(--ease-quick) 0.04s,
+    top 0.3s var(--ease-paper) 0.04s,
     opacity 0.25s ease 0.04s,
-    transform 0.4s var(--ease-quick) 0.18s;
+    transform 0.4s var(--ease-paper) 0.18s;
 }
 
 /* Contact: below spectrum */
@@ -240,9 +249,9 @@ html:has(.landing), html:has(.landing) body {
   pointer-events: auto;
   z-index: 4;
   transition:
-    top 0.3s var(--ease-quick) 0.06s,
+    top 0.3s var(--ease-paper) 0.06s,
     opacity 0.25s ease 0.06s,
-    transform 0.3s var(--ease-quick) 0.06s;
+    transform 0.3s var(--ease-paper) 0.06s;
 }
 
 
@@ -257,7 +266,7 @@ html:has(.landing), html:has(.landing) body {
 
 .hero-card__bg {
   background: var(--terra-480);
-  box-shadow: var(--shadow-hero);
+  box-shadow: var(--shadow-resting);
   padding: 32px 64px 40px;
   position: relative;
   min-height: 240px;
@@ -386,7 +395,7 @@ html:has(.landing), html:has(.landing) body {
 /* ---- About Card ---- */
 .about-card {
   background: var(--terra-160);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-resting);
   width: 384px;
   padding: 32px;
 }
@@ -424,7 +433,7 @@ html:has(.landing), html:has(.landing) body {
   position: relative;
   width: 458px;
   height: 308px;
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.5s var(--ease-paper);
 }
 
 .spectrum__bg {
@@ -526,7 +535,7 @@ html:has(.landing), html:has(.landing) body {
 .contact-card {
   background: var(--terra-100);
   padding: 8px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-resting);
   width: 400px;
 }
 
@@ -576,7 +585,7 @@ html:has(.landing), html:has(.landing) body {
   border-top: 1px solid var(--terra-800);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.3s var(--ease-paper);
 }
 
 /* Progress bar — fills left-to-right on send, on the submit field's divider */
@@ -594,7 +603,7 @@ html:has(.landing), html:has(.landing) body {
   height: 2px;
   background: var(--terra-960);
   transform-origin: left;
-  animation: send-progress 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: send-progress 4s var(--ease-paper) forwards;
 }
 
 .contact-card__action {
@@ -619,7 +628,7 @@ html:has(.landing), html:has(.landing) body {
 }
 
 .contact-card__action--morphing {
-  animation: action-morph 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: action-morph 0.35s var(--ease-paper);
 }
 
 /* ---- Contact footer ---- */
@@ -666,7 +675,7 @@ html:has(.landing), html:has(.landing) body {
   max-height: 0;
   overflow: hidden;
   margin: 0 -24px;
-  transition: max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: max-height 0.4s var(--ease-paper);
 }
 
 /* Form-open orchestration */
@@ -676,7 +685,7 @@ html:has(.landing), html:has(.landing) body {
 
 .contact-card--form-open .contact-card__action-line {
   transform: scaleX(1);
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
+  transition: transform 0.3s var(--ease-paper) 0.1s;
 }
 
 .contact-card--form-open .contact-card__form-reveal {
@@ -726,17 +735,17 @@ html:has(.landing), html:has(.landing) body {
 
 /* Form-closing: reverse (no stagger) */
 .contact-form__field .contact-form__line {
-  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.2s var(--ease-paper);
 }
 
 .contact-form__field .contact-form__input-area {
   transition:
     opacity 0.15s ease,
-    transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform 0.15s var(--ease-paper);
 }
 
 .contact-card__action-line {
-  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
+  transition: transform 0.25s var(--ease-paper) 0.1s;
 }
 
 /* Form layout */
@@ -757,7 +766,7 @@ html:has(.landing), html:has(.landing) body {
   border-top: 1px solid var(--terra-800);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.25s var(--ease-paper);
 }
 
 .contact-form__fields {
@@ -786,7 +795,7 @@ html:has(.landing), html:has(.landing) body {
   transform: translateX(-8px);
   transition:
     opacity 0.25s ease,
-    transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transform 0.25s var(--ease-paper);
 }
 
 .contact-form__input-area:has(.contact-form__submit) {
@@ -852,8 +861,8 @@ html:has(.landing), html:has(.landing) body {
   margin-left: -24px;
   margin-right: -24px;
   transition:
-    grid-template-rows 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    margin-top 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    grid-template-rows 0.45s var(--ease-paper),
+    margin-top 0.45s var(--ease-paper);
 }
 
 .contact-form__secondary-content {
@@ -969,7 +978,7 @@ textarea.contact-form__input {
   cursor: pointer;
   background: transparent;
   transition:
-    transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    transform 0.15s var(--ease-paper),
     border-color 0.2s ease,
     color 0.2s ease;
 }
@@ -1000,7 +1009,7 @@ textarea.contact-form__input {
 }
 
 .contact-form__submit .icon-arrow-right-shaft {
-  transition: translate 0.3s ease-in-out;
+  transition: translate 0.3s var(--ease-paper);
 }
 
 .contact-form__submit:hover .icon-arrow-right-shaft {
@@ -1039,7 +1048,7 @@ textarea.contact-form__input {
   background: var(--grey-960);
   border-color: var(--grey-880);
   color: var(--olive-800);
-  animation: pill-enter 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: pill-enter 0.35s var(--ease-paper) both;
 }
 
 .contact-form__error-pill {
@@ -1088,7 +1097,7 @@ textarea.contact-form__input {
 
 .landing__section--spectrum.spectrum--aligned {
   transform: translateX(-50%) rotate(-1deg);
-  transition: transform 0.6s var(--ease-out);
+  transition: transform 0.6s var(--ease-paper);
 }
 
 
@@ -1104,9 +1113,9 @@ textarea.contact-form__input {
   .landing--expanded .landing__section--spectrum {
     transform: translateX(calc(-50% + var(--unit))) scale(1) rotate(-1deg);
     transition:
-      top 0.3s var(--ease-quick) 0.04s,
+      top 0.3s var(--ease-paper) 0.04s,
       opacity 0.25s ease 0.04s,
-      transform 0.4s var(--ease-quick) 0.18s;
+      transform 0.4s var(--ease-paper) 0.18s;
   }
 }
 
@@ -1184,9 +1193,9 @@ textarea.contact-form__input {
     pointer-events: auto;
     z-index: 4;
     transition:
-      top 0.3s var(--ease-quick) 0.04s,
+      top 0.3s var(--ease-paper) 0.04s,
       opacity 0.25s ease 0.04s,
-      transform 0.4s var(--ease-quick) 0.18s;
+      transform 0.4s var(--ease-paper) 0.18s;
   }
 
   .landing--expanded .landing__section--contact {

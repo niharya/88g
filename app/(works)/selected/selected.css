@@ -162,7 +162,7 @@
   padding: 0;
   padding-bottom: 48px;
   min-height: 729px;
-  transition: min-height 0.38s cubic-bezier(0.25, 0, 0, 1);
+  transition: min-height 0.38s var(--ease-paper);
 }
 
 .selected-mat--archive-open {
@@ -313,17 +313,17 @@
   overflow: hidden;
   text-decoration: none;
   display: block;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  transition: box-shadow 0.28s var(--ease-paper), transform 0.2s var(--ease-paper);
 }
 
 .project-card:hover {
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-raised);
   transform: translateY(-2px);
 }
 
 .project-card:active {
   transform: translateY(0);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-flat);
 }
 
 .project-card--terra {
@@ -406,7 +406,7 @@
 }
 
 .project-card__arrow .icon-chevron-shaft {
-  transition: translate 0.3s ease-in-out;
+  transition: translate 0.3s var(--ease-paper);
 }
 .project-card:hover .project-card__arrow .icon-chevron-shaft {
   translate: 3px 0;
@@ -496,7 +496,7 @@
 /* Same pattern as archive: filter: opacity() to avoid Framer inline clash */
 
 .selected-tl > * {
-  transition: filter 0.35s ease-in-out, background 0.35s ease-in-out;
+  transition: filter 0.35s var(--ease-paper), background 0.35s var(--ease-paper);
 }
 
 /* Dim all when any project card is hovered */
@@ -649,7 +649,7 @@
 }
 
 .ap-entry__meta .icon-ext .icon-ext-arrow {
-  transition: translate 0.3s ease-in-out;
+  transition: translate 0.3s var(--ease-paper);
 }
 a.ap-entry:hover .icon-ext .icon-ext-arrow {
   translate: 2px -2px;
@@ -666,7 +666,7 @@ a.ap-entry:hover .icon-ext .icon-ext-arrow {
   text-decoration: underline;
   text-decoration-color: transparent;
   text-underline-offset: 2px;
-  transition: text-decoration-color 0.35s ease-in-out;
+  transition: text-decoration-color 0.35s var(--ease-paper);
 }
 a.ap-entry:hover .ap-entry__meta span:first-child {
   text-decoration-color: currentColor;
@@ -685,7 +685,7 @@ a.ap-entry:hover .ap-entry__meta span:first-child {
   margin-top: 4px;
   opacity: 0;
   translate: 0 -4px;
-  transition: opacity 0.3s ease-in-out, translate 0.3s ease-in-out;
+  transition: opacity 0.3s var(--ease-paper), translate 0.3s var(--ease-paper);
   pointer-events: none;
 }
 a.ap-entry:hover .ap-entry__hint {
@@ -740,10 +740,10 @@ a.ap-entry:hover .ap-entry__hint {
 .selected-archive-panel .selected-ap-bar,
 .selected-archive-panel .selected-ap-year,
 .selected-archive-panel .selected-ap-dots {
-  transition: filter 0.35s ease-in-out, background 0.35s ease-in-out;
+  transition: filter 0.35s var(--ease-paper), background 0.35s var(--ease-paper);
 }
 .selected-archive-panel .ap-entry {
-  transition: filter 0.35s ease-in-out, translate 0.35s ease-in-out;
+  transition: filter 0.35s var(--ease-paper), translate 0.35s var(--ease-paper);
 }
 
 /* Dim everything when any entry is hovered */

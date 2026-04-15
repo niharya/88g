@@ -4,20 +4,16 @@
 // TransitionSlot wraps children with DOM ghost-clone page transitions.
 
 import type { ReactNode } from 'react'
-import Script from 'next/script'
 import '../components/nav/nav.css'
 import PaperFilter from '../components/PaperFilter'
 import ShellNav from './ShellNav'
 import TransitionSlot from './TransitionSlot'
 
 export default function WorksLayout({ children }: { children: ReactNode }) {
+  // Font gate is set globally in the root layout so /selected, /rr, /biconomy,
+  // and the landing page all participate in the same opacity reveal.
   return (
     <>
-      <Script id="font-gate" strategy="afterInteractive">{`
-        var done = function() { document.documentElement.classList.add('fonts-ready'); };
-        var t = setTimeout(done, 3000);
-        document.fonts.ready.then(function() { clearTimeout(t); done(); });
-      `}</Script>
       <main className="workbench">
         <PaperFilter />
         <ShellNav />
