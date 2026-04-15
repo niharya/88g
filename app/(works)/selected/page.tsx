@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import './selected.css'
 import MarkerSlot from '../../components/nav/MarkerSlot'
-import ProjectMarker from '../../components/nav/ProjectMarker'
 import ChapterMarker from '../../components/nav/ChapterMarker'
 import AboutCard from './components/AboutCard'
 import SelectedContent from './components/SelectedContent'
+import NiharHomeLink from './components/NiharHomeLink'
+import SlideInOnNav from '../../components/SlideInOnNav'
 
 export const metadata: Metadata = {
   title: 'Works',
@@ -23,11 +24,16 @@ export const metadata: Metadata = {
 export default function SelectedPage() {
   return (
     <div className="selected-workbench">
+      <SlideInOnNav
+        flag="to-selected"
+        selector=".selected-workbench"
+        className="selected-workbench--slide-in"
+      />
       <div className="selected-layout">
         {/* Nav pills — docked together, positioned above the mat */}
         <div className="selected-nav-row">
           <MarkerSlot position="left" measure={false}>
-            <ProjectMarker projectName="Nihar" />
+            <NiharHomeLink />
           </MarkerSlot>
           <ChapterMarker
             static

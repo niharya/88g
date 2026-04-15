@@ -4,8 +4,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
+import SlideInOnNav from './components/SlideInOnNav'
 import { getGreeting } from './lib/greeting'
 import './landing.css'
+
+/* Session flag read by /selected on arrival so it can slide in from the right.
+   Paired with SlideInOnNav at the bottom of this file for the reverse trip. */
+const markToSelected = () => {
+  try { sessionStorage.setItem('nav-direction', 'to-selected') } catch { /* non-fatal */ }
+}
 
 const EMAILJS_SERVICE  = 'service_76t20oq'
 const EMAILJS_TEMPLATE = 'template_t3lbcfn'
@@ -384,6 +391,11 @@ export default function LandingPage() {
 
   return (
     <>
+      <SlideInOnNav
+        flag="to-landing"
+        selector=".landing"
+        className="landing--slide-in"
+      />
       <div className="landing-pattern-bg" aria-hidden="true" />
 
       <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}`}>
@@ -423,7 +435,7 @@ export default function LandingPage() {
 
           {/* Works */}
           <div className="landing__section--projects">
-            <Link href="/selected" className="projects-btn">
+            <Link href="/selected" className="projects-btn" onClick={markToSelected}>
               <span className="projects-btn__label t-btn1">Works</span>
               <svg className="projects-btn__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -481,7 +493,7 @@ export default function LandingPage() {
                   <span className="spectrum__label spectrum__label--right t-h5" style={{ color: palette.rightLabel }}>Application</span>
                   <div className="spectrum__footer">
                     <div className="spectrum__footer-line" />
-                    <Link className="spectrum__link t-btn1" href="/selected">Works</Link>
+                    <Link className="spectrum__link t-btn1" href="/selected" onClick={markToSelected}>Works</Link>
                   </div>
                 </div>
               </div>

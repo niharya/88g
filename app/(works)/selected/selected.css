@@ -53,6 +53,23 @@
   min-height: 1249px;
 }
 
+/* Lateral slide-in when arriving from landing. Landing sits to the left of
+   /selected in the mental model, so coming here means sliding in from the
+   right. Runs only when SlideInOnNav applied the class on mount.
+
+   Note: the about card is deliberately excluded — it owns its own
+   framer-motion spring entrance, which would otherwise get swallowed by
+   the parent-level transform. Sliding nav-row + mat carries the rest. */
+.selected-workbench--slide-in .selected-nav-row,
+.selected-workbench--slide-in .selected-mat {
+  animation: selected-slide-in 0.6s var(--ease-paper) both;
+}
+
+@keyframes selected-slide-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
 
 /* ── Nav row — docked pills ────────────────────────────────────────────── */
 /* "Nihar" and "Works" pills sit docked together above the mat, mirroring  */

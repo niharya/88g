@@ -140,6 +140,14 @@ a.nav-marker {
   position: static;
 }
 
+/* Static pill is not a link — strip the dotted underline that t-btn1 carries. */
+.chapter-nav--static .nav-marker__title {
+  text-decoration: none;
+}
+.chapter-nav--static .nav-marker__title::after {
+  content: none;
+}
+
 
 /* ── Nav pill ────────────────────────────────────────────────────────────── */
 

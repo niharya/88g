@@ -71,6 +71,31 @@ html:has(.landing), html:has(.landing) body {
   background-position: top center;
   transform: rotate(15deg);
   transform-origin: center;
+
+  /* Load entrance — hold the pattern hidden until fonts are ready, then
+     reveal it with a radial mask that grows from the center outward. Reads
+     as the cells staggering in rather than the whole sheet popping at once.
+     Mask endpoints use percentages so CSS can interpolate the gradient. */
+  opacity: 0;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 4%);
+          mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 4%);
+}
+
+html.fonts-ready .landing-pattern-bg {
+  animation: landing-pattern-reveal 0.9s var(--ease-paper) forwards;
+}
+
+@keyframes landing-pattern-reveal {
+  from {
+    opacity: 0;
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 6%);
+            mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 6%);
+  }
+  to {
+    opacity: 1;
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 140%, transparent 160%);
+            mask-image: radial-gradient(circle at 50% 50%, #000 140%, transparent 160%);
+  }
 }
 
 
@@ -273,6 +298,39 @@ html:has(.landing), html:has(.landing) body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  /* Load entrance — a subtle glide-up, gated by .fonts-ready so it fires on
+     every mount (hard loads AND client-side navigations back from /selected).
+     CSS transitions wouldn't re-fire on nav since fonts-ready is already set
+     by the time the component mounts; an animation with paused→running via
+     animation-play-state plays every time. Default: glide up. When arriving
+     back from /selected (.landing--slide-in), the keyframe swaps to a
+     glide-from-left so the return reads as a directional slide. */
+  animation: hero-glide-up 0.7s var(--ease-paper) both;
+  animation-play-state: paused;
+}
+
+html.fonts-ready .hero-card__bg {
+  animation-play-state: running;
+}
+
+@keyframes hero-glide-up {
+  from { transform: translateY(14px); opacity: 0.65; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+.landing--slide-in .hero-card__bg {
+  animation-name: hero-glide-from-left;
+  /* Negative delay — start the animation "in the past" so the card's first
+     visible frame on mount is already mid-glide, not the from-state. Avoids
+     the micro-gap where the page paints, the viewer registers a static card,
+     and only then sees motion begin. ~30% of the 0.7s timeline. */
+  animation-delay: -0.22s;
+}
+
+@keyframes hero-glide-from-left {
+  from { transform: translateX(-20px); opacity: 0.8; }
+  to   { transform: translateX(0);     opacity: 1; }
 }
 
 .hero-card .pill-btn {
@@ -363,6 +421,21 @@ html:has(.landing), html:has(.landing) body {
   cursor: pointer;
   transition: opacity 0.2s ease;
   text-decoration: none;
+
+  /* Tuck-out entrance — the Works pill sits hidden beneath the hero card
+     (hero is z:10, landing__content z:5) and slides down into view once
+     the card has landed. Plays on every mount via animation-play-state. */
+  animation: works-tuck-out 0.6s var(--ease-paper) 0.45s both;
+  animation-play-state: paused;
+}
+
+html.fonts-ready .projects-btn {
+  animation-play-state: running;
+}
+
+@keyframes works-tuck-out {
+  from { transform: translateY(-44px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 
 .projects-btn__label {
