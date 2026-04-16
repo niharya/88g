@@ -249,7 +249,8 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
             <span className="nav-icon" aria-hidden="true">
               {isArchiveOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
             </span>
-            <span className="nav-marker__title t-btn1">Works from the previous portfolio</span>
+            <span className="nav-marker__title t-btn1 archive-toggle-label--desktop">Works from the previous portfolio</span>
+            <span className="nav-marker__title t-btn1 archive-toggle-label--mobile">Previous portfolio</span>
             <span className="nav-marker__year t-p4">2018–22</span>
           </span>
         </button>

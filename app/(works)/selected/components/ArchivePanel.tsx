@@ -40,6 +40,7 @@ const ARCHIVE_ENTRIES = [
     title: 'Finding the real product hidden inside the client brief',
     role: 'Product Designer',
     company: 'Connektion',
+    year: '2021',
     href: 'https://niharbhagat.com/work/connektion/',
   },
   {
@@ -47,6 +48,7 @@ const ARCHIVE_ENTRIES = [
     title: 'Finding the thin line between pet ownership and pet parenting',
     role: 'Creative Director',
     company: 'Aleyr',
+    year: '2020',
     href: 'https://niharbhagat.com/work/aleyr/',
   },
   {
@@ -54,6 +56,7 @@ const ARCHIVE_ENTRIES = [
     title: 'Using the logic of a real desk to shape a digital trading workspace',
     role: 'Creative Director',
     company: 'Ecochain',
+    year: '2019',
     href: 'https://slangbusters.com/work/ecochain/',
   },
   {
@@ -61,6 +64,7 @@ const ARCHIVE_ENTRIES = [
     title: 'Defining a blockchain company before the category had a clear shape',
     role: 'Creative Director',
     company: 'Codezeros',
+    year: '2018',
     href: 'https://niharbhagat.com/work/codezeros/',
   },
   {
@@ -68,6 +72,7 @@ const ARCHIVE_ENTRIES = [
     title: 'Building the conditions that let a creative studio do its best work',
     role: 'Creative Director',
     company: 'Slangbusters',
+    year: '2018',
     href: 'https://niharbhagat.com/work/slangbusters/',
   },
 ]
@@ -117,7 +122,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[0].title}</p>
               <div className="ap-entry__meta">
-                <span>{ARCHIVE_ENTRIES[0].role} &bull; {ARCHIVE_ENTRIES[0].company}</span>
+                <span>{ARCHIVE_ENTRIES[0].role} &bull; {ARCHIVE_ENTRIES[0].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[0].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
               <span className="ap-entry__hint">opens in new tab</span>
@@ -159,7 +164,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[1].title}</p>
               <div className="ap-entry__meta">
-                <span>{ARCHIVE_ENTRIES[1].role} &bull; {ARCHIVE_ENTRIES[1].company}</span>
+                <span>{ARCHIVE_ENTRIES[1].role} &bull; {ARCHIVE_ENTRIES[1].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[1].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
               <span className="ap-entry__hint">opens in new tab</span>
@@ -191,7 +196,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[2].title}</p>
               <div className="ap-entry__meta">
-                <span>{ARCHIVE_ENTRIES[2].role} &bull; {ARCHIVE_ENTRIES[2].company}</span>
+                <span>{ARCHIVE_ENTRIES[2].role} &bull; {ARCHIVE_ENTRIES[2].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[2].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
               <span className="ap-entry__hint">opens in new tab</span>
@@ -223,7 +228,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[3].title}</p>
               <div className="ap-entry__meta">
-                <span>{ARCHIVE_ENTRIES[3].role} &bull; {ARCHIVE_ENTRIES[3].company}</span>
+                <span>{ARCHIVE_ENTRIES[3].role} &bull; {ARCHIVE_ENTRIES[3].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[3].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
               <span className="ap-entry__hint">opens in new tab</span>
@@ -255,7 +260,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[4].title}</p>
               <div className="ap-entry__meta">
-                <span>{ARCHIVE_ENTRIES[4].role} &bull; {ARCHIVE_ENTRIES[4].company}</span>
+                <span>{ARCHIVE_ENTRIES[4].role} &bull; {ARCHIVE_ENTRIES[4].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[4].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
               <span className="ap-entry__hint">opens in new tab</span>

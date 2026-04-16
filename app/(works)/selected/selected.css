@@ -678,6 +678,18 @@ a.ap-entry:hover .icon-ext .icon-ext-arrow {
 .ap-entry--codezeros .ap-entry__meta { color: var(--codezeros-800); }
 .ap-entry--mint      .ap-entry__meta { color: var(--mint-800); }
 
+/* Year in meta — mobile only, hidden on desktop */
+.ap-entry__year {
+  display: none;
+}
+
+/* Responsive archive toggle label — desktop vs mobile copy */
+.archive-toggle-label--mobile { display: none; }
+@media (max-width: 767px) {
+  .archive-toggle-label--desktop { display: none; }
+  .archive-toggle-label--mobile { display: inline; }
+}
+
 /* Hover: dissolving underline */
 .ap-entry__meta span:first-child {
   text-decoration: underline;
@@ -820,6 +832,393 @@ a.ap-entry:hover .ap-entry__hint {
 }
 .selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-bar--mint {
   background: var(--mint-240);
+}
+
+
+/* ==========================================================================
+   Mobile — max-width: 767px
+   ========================================================================== */
+
+@media (max-width: 767px) {
+
+  /* ── Layout: flow instead of absolute ──────────────────────────────────── */
+  /* Mat extends to fill any remaining viewport height so the grid surface    */
+  /* reaches the black frame bottom instead of orphaning below the archive.   */
+
+  .selected-workbench {
+    min-height: calc(100vh - 2 * var(--workbench-pad-y));
+    display: flex;
+    flex-direction: column;
+  }
+
+  .selected-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    min-height: auto;
+    flex: 1;
+  }
+
+  .selected-layout:has(.selected-mat--archive-open) {
+    min-height: auto;
+  }
+
+  /* ── Nav row: center, tucked into the 4px black viewport frame ─────────── */
+  /* Sticky — stays in place as the page scrolls. Pill top edge sits flush   */
+  /* against the top of the viewport; the black frame (z:9999) overlaps the  */
+  /* pill's top few pixels, creating a "tucked under the frame" feel.         */
+
+  .selected-nav-row {
+    position: sticky;
+    top: 0;
+    left: auto;
+    order: -1;
+    align-self: center;
+    margin-top: calc(-1 * var(--workbench-pad-y));
+    z-index: 40;
+  }
+
+  /* ── About card: full width ────────────────────────────────────────────── */
+
+  .about-card-p {
+    position: static;
+    left: auto;
+    top: auto;
+    width: 100%;
+    padding: 24px;
+  }
+
+  .about-card-p__text,
+  .about-card-p__heading,
+  .about-card-p__body,
+  .about-card-p__divider,
+  .about-card-p__cta {
+    width: 100%;
+  }
+
+  /* ── Mat: edge-to-edge bleed ───────────────────────────────────────────── */
+  /* Mat extends beyond workbench padding and clips at viewport edges.       */
+  /* No visible left/right border — bleeds to the viewport edge.              */
+
+  .selected-mat {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: calc(100% + 2 * var(--workbench-pad-x));
+    margin-left: calc(-1 * var(--workbench-pad-x));
+    margin-right: calc(-1 * var(--workbench-pad-x));
+    margin-bottom: calc(-1 * var(--workbench-pad-y));
+    min-height: auto;
+    flex: 1 0 auto;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .selected-mat--archive-open {
+    min-height: auto;
+  }
+
+  /* ── Timeline: clean vertical flow ───────────────────────────────────── */
+  /* Bars, dots, and dot-singles removed entirely on mobile. Year labels   */
+  /* sit as colored inline markers above the project cards. All content     */
+  /* within the mat aligns to one column — greeting establishes the width.  */
+
+  .selected-tl {
+    position: relative;
+    height: auto;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 16px 32px 24px;
+  }
+
+  /* Hide all decorative timeline elements */
+  .selected-tl__bar-blue,
+  .selected-tl__bar-yellow,
+  .selected-tl__dots--top,
+  .selected-tl__dots--bot,
+  .selected-tl__dot-single,
+  .selected-tl__dot,
+  .selected-tl__label-now {
+    display: none;
+  }
+
+  /* Greeting — equal breathing room above/below (16px each) */
+  .selected-tl__greeting {
+    position: static;
+    left: auto;
+    top: auto;
+    font-size: 11px;
+    order: 1;
+    margin-bottom: -12px;
+  }
+
+  /* Year labels — colored markers, tight to their preceding card */
+  .selected-tl__year {
+    position: static;
+    left: auto;
+    top: auto;
+    transform: none;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    text-align: left;
+    margin: -20px 0 0;
+  }
+
+  .selected-tl__year--2025 { display: none; }
+  .selected-card-terra     { order: 3; }
+  .selected-tl__year--q425 { order: 4; color: var(--yellow-800); }
+  .selected-card-blue      { order: 5; }
+  .selected-tl__year--23   { order: 6; }
+  .selected-nameplate--names { order: 7; }
+  .selected-nameplate--marks { order: 8; }
+  .selected-nav-archive    { order: 9; }
+
+  /* ── Project cards — full width, flow ──────────────────────────────── */
+
+  .selected-card-terra,
+  .selected-card-blue {
+    position: relative;
+    left: auto;
+    top: auto;
+    pointer-events: auto;
+  }
+
+  .project-card {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+  }
+
+  .project-card__title {
+    position: static;
+    width: 100%;
+    font-size: 20px;
+    letter-spacing: -0.6px;
+  }
+
+  .project-card__body {
+    position: static;
+    margin-top: 6px;
+  }
+
+  /* Override variant-specific widths (--terra: 304px, --blue: 244px) set in
+     the desktop rules. Specificity match (two classes), source order wins. */
+  .project-card--terra .project-card__body,
+  .project-card--blue .project-card__body {
+    width: 100%;
+  }
+
+  .project-card__divider {
+    position: static;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .project-card__footer {
+    position: static;
+    margin-top: 6px;
+  }
+
+  .project-card__illus--hov,
+  .project-card__illus--notes {
+    display: none;
+  }
+
+  /* ── Nameplates ────────────────────────────────────────────────────── */
+
+  .selected-nameplate {
+    position: relative;
+    left: auto;
+    top: auto;
+  }
+
+  .selected-nameplate--names,
+  .selected-nameplate--marks {
+    top: auto;
+    margin: 0;
+  }
+
+  /* Archive toggle — same spacing rhythm as nameplates */
+  .selected-nav-archive {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin-top: 0;
+  }
+
+  /* ── Archive panel: clean flow ─────────────────────────────────────── */
+  /* Bars, dots, year labels all hidden. Year is folded into entry meta.   */
+  /* Panel is a sibling of .selected-tl, so it needs its own padding to    */
+  /* align with the content column established by .selected-tl.             */
+
+  .selected-archive-panel {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 16px 32px 32px;
+  }
+
+  .selected-ap-dots,
+  .selected-ap-bar,
+  .selected-ap-year {
+    display: none;
+  }
+
+  /* Archive entries — flow, aligned with project card left edge.          */
+  /* Symmetric 24px padding above/below divider (--grey-720 hairline).     */
+  .ap-entry {
+    position: static;
+    left: auto;
+    top: auto;
+    width: 100%;
+    padding: 24px 0;
+    gap: 4px;
+    border-bottom: 1px solid var(--grey-720);
+  }
+
+  .ap-entry:first-of-type {
+    padding-top: 0;
+  }
+
+  .ap-entry:last-of-type {
+    border-bottom: none;
+    /* padding-bottom retained so the bottom edge isn't clipped by the 4px
+       fixed viewport frame (z:9999) that overlays the final few px. */
+  }
+
+  .ap-entry--yellow,
+  .ap-entry--aleyr,
+  .ap-entry--olive,
+  .ap-entry--codezeros,
+  .ap-entry--mint {
+    top: auto;
+  }
+
+  .ap-entry__title {
+    height: auto;
+    line-height: 1.3;
+    font-size: 13px;
+  }
+
+  .ap-entry__year {
+    display: inline;
+  }
+
+  /* "Opens in new tab" hint is hover-only — hide on mobile touch devices */
+  .ap-entry__hint {
+    display: none;
+  }
+
+  /* Timeline hover dim reset on mobile — touch triggers sticky :hover.      */
+  /* Bars themselves are display:none on mobile so their background overrides */
+  /* aren't repeated here. The :has() selectors below only need to undo the  */
+  /* desktop filter:opacity(0.35) dim on cards so tapping doesn't leave      */
+  /* everything else ghosted.                                                 */
+  .selected-tl:has(.selected-card-terra:hover) > *,
+  .selected-tl:has(.selected-card-blue:hover) > * {
+    filter: none;
+  }
+
+  .selected-archive-panel:has(.ap-entry:hover) .ap-entry {
+    filter: none;
+  }
+
+  /* Slide-in: apply to about card too on mobile (it's in the flow now) */
+  .selected-workbench--slide-in .about-card-p {
+    animation: selected-slide-in 0.6s var(--ease-paper) both;
+  }
+}
+
+
+/* ==========================================================================
+   Tablet — 768px to 1023px
+   ========================================================================== */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  /* ── Layout: two-column but narrower ───────────────────────────────────── */
+
+  .selected-nav-row {
+    left: 384px;
+  }
+
+  .about-card-p {
+    left: 16px;
+    width: 340px;
+    padding: 32px;
+  }
+
+  .about-card-p__text,
+  .about-card-p__heading,
+  .about-card-p__divider {
+    width: 280px;
+  }
+
+  .about-card-p__body { width: 220px; }
+  .about-card-p__cta { width: 240px; }
+
+  .selected-mat {
+    left: 380px;
+    width: calc(100% - 396px);
+  }
+
+  /* Project cards: fit within narrower mat */
+  .project-card {
+    width: calc(100% - 48px);
+  }
+
+  .project-card__body { width: auto; }
+  .project-card__divider { width: calc(100% - 32px); }
+
+  /* Timeline: shift elements proportionally for narrower mat */
+  .selected-card-terra,
+  .selected-card-blue {
+    left: 32px;
+  }
+
+  .selected-tl__dot { left: 11px; }
+  .selected-tl__label-now { left: 8px; }
+  .selected-tl__greeting { left: 31px; }
+  .selected-tl__dots { left: 16px; }
+  .selected-tl__bar-blue { left: 16px; }
+  .selected-tl__bar-yellow { left: 16px; }
+  .selected-tl__year { left: 12px; }
+
+  /* Adjust vertical positions for tighter timeline */
+  .selected-tl__dot { top: 48px; }
+  .selected-tl__label-now { top: 56px; }
+  .selected-tl__greeting { top: 48px; }
+  .selected-tl__dots--top { top: 76px; }
+  .selected-tl__bar-blue { top: 104px; height: 320px; }
+  .selected-tl__bar-yellow { top: 104px; height: 40px; }
+  .selected-tl__year--2025 { top: 112px; }
+  .selected-card-terra { top: 104px; }
+  .selected-tl__year--q425 { top: 232px; }
+  .selected-card-blue { top: 264px; }
+  .selected-tl__year--23 { top: 404px; }
+  .selected-tl__dots--bot { top: 436px; }
+
+  .selected-nameplate { left: 1px; }
+  .selected-nameplate--names { top: 464px; }
+  .selected-nameplate--marks { top: 504px; }
+  .selected-tl__dot-single { left: 16px; }
+  .selected-tl__dot-single--mid1 { top: 498px; }
+  .selected-tl__dot-single--mid2 { top: 540px; }
+  .selected-nav-archive { left: 1px; top: 550px; }
+
+  .selected-archive-panel { left: 16px; top: 580px; width: calc(100% - 32px); }
+  .ap-entry { width: calc(100% - 17px); }
 }
 
 

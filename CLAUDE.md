@@ -138,6 +138,29 @@ All three phases use `--ease-paper`.
 
 Random rotation is set via `--place-rotate` CSS custom property, assigned by `Sheet.tsx` on mount.
 
+## Responsive rules
+
+Breakpoints: mobile < 768px, tablet 768–1023px, desktop ≥ 1024px.
+
+### Principles
+
+* **Recompose, don't replicate.** Mobile gets a purposefully different composition that preserves editorial intent. Don't scale desktop down.
+* **No hacks.** If a responsive need comes up, implement it cleanly. No `transform: scale()` on text. No `!important` chains. No hidden-but-present-in-DOM tricks that misrepresent content. If the clean solution takes five more minutes, spend them.
+* **Structural breakpoints for layout changes** (absolute → flow). **Fluid scaling for spacing/sizing** (clamp, vw, container queries). Don't use JS media queries — risks hydration mismatches.
+* **Halve, don't delete, brand details** that carry identity. The 8px black viewport frame becomes 4px on mobile, not hidden.
+* **Different copy per viewport**: render both spans in JSX and use CSS visibility classes (`.xxx--desktop` / `.xxx--mobile`). Clean, no hydration risk, no JS.
+* **Decorative elements** (timeline bars, dot clusters, spatial markers) are desktop features. Remove or reduce on mobile in favor of inline color-coding, textual markers, or simple dividers.
+
+### Global mobile patterns
+
+* **Nav pills (project marker + chapter marker)**: centered horizontally, sticky at `top: 0`, tucked into the top black frame. Pulled up via negative `margin-top` equal to the workbench padding so the pill's top edge sits flush with the viewport top; the 4px black frame (z: 9999) overlaps the pill's first few pixels for the tucked feel. Stays in place on scroll.
+* **Mat as last element**: when a `.mat` (or `.selected-mat`, etc.) is the final content block on a page, it extends full-bleed horizontally **and** fills remaining vertical viewport space via `flex: 1 0 auto` on the mat with its ancestor as a flex column. This avoids orphaning the page background below the mat. Negative `margin-bottom` equal to workbench padding lets it bleed to the bottom frame edge.
+* **Black viewport frame**: 8px on desktop, 4px on mobile (in `globals.css` `.workbench::before`).
+
+### When implementing
+
+Start with the mobile composition as a separate design, not a derivative of desktop. If an approach feels hacky, it probably is — find a better mechanism (CSS visibility classes, clamp, container queries, breakpoint-scoped property overrides) before committing.
+
 ## Core design principle
 
 **Elements should feel docked, tucked, or suspended with intention — not placed nearby.**

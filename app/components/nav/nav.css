@@ -274,5 +274,19 @@ button.nav-marker {
 
 
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
-/* Nav behaves identically on all screen sizes for now.
-   Mobile-specific adaptations to be added when needed.                     */
+
+@media (max-width: 767px) {
+  /* Tighten pill padding — 32px right is for desktop docking spaciousness */
+  .nav-marker__content {
+    padding: 4px 16px 4px 6px;
+  }
+
+  .nav-marker--exit .nav-marker__content {
+    padding: 4px 6px 4px 16px;
+  }
+
+  /* Reduce tray-open gap multiplier (48px × 3 = 144px is excessive on mobile) */
+  .sheet-stack[data-tray-open] {
+    gap: calc(var(--stack-gap) * 2);
+  }
+}

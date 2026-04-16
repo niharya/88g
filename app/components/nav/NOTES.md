@@ -86,10 +86,22 @@ The `2px` = sheet border width (from `--sheet-border`). The workbench has no
 layout border (the `::before` viewport frame is a fixed overlay with
 `pointer-events: none`).
 
-**Known issue:** At viewports below 1024px, the media query overrides workbench
-padding and sheet margins with hardcoded values (24px) but doesn't update the CSS
-custom properties. The sled formula uses stale variable values on narrow viewports.
-This is a pre-existing issue, not introduced by the restructure.
+**Historical bug (fixed April 2026):** The mobile/tablet media queries in
+`globals.css` previously overrode `.workbench` padding with hardcoded values
+(e.g. `padding: 32px 24px`) but left `--workbench-pad-x`, `--workbench-pad-y`,
+and `--sheet-bleed` at their desktop values. The sled formula consumed stale
+tokens on narrow viewports and landed in the wrong place.
+
+Fix: the responsive blocks now override the tokens themselves inside `:root`
+(see `globals.css` lines ~401 and ~416), and `.workbench` is re-declared to
+consume `var(--workbench-pad-y) var(--workbench-pad-x)`. The sled formula
+works untouched on all breakpoints because it always reads from live tokens.
+
+**Rule this establishes:** when a responsive block changes a value that is
+also exposed as a CSS custom property, override the **token**, not the
+consumer. Everything downstream that reads the token stays correct for free.
+Overriding only the consumer silently breaks every `calc()` that depends on
+the token.
 
 ---
 
@@ -212,6 +224,30 @@ immediately. The first viewport's sections reveal as fonts load.
 - TransitionSlot must only `.revealed` the first sheet, not all sheets.
 - useReveal must check `revealed.current` to avoid re-observing sheets that
   TransitionSlot already revealed.
+
+---
+
+## Responsive breakpoints — override the token, not the consumer
+
+`globals.css` now overrides `--workbench-pad-x`, `--workbench-pad-y`,
+`--sheet-bleed`, `--sheet-padding-x`, `--sheet-padding-y`, `--stack-gap`,
+`--card-inner-x`, `--card-inner-y`, and (on mobile) `--marker-top` inside
+the `@media (max-width: 767px)` and `@media (min-width: 768px) and
+(max-width: 1023px)` blocks at `:root` scope.
+
+Everything downstream — the nav-sled `calc()` formula, sheet bleed
+arithmetic, section-reveal math — reads from these tokens and stays
+coherent at every breakpoint without needing its own media query.
+
+**Rule:** if a responsive block needs to change a value that is exposed as
+a CSS custom property, change the **token**. Do not leave the token at its
+desktop value and override only the consumer — every other site that reads
+the token will silently break. This is how the sled stale-variable bug
+(fixed April 2026) was introduced the first time.
+
+The `.workbench::before` viewport frame is an exception: its
+`border-width` is a direct CSS declaration (no token), and the mobile
+block legitimately overrides it inline (8px → 4px).
 
 ---
 

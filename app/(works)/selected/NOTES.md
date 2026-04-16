@@ -439,4 +439,105 @@ border-color: var(--grey-880);  /* #E0E0E0 */
 color: var(--{project}-800);  /* themed text */
 ```
 
-*Last updated: 13 April 2026.*
+---
+
+## Responsive anomalies (mobile ≤767px)
+
+The first responsive pass on `/selected` introduced several structural constraints
+that are not obvious from reading the code. Mobile changes begin at
+`selected.css` line ~842; tablet overrides begin at line ~1178.
+
+### `.selected-archive-panel` is a **sibling** of `.selected-tl`, not a child
+
+Both live inside `.selected-mat`. On desktop this doesn't matter because
+everything is positioned absolutely. On mobile it does: the archive panel
+cannot inherit horizontal padding from `.selected-tl`, so it repeats its own
+`padding: 16px 32px 32px` to land in the same content column. If you change
+the mat's horizontal inset, you must change **both** places.
+
+**What breaks if you assume nesting:** archive entries drift out of the column
+established by project cards and nameplates.
+
+### Mat fills remaining viewport height via a three-link flex chain
+
+```
+.selected-workbench  { min-height: calc(100vh - 2*var(--workbench-pad-y));
+                       display: flex; flex-direction: column; }
+.selected-layout     { flex: 1; display: flex; flex-direction: column; }
+.selected-mat        { flex: 1 0 auto; }
+```
+
+The mat grows to fill whatever vertical space the about card + nav-row leaves
+behind, so the grid surface always reaches the black viewport frame at the
+bottom. The chain is load-bearing: **any sibling added after `.selected-mat`
+inside `.selected-layout` will steal the grow and orphan the mat short of
+the frame.** If you need to add content below the mat, move it inside the
+mat or re-engineer the chain.
+
+### Sticky nav row uses negative margin-top to sit flush against the viewport top
+
+```css
+.selected-nav-row {
+  position: sticky;
+  top: 0;
+  margin-top: calc(-1 * var(--workbench-pad-y));
+  z-index: 40;
+}
+```
+
+Without the negative margin, the sticky row would stick **below** the
+workbench's top padding (the first position it could occupy in normal flow).
+The negative margin pulls its initial position up by exactly the pad-y so
+that `top: 0` tucks the pill under the 4px black frame at the viewport edge.
+
+**Don't touch without reading:** the negative margin value is tied to
+`--workbench-pad-y`, not a magic number. If `--workbench-pad-y` is retuned
+for mobile (currently 32px), this continues to work. Hardcoding `-32px`
+here would re-introduce a stale-value bug.
+
+### Archive year lives in the DOM on desktop, hidden by CSS
+
+`ArchivePanel.tsx` renders every entry's meta as
+`{role} • {company}<span className="ap-entry__year"> • {year}</span>`.
+Globally `.ap-entry__year { display: none }`, and the mobile block flips
+it to `display: inline`.
+
+Implications:
+- **Semantic payload:** screen readers, search engines, and link scrapers see
+  the full string `"Product Designer • Connektion • 2021"` on desktop even
+  though the visible text is shorter. This is arguably a feature (the
+  chronological context is carried to assistive tech via the hidden year),
+  but it is a deliberate desktop/mobile **semantic mismatch** — flag it if
+  a future a11y pass treats `display: none` content as "not for AT".
+- **Copy discipline:** the year source of truth is the `ARCHIVE_ENTRIES`
+  array in `ArchivePanel.tsx`. The desktop year-label components
+  (`.selected-ap-year--*`) are separate, hand-placed elements. If the
+  visible desktop year and the inline meta year ever disagree, the
+  archive entries array is wrong.
+
+### Responsive copy pattern — two sibling spans with CSS display toggling
+
+`Timeline.tsx` lines 252–253 render both copies:
+
+```tsx
+<span className="... archive-toggle-label--desktop">Works from the previous portfolio</span>
+<span className="... archive-toggle-label--mobile">Previous portfolio</span>
+```
+
+CSS toggles `display: inline` vs `display: none` at the 767px breakpoint.
+
+**Don't update one without the other.** There is no shared source of truth —
+the two strings will drift silently unless a linter or convention catches it.
+If this pattern proliferates, consider promoting a `<ResponsiveCopy desktop mobile />`
+primitive into shared components rather than copying the two-span pattern
+into more routes.
+
+### Hover-only affordances disabled on mobile
+
+`.ap-entry__hint` (the "opens in new tab" pill) and the push-apart translation
+on entry hover are both turned off in the mobile block because touch devices
+don't have persistent hover. The hover highlights (`:has(:hover)` rules) are
+explicitly reverted via `filter: none` / `background: revert`. Don't assume
+these work on touch; they're desktop-only embellishments.
+
+*Last updated: 15 April 2026.*

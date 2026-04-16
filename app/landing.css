@@ -1203,9 +1203,9 @@ textarea.contact-form__input {
     --projects-top: 396px;
     --short-top: 16px;
     --long-top: 367px;
-    --spectrum-top: 1088px;
-    --contact-top: 1448px;
-    --expanded-h: 1856px;
+    --spectrum-top: 1064px;
+    --contact-top: 1396px;
+    --expanded-h: 1800px;
     min-height: 100svh;
   }
 
@@ -1291,7 +1291,9 @@ textarea.contact-form__input {
   .spectrum { width: 100%; }
   .spectrum__frame { width: 100%; }
   .spectrum__label--left { top: 193px; left: 16px; right: auto; }
-  .spectrum__label--right { top: 89px; right: 16px; left: auto; }
+  /* Application — sits above its nearest cell with ~8px clearance, matching
+     the gap Abstraction has to the cell above it. */
+  .spectrum__label--right { top: 75px; right: 16px; left: auto; }
 
   .contact-card { width: 100%; }
   .contact-card__intro { width: auto; margin-bottom: 32px; }
