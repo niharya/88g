@@ -62,7 +62,7 @@ export const flows: FlowSlide[] = [
   },
   {
     id: 3,
-    title: "Gas tank setup",
+    title: "Gas Tank Setup",
     before: {
       image: "/images/biconomy/flows/gas_tank_setup_before.png",
       notes: [

@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 
 const RULES_SEEN_KEY = 'rr-rules-seen'
+
+const CLOSED_REST_TRANSFORM = 'rotate(1deg)'
+// When the note rail opens, the game board nudges -50 (not -12). The rules
+// rail is tucked under the board's right-edge so it must follow that same
+// larger nudge, otherwise it'd float away from the board edge.
+const CLOSED_NUDGED_TRANSFORM = 'translateX(-50px) rotate(1deg)'
+const OPEN_TRANSFORM = 'translateX(163px) rotate(0deg)'
 
 function ArrowBackIcon({ className }: { className?: string }) {
   return (
@@ -21,9 +27,14 @@ function ArrowBackIcon({ className }: { className?: string }) {
 interface RulesRailProps {
   /** External signal to dismiss the first-visit overlay (e.g. "Start game" click). */
   dismiss?: boolean
+  /** Is the sibling rail (note) currently open? If so, tuck-nudge -12px to
+   *  follow the game board, which shifts -12px via :has(.is-open) in rr.css. */
+  otherOpen?: boolean
+  /** Emit open-state changes so the parent can coordinate with the other rail. */
+  onOpenChange?: (isOpen: boolean) => void
 }
 
-export default function RulesRail({ dismiss = false }: RulesRailProps) {
+export default function RulesRail({ dismiss = false, otherOpen = false, onOpenChange }: RulesRailProps) {
   // First visit: rules slide out after a 1s delay so the viewer notices them.
   // After dismissal (click sheet / Start game) it tucks back and stays tucked.
   const [firstVisit, setFirstVisit] = useState(false)
@@ -37,6 +48,11 @@ export default function RulesRail({ dismiss = false }: RulesRailProps) {
       return () => clearTimeout(t)
     }
   }, [])
+
+  // Emit open-state to parent so the note rail can react to our state.
+  useEffect(() => {
+    onOpenChange?.(isOpen)
+  }, [isOpen, onOpenChange])
 
   // External dismiss (e.g. "Start game" button)
   useEffect(() => {
@@ -58,11 +74,16 @@ export default function RulesRail({ dismiss = false }: RulesRailProps) {
     setIsOpen(o => !o)
   }
 
+  const transform = isOpen
+    ? OPEN_TRANSFORM
+    : otherOpen
+      ? CLOSED_NUDGED_TRANSFORM
+      : CLOSED_REST_TRANSFORM
+
   return (
-    <motion.div
+    <div
       className={`rr-rules-rail${isOpen ? ' is-open' : ''}`}
-      animate={{ x: isOpen ? 175 : 0, rotate: isOpen ? 0 : 1 }}
-      transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.7 }}
+      style={{ transform }}
       onClick={handleToggle}
       role="button"
       aria-label={isOpen ? 'Close rules' : 'Open rules'}
@@ -88,6 +109,6 @@ export default function RulesRail({ dismiss = false }: RulesRailProps) {
         </ul>
       </div>
 
-    </motion.div>
+    </div>
   )
 }

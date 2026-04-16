@@ -52,7 +52,7 @@ export default function BIPs() {
             <div className="bips__card-footer">
               <p className="t-p4 bips__footer-text">
                 <span className="bips__footer-row1">
-                  <span className="t-h5">Each idea moved</span>
+                  <span className="t-h5">Each Idea Moved</span>
                   <span className="bips__footer-rule" aria-hidden="true" />
                 </span>
                 <span className="bips__footer-row2">
@@ -110,7 +110,7 @@ export default function BIPs() {
             >
               <span className="bips__notes-tab-inner t-h5">
                 <ArrowBackIcon className={`bips__notes-arrow${cardOpen ? '' : ' is-flipped'}`} />
-                Design of the workflow
+                Design of the Workflow
               </span>
             </button>
 
@@ -121,7 +121,7 @@ export default function BIPs() {
               <ul className="bips__notes-list t-p4">
                 <li>
                   <p className="t-p4">
-                    <span className="t-h5">1. Know your idea</span><br />
+                    <span className="t-h5">1. Know Your Idea</span><br />
                     Contributors were first given a framework to clarify their idea by helping them with essential details required to strengthen it.
                   </p>
                 </li>

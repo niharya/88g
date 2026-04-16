@@ -26,6 +26,13 @@ export default function Mechanics() {
   const [noteRevealed, setNoteRevealed] = useState(false)
   const [justRevealed, setJustRevealed] = useState(false)
 
+  // Lifted rail open state so each rail knows when the *other* is open.
+  // When one rail opens, the game board nudges -12px via the :has(.is-open)
+  // CSS rule; the tucked rail needs to follow that nudge so it still looks
+  // glued to the board edge. Each rail emits its own open state here.
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [noteOpen, setNoteOpen] = useState(false)
+
   // True once the spring follower is essentially at its locked end position.
   // Passed to StoryCard so its dotted-path one-shot can fire after the mat
   // has visually settled (with its own 500ms delay).
@@ -130,15 +137,40 @@ export default function Mechanics() {
             data-arrow-target hooks ChapterMarker's arrow rotation. */}
         <div ref={primaryRef} className="rr-mat--primary mat" data-arrow-target>
           <div className="rr-mech-family">
-            <RulesRail dismiss={rulesDismissed} />
-            <div className="rr-game-board">
+            <RulesRail
+              dismiss={rulesDismissed}
+              otherOpen={noteOpen}
+              onOpenChange={setRulesOpen}
+            />
+            {/* Board nudge is inline-styled (not CSS `:has()`) for the same
+                reason the rails are: CSS transitions on `transform` stall
+                inside the mat-settle family. Inline style side-steps the
+                pending-transition bug. Nudge values mirror the rails'
+                CLOSED_NUDGED_TRANSFORM: -12 when rules opens, -50 when note
+                opens. */}
+            <div
+              className="rr-game-board"
+              style={{
+                transform: noteOpen
+                  ? 'translate(-50px, 0)'
+                  : rulesOpen
+                    ? 'translate(-12px, 0)'
+                    : 'translate(0, 0)',
+              }}
+            >
               <GameBoard
                 onResultsChange={handleResultsChange}
                 onGameOver={handleGameOver}
                 onGameStart={() => setRulesDismissed(true)}
               />
             </div>
-            {noteRevealed && <NoteRail playReveal={justRevealed} />}
+            {noteRevealed && (
+              <NoteRail
+                playReveal={justRevealed}
+                otherOpen={rulesOpen}
+                onOpenChange={setNoteOpen}
+              />
+            )}
           </div>
         </div>
 

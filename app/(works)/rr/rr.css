@@ -66,6 +66,30 @@
 /* Section reveals are handled by useReveal hook + .section-reveal class
    in globals.css. Route-specific timing overrides go here. */
 
+/* Intro entrance — caught mid-transition.
+   Negative animation-delay starts playback partway through so the viewer
+   arrives mid-motion. Card stack slides in from the right-and-above and
+   tucks behind the story card; story card settles down just after. The
+   story card finishes first so the stack visibly slides behind it. */
+
+@keyframes rr-stack-arrive {
+  from { translate: 160px -44px; }
+  to   { translate: 0 0; }
+}
+
+@keyframes rr-story-sit {
+  from { translate: 0 -14px; }
+  to   { translate: 0 0; }
+}
+
+#intro .rr-card-stack {
+  animation: rr-stack-arrive 2.6s var(--ease-paper) -0.6s both;
+}
+
+#intro .rr-story-card {
+  animation: rr-story-sit 1.2s var(--ease-paper) -0.55s both;
+}
+
 
 /* ==========================================================================
    Phase 1 — Introduction
@@ -503,22 +527,53 @@
   color: var(--olive-800);
   text-decoration: underline;
   text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
   text-underline-offset: 2px;
-  transition: opacity 0.135s var(--ease-paper);
+  position: relative;
+  transition:
+    opacity 0.135s var(--ease-paper),
+    text-decoration-color 0.12s ease;
+}
+
+/* btn1-style hover: dotted underline swaps to a solid bar via ::after fade */
+.rr-constraints-card__toggle-label::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+}
+
+/* Hover target is the whole card, not just the toggle — the full sheet is
+   the interactive surface, so hovering anywhere on it primes the affordance. */
+.rr-constraints-card:hover .rr-constraints-card__toggle-label {
+  text-decoration-color: transparent;
+}
+
+.rr-constraints-card:hover .rr-constraints-card__toggle-label::after {
+  opacity: 1;
 }
 
 .rr-constraints-card__toggle-icon {
   font-size: 16px !important;
   color: var(--olive-800);
-  transition: transform 0.30s var(--ease-paper);
-}
-
-.rr-constraints-card__toggle-icon {
-  transition: transform 0.25s ease-out;
+  transition: transform 0.25s var(--ease-paper);
 }
 
 .rr-constraints-card--expanded .rr-constraints-card__toggle-icon {
   transform: rotate(180deg);
+}
+
+/* When expanded, hovering anywhere on the card lifts the chevron a hair —
+   signals clickability now that the +3 label is swapped out. Rotation is
+   kept; the translate composes on top. */
+.rr-constraints-card--expanded:hover .rr-constraints-card__toggle-icon {
+  transform: translateY(-2px) rotate(180deg);
 }
 
 .rr-constraints-card--expanded .rr-constraints-card__toggle-label {
@@ -575,6 +630,7 @@
   color: var(--terra-800);
   z-index: var(--rr-z-story);
   cursor: pointer;
+  transition: transform 0.55s var(--ease-paper);
 }
 
 /* Vertical tab button — positioned to the right of the rail body */
@@ -656,11 +712,28 @@
   position: absolute;
   left: 279px;
   top: 482px;
-  width: 248px;
+  /* Width is narrower than the game-board (264px) so the rail's rotated
+     (1deg) bounding box still fits fully inside the board footprint at rest —
+     otherwise the rotation bleeds ~1px past each side of the board and peeks
+     out. 256px + rotation → ~258px bbox, comfortably inside. */
+  width: 256px;
   padding: 8px;
   background: var(--yellow-960);
   color: var(--yellow-480);
   z-index: var(--rr-z-story);
+  transition: transform 0.55s var(--ease-paper);
+}
+
+/* First-reveal: slide out from under the game board — start fully tucked at
+   -32px (tab width) and settle to the closed resting position over 1.4s.
+   The tucked→closed keyframe uses the same rotate(1deg) as the resting state. */
+@keyframes rr-note-rail-reveal {
+  from { transform: translateX(-32px) rotate(1deg); }
+  to   { transform: rotate(1deg); }
+}
+
+.rr-note-rail.is-revealing {
+  animation: rr-note-rail-reveal 1.4s var(--ease-paper) 0.4s both;
 }
 
 /* Icon-only tab — positioned at the right edge of the rail, full height */
@@ -725,7 +798,7 @@
 .rr-story-card--mechanics {
   top: 76px;
   left: 815px;
-  width: 400px;
+  width: 384px;
   height: 688px;
   min-height: unset;
   padding: 104px 16px 24px;
@@ -818,10 +891,16 @@
 /* Photo of a hand holding a fan of physical cards. Sits half on / half off
    the bottom-left of the StoryCard. Transform is driven by --rr-mech-progress
    (inherited from .rr-mech-stage), so the fan animates in lockstep with the
-   mat split — no JS coupling. Pivot is bottom-of-hand (~95% from top of img). */
+   mat split — no JS coupling. Pivot is bottom-of-hand (~95% from top of img).
+
+   The hand is authored to hang past the mat's bottom edge so the mat's
+   `overflow: clip` always crops the wrist cleanly. See NOTES.md → "Hand
+   overlay always clips at mat bottom" — it is a layout rule, not a tuning
+   value. If the mat height or card vertical position changes, `bottom` here
+   must be re-tuned to preserve the clip. */
 .rr-story-card__deck-fan {
   position: absolute;
-  bottom: -72px;
+  bottom: -150px;
   left: -60px;
   width: 307px;
   height: auto;
@@ -1164,9 +1243,9 @@
   font-weight: 800;
   font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
   letter-spacing: -0.24px;
+  /* No text-transform — authored in APA title case */
   color: var(--mint-100);
   text-align: center;
-  text-transform: capitalize;
   margin: 4px 0 24px;
 }
 
@@ -1195,15 +1274,44 @@
   color: var(--mint-160);
   text-transform: capitalize;
   background: none;
-  transition: color 0.15s ease, transform 0.15s ease;
   border: none;
   cursor: pointer;
   padding: 8px 12px;
   margin: -8px -12px;
+  position: relative;
+  /* btn1 affordance — dotted underline at rest */
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--mint-160);
+  transition:
+    color 0.32s var(--ease-paper),
+    transform 0.32s var(--ease-paper),
+    text-decoration-color 0.32s var(--ease-paper);
+}
+
+/* Solid bar that replaces the dotted underline on hover */
+.rr-cards-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.32s var(--ease-paper);
+  pointer-events: none;
 }
 
 .rr-cards-tab:hover {
   color: var(--mint-100);
+  text-decoration-color: transparent;
+}
+
+.rr-cards-tab:hover::after {
+  opacity: 1;
 }
 
 .rr-cards-tab:active {
@@ -1211,14 +1319,23 @@
   transition: transform 0s;
 }
 
+/* Active tab — solid underline permanently, brighter color */
 .rr-cards-tab--active {
   color: var(--mint-240);
+  text-decoration-style: solid;
+  text-decoration-color: var(--mint-240);
+}
+
+.rr-cards-tab--active::after {
+  display: none;
 }
 
 .rr-cards-tab--active:hover {
   color: var(--mint-240);
+  text-decoration-color: var(--mint-240);
 }
 
+/* Diamond separator — hovering it triggers btn1 underline on the inactive tab */
 .rr-cards-tab-sep {
   display: flex;
   align-items: center;
@@ -1231,7 +1348,9 @@
   border: none;
   cursor: pointer;
   color: var(--mint-160);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition:
+    color 0.32s var(--ease-paper),
+    transform 0.32s var(--ease-paper);
 }
 
 .rr-cards-tab-sep svg {
@@ -1246,6 +1365,15 @@
 .rr-cards-tab-sep:active {
   transform: scale(0.85);
   transition: transform 0s;
+}
+
+/* When diamond hovered → inactive tab shows solid underline */
+.rr-cards-tabs:has(.rr-cards-tab-sep:hover) .rr-cards-tab:not(.rr-cards-tab--active) {
+  text-decoration-color: transparent;
+}
+
+.rr-cards-tabs:has(.rr-cards-tab-sep:hover) .rr-cards-tab:not(.rr-cards-tab--active)::after {
+  opacity: 1;
 }
 
 
@@ -1523,10 +1651,15 @@
   width: 100%;
   overflow: clip;
   /* Choreography variables live on the stage so both mats (sibling children)
-     inherit. JS writes --rr-mech-progress here on scroll. */
+     inherit. JS writes --rr-mech-progress here on scroll. Primary + gap +
+     secondary should sum to <= 1440 (the canvas width). */
   --rr-mech-progress: 0;
-  --rr-mech-gap:   28px;
-  --rr-mech-w-end: 678px;
+  --rr-mech-gap:       28px;
+  --rr-mech-primary-w: 758px;
+  --rr-mech-secondary-w: 630px;
+  /* Legacy alias — some selectors still reference --rr-mech-w-end. Kept in
+     sync with the primary width so existing calcs continue to work. */
+  --rr-mech-w-end:     var(--rr-mech-primary-w);
 }
 
 /* ── Primary mat ─────────────────────────────────────────────────────────── */
@@ -1569,9 +1702,26 @@
 
 /* Re-anchor the absolutely-positioned family pieces from rr-canvas (1440-wide)
    coordinates into the smaller mech-family bbox. */
-.rr-mech-family .rr-game-board { left: 130px; }
+.rr-mech-family .rr-game-board {
+  /* Shifted left + widened by 5px so the outer board footprint covers the
+     note rail's left edge at rest (note stays tucked "folded" under it).
+     The game-panel inside uses --panel-w: 256 so its internal layout is
+     width-agnostic — the extra 5px becomes distributed flex padding. */
+  left: 125px;
+  width: 264px;
+  transition: transform 0.55s var(--ease-paper);
+}
 .rr-mech-family .rr-rules-rail { left: 214px; }
-.rr-mech-family .rr-note-rail  { left: 141px; }
+/* Note at rest is centered horizontally inside the 264px game-board (125→389):
+   (264 - 256) / 2 = 4 → note.left = 125 + 4 = 129. Keeps the rotation-bbox
+   symmetrically inside the board so the note never peeks past either edge. */
+.rr-mech-family .rr-note-rail  { left: 129px; }
+
+/* Board nudge is driven from Mechanics.tsx inline style (not CSS `:has()`).
+   Reason: CSS transform transitions on children of `.rr-mech-family` stall
+   in the pending state (see NOTES.md — same bug as the rails). Inline style
+   is read as an always-fresh declaration each render and side-steps it.
+   Nudge values must mirror the rails' CLOSED_NUDGED_TRANSFORM. */
 
 /* ── Secondary mat ───────────────────────────────────────────────────────── */
 /* Fixed-width sibling that slides in from the right as the primary slides left.
@@ -1584,10 +1734,10 @@
   position: absolute;
   top: 0;
   height: 100%;
-  width: var(--rr-mech-w-end, 678px);
+  width: var(--rr-mech-secondary-w, 630px);
   left: calc(
     (1 - var(--rr-mech-progress, 0)) * 100%
-    + var(--rr-mech-progress, 0) * (var(--rr-mech-w-end, 678px) + var(--rr-mech-gap, 28px))
+    + var(--rr-mech-progress, 0) * (var(--rr-mech-primary-w, 726px) + var(--rr-mech-gap, 28px))
   );
   overflow: hidden;
   /* Hidden until the primary mat marks the split as active (avoids stray
@@ -1600,11 +1750,14 @@
   border: var(--sheet-border);
 }
 
-/* Story card centered in the fixed-width secondary mat.
-   50% of 678px = 339px. Card: 400w × 688h. */
+/* Story card placed in the fixed-width secondary mat.
+   Nudged ~42px right of center so the seam-side (left) has breathing room —
+   dead-center made the card feel crammed against the primary mat edge. The
+   hand overlay (`.rr-story-card__deck-fan`) is positioned relative to this
+   card, so it shifts in lockstep. Card: 384w × 688h. */
 .rr-mat--secondary .rr-story-card--mechanics {
   top:  calc(50% - 344px);
-  left: calc(50% - 200px);
+  left: calc(50% - 150px);
 }
 
 
@@ -1615,10 +1768,9 @@
 .rr-canvas--outcome { background: transparent; }
 
 
-/* ── Expand/collapse dim transition (card + quote) ── */
+/* ── Expand/collapse dim transition (card) ── */
 
-.rr-outcome-card,
-.rr-outcome-quote {
+.rr-outcome-card {
   transition: filter 0.3s ease, scale 0.3s ease;
 }
 
@@ -1712,41 +1864,70 @@
 }
 
 
-/* ── Closing quote (bottom left) ── */
+/* ── Bottom-edge ticker ── */
+/* Continuous left-scrolling marquee at the mat's bottom edge. Motion is
+   JS-driven in Outcome.tsx — a motion value + useAnimationFrame owns the
+   track's translateX. CSS here only handles layout + the scroll container.
+   See Outcome.tsx for the train-decel on hover, spring-start on hover-out,
+   and the translate↔scrollLeft handoff that lets the user manually scroll
+   to the end of the track without exposing dead space past the last copy.
 
-.rr-outcome-quote {
+   `overscroll-behavior-x: contain` keeps horizontal overscroll (the native
+   rubber-band at the track's extremes on Mac/iOS) inside the ticker so it
+   doesn't chain to the page. */
+
+.rr-outcome-ticker {
   position: absolute;
-  left: 152px;
-  top: 591px;
-  width: 420px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding: 12px 0;
+  z-index: 4;
+  border-top: var(--sheet-border);
+}
+
+.rr-outcome-ticker::-webkit-scrollbar {
+  display: none;
+}
+
+.rr-outcome-ticker__track {
   display: flex;
-  align-items: center;
-  gap: 24px;
+  width: max-content;
+  white-space: nowrap;
+  will-change: transform;
 }
 
-.rr-outcome-quote__icon {
+.rr-outcome-ticker__segment {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-}
-
-.rr-outcome-quote__icon img {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-.rr-outcome-quote__text {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 100, 'wght' 800, 'GRAD' 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+  font-family: 'Fraunces', serif;
+  font-size: 15px;
+  font-weight: 400;
   font-style: normal;
-  text-transform: capitalize;
-  letter-spacing: -0.24px;
-  color: #f3e8dc;
-  line-height: normal;
-  margin: 0;
+  letter-spacing: -0.3px;
+  color: var(--grey-480);
+  text-transform: none;
+}
+
+/* Icon is a masked element, not an <img>, so we can tint it via CSS. The SVG
+   file's original fill is ignored — the mask cuts the shape and the block's
+   background-color colors it in. */
+.rr-outcome-ticker__icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  flex-shrink: 0;
+  background-color: var(--terra-560);
+  -webkit-mask: url('/images/rr/rr-quote-icon.svg') center / contain no-repeat;
+          mask: url('/images/rr/rr-quote-icon.svg') center / contain no-repeat;
 }
 
 
@@ -1761,8 +1942,7 @@
   background-color: var(--blue-960);
 }
 
-.rr-canvas--outcome[data-rules-expanded] .rr-outcome-card,
-.rr-canvas--outcome[data-rules-expanded] .rr-outcome-quote {
+.rr-canvas--outcome[data-rules-expanded] .rr-outcome-card {
   filter: var(--backseat-dim);
   scale: 0.9;
   pointer-events: none;

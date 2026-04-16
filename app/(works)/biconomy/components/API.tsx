@@ -189,7 +189,7 @@ export default function API() {
               <p className="t-p4 api__subtitle">
                 This is where
                 <br />
-                <span className="t-h5">Science Fiction meets Interface Fiction</span>
+                <span className="t-h5">Science Fiction Meets Interface Fiction</span>
               </p>
             </div>
           </div>

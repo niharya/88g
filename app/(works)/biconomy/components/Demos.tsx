@@ -239,7 +239,7 @@ export default function Demos() {
               htmlFor="demo-web"
               className={`demos__tab-label demos__tab-label--web t-h5${currentDemo === 'web' ? ' demos__tab-label--active' : ''}`}
             >
-              Web-based Apps
+              Web-Based Apps
             </label>
 
             <input
@@ -252,11 +252,11 @@ export default function Demos() {
               htmlFor="demo-game"
               className={`demos__tab-label demos__tab-label--game t-h5${currentDemo === 'game' ? ' demos__tab-label--active' : ''}`}
             >
-              On-chain Game
+              On-Chain Game
             </label>
 
             <span className="demos__tab-disabled t-h5">
-              Evolution of the demos
+              Evolution of the Demos
             </span>
 
           </div>

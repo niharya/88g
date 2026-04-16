@@ -86,11 +86,11 @@ export default function Intro() {
     >
 
       {/* ── Story Card ──────────────────────────────────────────────────── */}
-      {/* Spring physics matching Biconomy intro__surface: x, rotate, scale  */}
+      {/* Tween on the paper curve — matches card-stack CSS, no spring overshoot */}
       <motion.div
         className={`rr-story-card${isExpanded ? ' rr-story-card--expanded' : ''}`}
         animate={{ x: isExpanded ? -400 : 0, rotate: isExpanded ? -1 : 0, scale: isExpanded ? 0.95 : 1 }}
-        transition={{ type: 'spring', duration: 0.6, bounce: 0.15 }}
+        transition={{ duration: 0.55, ease: EASE }}
       >
 
         {/* Expand / collapse pill */}
@@ -125,7 +125,16 @@ export default function Intro() {
         </div>
 
         {/* ── Constraints Card ─────────────────────────────────────────── */}
-        <div className={`rr-constraints-card${constraintsOpen ? ' rr-constraints-card--expanded' : ''}`}>
+        <div
+          className={`rr-constraints-card${constraintsOpen ? ' rr-constraints-card--expanded' : ''}`}
+          onClick={() => setConstraintsOpen(s => !s)}
+          role="button"
+          tabIndex={0}
+          aria-expanded={constraintsOpen}
+          aria-label={constraintsOpen ? 'Collapse constraints' : 'Expand constraints'}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setConstraintsOpen(s => !s) } }}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="rr-constraints-card__dot" aria-hidden="true" />
           <div className="rr-constraints-card__inner">
             <div className="rr-constraints-card__border rr-constraints-card__border--top" />
@@ -161,18 +170,15 @@ export default function Intro() {
               </AnimatePresence>
             </motion.div>
 
-            <button
+            <div
               className="rr-constraints-card__toggle"
-              type="button"
-              aria-expanded={constraintsOpen}
-              onMouseDown={e => e.preventDefault()}
-              onClick={() => setConstraintsOpen(s => !s)}
+              aria-hidden="true"
             >
               <span className="rr-constraints-card__toggle-label">+3</span>
               <span className="rr-constraints-card__toggle-icon material-symbols-rounded" aria-hidden="true">
                 arrow_drop_down
               </span>
-            </button>
+            </div>
 
             <div className="rr-constraints-card__border rr-constraints-card__border--bottom" />
 

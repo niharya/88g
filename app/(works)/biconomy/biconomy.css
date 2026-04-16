@@ -232,7 +232,6 @@
   border: 1px solid var(--olive-560);
   padding: 4px 8px; /* 1×4, 1×8 */
   display: block;
-  text-transform: none; /* override t-h5 capitalize — original uses sentence case */
 }
 
 /* Memo card body row */
@@ -391,7 +390,6 @@
 
 .flows__nav-counter {
   color: var(--grey-400); /* text-gray-160 ≈ muted */
-  text-transform: none; /* override t-h5 capitalize from parent */
 }
 
 .flows__nav-buttons {
@@ -902,7 +900,6 @@
   writing-mode: vertical-lr;
   text-orientation: sideways;
   gap: 4px;
-  text-transform: none; /* override t-h5 capitalize */
 }
 
 .bips__notes-arrow {
@@ -1259,7 +1256,6 @@
 .demos__title {
   text-align: center;
   color: var(--grey-560);
-  text-transform: none; /* override t-h5 capitalize */
 }
 
 /* Figma: two-column row of videos */

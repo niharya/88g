@@ -188,7 +188,7 @@
   font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
   letter-spacing: -0.24px;
   line-height: 1;
-  text-transform: capitalize;
+  /* No text-transform — strings are authored in APA title case via titleCase() */
 }
 
 .t-p2 {
@@ -276,6 +276,14 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-size: inherit;
   font-weight: inherit;
+  text-wrap: balance;
+}
+
+/* Prevent orphan words at the end of paragraphs and list items.
+   text-wrap: pretty avoids single-word last lines where possible.
+   Supported in Chrome 117+, Safari 17.4+, Firefox 128+. */
+p, li {
+  text-wrap: pretty;
 }
 
 

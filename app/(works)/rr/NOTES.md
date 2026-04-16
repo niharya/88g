@@ -71,6 +71,49 @@ This is the only global file changed for `/rr`. Treat it as load-bearing for bot
 
 ---
 
+## Rails use inline `transform`, not Framer Motion or class-based CSS rules
+
+Both `RulesRail.tsx` and `NoteRail.tsx` drive the open/close transform via the `style` prop in JSX — not via `motion.div` `animate`, and not via a `.is-open` CSS rule. The CSS only carries the transition timing:
+
+```css
+.rr-rules-rail { transition: transform 0.55s var(--ease-paper); }
+.rr-note-rail  { transition: transform 0.55s var(--ease-paper); }
+```
+
+And the open state is written inline from React state:
+
+```tsx
+style={{ transform: isOpen ? 'translateX(163px) rotate(0deg)' : 'rotate(1deg)' }}
+```
+
+### Why not Framer Motion?
+The rails sit inside `.rr-mech-family`, which consumes `--settle-scale/opacity/rotate` from `useMatSettle`. In that parent context, `motion.div` with an `animate={{ x, rotate }}` prop writes `transform: none` instead of the computed matrix — the rail never moves. FM still works elsewhere in `/rr` (story card, outcome card, rules-group). Specifically inside the mat-settle-driven family it does not.
+
+### Why not a `.is-open` CSS rule?
+Same parent context. CSS `transform` transitions on a child of `.rr-mech-family` stay in the `pending` animation state (`currentTime: 0`) and never progress. The final state applies only after a reflow. Inline style, read by the browser as an always-fresh declaration, side-steps this — the transition does kick in on state change.
+
+### Why the game-board nudge is also inline, not CSS `:has()`
+Initially the board's nudge was driven by a CSS `:has(.rr-{rules,note}-rail.is-open)` rule. It hit the *same stalled-transition bug* the rails have: the board sits inside `.rr-mech-family`, and CSS `transform` transitions on any child of that family stay in the `pending` animation state (`currentTime: 0`, `playState: running` forever) and never progress. The transition only works via inline style, which the browser reads as an always-fresh declaration each render.
+
+So the board transform lives on the React side: rail open state is lifted to `Mechanics.tsx` (`rulesOpen`, `noteOpen`), and the `.rr-game-board` div carries an inline `transform: translate(-Npx, 0)` driven by that state. The two rails require asymmetric nudges — **rules-open is -12px**, **note-open is -50px** — so the open note has breathing room on the right side of the mat.
+
+### Cross-rail follow-nudge
+When one rail opens, the game board nudges left (amount depends on which rail — see above). The **other, tucked** rail also has to translate the same amount so it still reads as glued to the board edge.
+
+Each rail accepts `otherOpen` + `onOpenChange` props and folds `otherOpen` into its own inline transform calculation:
+
+- **NoteRail** tucked + rulesOpen ⇒ `translateX(-12px) rotate(1deg)` (matches the -12 board nudge for rules-open).
+- **RulesRail** tucked + noteOpen ⇒ `translateX(-50px) rotate(1deg)` (matches the -50 board nudge for note-open).
+
+All three elements (board, rules, note) use the same 0.55s `--ease-paper` transition so they glide together. The nudge values are load-bearing triples — if you change the board's inline nudge in `Mechanics.tsx`, update the matching TSX `CLOSED_NUDGED_TRANSFORM` constant in the *other* rail, *and* recompute `OPEN_TRANSFORM` for the opening rail so it lands flush with the nudged board edge. (Open math for the note: `note.left_base (129) + translate = board.right_nudged (389 − 50 = 339)` → `translate = 210`.)
+
+### If you refactor:
+- Keep the `style` prop writing an absolute transform string. Swapping to `translate:` individual property will break (the property is silently ignored on this element — we tested it).
+- Keep the `transition: transform 0.55s var(--ease-paper)` on the base CSS rule, not on `is-open`. Transitions need to live on the element state that's present at both endpoints.
+- Do not reintroduce `motion.div` for the rail's open/close. If it seems tempting, re-read this note and test in a preview *inside* the mat-settle family.
+
+---
+
 ## Rejected approaches
 
 Things we tried, removed, and should not bring back without revisiting the original reason:
@@ -126,6 +169,40 @@ These are not regressions — the content was always overflowing, just never vis
 
 ---
 
+## Hand overlay always clips at mat bottom
+
+The `.rr-story-card__deck-fan` overlay (the photo of a hand holding a fan of
+physical cards, inside the mechanics StoryCard) is a **layout rule, not a
+tuning value**: the hand must always extend past the mat's bottom edge so
+the mat's `overflow: clip` crops the wrist/forearm cleanly. A hand that
+floats fully inside the mat with empty space below reads as accidental
+placement — the intentional design is "card overlay spills past the mat,
+mat clips it."
+
+Enforced by `bottom: -150px` on `.rr-story-card__deck-fan` (rr.css, under
+the Story Card block). The value is intentionally generous — enough that
+the hand stays clipped even if the card moves vertically within the mat by
+a small amount, or the mat height changes within viewport ranges we care
+about.
+
+### If you touch this, re-check:
+- Mat height. The secondary mat is 100vh; its absolute height changes with
+  the browser viewport. `-150px` must still land the hand past mat-bottom.
+- `.rr-story-card--mechanics` vertical position. Currently `top: calc(50%
+  - 344px)`. Raising the card lifts the hand with it — `bottom` may need to
+  grow more negative.
+- `.rr-mat--secondary` `overflow`. Must remain clipping (inherited from
+  `.mat` base class in globals.css). Do not set it to `visible`.
+- The scale/rotate transform in the same rule — a bigger scale enlarges the
+  rendered hand; the bottom offset anticipates scale: 1 at p=1.
+
+### Why not compute from the mat bottom instead?
+`bottom: -N` is simple, stable, and one value to reason about. Computing
+from the mat would require coupling this rule to mat height via a CSS
+variable, which nothing else needs. Keep the offset fixed and generous.
+
+---
+
 ## Overlay backseat choreography
 
 Two interactions use a shared "backseat" pattern where background content recedes to give the foreground overlay clear focus:
@@ -142,6 +219,68 @@ Two interactions use a shared "backseat" pattern where background content recede
 ### Story card + Framer Motion transform
 
 The story card uses Framer Motion inline `transform` (spring-animated `x`, `rotate`, `scale`). The backseat uses the CSS `scale` property (separate from `transform`) to avoid conflict. Do not switch to `transform: scale()` — it would be overridden by FM's inline style.
+
+---
+
+## Outcome ticker — unified translate + scrollLeft
+
+Lives in `app/(works)/rr/components/Outcome.tsx` (motion-state block) +
+`app/(works)/rr/rr.css` (ticker rules).
+
+The bottom-edge ticker is **JS-driven**, not CSS-keyframe driven. Cruise is
+a `useAnimationFrame` loop advancing a `trackX` motionValue by a `velocity`
+motionValue each tick; hover brakes `velocity` to 0 over 0.9s with
+`--ease-paper`; hover-out springs `velocity` back to `-segW/18` with
+`stiffness 110, damping 14, mass 1`.
+
+### The coordinate-system trick
+
+Before the refactor, CSS `@keyframes rr-ticker-scroll` drove the track's
+`translateX` and the container's native `scrollLeft` ran independently.
+When the user scrolled manually to the end, the two stacked and exposed
+up to `segW` of empty space past the last copy.
+
+The JS version unifies them into a single state machine (`running`,
+`stopped`, `transitioning`, `scrolling`):
+
+- **On first user scroll** — current translate is transferred into
+  `scrollLeft` (`scrollLeft += -trackX; trackX = 0`), `velocity` is
+  forced to 0, mode flips to `scrolling`. One coordinate system now.
+- **On 650ms scroll-idle** — `scrollLeft` is folded back into `trackX`
+  via `trackX = -(scrollLeft mod segW)`, `scrollLeft` resets to 0, the
+  spring-start fires again. Cruise resumes from the visual position.
+
+The modulo is load-bearing: without it, folding `scrollLeft` straight
+into `trackX` would snap the visible copy backward by up to `segW`.
+
+### Intentional overshoot — deviation from `bounce: 0`
+
+The hover-out spring is tuned for **~12% overshoot** — a kick on restart
+— at the user's explicit request ("small bounce, like a train starting").
+This is a deliberate deviation from CLAUDE.md's paper-motion rule of
+`bounce: 0` / no overshoot. Do not normalize it to a critically damped
+spring or to the `duration`/`bounce` API with `bounce: 0`. If you
+retune, keep the ~10–15% overshoot envelope.
+
+### `overscroll-behavior-x: contain`
+
+On `.rr-outcome-ticker` to stop Mac/iOS rubber-band from bouncing the
+whole page horizontally when the user flicks the ticker at its extremes.
+Do not remove.
+
+### If you touch this, re-check:
+- `segW` (segment width) is measured from a rendered copy. Changing the
+  number of copies or the copy layout invalidates the fold math.
+- The `scrolling` → `running` handoff depends on `velocity` being 0
+  throughout manual scroll. Any code that writes to `velocity` during
+  `scrolling` mode will cause a visible jump at idle.
+- The CSS `@keyframes rr-ticker-scroll` block and the `animation` /
+  `animation-play-state: paused` rules on `.rr-outcome-ticker__track`
+  were **removed**. Do not reintroduce them — they would race the JS
+  loop and bring back the stacked-coordinate bug.
+- The hover brake uses `--ease-paper` (0.9s); the spring uses numeric
+  stiffness/damping/mass. Mixing eases here is intentional — brake is a
+  controlled stop, restart is a physical kick.
 
 ---
 
@@ -220,3 +359,7 @@ loop. See also the `COLOPHON.md` at the repo root.
 - RugShader as Fragment sibling, not nested inside `.rr-canvas`
 - `BASE_Y` values in `CardFan.tsx` — Figma-matched, hand-tuned
 - CSS `scale` (not `transform: scale()`) on `.rr-story-card` backseat — FM owns `transform`
+- `.rr-story-card__deck-fan` bottom offset (must always clip at mat bottom) — see "Hand overlay always clips at mat bottom"
+- Outcome ticker coordinate-fold: `-(scrollLeft mod segW)` on scroll-idle, and `scrollLeft += -trackX` on first scroll — either alone is wrong
+- Outcome ticker hover-out spring `stiffness 110, damping 14, mass 1` — intentional ~12% overshoot per user request, not a normalization candidate
+- The absence of `@keyframes rr-ticker-scroll` in `rr.css` — do not re-add a CSS animation to `.rr-outcome-ticker__track`

@@ -4,10 +4,9 @@
 //
 // Architecture:
 //   #outcome.mat              — overflow: clip; bg dims via CSS :has()
-//   └── rr-canvas--outcome    — 1440×900 composition area
-//       ├── rr-outcome-card   — scroll-linked: sweeps in from left with rotation
-//       ├── rr-outcome-quote  — scroll-linked: sweeps in from left (slightly delayed)
-//       └── rr-rules-group    — scroll-linked entrance (mirrors card from right),
+//   ├── rr-canvas--outcome    — 1440×900 composition area
+//   │   ├── rr-outcome-card   — scroll-linked: sweeps in from left with rotation
+//   │   └── rr-rules-group    — scroll-linked entrance (mirrors card from right),
 //                                then FM spring for expand/collapse
 //           ├── rr-rules-label   — "Rules of the game" header
 //           ├── rr-rules-inner   — motion.div scales the 6-card grid
@@ -19,8 +18,8 @@
 //         Mat bg dims via CSS :has([data-rules-expanded]).
 // Collapse: close button, click anywhere outside group, or Escape.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView } from 'framer-motion'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView, useAnimationFrame, animate, type AnimationPlaybackControls } from 'framer-motion'
 
 /* ── SVG icons ── */
 
@@ -70,6 +69,16 @@ export default function Outcome() {
   const sectionRef = useRef<HTMLElement | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
 
+  // Ticker refs. The scroll is JS-driven via a motion value + useAnimationFrame
+  // so we can (a) decelerate like a train on hover, (b) spring-start on
+  // hover-out, and (c) transfer the track's current translate into the
+  // container's scrollLeft when the user scrolls manually — otherwise the
+  // finite track + continuous translate compound, exposing empty space past
+  // the rightmost copy. On scroll-idle we transfer scrollLeft back into the
+  // track's translate and spring the velocity back up.
+  const tickerContainerRef = useRef<HTMLDivElement>(null)
+  const tickerSegRef       = useRef<HTMLSpanElement>(null)
+
   // Grab the parent .mat section for useScroll target (canvas is inside it)
   useEffect(() => {
     if (canvasRef.current) {
@@ -93,12 +102,6 @@ export default function Outcome() {
   const cardX       = useSpring(cardXRaw, scrollSpring)
   const cardRotate  = useSpring(cardRotateRaw, scrollSpring)
   const cardOpacity = useSpring(cardOpacityRaw, scrollSpring)
-
-  // ── Quote (bottom left): sweep in from left, slightly behind card ──
-  const quoteXRaw       = useTransform(scrollYProgress, [0.45, 0.9], [-80, 0])
-  const quoteOpacityRaw = useTransform(scrollYProgress, [0.45, 0.85], [0, 1])
-  const quoteX       = useSpring(quoteXRaw, scrollSpring)
-  const quoteOpacity = useSpring(quoteOpacityRaw, scrollSpring)
 
   // ── Rules group (right): mirror of card — sweep in from right with rotation ──
   const rulesXRaw       = useTransform(scrollYProgress, [0.4, 0.85], [120, 0])
@@ -137,7 +140,172 @@ export default function Outcome() {
     }
   }, [expanded, collapse])
 
+  const TICKER_TEXT = 'What started as a laugh in Baku became a live product with thousands of players, a proof that a simple, well-balanced mechanic can travel far'
+
+  // ── Ticker motion state ─────────────────────────────────────────────────
+  // trackX: current translateX of the track, held in [-segW, 0] via wrap.
+  // velocity: px/sec (negative = leftward). Target cruise speed is segW/18.
+  // mode: 'running' | 'stopped' | 'transitioning' | 'scrolling'.
+  // hoveringRef: tracks hover intent independently of mode, so scroll-exit
+  // can check "should we resume or stay stopped" without racing state.
+  const trackX    = useMotionValue(0)
+  const velocity  = useMotionValue(0)
+  const segWidthRef   = useRef(0)
+  const modeRef       = useRef<'running' | 'stopped' | 'transitioning' | 'scrolling'>('running')
+  const hoveringRef   = useRef(false)
+  const velAnimRef    = useRef<AnimationPlaybackControls | null>(null)
+  const scrollIdleTimerRef    = useRef<number | null>(null)
+  const programmaticScrollRef = useRef(false)
+
+  const getTargetVelocity = () => -segWidthRef.current / 18
+
+  // Cruise settle (hover-out / scroll-end) — slight overshoot, then settle.
+  // Spring tuned for "train start": perceptible kick, no elastic ringing.
+  const CRUISE_SPRING = { type: 'spring' as const, stiffness: 110, damping: 14, mass: 1 }
+  // Train brake on hover — long, gentle deceleration curve.
+  const BRAKE_TWEEN   = { duration: 0.9, ease: [0.5, 0, 0.2, 1] as [number, number, number, number] }
+
+  // Measure segment and keep the target velocity in sync with it.
+  useEffect(() => {
+    const seg = tickerSegRef.current
+    if (!seg) return
+    const apply = () => {
+      const w = seg.offsetWidth
+      if (w <= 0) return
+      const prev = segWidthRef.current
+      segWidthRef.current = w
+      // If already cruising, re-sync velocity to the new segment width
+      // (e.g. after fonts load and the segment gets remeasured).
+      if (modeRef.current === 'running' && prev !== w) {
+        velocity.set(getTargetVelocity())
+      } else if (prev === 0) {
+        // First measurement: kick off cruise.
+        velocity.set(getTargetVelocity())
+      }
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(seg)
+    return () => ro.disconnect()
+  }, [velocity])
+
+  // Drive translate every frame. During scrolling/stopped modes we skip,
+  // so the track stays put and the container's scrollLeft owns motion.
+  useAnimationFrame((_, delta) => {
+    const segW = segWidthRef.current
+    if (segW <= 0) return
+    if (modeRef.current === 'scrolling' || modeRef.current === 'stopped') return
+    const v = velocity.get()
+    if (v === 0) return
+    let next = trackX.get() + v * (delta / 1000)
+    // Wrap to [-segW, 0] so trackX never drifts outside one segment.
+    while (next <= -segW) next += segW
+    while (next > 0) next -= segW
+    trackX.set(next)
+  })
+
+  const animateVelocityTo = (
+    target: number,
+    opts: typeof BRAKE_TWEEN | typeof CRUISE_SPRING,
+    onDone?: () => void,
+  ) => {
+    velAnimRef.current?.stop()
+    velAnimRef.current = animate(velocity, target, {
+      ...opts,
+      onComplete: () => {
+        velAnimRef.current = null
+        onDone?.()
+      },
+    })
+  }
+
+  const handleTickerMouseEnter = () => {
+    hoveringRef.current = true
+    if (modeRef.current === 'scrolling') return
+    modeRef.current = 'transitioning'
+    animateVelocityTo(0, BRAKE_TWEEN, () => {
+      if (modeRef.current === 'transitioning') modeRef.current = 'stopped'
+    })
+  }
+
+  const handleTickerMouseLeave = () => {
+    hoveringRef.current = false
+    if (modeRef.current === 'scrolling') return
+    modeRef.current = 'transitioning'
+    animateVelocityTo(getTargetVelocity(), CRUISE_SPRING, () => {
+      if (modeRef.current === 'transitioning') modeRef.current = 'running'
+    })
+  }
+
+  // Debounced scroll-end handler — transfers scrollLeft back into the track's
+  // translate so the animation can resume without exposing any dead space.
+  const exitScrollMode = () => {
+    const container = tickerContainerRef.current
+    const segW = segWidthRef.current
+    if (!container || segW <= 0) return
+    if (modeRef.current !== 'scrolling') return
+
+    const sl = container.scrollLeft
+    // Map scrollLeft into one segment's worth of translate. Because all three
+    // copies are identical, (sl mod segW) is visually equivalent — we can
+    // reset scrollLeft to 0 and fold the remainder into translate.
+    const mod = ((sl % segW) + segW) % segW
+    const wrappedTX = mod === 0 ? 0 : -mod
+
+    programmaticScrollRef.current = true
+    container.scrollLeft = 0
+    requestAnimationFrame(() => { programmaticScrollRef.current = false })
+    trackX.set(wrappedTX)
+
+    if (hoveringRef.current) {
+      // User is still hovering — stay stopped, don't spring up.
+      modeRef.current = 'stopped'
+      velocity.set(0)
+      return
+    }
+    modeRef.current = 'transitioning'
+    velocity.set(0)
+    animateVelocityTo(getTargetVelocity(), CRUISE_SPRING, () => {
+      if (modeRef.current === 'transitioning') modeRef.current = 'running'
+    })
+  }
+
+  const handleTickerScroll = () => {
+    if (programmaticScrollRef.current) return
+    const container = tickerContainerRef.current
+    const segW = segWidthRef.current
+    if (!container || segW <= 0) return
+
+    if (modeRef.current !== 'scrolling') {
+      // First user-scroll event — transfer current translate into scrollLeft
+      // so the visual position is preserved and motion pauses at rest.
+      velAnimRef.current?.stop()
+      velAnimRef.current = null
+      velocity.set(0)
+      const currentTX = trackX.get()
+      if (currentTX !== 0) {
+        programmaticScrollRef.current = true
+        container.scrollLeft += -currentTX
+        requestAnimationFrame(() => { programmaticScrollRef.current = false })
+      }
+      trackX.set(0)
+      modeRef.current = 'scrolling'
+    }
+
+    if (scrollIdleTimerRef.current != null) window.clearTimeout(scrollIdleTimerRef.current)
+    scrollIdleTimerRef.current = window.setTimeout(exitScrollMode, 650)
+  }
+
+  // Clean up any in-flight animation + timers on unmount.
+  useEffect(() => {
+    return () => {
+      velAnimRef.current?.stop()
+      if (scrollIdleTimerRef.current != null) window.clearTimeout(scrollIdleTimerRef.current)
+    }
+  }, [])
+
   return (
+    <Fragment>
     <div
       ref={canvasRef}
       className="rr-canvas rr-canvas--outcome"
@@ -171,16 +339,7 @@ export default function Outcome() {
         </div>
       </motion.div>
 
-      {/* ── Bottom left: closing quote ── */}
-      <motion.div
-        className="rr-outcome-quote"
-        style={{ x: quoteX, opacity: quoteOpacity }}
-      >
-        <div className="rr-outcome-quote__icon" aria-hidden="true">
-          <img src="/images/rr/rr-quote-icon.svg" alt="" width={48} height={48} />
-        </div>
-        <p className="rr-outcome-quote__text">What started as a laugh in Baku became a live product with thousands of players, a proof that a simple, well-balanced mechanic can travel far.</p>
-      </motion.div>
+      {/* Quote removed — now rendered as bottom-edge ticker outside the canvas */}
 
       {/* ── Rules group (label + panel) ── */}
       <motion.div
@@ -446,5 +605,37 @@ export default function Outcome() {
       </motion.div>{/* rr-rules-group */}
 
     </div>
+
+    {/* ── Bottom-edge ticker ── */}
+    {/* Three identical copies give enough width to always cover the viewport
+        while one copy is off-screen. Motion is JS-driven (see the ticker
+        block above): cruise is velocity * dt in useAnimationFrame, hover
+        brakes with a tween ease-out, hover-out spring-starts with a gentle
+        overshoot, and manual scroll hands translate ↔ scrollLeft so the
+        user can reach the end of the track with no dead space. */}
+    <div
+      ref={tickerContainerRef}
+      className="rr-outcome-ticker"
+      aria-label={TICKER_TEXT}
+      onMouseEnter={handleTickerMouseEnter}
+      onMouseLeave={handleTickerMouseLeave}
+      onScroll={handleTickerScroll}
+    >
+      <motion.div className="rr-outcome-ticker__track" style={{ x: trackX }}>
+        {[0, 1, 2].map(i => (
+          <span
+            key={i}
+            ref={i === 0 ? tickerSegRef : undefined}
+            className="rr-outcome-ticker__segment"
+            aria-hidden={i > 0}
+          >
+            {TICKER_TEXT}
+            {/* Masked icon — tinted via CSS. See .rr-outcome-ticker__icon. */}
+            <span className="rr-outcome-ticker__icon" aria-hidden="true" />
+          </span>
+        ))}
+      </motion.div>
+    </div>
+    </Fragment>
   )
 }

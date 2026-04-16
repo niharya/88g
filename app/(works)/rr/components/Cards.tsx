@@ -111,7 +111,7 @@ export default function Cards() {
                 exit={SUBTITLE_EXIT}
                 transition={subtitleTransition}
               >
-                over a period of 3 months
+                Over a Period of 3 Months
               </motion.p>
             )}
           </AnimatePresence>

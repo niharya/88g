@@ -437,21 +437,12 @@
 
 .project-card__illus--hov {
   top: 20px;
-  right: 62px;
-  width: 20px;
+  right: 58px;
+  width: 27px;
   height: 31px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.project-card__diamond {
-  width: 18px;
-  height: 18px;
-  background: var(--terra-720);
-  transform: rotate(41deg);
-  border-radius: 2px;
-  flex-shrink: 0;
 }
 
 .project-card__illus--notes {

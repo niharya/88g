@@ -56,7 +56,7 @@ export default function Intro() {
 
         {/* Card 1 — z:2 within container, sits on top of toggle */}
         <div className="intro__memo-card intro__memo-card--z2">
-          <p className="intro__memo-label t-h5">What is it?</p>
+          <p className="intro__memo-label t-h5">What Is It?</p>
           <p className="intro__memo-body t-p3">
             A platform to manage smart contracts and gas tank balances with custom config.
           </p>
@@ -64,7 +64,7 @@ export default function Intro() {
 
         {/* Card 2 — tilts at -1deg in closed state, corrects on reveal */}
         <div className="intro__memo-card intro__memo-card--mid">
-          <p className="intro__memo-label t-h5">Who uses it?</p>
+          <p className="intro__memo-label t-h5">Who Uses It?</p>
           <p className="intro__memo-body t-p3">
             All web3 blockchain devs, growth reps, early to mid stage founders
           </p>
@@ -72,7 +72,7 @@ export default function Intro() {
 
         {/* Card 3 — no tilt */}
         <div className="intro__memo-card">
-          <p className="intro__memo-label t-h5">Frequency of use</p>
+          <p className="intro__memo-label t-h5">Frequency of Use</p>
           <p className="intro__memo-body t-p3">
             2 consecutive sessions<br />1–3 times / month
           </p>
