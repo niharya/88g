@@ -94,6 +94,13 @@ it gives the active composition a small settle, not a snap. `isActive`
 `pointer-events` and `aria-hidden` on the two layouts so interactive targets
 don't overlap during the transition.
 
+`activeT` is also threaded into CSS as `--active-t` via an inline style on the
+`<motion.section>` root (`style={{ '--active-t': activeT }}`). This makes the
+live MotionValue readable by CSS `calc()` expressions in `biconomy.css` for
+any property that should interpolate with the standby transition without
+needing a JS motion value. If you add a CSS rule that uses `var(--active-t)`,
+it will update at 60fps driven by the same spring — no separate JS needed.
+
 **Don't touch without reading first:**
 
 - The bounce value (`0.35`) is the restrained-settle amount. Changing it to
