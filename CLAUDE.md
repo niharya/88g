@@ -3,6 +3,33 @@
 This file is the persistent working contract for Claude Code sessions on this repo.
 Read it at the start of every session. Do not drift from it without explicit instruction.
 
+## What this file is (and isn't)
+
+CLAUDE.md is a **working contract**, not a knowledge base. Keep it tight.
+
+**It contains:**
+* project identity + audience + tone
+* project status at a glance
+* current focus and working mode
+* design principles (motion, responsive, core)
+* workflow discipline and session-start checklist
+* shared architecture overview (primitives + promotion rule)
+* agent routing
+* versioning and push rules
+* upcoming tech-stack changes as one-line pointers
+
+**It does not contain:**
+* implementation details or code tours → route `NOTES.md` or the code itself
+* per-route architectural anomalies → that route's `NOTES.md` (anomalies + don't-touch only)
+* reusable primitive catalog with usage notes → `LIBRARY.md`
+* credits, historical sources, colophon items → `COLOPHON.md`
+* durable project identity memory → `docs/claude/memory.md`
+* route build briefs → that route's brief file (e.g. `MARKS_BRIEF.md`)
+* changelog, session logs, recent-work summaries → git history
+* ephemeral state (current blockers, today's tasks) → conversation or plan tool
+
+If a section of this file starts explaining *how* something works, it belongs in NOTES.md. If it starts cataloging *reusable* pieces, it belongs in LIBRARY.md. Resist bloat.
+
 ## Project
 
 This is Nihar Bhagat's portfolio site — built for studio heads, creative directors, and product leaders.
@@ -19,97 +46,110 @@ Protect: evidence, docking relationships, material coherence.
 
 Common failure modes: over-cleaning, generic polish, broken relationships.
 
+## Project status
+
+| Route | Description | Status |
+|---|---|---|
+| `/` | Landing — spectrum color selector, contact form | Shipped |
+| `/selected` | Works index — timeline, archive panel, project cards | Shipped |
+| `/biconomy` | Biconomy case study — 6 chapters | Shipped |
+| `/rr` | Rug Rumble case study — card game design + development | Shipped |
+| `/marks` | Marks & Symbols — cinematic credits-reel showcase | **In build** |
+| `/names` | Names Coined — naming work showcase | Planned (brief TBD, paper-stage) |
+
+## Current focus
+
+**`/marks` (build) + refining phase (everywhere else).**
+
+`/names` is being wireframed on paper. Do not scaffold or speculate on it yet — wait for a brief file.
+
+## Refining phase
+
+The site is shipped. The work now is polish, consistency, and selective responsive. Three streams run in parallel.
+
+### Stream 1 — desktop polish
+
+Per-route. Replace placeholders with real proof artifacts, fine-tune components and modules, tighten spacing and typographic rhythm where hand-authored values have drifted.
+
+* Do not normalize hand-authored offsets or rotations just because they look unusual. Read `NOTES.md` before touching anything that feels off — it may be load-bearing.
+* Work one view / section at a time. Review before moving on.
+
+### Stream 2 — consistency and reuse
+
+Goal: a single source of truth for everything used more than once.
+
+* **`LIBRARY.md` at repo root is the catalog.** Every component or module used (or intended to be used) in two or more places gets a `LIBRARY.md` entry: name, plain description, code paths, AI notes. See existing entries (Train Marquee, Monostamp) for format.
+* **Promotion rule.** A primitive moves into `app/components/` the **second** time it is needed — not the first. Flag the move before doing it; don't silent-promote. When a pattern is repeated across routes, stop and promote.
+* **Grep before editing shared.** If you're touching anything under `app/components/` or a token in `app/globals.css`, grep both routes for consumers first.
+* **Route-local stays route-local until it isn't.** If only one route uses it, leave it in that route's `components/`. NavPill (biconomy-local, two biconomy consumers) is the reference for this.
+
+### Stream 3 — responsive (lite)
+
+See "Responsive rules → Responsive-lite stance" below. One reference pass has shipped on `/` and `/selected`. `/marks` is being built responsive-ready from day one. `/biconomy` and `/rr` have not yet had a lite pass.
+
+## Shared design system
+
+`app/components/` and `app/globals.css` together are the shared design system layer. Every route consumes from it directly. Routes do **not** import from each other.
+
+Current shared inventory:
+
+* **`app/components/`**
+  * `Sheet`, `useReveal`, `PaperFilter` — paper/reveal primitives
+  * `Monostamp` — monospace stamp (pill + tall variants, four tones, active state)
+  * `SlideInOnNav` — entrance wrapper tied to page navigation
+  * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker` (see `nav/NOTES.md`)
+  * `icons/` — hand-rolled animatable SVG icons (`IconArrowRight`, `IconChevronRight`, `IconExternalLink`)
+* **`app/lib/`** — shared utilities (`greeting`, `titleCase`)
+* **`app/globals.css`** — design tokens, `.mat` surface, `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout, four-tier elevation ladder (`--shadow-flat` / `-resting` / `-raised` / `-overlay`), `--backseat-dim`, `--ease-paper`
+
+New shared primitives can originate in any route once they're needed twice. `/biconomy` is the historical donor for much of what's currently shared, but it is not a code dependency.
+
+Anything shared and non-obvious gets an entry in `LIBRARY.md`.
+
+## Route-level notes
+
+Each route has a `NOTES.md` file. Its purpose is narrow: **architectural anomalies, cross-file wiring, and don't-touch items** that a reader would not figure out from the code alone.
+
+Out of scope for NOTES.md: tours of the codebase, general explanations of how the feature works, changelog entries, aspirational notes.
+
+* `app/(works)/biconomy/NOTES.md`
+* `app/(works)/rr/NOTES.md`
+* `app/(works)/selected/NOTES.md`
+* `app/components/nav/NOTES.md`
+
+Log anomalies in the route they affect. If a global change causes a side effect in a specific route, document it in that route's NOTES.md. If it affects multiple routes, log it in each.
+
+## Files in play
+
+### For `/marks` (active build)
+
+* `MARKS_BRIEF.md` at repo root — full build brief, chunked plan, data shape, motion spec
+* Route-local (scaffold pending per the brief): `app/(works)/marks/{page,layout}.tsx`, `app/(works)/marks/marks.css`, `app/(works)/marks/NOTES.md`, `app/(works)/marks/components/`, `app/(works)/marks/data/marks.ts`
+* Shared marks primitive (promoted because marks are reused across routes): `app/components/marks/` — inline SVG components using `currentColor`, with a typed registry
+* Assets: `public/marks/<mark-id>/*.{jpg,gif,png}`
+
+### Refining phase — everywhere
+
+* Existing route files under `app/(works)/{biconomy,rr,selected}/`
+* `app/page.tsx`, `app/landing.css`, `app/_landing/` — landing page
+* Shared: `app/components/`, `app/globals.css`, `app/lib/`
+* Shell: `app/(works)/{layout,ShellNav,TransitionSlot}.tsx`
+
 ## Reference material
 
 Everything under `reference/` is read-only context. Never modify it.
 
-* `reference/88g-source/` — original Biconomy source
-* `reference/portfolio-vanilla/` — original vanilla portfolio source
-* `reference/v0-duel-game/` — React/TypeScript Rug Rumble game source
+* `reference/marks-source/` — the six mark SVG source files for `/marks`
 
-## Current focus
-
-**Current focus: `/rr` (Rug Rumble).**
-
-`/biconomy` is complete. The patterns it established have been promoted into the shared design system layer (see *Shared design system* below) and are consumed by `/rr` from there.
-
-Do not modify `/biconomy` unless:
-
-* a shared primitive genuinely needs to move into the shared layer
-* a shared bug is discovered during `/rr` work
-* a shared global token/class must become parameterizable
-
-## RR working mode
-
-Rug Rumble should be built in **two distinct phases**.
-
-### Phase 1 — clean port
-
-* Port the vanilla section faithfully into the Next.js route
-* Reuse established shared primitives, tokens, and route patterns
-* Preserve structure and interaction before compositional reinvention
-* Do **not** rearrange during this phase unless explicitly instructed
-
-### Phase 2 — rearrangement
-
-* Rearrangement happens only after the clean port of that section is approved
-* Prefer recomposition over rewriting
-* Keep logic and working interactions intact unless explicitly asked to change them
-
-Do not combine Phase 1 and Phase 2 by default.
-
-## Shared design system
-
-`app/components/` and `app/globals.css` together are the project's shared design system layer. Both `/biconomy` and `/rr` consume from it directly. Neither route imports from the other.
-
-What currently lives in shared:
-
-* `app/components/` — `Sheet`, `PaperFilter`, `useReveal`, `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker`
-* `app/globals.css` — design tokens, the `.mat` surface (grid + paper noise), `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout
-
-**Promotion rule.** A primitive moves into shared the **second** time it's needed, not the first. Flag the move before doing it — don't silent-promote. If you find yourself copying a pattern from one route to another, stop and promote instead. If you find yourself touching a shared primitive, grep both routes first.
-
-`/biconomy` was built before `/rr`, so much of what's currently in shared was originally prototyped there. That makes it the historical donor — but it is not a code dependency. New shared primitives can originate in any route once they're needed twice.
-
-## Route-level notes
-
-Each route has a `NOTES.md` file that documents architectural decisions, anomalies, cross-file wiring, and don't-touch items specific to that route. These are not code tours — they record things you would not figure out by reading the code in isolation.
-
-* `app/(works)/rr/NOTES.md`
-* `app/(works)/biconomy/NOTES.md`
-* `app/(works)/selected/NOTES.md`
-* `app/components/nav/NOTES.md`
-
-**Log anomalies in the route they affect.** If a global change (e.g. a shared primitive update) causes a side effect in a specific route, document it in that route's `NOTES.md`. If it affects multiple routes, document it in each.
-
-## Files in play for `/rr`
-
-Route-local:
-
-* `app/(works)/rr/page.tsx`
-* `app/(works)/rr/layout.tsx`
-* `app/(works)/rr/rr.css`
-* `app/(works)/rr/components/`
-* `app/(works)/rr/NOTES.md`
-
-Shell (persistent across routes):
-
-* `app/(works)/layout.tsx` — workbench, PaperFilter, ShellNav, TransitionSlot
-* `app/(works)/TransitionSlot.tsx` — page transitions (DOM ghost-clone + WAAPI)
-* `app/(works)/ShellNav.tsx` — persistent ProjectMarker + ExitMarker
-
-Shared layers (see *Shared design system* above):
-
-* `app/components/`
-* `app/globals.css`
+Historical references (the original Biconomy source, the vanilla portfolio, and the v0 Rug Rumble prototype) have been removed from the repo now that their routes are shipped.
 
 ## Stack and implementation philosophy
 
-* Use plain CSS files. No Tailwind. No CSS modules. No styled-components.
+* Plain CSS files. No Tailwind. No CSS modules. No styled-components.
 * CSS handles presentation.
 * React handles state and interaction.
-* Framer Motion is for spring physics, presence transitions, and scroll-linked transforms only where it materially helps.
-* Use route-local modules with clear ownership.
+* Framer Motion is for spring physics, presence transitions, and scroll-linked transforms — only where it materially helps.
+* Route-local modules with clear ownership.
 * Shared tokens live in `globals.css`. Route tokens live in route CSS files.
 
 If a simple CSS transition is enough, use CSS.
@@ -122,7 +162,7 @@ All motion in the portfolio follows a paper-physical language. Things glide, set
 
 1. **One easing curve.** `--ease-paper: cubic-bezier(0.5, 0, 0.2, 1)` — confident start, long gentle deceleration. Used for section reveals, page transitions, and all CSS transitions. Defined in `globals.css`, mirrored as `EASE` in `TransitionSlot.tsx`.
 2. **Long durations.** 0.5–0.9s range. Nothing should feel fast or urgent.
-3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic.
+3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic. (Documented deviations exist — the train ticker overshoot, the Flows nav settle — and live in their route NOTES.md.)
 4. **Native scroll.** No smooth-scroll libraries, no scroll hijacking. The browser's physics stay in control.
 5. **Scroll-mapped transforms where useful.** `useScroll` + `useTransform` + `useSpring` for elements that respond to scroll position — not just trigger-on-intersection.
 
@@ -161,6 +201,58 @@ Breakpoints: mobile < 768px, tablet 768–1023px, desktop ≥ 1024px.
 
 Start with the mobile composition as a separate design, not a derivative of desktop. If an approach feels hacky, it probably is — find a better mechanism (CSS visibility classes, clamp, container queries, breakpoint-scoped property overrides) before committing.
 
+### Responsive-lite stance (refining phase)
+
+All remaining responsive work on this portfolio is "lite" — a usability floor, not a composition pass. The goal is: the route does not break on mobile or tablet, touch users can read and navigate it, and nothing implies an interaction that fails. That is the gate. Do not auto-escalate past it.
+
+**What "lite" means.**
+
+* Usability and non-breakage at mobile/tablet widths, nothing more.
+* Accommodations are made *per-route*, scoped inside media queries, with zero desktop side effects.
+* Desktop remains the canonical composition. Mobile is a reading fallback.
+* A route is "done" under lite when a phone user can read it end-to-end without horizontal scroll, overflowing text, or tap targets that miss.
+
+**What "lite" is not.**
+
+* Not a second authored composition.
+* Not visual parity with the desktop reading experience.
+* Not a reason to redesign sections whose meaning depends on spatial layout.
+* Not a license to rebuild scroll-bound or absolute-positioned desktop set pieces for small screens.
+
+**Minimum floor every route must meet under lite.**
+
+* No horizontal overflow at 375px.
+* Body copy readable at 375px without zoom; no `transform: scale()` fixes.
+* Touch targets ≥ 44px for anything interactive.
+* Mobile tucked pill nav present (project marker + chapter marker), per the global pattern above.
+* 4px viewport frame active on mobile (the halved brand detail).
+* Mat-as-last-element flex chain where the page ends on a mat.
+* Responsive copy variants via the two-span CSS visibility pattern when phrasing differs.
+* `:hover`-only affordances disabled or replaced on touch.
+
+**Explicitly de-scoped under lite.**
+
+* Decorative desktop elements (timeline bars, dot clusters, spatial markers) may be removed on mobile rather than recomposed.
+* Hand-placed desktop embellishments (rotated stamps, offset notes, marginalia) are allowed to drop out on mobile.
+* Proof-artifact-dense sections (multi-pane game boards, scroll-choreographed splits, dense editorial grids) do **not** get a bespoke mobile composition. They render in a simplified single-column form or collapse to a representative still.
+* Per-section mobile art direction. If the desktop section doesn't fit, simplify — don't re-author.
+
+**Per-route precedent.**
+
+* `/` and `/selected` are the reference implementations for a retrofit-lite pass (v0.21.0). Follow their patterns when adding lite to `/biconomy` and `/rr`.
+* `/marks` is the reference for a *built-responsive-ready* route: `clamp()` for type and spacing, `flex-direction: column` flips for row compositions, tucked pill + 4px frame from day one, no separate mobile pass. Future routes built from scratch should prefer this model.
+* Distinction: retrofit-lite accepts pragmatic drop-outs; built-responsive-ready avoids them by designing the primitives to bend.
+
+**Don't-do list (tempting, out of scope).**
+
+* Don't rebuild `/rr`'s Mechanics scroll-bound mat-split for mobile. Collapse or still it.
+* Don't redesign `/biconomy`'s Flows standby/active composition for mobile. Linearize it.
+* Don't re-author dense editorial grids as custom mobile layouts — stack them.
+* Don't invent new mobile-only primitives. If a route needs one, flag it and confirm before building.
+* Don't promote lite patterns to shared until a second route actually needs them.
+
+Log lite decisions and drop-outs in each route's `NOTES.md` under a "Responsive anomalies" section, following `app/(works)/selected/NOTES.md` (line 477+) as the template.
+
 ## Core design principle
 
 **Elements should feel docked, tucked, or suspended with intention — not placed nearby.**
@@ -179,7 +271,7 @@ Concretely:
 
 ### 1. Proof artifacts must remain proof artifacts
 
-If a route shows sketches, screenshots, game boards, cards, or mockups, preserve the feeling of evidence. Do not leave placeholder emptiness.
+If a route shows sketches, screenshots, game boards, cards, or mockups, preserve the feeling of evidence. Do not leave placeholder emptiness. Replacing placeholders with real artifacts is an active refining-phase task.
 
 ### 2. Controls must not lie
 
@@ -187,7 +279,7 @@ If something looks interactive, it must work, or it must stop implying interacti
 
 ### 3. Route-specific ownership
 
-Keep styles, state, and logic close to the route. Promote to shared only when two routes genuinely need the same thing.
+Keep styles, state, and logic close to the route. Promote to shared only when two routes genuinely need the same thing. When promoting, add a `LIBRARY.md` entry in the same commit.
 
 ### 4. Preserve authored values
 
@@ -201,13 +293,14 @@ Do not change the established chapter tray tilt behavior unless explicitly asked
 
 ### Analyze before you build
 
-Before implementing any section:
+Before implementing any section or touching shared code:
 
-1. Read the route's `NOTES.md` for decisions, anomalies, and don't-touch items
-2. Read only the relevant vanilla source for that section
-3. Read only the closest existing pattern from `/biconomy` or shared primitives
-4. Present a short mapping of vanilla structure to the current system
-5. Wait for confirmation before writing code
+1. Read the relevant route's `NOTES.md` for decisions, anomalies, and don't-touch items
+2. Read `LIBRARY.md` to see if the pattern you need already exists as a shared primitive
+3. Read only the closest matching existing pattern — not broad swathes
+4. For a new `/marks` section, read `MARKS_BRIEF.md` for the plan and read the matching shared primitive
+5. Present a short mapping of the plan to the current system
+6. Wait for confirmation before writing code
 
 Do not skip this.
 
@@ -231,12 +324,12 @@ To reduce token use and drift:
 
 * do not read the entire repo eagerly
 * do not read full reference directories
-* read only the current section’s source, the closest matching pattern, and directly relevant shared files
+* read only the current section's source, the closest matching pattern, and directly relevant shared files
 * keep responses tight and scoped to the active chunk
 
 ## Versioning and pushing
 
-Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …).
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.23.0`.
 
 Before pushing:
 
@@ -255,6 +348,7 @@ Before implementation, select the relevant agent(s):
 * **portfolio-guardian** → tone, integrity, portfolio fit
 * **route-auditor** → before touching any route; checks NOTES.md and constraints
 * **frontend-craft** → layout, motion, CSS, interaction decisions
+* **responsive-guardian** → responsive passes; desktop parity, lite-stance adherence
 * **anomaly-librarian** → when a non-obvious constraint or side-effect is discovered
 
 Before writing code: identify the task, select agent(s), summarize constraints briefly, then implement. Do not make agent usage verbose in responses.
@@ -266,7 +360,21 @@ Before implementing anything, confirm:
 * current file/folder structure still matches this document
 * shared primitives still exist where expected
 * `globals.css` tokens have not materially changed
-* anything promoted to shared is imported from the new location
-* read the `NOTES.md` for the route you are about to work on — it contains decisions, anomalies, and don't-touch items you will not find in the code alone
+* anything promoted to shared is imported from the new location and has a `LIBRARY.md` entry
+* read the `NOTES.md` for the route you are about to work on — anomalies and don't-touch items you will not find in the code alone
+* read `LIBRARY.md` if you're about to build something that might already exist
+* read `MARKS_BRIEF.md` if working on `/marks`
+* read `COLOPHON.md` only if the question is about origins, credits, or where a pattern comes from
+* read `docs/claude/memory.md` only if the question is about project identity/audience
+
+## Upcoming tech-stack changes
+
+Short list of stack moves with real benefit. Not aspirational; flag before starting and treat each as its own focused task.
+
+1. **`next/font/google`** — migrate the five-family Google Fonts CDN load (Fraunces, Google Sans, Google Sans Flex, Material Symbols Rounded, system mono stays as-is) to `next/font/google` self-hosting. Removes a third-party round-trip, eliminates FOUC. The `.fonts-ready` gate in `globals.css` can be retired or kept as belt-and-braces depending on how much of it is motion-gating vs swap-prevention. Audit `COLOPHON.md` font list against actual usage before migrating.
+2. **Biome** — one-tool lint + format. Currently zero dev toolchain. Configure narrowly (no stylistic bikeshed). Catches unused imports, stray `console`, inconsistent quotes pre-commit. Skip if preference is toolless.
+3. **`@next/bundle-analyzer` — one-off audit.** Not a dependency. Run once, inspect what Framer Motion 12 + React 19 + five font families actually ship. Use findings to inform, not act reflexively.
+
+**Not doing:** Tailwind, shadcn/Radix, state libraries, Storybook, MDX, test frameworks, View Transitions API migration (TransitionSlot is load-bearing and works).
 
 *Last updated: April 2026.*

@@ -10,16 +10,56 @@ Each project page is a composed reading environment — not a template filled wi
 
 ## ◎ Status
 
-The site is live with four routes:
-
 | Route | Description | Status |
 |-------|-------------|--------|
-| `/` | Landing page — spectrum color selector, contact form | Complete |
-| `/selected` | Works index — timeline, archive panel, project cards | Complete |
-| `/biconomy` | Biconomy case study — 6 chapters, UX audit through staying anchored | Complete |
-| `/rr` | Rug Rumble case study — card game design and development | In progress |
+| `/` | Landing page — spectrum color selector, contact form | Shipped |
+| `/selected` | Works index — timeline, archive panel, project cards | Shipped |
+| `/biconomy` | Biconomy case study — 6 chapters, UX audit through staying anchored | Shipped |
+| `/rr` | Rug Rumble case study — card game design and development | Shipped |
+| `/marks` | Marks & Symbols — cinematic credits-reel showcase | In build |
+| `/names` | Names Coined — naming work showcase | Planned |
 
-Next work: fine-tuning, replacing placeholder images, responsive.
+---
+
+## ◦ Next
+
+Running task list. Keeps the work honest when a session loses thread.
+
+### `/marks` (active build — see [`MARKS_BRIEF.md`](./MARKS_BRIEF.md))
+
+- [ ] Route skeleton — `layout.tsx`, `page.tsx`, `marks.css`, `NOTES.md`, empty components, data placeholders
+- [ ] Shared marks primitive — `app/components/marks/` with six SVG components + typed registry + `LIBRARY.md` entry
+- [ ] Hero — 120px title, gradient + noise mat
+- [ ] Essay — body text, glyph dividers, 6-mark preview row
+- [ ] First mark section (Mark 1 only) — static carousel, chrome, bespoke gradient
+- [ ] All six mark sections stacked
+- [ ] Hero docking — scroll-mapped 120 → 24 title transform
+- [ ] Gradient ambient motion — per-mark drift + cross-mark crossfade
+- [ ] Showcase timer — `useShowcaseTimer` (4s/slide, 24s idle, visibility pause, reduced motion)
+- [ ] Magnetic settle — `useMagneticSettle` (4s scroll-end, ≥70% in-view)
+- [ ] Essay preview row hover + jump
+- [ ] Buffer + infinite loop — double-render + silent scroll-shift
+- [ ] Mobile adjustments — built responsive-ready (no separate pass)
+- [ ] `NOTES.md` — infinite loop reset, settle-vs-timer overlap, why marks were promoted
+
+### Refining phase (parallel across shipped routes)
+
+- [ ] Desktop polish — replace placeholders with real proof artifacts; fine-tune components and modules per route
+- [ ] Consistency sweep — log every repeat component/module into [`LIBRARY.md`](./LIBRARY.md) as the single source of truth
+- [ ] Narrow each `NOTES.md` to anomalies + don't-touch only (no code tours, no changelog)
+- [ ] Responsive-lite pass on `/biconomy` and `/rr` (after `/marks` ships) — usability floor only, not full parity
+
+### `/names`
+
+- [ ] Finish paper wireframes
+- [ ] Write `NAMES_BRIEF.md` (follow `MARKS_BRIEF.md` as the template)
+- [ ] Scaffold the route after the brief is locked
+
+### Tech stack (real benefit, not aspirational)
+
+- [ ] Migrate Google Fonts CDN → `next/font/google` (self-host, remove FOUC gate complexity)
+- [ ] Adopt Biome for lint + format — narrow config, pre-commit hook
+- [ ] One-off bundle audit via `@next/bundle-analyzer`
 
 ---
 
