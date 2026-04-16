@@ -309,6 +309,38 @@
   /* --active-t: 0 = standby (centered, switch hidden, text desat) */
   /*           1 = default (left-aligned, switch + nav visible)    */
   --active-t: 0;
+
+  /* Rail geometry.
+
+     Vertical: the rail is tucked inside the audit frame vertically.
+       --flows-header-h           .flows__header min-height (stable layout row).
+       --flows-main-gap           gap between header and frame inside main.
+       --rail-parent-top-offset   distance from .flows top to frame top.
+                                   Computed — do not edit directly.
+       --rail-frame-inset         breathing room between rail top/bottom and
+                                   frame edges (16–24px).
+                                   Rail height = frame.height − 2 × inset.
+
+     Horizontal (open-state tuck):
+       --rail-width               rail max-width (also used to derive the
+                                   open-state tuck).
+       --main-open-shift          how far .flows__main slides left on open.
+       --rail-open-tuck           overlap between main.right and rail.left
+                                   in the open state — this is what makes
+                                   the rail feel *tucked* under main, not
+                                   floating beside it.
+       --rail-open-shift          derived — how far the rail translates right.
+                                   Picked so:  main.right − rail.left = tuck.
+                                   Do not edit directly; adjust --rail-width,
+                                   --main-open-shift, or --rail-open-tuck. */
+  --flows-header-h: 24px;
+  --flows-main-gap: 10px;
+  --rail-parent-top-offset: calc(var(--flows-header-h) + var(--flows-main-gap));
+  --rail-frame-inset: 20px;
+  --rail-width: 220px;
+  --main-open-shift: 120px;
+  --rail-open-tuck: 24px;
+  --rail-open-shift: calc(var(--rail-width) - var(--rail-open-tuck) - var(--main-open-shift));
 }
 
 /* Main column — max 1000px, shifts left when notes open */
@@ -317,14 +349,14 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* gap-2.5 */
+  gap: var(--flows-main-gap);
   max-width: 1000px;
   width: 100%;
   transition: transform 0.3s ease-out;
 }
 
 .flows__main.is-notes-open {
-  transform: translateX(-120px);
+  transform: translateX(calc(var(--main-open-shift) * -1));
 }
 
 /* Header row — three-part layout: spacer | left-group | nav.             */
@@ -336,7 +368,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  min-height: 24px; /* match switch + navpill so layout is stable */
+  min-height: var(--flows-header-h); /* match switch + navpill so layout is stable */
 }
 
 .flows__header-spacer {
@@ -513,9 +545,17 @@
 
 /* ── Notes rail ──────────────────────────────────────────────────────────── */
 
+/* Wrap spans the main column (max-width:1000, centered). Its padding reserves
+   the header region above the frame and the frame-inset breathing room so
+   the rail stretches to frame.height − 2 × --rail-frame-inset and sits
+   centered within the frame. */
 .flows__notes-wrap {
   position: absolute;
-  padding-top: 32px; /* pt-8 */
+  padding:
+    calc(var(--rail-parent-top-offset) + var(--rail-frame-inset))
+    0
+    var(--rail-frame-inset)
+    0;
   max-width: 1000px;
   height: 100%;
   width: 100%;
@@ -523,14 +563,14 @@
   justify-content: flex-end;
 }
 
+/* Rail height is derived (stretched to the wrap's padded content area =
+   frame.height − 2 × --rail-frame-inset). Width is capped. */
 .flows__notes-rail {
-  max-width: 240px;
+  max-width: var(--rail-width);
   display: flex;
-  align-items: flex-end;
   gap: 2px; /* gap-0.5 */
   outline: 1px solid var(--olive-400);
   outline-offset: -8px;
-  margin: 32px 0; /* my-8 */
   background: var(--olive-80);
   color: var(--olive-800);
   transition: transform 0.3s ease-out;
@@ -539,7 +579,7 @@
 }
 
 .flows__notes-rail.is-open {
-  transform: translateX(120px) rotate(0deg);
+  transform: translateX(var(--rail-open-shift)) rotate(0deg);
 }
 
 /* Vertical tab button — positioned to the right of the rail */
@@ -575,13 +615,14 @@
   transform: rotate(180deg);
 }
 
-/* Notes content area — flex-1 overflow-y-auto max-h-[500px] from original */
+/* Notes content fills the rail (stretched via flex). Bottom-anchored list
+   so shorter slides leave whitespace at the top, never a scrollbar. */
 .flows__notes-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  max-height: 500px;
+  justify-content: flex-end;
+  overflow: hidden;
 }
 
 .flows__notes-list {

@@ -18,9 +18,10 @@
 // Appearance
 //   light   — paper-cream fill, neutral hairline border, tone-800 ink.
 //             For light surfaces (mats, cards, paper).
-//   dark    — tone-960 fill, tone-720 border + ink at rest, tone-560 when
-//             active. Github-dark-chip feel for use on dark artefacts
-//             (screenshots, video frames).
+//   dark    — tone-960 fill, tone-560 border + ink at rest. On active the
+//             shell brightens to tone-800 and border + ink jump to tone-400
+//             for a high-contrast pop against the brighter shell. For use
+//             on dark artefacts (screenshots, frames).
 //
 // Known consumers
 //   • /biconomy Flows note pointers (tone="olive" variant="tall" appearance="dark").

@@ -668,7 +668,7 @@ html.fonts-ready .workbench {
   justify-content: center;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   letter-spacing: 0.02em;
   padding: 3px 6px;
@@ -693,16 +693,17 @@ html.fonts-ready .workbench {
 .monostamp--yellow  { color: var(--yellow-800); }
 
 /* Dark appearance — for use on dark artefacts (e.g. dashboard screenshots). */
-/* Shell uses the tone's 960 fill with a 720 border + ink at rest; when the  */
-/* stamp is `active` (selected/hovered via consumer state) the border and   */
-/* ink brighten to the tone's 560. Background stays fixed so the brightening */
-/* reads as an attention cue, not a skin change.                            */
-.monostamp--dark.monostamp--mint    { background: var(--mint-960);   border-color: var(--mint-720);   color: var(--mint-720); }
-.monostamp--dark.monostamp--olive   { background: var(--olive-960);  border-color: var(--olive-720);  color: var(--olive-720); }
-.monostamp--dark.monostamp--yellow  { background: var(--yellow-960); border-color: var(--yellow-720); color: var(--yellow-720); }
-.monostamp--dark.monostamp--neutral { background: var(--grey-160);   border-color: var(--grey-560);   color: var(--grey-480); }
+/* Rest: tone-960 fill, tone-560 border + ink — bright ramp on a deep shell. */
+/* Active (hovered/selected via consumer state): shell brightens to tone-800 */
+/* and border + ink jump to tone-400 for a high-contrast pop.                */
+.monostamp--dark.monostamp--mint    { background: var(--mint-960);   border-color: var(--mint-560);   color: var(--mint-560); }
+.monostamp--dark.monostamp--olive   { background: var(--olive-960);  border-color: var(--olive-560);  color: var(--olive-560); }
+.monostamp--dark.monostamp--yellow  { background: var(--yellow-960); border-color: var(--yellow-560); color: var(--yellow-560); }
+.monostamp--dark.monostamp--neutral { background: var(--grey-160);   border-color: var(--grey-480);   color: var(--grey-320); }
 
-.monostamp--dark.is-active.monostamp--mint    { border-color: var(--mint-560);   color: var(--mint-560); }
-.monostamp--dark.is-active.monostamp--olive   { border-color: var(--olive-560);  color: var(--olive-560); }
-.monostamp--dark.is-active.monostamp--yellow  { border-color: var(--yellow-560); color: var(--yellow-560); }
-.monostamp--dark.is-active.monostamp--neutral { border-color: var(--grey-480);   color: var(--grey-320); }
+/* Active (hover/selected) — shell brightens to tone-800, ink + border step    */
+/* to tone-400 for a high-contrast pop against the brighter shell.              */
+.monostamp--dark.is-active.monostamp--mint    { background: var(--mint-800);   border-color: var(--mint-400);   color: var(--mint-400); }
+.monostamp--dark.is-active.monostamp--olive   { background: var(--olive-800);  border-color: var(--olive-400);  color: var(--olive-400); }
+.monostamp--dark.is-active.monostamp--yellow  { background: var(--yellow-800); border-color: var(--yellow-400); color: var(--yellow-400); }
+.monostamp--dark.is-active.monostamp--neutral { background: var(--grey-240);   border-color: var(--grey-400);   color: var(--grey-400); }
