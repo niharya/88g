@@ -9,6 +9,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import TwitterEmbed from './TwitterEmbed'
+import NavPill from './NavPill'
 
 const API_SLIDES = [
   {
@@ -34,45 +35,6 @@ function getStackStyle(slideIndex: number, frontIndex: number) {
   if (distance === 1) return { zIndex: 2, x: -64,  y: -64  }
   if (distance === 2) return { zIndex: 1, x: -128, y: -128 }
   return                     { zIndex: 0, x: -128, y: -128 }
-}
-
-function NavButtons({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) {
-  return (
-    <div className="api__nav-buttons">
-      <button
-        type="button"
-        onClick={onPrev}
-        className="api__nav-btn"
-        aria-label="Previous slide"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path
-            d="M12.5 16.6667L6.25 10L12.5 3.33333"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={onNext}
-        className="api__nav-btn"
-        aria-label="Next slide"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path
-            d="M7.5 3.33333L13.75 10L7.5 16.6667"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-    </div>
-  )
 }
 
 function APISlider({ className }: { className?: string }) {
@@ -128,7 +90,7 @@ function APISlider({ className }: { className?: string }) {
               {API_SLIDES[currentIndex].caption}
             </motion.p>
           </AnimatePresence>
-          <NavButtons onPrev={goPrev} onNext={goNext} />
+          <NavPill onPrev={goPrev} onNext={goNext} prevLabel="Previous slide" nextLabel="Next slide" />
         </div>
       </div>
     </div>

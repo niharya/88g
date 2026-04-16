@@ -103,6 +103,7 @@
   --font-display: 'Fraunces', serif;
   --font-body:    'Google Sans', sans-serif;
   --font-ui:      'Google Sans Flex', sans-serif;
+  --font-mono:    'Google Sans Code', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
 
   /* ---- Spacing scale (8/4/2 rhythm) ---- */
   /* micro: 2px */
@@ -318,7 +319,7 @@ p, li {
 
   /* Sheet (paper chapter container) */
   --sheet-padding-x:  64px;
-  --sheet-padding-y:  112px;
+  --sheet-padding-y:  114px;
   --sheet-bleed:      40px;
   --sheet-border:     2px solid var(--grey-880);
 
@@ -618,7 +619,6 @@ html.fonts-ready .workbench {
   position: absolute;
   inset: 0;
   background-color: var(--surface-color);
-  filter: url(#paper-displace);
   z-index: -1;
 }
 
@@ -648,3 +648,61 @@ html.fonts-ready .workbench {
   -webkit-text-stroke: 11px var(--olive-80);
   paint-order: stroke fill;
 }
+
+
+/* ── Monostamp ───────────────────────────────────────────────────────────── */
+/* Small monospace stamp. Neutral shell (paper-cream + hairline border),    */
+/* ink colored by tone. Default variant is a horizontal fit-content pill;    */
+/* tall variant is a fixed-height single-character vertical stamp used for   */
+/* note-pointer annotations. See app/components/Monostamp.tsx.              */
+/*                                                                           */
+/* Do NOT add transitions on color / border-color / background-color to     */
+/* .monostamp. Consumers re-render the active prop from scroll springs and   */
+/* hover state, which restarts the transition every paint; stacked running   */
+/* CSS Animations prevent the is-active palette from ever applying. The      */
+/* palette swap is intentionally instant.                                    */
+
+.monostamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  padding: 3px 6px;
+  border: 1px solid;
+  border-radius: 4px;
+  background: var(--grey-960);
+  border-color: var(--grey-880);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.monostamp--tall {
+  height: 20px;
+  padding: 0 4px;
+}
+
+/* Light appearance (default) — tone sets ink only, shell stays neutral.    */
+/* Reads as marginalia on light backgrounds.                                */
+.monostamp--neutral { color: var(--grey-400); }
+.monostamp--mint    { color: var(--mint-800); }
+.monostamp--olive   { color: var(--olive-800); }
+.monostamp--yellow  { color: var(--yellow-800); }
+
+/* Dark appearance — for use on dark artefacts (e.g. dashboard screenshots). */
+/* Shell uses the tone's 960 fill with a 720 border + ink at rest; when the  */
+/* stamp is `active` (selected/hovered via consumer state) the border and   */
+/* ink brighten to the tone's 560. Background stays fixed so the brightening */
+/* reads as an attention cue, not a skin change.                            */
+.monostamp--dark.monostamp--mint    { background: var(--mint-960);   border-color: var(--mint-720);   color: var(--mint-720); }
+.monostamp--dark.monostamp--olive   { background: var(--olive-960);  border-color: var(--olive-720);  color: var(--olive-720); }
+.monostamp--dark.monostamp--yellow  { background: var(--yellow-960); border-color: var(--yellow-720); color: var(--yellow-720); }
+.monostamp--dark.monostamp--neutral { background: var(--grey-160);   border-color: var(--grey-560);   color: var(--grey-480); }
+
+.monostamp--dark.is-active.monostamp--mint    { border-color: var(--mint-560);   color: var(--mint-560); }
+.monostamp--dark.is-active.monostamp--olive   { border-color: var(--olive-560);  color: var(--olive-560); }
+.monostamp--dark.is-active.monostamp--yellow  { border-color: var(--yellow-560); color: var(--yellow-560); }
+.monostamp--dark.is-active.monostamp--neutral { border-color: var(--grey-480);   color: var(--grey-320); }

@@ -55,3 +55,92 @@ CSS:
 If you find yourself authoring a new shadow on a biconomy surface, use the
 ladder first. Only introduce a new hardcoded value if it expresses a mechanic
 the ladder cannot (motion-state, glow, inset press) and document why inline.
+
+### Flows HUD mode (dev authoring tool)
+
+`Flows.tsx` ships with a chip-coordinate authoring HUD gated by the `?hud=1`
+URL param. When active, BeforeAfter chips become draggable via NATIVE pointer
+events (`setPointerCapture` + `pointermove`) and a floating HudPanel exposes a
+capture button that posts the current chip layout to `/api/hud-capture`. That
+route writes to `.claude/hud-captures.json` on POST and returns 403 in
+production — the endpoint is intentionally dev-only. Captures are also
+mirrored to `localStorage` under `__hudAllCaptures`, keyed by
+`${slideIdx}-${state}`, and Flows rehydrates these overrides on mount so chip
+positions survive page reloads during an authoring session.
+
+**Don't touch without reading first:**
+
+- The HUD drag path in `BeforeAfter.tsx` deliberately does NOT use
+  framer-motion's `drag` prop. Framer re-applies its own transform during
+  drag, which fights the state-driven `left/top` writes and produces stuck or
+  snapping chips. `hudMode` triggers the native-pointer code path for this
+  reason.
+- The 403 guard in `app/api/hud-capture/route.ts` must stay — this is a
+  filesystem-writing endpoint.
+- Leave `__hudAllCaptures` under that exact key; the rehydrate-on-mount path
+  reads it literally.
+
+### Standby → active choreography (Flows)
+
+Flows has two composed states per slide: a standby layout and an active
+reading layout. The transition is driven by `useScroll({ target: frameRef })`
+→ `activeTRaw` (clamped 0→1 over the scroll range) → `activeT` (a `useSpring`
+with `duration: 0.6, bounce: 0.35`). Two derived motion values —
+`navTranslateX` (−120 → 0) for the right-side nav slide-in and
+`leftTranslateX` (32 → 0) for the left-group recentering — read off the same
+spring so they land in lockstep. A restrained overshoot is intentional here:
+it gives the active composition a small settle, not a snap. `isActive`
+(boolean) flips at the midpoint of `activeT`, and that threshold is what gates
+`pointer-events` and `aria-hidden` on the two layouts so interactive targets
+don't overlap during the transition.
+
+**Don't touch without reading first:**
+
+- The bounce value (`0.35`) is the restrained-settle amount. Changing it to
+  `0` kills the land-feel; raising it makes the nav visibly rubber-band.
+- If you split `navTranslateX` and `leftTranslateX` onto separate springs, the
+  recenter and slide-in stop landing together and the composition looks
+  fractured.
+- `isActive` *must* flip at the midpoint, not at `activeT === 1`. Flipping at
+  completion leaves a window where both layouts are pointer-interactive.
+
+### Reciprocal hover (Flows ↔ BeforeAfter)
+
+The notes rail and the BeforeAfter overlay chips share a single
+`hoveredNoteIndex` in `Flows.tsx`. Both sides write to it: the notes rail list
+items call `setHoveredNoteIndex` on enter/leave, and the overlay chips call
+back through `onNoteHoverChange` / `onChipHoverChange`. Either side hovering
+lifts both — the chip's `.is-hovered` class and the rail's selected-state
+Monostamp are driven from the same source of truth.
+
+On each hover-enter edge (chip side), `Flows` rolls a fresh binary ±2°
+rotation: `setLiftRotate(Math.random() < 0.5 ? -2 : 2)`. The value is passed
+to BeforeAfter and applied as `--lift-rotate` on the `.ba__note-pointer`
+wrapper; CSS consumes it in `transform: scale(1.2) rotate(var(--lift-rotate,
+0deg))` with a 0.14s snappy cubic-bezier. The binary (not continuous) random
+keeps the lift crisp — it reads as "picked up on one side or the other," not
+a wiggle.
+
+The `.is-hovered` class activates via reciprocal state AND `:hover` activates
+directly on the chip. Both are needed: `:hover` covers direct-chip hover even
+when state-writing ordering is delayed, and `.is-hovered` covers the
+rail-driven case. Removing either breaks one direction of the pairing.
+
+**Don't touch without reading first:**
+
+- Don't make the rotation continuous (e.g. random −2..+2). Binary is the
+  intended character — continuous feels drunk.
+- The default fallback `var(--lift-rotate, 0deg)` matters for the non-hovered
+  baseline; don't drop it.
+- Keep both `:hover` and `.is-hovered` as activators.
+
+### NavPill is biconomy-local-shared
+
+`app/(works)/biconomy/components/NavPill.tsx` is used by both Flows and the
+API section. Despite appearing twice, it has NOT been promoted to
+`app/components/` — both consumers live within the same route, so it stays
+route-local. Per the shared-layer promotion rule (CLAUDE.md: "a primitive
+moves into shared the *second* time it's needed"), the count is measured
+across routes, not call sites. Promote NavPill to `app/components/` the
+moment a third consumer outside `/biconomy` needs it, and flag the move
+before doing it.

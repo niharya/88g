@@ -1101,7 +1101,7 @@ textarea.contact-form__input {
 /* Success / error pills — matching archive hint pill pattern */
 .contact-form__success-pill,
 .contact-form__error-pill {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.02em;
   line-height: 1;

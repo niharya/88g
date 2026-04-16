@@ -45,4 +45,24 @@ A continuously scrolling horizontal marquee. Decelerates to a stop on hover, spr
 
 ---
 
+## Monostamp
+
+A small monospace stamp — hairline-bordered pill or vertical stamp housing one or two monospace characters. Two variants (`default` horizontal pill, `tall` fixed-height vertical), two appearances (`light` for paper surfaces, `dark` for screenshots and dark artefacts), four tones (`neutral`, `mint`, `olive`, `yellow`), and an `active` prop that brightens the border + ink into the tone's "selected" palette.
+
+**Where it lives**
+- [app/components/Monostamp.tsx](app/components/Monostamp.tsx) — component, types (`MonostampTone`, `MonostampVariant`, `MonostampAppearance`, `MonostampProps`), known-consumer list in header comment.
+- [app/globals.css](app/globals.css) — `.monostamp` base rule, `.monostamp--tall` override, per-tone light rules, per-tone dark-appearance rules, per-tone dark `is-active` overrides. Search for "── Monostamp ──".
+
+**AI notes**
+- Stateless. The consumer drives `active` — the component does not listen for hover or focus itself. This is deliberate so reciprocal-hover patterns (where a stamp brightens because something *else* was hovered) work by just passing `active={isHovered}`.
+- **No color/border/background transitions on `.monostamp`.** An earlier version transitioned these; consumer re-renders (scroll springs, motion values, hover toggles) restart the transition every paint, stack running CSS Animation objects, and the `is-active` palette never actually applies. The palette swap is intentionally instant. Do not reintroduce a transition here — it will silently break active/rest on every dark consumer. Documented in the component header comment and in globals.css above the Monostamp block.
+- Tones correspond 1:1 to the `--tone-{560,720,800,960}` token family in globals.css. To add a new tone, add all four tokens AND the matching light + dark + dark.is-active CSS rules — the naming is load-bearing (the classes are composed via template string `monostamp--${tone}`).
+- The light-appearance is the base rule (paper-cream `--grey-960` fill, `--grey-880` hairline); the `monostamp--light` class exists on the element but has no explicit rules — it's reserved for future light-appearance tone-specific shell changes. The `.monostamp--dark.monostamp--<tone>` selector uses double class specificity to guarantee override of the base.
+- Live consumer: /biconomy Flows note pointers (`tone="olive" variant="tall" appearance="dark"`). Queued consumer: /selected archive "opens in new tab" hint.
+- Consumes `--font-mono` (Google Sans Code), loaded site-wide from `app/layout.tsx`.
+- What's route-specific (none today, by design): nothing — Monostamp is already parameterized for reuse.
+- What's library-ready: the full API surface. Extractable as-is once the globals.css token family is ported alongside, or rewritten with caller-supplied color tokens.
+
+---
+
 <!-- New entries above this line, most recent first. Keep entries tight — link to the source, don't copy it. -->

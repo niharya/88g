@@ -214,7 +214,7 @@
   left: 139px;
   top: 72px;
   transform: translate(-100%, -50%);
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.3px;
@@ -289,7 +289,7 @@
   position: absolute;
   left: 144px;
   transform: translate(-100%, -50%);
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.3px;
@@ -561,7 +561,7 @@
   position: absolute;
   left: -3px;
   transform: translate(-100%, -50%);
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: -0.3px;
@@ -694,7 +694,7 @@ a.ap-entry:hover .ap-entry__meta span:first-child {
 
 /* "opens in new tab" hint — hidden by default, slides in on hover */
 .ap-entry__hint {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.02em;
   line-height: 1;

@@ -1,18 +1,18 @@
 'use client'
 
-import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
-import { useRef, useState } from 'react'
-import { flows } from './flowSlides'
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from 'framer-motion'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { flows, type FlowNote } from './flowSlides'
 import BeforeAfter from './BeforeAfter'
-
-// ── ChevronBack SVG (from source Icons) ──────────────────────────────────────
-function ChevronBackIcon({ className }: { className?: string }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
-      <path d="M8.23438 9.99906L13.9208 15.6857C14.1625 15.9273 14.2853 16.2261 14.2892 16.5824C14.2931 16.9386 14.1703 17.2415 13.9208 17.4909C13.6793 17.7325 13.3804 17.8532 13.0242 17.8532C12.6679 17.8532 12.369 17.7325 12.1275 17.4909L6.075 11.4384C5.86722 11.2307 5.71681 11.0051 5.62375 10.7618C5.53083 10.5184 5.48438 10.2642 5.48438 9.99906C5.48438 9.73392 5.53083 9.47969 5.62375 9.23636C5.71681 8.99302 5.86722 8.76747 6.075 8.55969L12.1275 2.51906C12.369 2.2774 12.666 2.15267 13.0183 2.1449C13.3707 2.13698 13.6715 2.25774 13.9208 2.50719C14.1625 2.74872 14.2833 3.04962 14.2833 3.4099C14.2833 3.77003 14.1625 4.07087 13.9208 4.3124L8.23438 9.99906Z" fill="currentColor" />
-    </svg>
-  )
-}
+import NavPill from './NavPill'
 
 // ── ArrowBack SVG (for notes tab) ─────────────────────────────────────────────
 function ArrowBackIcon({ className }: { className?: string }) {
@@ -37,6 +37,31 @@ export default function Flows() {
   const [currentSlide, setCurrentSlide] = useState(1)
   const [noteInternalToggle, setNoteInternalToggle] = useState<Record<string, boolean>>({})
   const [showNotes, setShowNotes] = useState(false)
+  const [hoveredNoteIndex, setHoveredNoteIndex] = useState<number | null>(null)
+  // Fresh tilt on each hover-enter edge — snaps to either -2° or +2°.
+  // Binary (vs continuous) gives each lift a more deliberate, printed feel.
+  const [liftRotate, setLiftRotate] = useState(0)
+  const onChipHoverChange = (idx: number | null) => {
+    if (idx != null && hoveredNoteIndex !== idx) {
+      setLiftRotate(Math.random() < 0.5 ? -2 : 2)
+    }
+    setHoveredNoteIndex(idx)
+  }
+
+  // ── HUD (dev-only position editor) ──────────────────────────────────────────
+  // Activated via ?hud=1. Chips become draggable; a floating panel shows the
+  // live coordinates and a Capture button writes the current slide+state
+  // snapshot to window.__hudLastCapture for retrieval via preview_eval.
+  const [hudMode, setHudMode] = useState(false)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setHudMode(new URLSearchParams(window.location.search).get('hud') === '1')
+  }, [])
+
+  // Keyed by `${slideIdx}-${state}-${noteIdx}` → { x, y }
+  const [hudOverrides, setHudOverrides] = useState<
+    Record<string, { x: number; y: number }>
+  >({})
 
   const showAfter = slideToggleStates[currentSlide - 1]
 
@@ -51,17 +76,42 @@ export default function Flows() {
     setCurrentSlide(i => (i === TOTAL_SLIDES ? 1 : i + 1))
   }
 
-  // ── Nav controls fade on scroll ─────────────────────────────────────────────
-  const navControlsRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: navControlsRef,
-    offset: ['end end', 'start start'],
+  // ── Standby → active state ──────────────────────────────────────────────────
+  // The audit-flow top bar has two states:
+  //   • standby  — title + (desaturated) "Before Audit" text centered.
+  //                Switch thumb + nav (counter + arrows) hidden.
+  //   • default  — title/switch left, nav right. Switch shows.
+  // Driven by scroll position of the frame entering viewport.
+  //
+  // The raw scroll-linked value (activeTRaw) is clamped, then passed through a
+  // useSpring so the transition settles with a mild bounce once it crosses
+  // threshold — both on the way in and the way out — giving the elements a
+  // perceptible "land" rather than a linear drag.
+  const frameRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress: enterProgress } = useScroll({
+    target: frameRef,
+    offset: ['start end', 'start 0.6'],
   })
-  const navControlsOpacity = useTransform(
-    scrollYProgress,
-    [0.15, 0.3, 0.95, 1],
-    [0, 1, 1, 0]
-  )
+  const activeTRaw = useTransform(enterProgress, [0.35, 0.9], [0, 1], { clamp: true })
+  // Mild overshoot on settle. Bounce gives a small, restrained land without
+  // feeling springy; duration keeps it contained so it doesn't trail the
+  // scroll too far.
+  const activeT = useSpring(activeTRaw, {
+    duration: 0.6,
+    bounce: 0.35,
+    restDelta: 0.001,
+  })
+  // Right-side slide: nav translates from ~center (at t=0) to its right anchor
+  // (at t=1). Uses the same spring value so it lands in lockstep with the
+  // other interpolating properties.
+  const navTranslateX = useTransform(activeT, [0, 1], [-120, 0])
+  // Left group gets a small rightward offset at standby so it reads as
+  // optically centered against the mat (the title's visual weight sits on
+  // the left of the group, so purely-geometric centering looks slightly off).
+  const leftTranslateX = useTransform(activeT, [0, 1], [32, 0])
+  // Discrete active flag for pointer-events / aria — flips at the midpoint.
+  const [isActive, setIsActive] = useState(false)
+  useMotionValueEvent(activeT, 'change', v => setIsActive(v > 0.5))
 
   // ── Toggle before/after ─────────────────────────────────────────────────────
   const handleToggleChange = (checked: boolean) => {
@@ -74,8 +124,114 @@ export default function Flows() {
 
   // ── Visible notes for current slide ────────────────────────────────────────
   const currentFlow = flows[currentSlide - 1]
-  const visibleNotes =
-    (showAfter ? currentFlow?.after?.notes : currentFlow?.before?.notes) ?? []
+
+  // Apply HUD overrides to a notes array. Pure function — does not mutate.
+  const applyHudOverrides = (
+    notes: FlowNote[] | undefined,
+    slideIdx: number,
+    state: 'before' | 'after',
+  ): FlowNote[] => {
+    if (!notes) return []
+    return notes.map((n, i) => {
+      const key = `${slideIdx}-${state}-${i}`
+      const o = hudOverrides[key]
+      return o ? { ...n, x: o.x, y: o.y } : n
+    })
+  }
+
+  const effectiveBeforeNotes = applyHudOverrides(
+    currentFlow?.before?.notes,
+    currentSlide - 1,
+    'before',
+  )
+  const effectiveAfterNotes = applyHudOverrides(
+    currentFlow?.after?.notes,
+    currentSlide - 1,
+    'after',
+  )
+
+  const visibleNotes = (showAfter ? effectiveAfterNotes : effectiveBeforeNotes) ?? []
+
+  // HUD: drag-end handler — stores new position in overrides.
+  const handleHudDragEnd = (
+    state: 'before' | 'after',
+    index: number,
+    x: number,
+    y: number,
+  ) => {
+    const key = `${currentSlide - 1}-${state}-${index}`
+    setHudOverrides(prev => ({ ...prev, [key]: { x, y } }))
+  }
+
+  // HUD: expose a capture function that snapshots current slide+state's notes.
+  // Persists to localStorage (survives reloads) + window.__hudAllCaptures
+  // keyed by `${slideIdx}-${state}` so I can read any past capture, not just
+  // the latest. window.__hudLastCapture still holds the most recent.
+  const HUD_STORAGE_KEY = '__hudAllCaptures'
+  const captureHud = () => {
+    const slideIdx = currentSlide - 1
+    const state: 'before' | 'after' = showAfter ? 'after' : 'before'
+    const notes = state === 'after' ? effectiveAfterNotes : effectiveBeforeNotes
+    const round = (v: number) => Math.round(v * 1000) / 1000
+    const payload = {
+      slideIdx,
+      slideId: currentFlow?.id,
+      state,
+      notes: notes.map(n => ({
+        text: n.text,
+        x: round(n.x),
+        y: round(n.y),
+        ...(n.image ? { image: n.image } : {}),
+        ...(n.toggleLabel ? { toggleLabel: n.toggleLabel } : {}),
+      })),
+    }
+    if (typeof window !== 'undefined') {
+      const w = window as unknown as {
+        __hudLastCapture: unknown
+        __hudAllCaptures: Record<string, unknown>
+      }
+      w.__hudLastCapture = payload
+      w.__hudAllCaptures = w.__hudAllCaptures || {}
+      w.__hudAllCaptures[`${slideIdx}-${state}`] = payload
+      try {
+        localStorage.setItem(HUD_STORAGE_KEY, JSON.stringify(w.__hudAllCaptures))
+      } catch {}
+      navigator?.clipboard?.writeText(JSON.stringify(payload, null, 2)).catch(() => {})
+      // POST to the dev-only API route so the capture lands on disk
+      // (.claude/hud-captures.json). Fire-and-forget; UI updates
+      // independently via the captureHud return value.
+      fetch('/api/hud-capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(() => {})
+    }
+    return payload
+  }
+
+  // On mount, rehydrate captures and overrides from localStorage so a reload
+  // doesn't wipe the user's work-in-progress.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(HUD_STORAGE_KEY)
+      if (!raw) return
+      const all = JSON.parse(raw) as Record<
+        string,
+        { slideIdx: number; state: 'before' | 'after'; notes: Array<{ x: number; y: number }> }
+      >
+      ;(window as unknown as { __hudAllCaptures: typeof all }).__hudAllCaptures = all
+      // Rebuild hudOverrides from captures so chips start where the user
+      // left them (not at the original flowSlides.ts values).
+      const rebuilt: Record<string, { x: number; y: number }> = {}
+      for (const cap of Object.values(all)) {
+        cap.notes.forEach((n, i) => {
+          rebuilt[`${cap.slideIdx}-${cap.state}-${i}`] = { x: n.x, y: n.y }
+        })
+      }
+      setHudOverrides(rebuilt)
+    } catch {}
+  }, [])
 
   const internalNoteToggledIndex =
     showAfter &&
@@ -98,14 +254,18 @@ export default function Flows() {
   const slideX = 12
 
   return (
-    <section className="flows">
+    <motion.section
+      className={`flows${isActive ? ' is-active' : ''}`}
+      style={{ '--active-t': activeT } as CSSProperties & { '--active-t': MotionValue<number> }}
+    >
 
       {/* ── Main column ──────────────────────────────────────────────────── */}
       <div className={`flows__main${showNotes ? ' is-notes-open' : ''}`}>
 
         {/* Header */}
         <div className="flows__header t-h5">
-          <div className="flows__header-left">
+          <div className="flows__header-spacer" aria-hidden="true" />
+          <motion.div className="flows__header-left" style={{ x: leftTranslateX }}>
             <p className="flows__title">{currentFlow?.title ?? ''}</p>
 
             {/* Before / After toggle */}
@@ -142,38 +302,20 @@ export default function Flows() {
                 </motion.span>
               </motion.span>
             </label>
-          </div>
+          </motion.div>
 
-          {/* Nav counter + buttons — fade in on scroll */}
-          <motion.div
-            ref={navControlsRef}
-            className="flows__nav"
-            style={{ opacity: navControlsOpacity }}
-          >
+          {/* Nav counter + buttons — hidden in standby, slides in from */}
+          {/* center as the frame enters viewport.                       */}
+          <motion.div className="flows__nav" style={{ x: navTranslateX }}>
             <p className="flows__nav-counter">
               Flow {currentSlide} of {TOTAL_SLIDES}
             </p>
-            <div className="flows__nav-buttons">
-              {[
-                { onClick: goPrev, label: 'Previous', rotate: false },
-                { onClick: goNext, label: 'Next', rotate: true },
-              ].map(({ onClick, label, rotate }) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={onClick}
-                  className="flows__nav-btn"
-                  aria-label={label}
-                >
-                  <ChevronBackIcon className={rotate ? 'flows__chevron flows__chevron--next' : 'flows__chevron'} />
-                </button>
-              ))}
-            </div>
+            <NavPill onPrev={goPrev} onNext={goNext} />
           </motion.div>
         </div>
 
         {/* Image frame */}
-        <div className="flows__frame">
+        <div className="flows__frame" ref={frameRef}>
           <AnimatePresence mode="popLayout" initial={false}>
             {visibleSlides.map((slideNum, index) => {
               const flow = flows[slideNum - 1]
@@ -195,12 +337,17 @@ export default function Flows() {
                     <BeforeAfter
                       beforeImage={before.image}
                       afterImage={after.image}
-                      beforeNotes={before.notes}
-                      afterNotes={after.notes}
+                      beforeNotes={effectiveBeforeNotes}
+                      afterNotes={effectiveAfterNotes}
                       showAfter={slideShowAfter}
                       animationKey={`${currentSlide}-${slideShowAfter}`}
-                      showPointers={showNotes}
+                      showPointers={hudMode || showNotes}
                       internalNoteToggledIndex={internalNoteToggledIndex}
+                      hoveredNoteIndex={hoveredNoteIndex}
+                      onNoteHoverChange={onChipHoverChange}
+                      liftRotate={liftRotate}
+                      hudMode={hudMode}
+                      onHudDragEnd={handleHudDragEnd}
                     />
                   </motion.div>
                 )
@@ -257,7 +404,12 @@ export default function Flows() {
                   : null
 
                 return (
-                  <li key={index} className="flows__note-item">
+                  <li
+                    key={index}
+                    className={`flows__note-item${hoveredNoteIndex === index ? ' is-hovered' : ''}`}
+                    onMouseEnter={() => onChipHoverChange(index)}
+                    onMouseLeave={() => onChipHoverChange(null)}
+                  >
                     <p className="t-p3">
                       <span className="t-h5">#{index + 1}</span>
                       <br />
@@ -299,6 +451,122 @@ export default function Flows() {
         </div>
       </div>
 
-    </section>
+      {hudMode && (
+        <HudPanel
+          slideIdx={currentSlide - 1}
+          slideId={currentFlow?.id ?? 0}
+          slideTitle={currentFlow?.title ?? ''}
+          state={showAfter ? 'after' : 'before'}
+          notes={visibleNotes}
+          onCapture={captureHud}
+        />
+      )}
+
+    </motion.section>
+  )
+}
+
+// ── HudPanel — dev-only position editor readout ─────────────────────────────
+// Mounted only when ?hud=1. Draggable via its header bar. Collapsible.
+// Shows the current slide+state notes' live coordinates. Capture button
+// writes to window.__hudLastCapture and the clipboard.
+function HudPanel({
+  slideIdx,
+  slideId,
+  slideTitle,
+  state,
+  notes,
+  onCapture,
+}: {
+  slideIdx: number
+  slideId: number
+  slideTitle: string
+  state: 'before' | 'after'
+  notes: FlowNote[]
+  onCapture: () => unknown
+}) {
+  const [copied, setCopied] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+  // Panel offset from its initial anchor (bottom-left). Persists across
+  // re-renders via a ref-driven state updated on every drag move.
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
+  const fmt = (v: number) => v.toFixed(3)
+
+  const handleHeaderPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // Ignore clicks on the collapse button
+    if ((e.target as HTMLElement).closest('.hud-panel__collapse')) return
+    e.preventDefault()
+    const el = e.currentTarget
+    el.setPointerCapture(e.pointerId)
+    const startX = e.clientX
+    const startY = e.clientY
+    const baseX = offset.x
+    const baseY = offset.y
+    const move = (me: PointerEvent) => {
+      setOffset({ x: baseX + (me.clientX - startX), y: baseY + (me.clientY - startY) })
+    }
+    const up = () => {
+      el.removeEventListener('pointermove', move)
+      el.removeEventListener('pointerup', up)
+      el.removeEventListener('pointercancel', up)
+    }
+    el.addEventListener('pointermove', move)
+    el.addEventListener('pointerup', up)
+    el.addEventListener('pointercancel', up)
+  }
+
+  return (
+    <div
+      className={`hud-panel${collapsed ? ' is-collapsed' : ''}`}
+      style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
+      role="region"
+      aria-label="HUD position editor"
+    >
+      <div
+        className="hud-panel__header"
+        onPointerDown={handleHeaderPointerDown}
+      >
+        <span className="hud-panel__tag">HUD</span>
+        <span className="hud-panel__title">
+          #{slideId} {slideTitle} · <em>{state}</em>
+        </span>
+        <button
+          type="button"
+          className="hud-panel__collapse"
+          onClick={() => setCollapsed(c => !c)}
+          aria-label={collapsed ? 'Expand HUD' : 'Collapse HUD'}
+        >
+          {collapsed ? '▲' : '▼'}
+        </button>
+      </div>
+      {!collapsed && (
+        <>
+          <ol className="hud-panel__list">
+            {notes.map((n, i) => (
+              <li key={i} className="hud-panel__item">
+                <span className="hud-panel__num">{i + 1}</span>
+                <span className="hud-panel__xy">
+                  x {fmt(n.x)} · y {fmt(n.y)}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <button
+            type="button"
+            className="hud-panel__capture"
+            onClick={() => {
+              onCapture()
+              setCopied(true)
+              setTimeout(() => setCopied(false), 1200)
+            }}
+          >
+            {copied ? 'Captured ✓' : `Capture ${state}`}
+          </button>
+          <p className="hud-panel__hint">
+            slide {slideIdx} · {state} · saves to .claude/hud-captures.json
+          </p>
+        </>
+      )}
+    </div>
   )
 }

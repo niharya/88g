@@ -215,6 +215,39 @@ Material Symbols remains for non-animated icons (nav markers, archive toggle).
 
 ---
 
+## Pending migration — `.ap-entry__hint` → `<Monostamp>`
+
+The "Opens in new tab" hint pill on archive entries ([selected.css:705-734](selected.css:705)) is the
+original instance of the shell pattern that has been promoted to
+`app/components/Monostamp.tsx` — monospace text, paper-cream fill, hairline
+border, tone-colored ink. The second consumer (note-pointer stamps in
+`/biconomy`) already uses `<Monostamp>`.
+
+This hint is still inline CSS for now. Migration is safe but non-trivial:
+the hint has **route-specific hover behavior** (hidden by default, slides
+in on `a.ap-entry:hover` with opacity + translate transitions) that must
+stay in `selected.css`. Only the **visual shell** — bg, border, typography,
+padding, radius — should move to the `<Monostamp>` component, keeping the
+positioning/transition overrides local.
+
+Tones needed: `connektion`, `aleyr`, `olive` (ecochain), `codezeros`, `mint`.
+`mint` / `olive` are already in `MonostampTone`. `connektion`, `aleyr`,
+`codezeros`, `ecochain` are **not** — their color tokens currently live only
+in [selected.css:18+](selected.css:18) (route-scoped), not in `globals.css`.
+Migration sequence:
+1. Decide: promote those tokens to `globals.css` (makes tones available
+   anywhere), or keep them in `selected.css` and scope a route-local
+   `MonostampTone` extension.
+2. Add the matching ramps (560 / 720 / 800 / 960) — some are missing today.
+3. Extend `MonostampTone` + the dark/light/is-active CSS blocks with the
+   new tones.
+4. Swap `.ap-entry__hint` shell styles to use `<Monostamp>`.
+
+**What will break if this isn't done:** nothing immediate. It's technical
+debt — drift risk if the Monostamp base styling changes later.
+
+---
+
 ## Component ownership
 
 The `/selected` page has three components:

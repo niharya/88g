@@ -16,6 +16,54 @@
 }
 
 
+/* ── NavPill (shared by Flows + API) ─────────────────────────────────────── */
+/* Single-pill prev/next with a hairline divider.                          */
+/* Each button owns the full pill padding as its own hit area so the       */
+/* whole corner is clickable, not just the chevron pixels. Hover bg is     */
+/* scoped to the button surface (pill has overflow:hidden so the hover    */
+/* doesn't bleed past the rounded corners).                                */
+
+.navpill {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 8px;
+  background: var(--grey-880);
+  color: var(--grey-400);
+  user-select: none;
+  overflow: hidden;
+}
+
+.navpill__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navpill__btn:hover {
+  background: var(--grey-800);
+  color: var(--grey-240);
+}
+
+.navpill__btn:active {
+  background: var(--grey-720);
+}
+
+.navpill__divider {
+  display: block;
+  width: 1px;
+  align-self: center;
+  height: 16px;
+  background: var(--grey-800);
+  flex-shrink: 0;
+}
+
+
 /* ── Intro section ───────────────────────────────────────────────────────── */
 /*                                                                           */
 /* Closed: surface (z:2) sits over memo cards (z:auto).                     */
@@ -258,6 +306,9 @@
   justify-content: center;
   gap: 10px; /* gap-2.5 */
   margin-top: 10px; /* gap-2.5 from Intro */
+  /* --active-t: 0 = standby (centered, switch hidden, text desat) */
+  /*           1 = default (left-aligned, switch + nav visible)    */
+  --active-t: 0;
 }
 
 /* Main column — max 1000px, shifts left when notes open */
@@ -276,15 +327,26 @@
   transform: translateX(-120px);
 }
 
-/* Header row */
+/* Header row — three-part layout: spacer | left-group | nav.             */
+/* The spacer's flex-grow is driven by --active-t so that when active-t=0  */
+/* both spacer and nav contribute equal pull around header-left (center), */
+/* and when active-t=1 the spacer collapses so nav alone pulls left-group */
+/* to the left edge.                                                       */
 .flows__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 4px;
+  min-height: 24px; /* match switch + navpill so layout is stable */
+}
+
+.flows__header-spacer {
+  flex-grow: calc(1 - var(--active-t));
+  flex-shrink: 0;
+  flex-basis: 0;
 }
 
 .flows__header-left {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -304,11 +366,13 @@
   max-height: fit-content;
 }
 
-/* Orange pill container (motion.span with layout) */
+/* Orange pill container (motion.span with layout).                       */
+/* In standby the orange backing fades away; the label reads as plain      */
+/* desaturated text. In default the pill is solid orange-80 (hover 160).   */
 .flows__ba-pill {
   display: flex;
   overflow: hidden;
-  background: var(--orange-80);
+  background: color-mix(in srgb, var(--orange-80) calc(var(--active-t, 1) * 100%), transparent);
   max-width: fit-content;
   max-height: fit-content;
   align-items: center;
@@ -319,121 +383,113 @@
 }
 
 .flows__ba-pill:hover {
-  background: var(--orange-160);
+  background: color-mix(in srgb, var(--orange-160) calc(var(--active-t, 1) * 100%), transparent);
 }
 
+/* Switch-wrap collapses to 0 width in standby (gap also disappears).      */
 .flows__ba-switch-wrap {
   display: flex;
   align-items: center;
+  overflow: hidden;
+  max-width: calc(24px * var(--active-t, 1));
+  opacity: var(--active-t, 1);
+  margin-right: calc(-8px * (1 - var(--active-t, 1))); /* eat the gap when collapsed */
+  transition:
+    max-width 0.15s ease-out,
+    opacity 0.15s ease-out,
+    margin-right 0.15s ease-out;
 }
 
-/* Custom toggle switch — replaces Radix UI Switch */
-/* Track: 32px wide, 18px tall. Thumb: 8px wide, 12px tall. */
+/* Custom toggle switch — Figma spec 2463-3758. */
+/* Track 24×16 border-box, border 1, padding 1 — the padding+border pair   */
+/* together give exactly 2px inset to the thumb on the resting side, so    */
+/* inactive and active states are visually symmetric (2px from left inactive, */
+/* 2px from right active). Transition is the mild cubic-bezier settle      */
+/* ported from the vanilla reference so the thumb lands with a perceptible */
+/* but restrained snap.                                                     */
 .flows__ba-switch {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  width: 32px;
-  height: 18px;
-  padding: 2px 14px 2px 2px;
+  width: 24px;
+  height: 16px;
+  padding: 1px;
   border-radius: 4px;
   background: var(--orange-80);
-  box-shadow: 0 0 0 1px var(--orange-560);
+  border: 1px solid var(--orange-560);
   cursor: pointer;
-  border: none;
-  transition: background 0.2s ease-out, box-shadow 0.2s ease-out;
   flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .flows__ba-switch[aria-checked='true'] {
   background: var(--orange-720);
-  box-shadow: 0 0 0 1px var(--orange-720);
+  border-color: var(--orange-720);
+}
+
+.flows__ba-switch-thumb {
+  display: block;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--orange-560);
+  transition:
+    transform 0.2s cubic-bezier(0, 1, 0.31, 1.05),
+    background 0.2s;
+}
+
+.flows__ba-switch[aria-checked='true'] .flows__ba-switch-thumb {
+  background: var(--orange-80);
+  /* 24 (outer) - 2 (borders) - 2 (padding) - 8 (thumb) = 12 → exact inset */
+  transform: translateX(12px);
 }
 
 .flows__ba-switch:active .flows__ba-switch-thumb {
   transform: scaleX(0.9);
 }
-
-.flows__ba-switch-thumb {
-  display: block;
-  width: 8px;  /* w-2 */
-  height: 12px; /* h-3 */
-  border-radius: 2px;
-  background: var(--orange-560);
-  transition: transform 0.2s var(--ease-paper), background 0.2s ease-out;
-  transform: translateX(0);
-  flex-shrink: 0;
+.flows__ba-switch[aria-checked='true']:active .flows__ba-switch-thumb {
+  transform: translateX(12px) scaleX(0.9);
 }
 
-.flows__ba-switch[aria-checked='true'] .flows__ba-switch-thumb {
-  background: var(--orange-80);
-  transform: translateX(12px); /* translate-x-3 */
-}
-
-/* Before/After label text */
+/* Before/After label text. Desaturates toward grey-400 in standby.        */
 .flows__ba-label-text {
-  color: var(--orange-560);
+  color: color-mix(
+    in srgb,
+    var(--grey-400) calc((1 - var(--active-t, 1)) * 100%),
+    var(--orange-560) calc(var(--active-t, 1) * 100%)
+  );
   user-select: none;
   /* inherits t-h5 from .flows__header */
 }
 
 .flows__ba-label-text.is-after {
-  color: var(--orange-720);
+  color: color-mix(
+    in srgb,
+    var(--grey-400) calc((1 - var(--active-t, 1)) * 100%),
+    var(--orange-720) calc(var(--active-t, 1) * 100%)
+  );
 }
 
-/* Nav controls — fade in/out on scroll via Framer Motion opacity */
+/* Nav controls — hidden in standby (opacity 0, pointer-events none).      */
+/* flex-basis: 0 so at standby nav reserves no intrinsic width — both the  */
+/* left-side spacer and the nav flex-grow from zero, keeping the left      */
+/* group centered rather than pulled leftward by the nav's content width.  */
 .flows__nav {
   display: flex;
   align-items: center;
   gap: 8px; /* gap-2 */
+  flex-grow: 1;
+  flex-basis: 0;
+  justify-content: flex-end;
+  opacity: var(--active-t, 1);
+  pointer-events: auto;
+  will-change: transform, opacity;
 }
+
+.flows:not(.is-active) .flows__nav { pointer-events: none; }
+.flows:not(.is-active) .flows__ba-switch { pointer-events: none; }
 
 .flows__nav-counter {
   color: var(--grey-400); /* text-gray-160 ≈ muted */
-}
-
-.flows__nav-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* gap-2 */
-}
-
-.flows__nav-btn {
-  display: flex;
-  align-items: center;
-  padding: 2px 2px;
-  background: var(--grey-880); /* bg-gray-880 */
-  border-radius: 8px; /* rounded-lg */
-  border: none;
-  cursor: pointer;
-  color: var(--grey-400);
-  transition: transform 0.3s ease-out, color 0.15s ease-out;
-}
-
-.flows__nav-btn:hover {
-  transform: scale(1.05);
-}
-
-.flows__nav-btn:active {
-  transform: scale(1);
-  transition: none;
-}
-
-.flows__chevron {
-  /* color inherited from button */
-  transition: transform 0.3s ease-out;
-}
-
-.flows__chevron--next {
-  transform: rotate(180deg);
-}
-
-.flows__nav-btn:hover .flows__chevron {
-  transform: scale(0.95);
-}
-
-.flows__nav-btn:hover .flows__chevron--next {
-  transform: rotate(180deg) scale(0.95);
 }
 
 /* Image carousel frame */
@@ -539,6 +595,19 @@
 
 .flows__note-item {
   /* inherits t-p4 from list */
+  transition: color 0.2s var(--ease-paper), opacity 0.2s var(--ease-paper);
+  cursor: default;
+}
+
+/* Reciprocal hover: when any note is being hovered/traced (either from the
+   rail or from the chip on the image), lift the matched item and fade the
+   others back. The chip responds symmetrically in .ba__note-pointer. */
+.flows__notes-list:has(.is-hovered) .flows__note-item:not(.is-hovered) {
+  opacity: 0.45;
+}
+
+.flows__note-item.is-hovered {
+  color: var(--olive-720);
 }
 
 /* Internal note toggle button (e.g. "See next step") */
@@ -612,29 +681,180 @@
   pointer-events: none;
 }
 
+/* Note pointer — positioning wrapper around a Monostamp numeral.          */
+/* Lift behavior: on hover (direct or reciprocal from the notes rail) the   */
+/* stamp scales up and tilts by a fixed ±2° assigned per-lift via           */
+/* --lift-rotate. Un-hover transitions back to scale(1) rotate(0).         */
+/* Transition is short (140ms) so the lift feels snappy, not gliding.      */
 .ba__note-pointer {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  transform-origin: center center;
   display: flex;
   align-items: center;
   justify-content: center;
   user-select: none;
+  pointer-events: auto;
+  cursor: default;
+  transition: transform 0.14s cubic-bezier(0.3, 1.3, 0.5, 1);
 }
 
-.ba__note-number {
+.ba__note-pointer.is-hovered,
+.ba__note-pointer:hover {
+  transform: translate(-50%, -50%) scale(1.2) rotate(var(--lift-rotate, 0deg));
+  z-index: 5;
+}
+
+/* HUD mode — stamp becomes draggable. Grabby cursor, raised above others. */
+.ba__note-pointer--hud {
+  cursor: grab;
+  z-index: 30;
+}
+
+.ba__note-pointer--hud:active {
+  cursor: grabbing;
+}
+
+
+/* ── HUD panel — dev-only position editor readout ────────────────────────── */
+
+.hud-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  min-width: 220px;
+  max-width: 260px;
+  padding: 12px 14px 10px;
+  background: rgba(20, 20, 20, 0.92);
+  color: #f5f5f5;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--font-ui, monospace);
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.hud-panel__header {
   display: flex;
   align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 8px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.hud-panel__header:active {
+  cursor: grabbing;
+}
+
+.hud-panel.is-collapsed .hud-panel__header {
+  padding-bottom: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.hud-panel__collapse {
+  margin-left: auto;
+  padding: 2px 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 9px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.hud-panel__collapse:hover {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.hud-panel__tag {
+  padding: 1px 5px;
+  background: #d23a02;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+}
+
+.hud-panel__title {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-panel__title em {
+  font-style: italic;
+  color: #f5d142;
+}
+
+.hud-panel__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud-panel__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-panel__num {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
   background: var(--olive-80);
   color: var(--olive-960);
-  font-size: 10px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.hud-panel__xy {
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.hud-panel__capture {
+  width: 100%;
+  padding: 6px 10px;
+  background: #d23a02;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.hud-panel__capture:hover {
+  background: #ff5f33;
+}
+
+.hud-panel__hint {
+  margin: 6px 0 0;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* ── BIPs section ────────────────────────────────────────────────────────── */
@@ -1692,32 +1912,6 @@
   color: var(--grey-480);
   text-wrap: balance;
   text-align: start;
-}
-
-/* Nav buttons */
-.api__nav-buttons {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.api__nav-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: var(--grey-480);
-  border-radius: 4px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.api__nav-btn:hover {
-  color: var(--grey-240);
-  background: var(--grey-960);
 }
 
 /* ── Side column ── */
