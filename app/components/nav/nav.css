@@ -55,7 +55,7 @@ a.nav-marker {
 /* Explicit 20×20 box keeps --pill-h: 32px accurate regardless of font load. */
 
 .nav-icon {
-  font-family: 'Material Symbols Rounded';
+  font-family: var(--font-symbols);
   font-size: 20px;
   line-height: 1;
   width: 20px;
@@ -75,7 +75,7 @@ a.nav-marker {
 }
 
 .nav-marker__exit-label {
-  font-family: 'Google Sans Flex', sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
   font-optical-sizing: none;
   font-variation-settings: 'wght' 880, 'wdth' 130, 'opsz' 24, 'GRAD' 0;

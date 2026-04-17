@@ -3,10 +3,10 @@
 ## Read first
 Before touching anything:
 1. `CLAUDE.md` at repo root — working contract, motion vocabulary, responsive rules, token discipline
-2. `app/(works)/selected/NOTES.md`
-3. `app/(works)/biconomy/NOTES.md` — historical donor for shared primitives
-4. `app/(works)/rr/NOTES.md` — current focus route, closest reference
-5. `app/components/nav/NOTES.md`
+2. `app/(works)/selected/ANOMALIES.md`
+3. `app/(works)/biconomy/ANOMALIES.md` — historical donor for shared primitives
+4. `app/(works)/rr/ANOMALIES.md` — current focus route, closest reference
+5. `app/components/nav/ANOMALIES.md`
 6. `app/(works)/layout.tsx`, `app/(works)/TransitionSlot.tsx`, `app/(works)/ShellNav.tsx`
 7. `app/components/` — Sheet, PaperFilter, ExitMarker, etc.
 8. `app/globals.css` — tokens, `--ease-paper`, `.mat`, `.fonts-ready`, reveal system
@@ -129,7 +129,7 @@ app/(works)/marks/
   page.tsx
   layout.tsx
   marks.css
-  NOTES.md
+  ANOMALIES.md
   data/
     marks.ts              # typed mark inventory (MARKS: MarkEntry[])
   components/
@@ -237,7 +237,7 @@ Don't design a separate mobile pass. The above accommodations are enough for thi
 
 ## Build order (chunked, each chunk reviewed before next)
 
-1. **Route skeleton** — layout.tsx, page.tsx, marks.css, NOTES.md, empty components, data/marks.ts with 6 placeholder entries.
+1. **Route skeleton** — layout.tsx, page.tsx, marks.css, ANOMALIES.md, empty components, data/marks.ts with 6 placeholder entries.
 2. **Shared marks primitive** — `app/components/marks/` with the six mark components from the source SVGs. Promote, update `LIBRARY.md`.
 3. **Hero** — static 120px title, gradient + noise mat. No docking yet.
 4. **Essay** — body text, glyph dividers, 6-mark preview row (no hover color yet).
@@ -251,7 +251,7 @@ Don't design a separate mobile pass. The above accommodations are enough for thi
 12. **Essay preview row alignment** — confirm the 6 preview slots match the 6 MARKS entries by id.
 13. **Buffer + infinite loop** — `Buffer.tsx` fade-to-black, `useInfiniteLoop` double-render + silent scroll-shift.
 14. **Mobile adjustments** — clamp(), stack preview row, MarkNav tucked pill, touch swipe.
-15. **NOTES.md** — document the anomalies: infinite-loop reset mechanics, settle delay overlap with carousel timer, scroll-state derivation, why marks were promoted to shared.
+15. **ANOMALIES.md** — document the anomalies: infinite-loop reset mechanics, settle delay overlap with carousel timer, scroll-state derivation, why marks were promoted to shared.
 16. **LIBRARY.md** — entry for `app/components/marks/` with reuse notes.
 
 Each chunk: implement, verify in dev server at 1440px (per user's memory), then stop and present for review before moving on. Do not combine chunks unless explicitly told to.
@@ -271,7 +271,7 @@ Each chunk: implement, verify in dev server at 1440px (per user's memory), then 
 - **portfolio-guardian** — tone, integrity, portfolio fit (on hero + essay copy)
 - **route-auditor** — before touching shared layout or any existing route
 - **frontend-craft** — motion, carousel mechanics, infinite-loop CSS
-- **anomaly-librarian** — when documenting infinite-loop reset + magnetic settle in NOTES.md
+- **anomaly-librarian** — when documenting infinite-loop reset + magnetic settle in ANOMALIES.md
 
 ## Deliverable at end
 
@@ -284,5 +284,5 @@ A working `/marks` route that:
 - Respects `prefers-reduced-motion` and tab visibility.
 - Works on mobile with the same flow, just narrower.
 - `LIBRARY.md` updated with the new shared `marks/` primitive.
-- `NOTES.md` captures the non-obvious wiring.
+- `ANOMALIES.md` captures the non-obvious wiring.
 - `package.json` bumped, commit prepared, tag prepared — but **not pushed** without explicit user confirmation.

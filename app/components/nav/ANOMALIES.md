@@ -11,7 +11,7 @@ Treat changes here as load-bearing for both `/biconomy` and `/rr` (and any futur
 route).
 
 For project-level rules see `CLAUDE.md`. For route-specific consumers see
-`app/<route>/NOTES.md`.
+`app/<route>/ANOMALIES.md`.
 
 ---
 
@@ -127,7 +127,7 @@ represents the visible focal point. The arrow rotates toward *that* element
 instead of the sheet.
 
 **Currently used by:** `/rr` Mechanics scene (the primary mat carries the
-attribute — see `app/(works)/rr/NOTES.md`).
+attribute — see `app/(works)/rr/ANOMALIES.md`).
 
 **Don't break:**
 - The `?? sheet` fallback. Routes that do not set the attribute (e.g. all of

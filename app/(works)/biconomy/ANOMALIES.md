@@ -28,7 +28,7 @@ scrolls, `Sheet.tsx` applies an inline `boxShadow` via `useMotionValueEvent`
 that overrides the CSS-animated shadow.
 
 Both must remain. The CSS shadow provides the entrance look; the scroll-linked
-shadow takes over for the reading state. See `app/components/nav/NOTES.md` for
+shadow takes over for the reading state. See `app/components/nav/ANOMALIES.md` for
 full details.
 
 **What breaks if the CSS shadow is removed:** surface cards appear flat/shadowless
@@ -56,7 +56,14 @@ If you find yourself authoring a new shadow on a biconomy surface, use the
 ladder first. Only introduce a new hardcoded value if it expresses a mechanic
 the ladder cannot (motion-state, glow, inset press) and document why inline.
 
-### Flows HUD mode (dev authoring tool)
+### Flows HUD mode (legacy dev authoring tool — retained as artifact)
+
+**Status:** retired. The HUD was used once to author the chip coordinates for
+the audit Flows (before/after number overlays), and those coordinates now
+live statically in `flowSlides.ts`. The HUD is not used by anyone going
+forward. It is retained in the codebase as a working artifact — do not
+remove it, but also do not treat it as an active feature. If it ever breaks
+under a refactor, breakage is acceptable; fixing it is not a priority.
 
 `Flows.tsx` ships with a chip-coordinate authoring HUD gated by the `?hud=1`
 URL param. When active, BeforeAfter chips become draggable via NATIVE pointer

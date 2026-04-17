@@ -21,11 +21,11 @@ Only when it matters:
 
 | Scope | File |
 |-------|------|
-| /rr only | `app/(works)/rr/NOTES.md` |
-| /biconomy only | `app/(works)/biconomy/NOTES.md` |
-| /selected only | `app/(works)/selected/NOTES.md` |
-| Nav / shared components | `app/components/nav/NOTES.md` |
-| Multiple routes | Add to each affected route's NOTES.md |
+| /rr only | `app/(works)/rr/ANOMALIES.md` |
+| /biconomy only | `app/(works)/biconomy/ANOMALIES.md` |
+| /selected only | `app/(works)/selected/ANOMALIES.md` |
+| Nav / shared components | `app/components/nav/ANOMALIES.md` |
+| Multiple routes | Add to each affected route's ANOMALIES.md |
 | Project-wide | Memory file via memory system |
 
 ## How to write notes

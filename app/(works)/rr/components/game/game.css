@@ -76,7 +76,7 @@
   --rr-game-accent-hi:  var(--orange-480);   /* darker salmon */
   --rr-game-mute:       var(--orange-800);   /* dusty mid */
 
-  --rr-font-game: 'Google Sans Flex', sans-serif;
+  --rr-font-game: var(--font-ui);
   --rr-font-axes: 'wdth' 56, 'wght' 560, 'ROND' 100, 'opsz' 18;
 
   position: relative;

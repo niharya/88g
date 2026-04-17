@@ -19,8 +19,8 @@ CLAUDE.md is a **working contract**, not a knowledge base. Keep it tight.
 * upcoming tech-stack changes as one-line pointers
 
 **It does not contain:**
-* implementation details or code tours → route `NOTES.md` or the code itself
-* per-route architectural anomalies → that route's `NOTES.md` (anomalies + don't-touch only)
+* implementation details or code tours → route `ANOMALIES.md` or the code itself
+* per-route architectural anomalies → that route's `ANOMALIES.md` (anomalies + don't-touch only)
 * reusable primitive catalog with usage notes → `LIBRARY.md`
 * credits, historical sources, colophon items → `COLOPHON.md`
 * durable project identity memory → `docs/claude/memory.md`
@@ -28,7 +28,7 @@ CLAUDE.md is a **working contract**, not a knowledge base. Keep it tight.
 * changelog, session logs, recent-work summaries → git history
 * ephemeral state (current blockers, today's tasks) → conversation or plan tool
 
-If a section of this file starts explaining *how* something works, it belongs in NOTES.md. If it starts cataloging *reusable* pieces, it belongs in LIBRARY.md. Resist bloat.
+If a section of this file starts explaining *how* something works, it belongs in ANOMALIES.md. If it starts cataloging *reusable* pieces, it belongs in LIBRARY.md. Resist bloat.
 
 ## Project
 
@@ -71,7 +71,7 @@ The site is shipped. The work now is polish, consistency, and selective responsi
 
 Per-route. Replace placeholders with real proof artifacts, fine-tune components and modules, tighten spacing and typographic rhythm where hand-authored values have drifted.
 
-* Do not normalize hand-authored offsets or rotations just because they look unusual. Read `NOTES.md` before touching anything that feels off — it may be load-bearing.
+* Do not normalize hand-authored offsets or rotations just because they look unusual. Read `ANOMALIES.md` before touching anything that feels off — it may be load-bearing.
 * Work one view / section at a time. Review before moving on.
 
 ### Stream 2 — consistency and reuse
@@ -82,6 +82,21 @@ Goal: a single source of truth for everything used more than once.
 * **Promotion rule.** A primitive moves into `app/components/` the **second** time it is needed — not the first. Flag the move before doing it; don't silent-promote. When a pattern is repeated across routes, stop and promote.
 * **Grep before editing shared.** If you're touching anything under `app/components/` or a token in `app/globals.css`, grep both routes for consumers first.
 * **Route-local stays route-local until it isn't.** If only one route uses it, leave it in that route's `components/`. NavPill (biconomy-local, two biconomy consumers) is the reference for this.
+
+#### Refining a component — the loop
+
+When refining any component during this phase, run this short loop. It makes the promotion rule actionable instead of aspirational.
+
+1. **Intent tag (you say it).** At the start of each component, tag it: `one-off`, `reused`, or `maybe`. `one-off` stays route-local with no catalog entry. `reused` triggers promotion now. `maybe` stays local but is built promotion-ready — tokens only, no route-specific hardcoding.
+2. **Essential behavior in one sentence (you say it).** What must be identical across instances vs. what's allowed to vary per consumer. This is the contract the primitive has to hold.
+3. **Map before touching (I do it).** Grep for existing cousins, read the closest match, summarize what exists, what the shared shape looks like, and what's route-specific. Wait for confirmation before writing.
+4. **API shape rules when promoting.**
+   * Tokens, not values. Colors via `--tone-*`, ease via `--ease-paper`, spacing via clamp or token. No hex, no magic px inside.
+   * Stateless where possible. Consumer owns state (Monostamp's `active` is the reference).
+   * Variants via props, not forks. `tone` / `variant` / `appearance` enums.
+   * Route-specific bits stay in the consumer — content, icons, copy passed in as children or props.
+5. **Promotion is one commit.** Move to `app/components/<Name>/`, update all consumer imports, add the `LIBRARY.md` entry. Not three PRs.
+6. **Anomalies split by scope.** Load-bearing internals of the primitive go in its `LIBRARY.md` AI notes. Route-specific consequences of consuming it go in that route's `ANOMALIES.md`.
 
 ### Stream 3 — responsive (lite)
 
@@ -97,7 +112,7 @@ Current shared inventory:
   * `Sheet`, `useReveal`, `PaperFilter` — paper/reveal primitives
   * `Monostamp` — monospace stamp (pill + tall variants, four tones, active state)
   * `SlideInOnNav` — entrance wrapper tied to page navigation
-  * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker` (see `nav/NOTES.md`)
+  * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker` (see `nav/ANOMALIES.md`)
   * `icons/` — hand-rolled animatable SVG icons (`IconArrowRight`, `IconChevronRight`, `IconExternalLink`)
 * **`app/lib/`** — shared utilities (`greeting`, `titleCase`)
 * **`app/globals.css`** — design tokens, `.mat` surface, `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout, four-tier elevation ladder (`--shadow-flat` / `-resting` / `-raised` / `-overlay`), `--backseat-dim`, `--ease-paper`
@@ -106,25 +121,25 @@ New shared primitives can originate in any route once they're needed twice. `/bi
 
 Anything shared and non-obvious gets an entry in `LIBRARY.md`.
 
-## Route-level notes
+## Route-level anomalies
 
-Each route has a `NOTES.md` file. Its purpose is narrow: **architectural anomalies, cross-file wiring, and don't-touch items** that a reader would not figure out from the code alone.
+Each route has an `ANOMALIES.md` file. Its purpose is narrow: **architectural anomalies, cross-file wiring, and don't-touch items** that a reader would not figure out from the code alone.
 
-Out of scope for NOTES.md: tours of the codebase, general explanations of how the feature works, changelog entries, aspirational notes.
+Out of scope for ANOMALIES.md: tours of the codebase, general explanations of how the feature works, changelog entries, aspirational notes.
 
-* `app/(works)/biconomy/NOTES.md`
-* `app/(works)/rr/NOTES.md`
-* `app/(works)/selected/NOTES.md`
-* `app/components/nav/NOTES.md`
+* `app/(works)/biconomy/ANOMALIES.md`
+* `app/(works)/rr/ANOMALIES.md`
+* `app/(works)/selected/ANOMALIES.md`
+* `app/components/nav/ANOMALIES.md`
 
-Log anomalies in the route they affect. If a global change causes a side effect in a specific route, document it in that route's NOTES.md. If it affects multiple routes, log it in each.
+Log anomalies in the route they affect. If a global change causes a side effect in a specific route, document it in that route's ANOMALIES.md. If it affects multiple routes, log it in each.
 
 ## Files in play
 
 ### For `/marks` (active build)
 
 * `MARKS_BRIEF.md` at repo root — full build brief, chunked plan, data shape, motion spec
-* Route-local (scaffold pending per the brief): `app/(works)/marks/{page,layout}.tsx`, `app/(works)/marks/marks.css`, `app/(works)/marks/NOTES.md`, `app/(works)/marks/components/`, `app/(works)/marks/data/marks.ts`
+* Route-local (scaffold pending per the brief): `app/(works)/marks/{page,layout}.tsx`, `app/(works)/marks/marks.css`, `app/(works)/marks/ANOMALIES.md`, `app/(works)/marks/components/`, `app/(works)/marks/data/marks.ts`
 * Shared marks primitive (promoted because marks are reused across routes): `app/components/marks/` — inline SVG components using `currentColor`, with a typed registry
 * Assets: `public/marks/<mark-id>/*.{jpg,gif,png}`
 
@@ -162,7 +177,7 @@ All motion in the portfolio follows a paper-physical language. Things glide, set
 
 1. **One easing curve.** `--ease-paper: cubic-bezier(0.5, 0, 0.2, 1)` — confident start, long gentle deceleration. Used for section reveals, page transitions, and all CSS transitions. Defined in `globals.css`, mirrored as `EASE` in `TransitionSlot.tsx`.
 2. **Long durations.** 0.5–0.9s range. Nothing should feel fast or urgent.
-3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic. (Documented deviations exist — the train ticker overshoot, the Flows nav settle — and live in their route NOTES.md.)
+3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic. (Documented deviations exist — the train ticker overshoot, the Flows nav settle — and live in their route ANOMALIES.md.)
 4. **Native scroll.** No smooth-scroll libraries, no scroll hijacking. The browser's physics stay in control.
 5. **Scroll-mapped transforms where useful.** `useScroll` + `useTransform` + `useSpring` for elements that respond to scroll position — not just trigger-on-intersection.
 
@@ -251,7 +266,7 @@ All remaining responsive work on this portfolio is "lite" — a usability floor,
 * Don't invent new mobile-only primitives. If a route needs one, flag it and confirm before building.
 * Don't promote lite patterns to shared until a second route actually needs them.
 
-Log lite decisions and drop-outs in each route's `NOTES.md` under a "Responsive anomalies" section, following `app/(works)/selected/NOTES.md` (line 477+) as the template.
+Log lite decisions and drop-outs in each route's `ANOMALIES.md` under a "Responsive anomalies" section, following `app/(works)/selected/ANOMALIES.md` (line 477+) as the template.
 
 ## Core design principle
 
@@ -295,7 +310,7 @@ Do not change the established chapter tray tilt behavior unless explicitly asked
 
 Before implementing any section or touching shared code:
 
-1. Read the relevant route's `NOTES.md` for decisions, anomalies, and don't-touch items
+1. Read the relevant route's `ANOMALIES.md` for decisions, anomalies, and don't-touch items
 2. Read `LIBRARY.md` to see if the pattern you need already exists as a shared primitive
 3. Read only the closest matching existing pattern — not broad swathes
 4. For a new `/marks` section, read `MARKS_BRIEF.md` for the plan and read the matching shared primitive
@@ -329,10 +344,11 @@ To reduce token use and drift:
 
 ## Versioning and pushing
 
-Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.23.0`.
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.25.0`.
 
 Before pushing:
 
+0. Run `/prepush` — pre-push hygiene review. Scans the branch diff against `main` and surfaces promotion candidates, anomaly notes, doc drift, token discipline, dead references, agent suggestions, and verification reminders. Non-automated — triage the report, act on what matters, then continue with the bump. See `.claude/skills/prepush/SKILL.md`.
 1. Bump `package.json` `version` (minor +1, patch reset to 0)
 2. Verify the change works (typecheck, dev server smoke check) — never push unverified work
 3. Commit the bump (either bundled with the work or as a dedicated `release: vX.Y.0` commit)
@@ -346,7 +362,7 @@ Confirm with the user before pushing. Don't push unannounced.
 Before implementation, select the relevant agent(s):
 
 * **portfolio-guardian** → tone, integrity, portfolio fit
-* **route-auditor** → before touching any route; checks NOTES.md and constraints
+* **route-auditor** → before touching any route; checks ANOMALIES.md and constraints
 * **frontend-craft** → layout, motion, CSS, interaction decisions
 * **responsive-guardian** → responsive passes; desktop parity, lite-stance adherence
 * **anomaly-librarian** → when a non-obvious constraint or side-effect is discovered
@@ -361,19 +377,19 @@ Before implementing anything, confirm:
 * shared primitives still exist where expected
 * `globals.css` tokens have not materially changed
 * anything promoted to shared is imported from the new location and has a `LIBRARY.md` entry
-* read the `NOTES.md` for the route you are about to work on — anomalies and don't-touch items you will not find in the code alone
+* read the `ANOMALIES.md` for the route you are about to work on — anomalies and don't-touch items you will not find in the code alone
 * read `LIBRARY.md` if you're about to build something that might already exist
 * read `MARKS_BRIEF.md` if working on `/marks`
 * read `COLOPHON.md` only if the question is about origins, credits, or where a pattern comes from
 * read `docs/claude/memory.md` only if the question is about project identity/audience
 
-## Upcoming tech-stack changes
+## Tech-stack decisions
 
-Short list of stack moves with real benefit. Not aspirational; flag before starting and treat each as its own focused task.
+Short list of stack moves considered during the refining phase. Each entry records the current stance and why, so the question does not keep re-opening.
 
-1. **`next/font/google`** — migrate the five-family Google Fonts CDN load (Fraunces, Google Sans, Google Sans Flex, Material Symbols Rounded, system mono stays as-is) to `next/font/google` self-hosting. Removes a third-party round-trip, eliminates FOUC. The `.fonts-ready` gate in `globals.css` can be retired or kept as belt-and-braces depending on how much of it is motion-gating vs swap-prevention. Audit `COLOPHON.md` font list against actual usage before migrating.
-2. **Biome** — one-tool lint + format. Currently zero dev toolchain. Configure narrowly (no stylistic bikeshed). Catches unused imports, stray `console`, inconsistent quotes pre-commit. Skip if preference is toolless.
-3. **`@next/bundle-analyzer` — one-off audit.** Not a dependency. Run once, inspect what Framer Motion 12 + React 19 + five font families actually ship. Use findings to inform, not act reflexively.
+1. **Self-host fonts — blocked, revisit later.** `next/font/google`'s bundled catalog in Next 15.5 is missing Google Sans, Google Sans Flex, and Material Symbols Rounded (only Fraunces and Google Sans Code are available). Full migration isn't cleanly possible today. Options if we come back: (a) wait for next/font's catalog to catch up; (b) use `next/font/local` — check woff2 files for the three missing families into `public/fonts/` and wire manually. The CDN `<link>` loading in `app/layout.tsx` stays. One independent improvement landed alongside the investigation: a new `--font-symbols` token in `globals.css`, and five direct `font-family: 'Name'` references across route CSS were routed through `var(--font-*)` tokens so the consumption surface is centralized.
+2. **Biome — skipped.** Solo-dev shipped portfolio; no drift to correct; toolless preference. Revisit only if a collaborator joins.
+3. **`@next/bundle-analyzer` — audited once, no action items.** First-load shared chunks ~102 kB (React DOM + Next runtime baseline), Framer Motion ~30 kB gz, app code ~65 kB gz. Heaviest route /biconomy at 184 kB first-load. No duplicate libs, no dead chunks, EmailJS tree-shaken cleanly. One future candidate noted: **LazyMotion + `m` alias refactor** could trim ~6–8 kB gz by deferring Framer Motion's projection/drag/pan features — site-wide swap of `motion.*` → `m.*` inside a `<LazyMotion features={domAnimation}>` wrapper. Not urgent; flagged for a future pass if bundle size becomes a priority.
 
 **Not doing:** Tailwind, shadcn/Radix, state libraries, Storybook, MDX, test frameworks, View Transitions API migration (TransitionSlot is load-bearing and works).
 

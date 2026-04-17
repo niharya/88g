@@ -26,7 +26,7 @@
 // Known consumers
 //   • /biconomy Flows note pointers (tone="olive" variant="tall" appearance="dark").
 //   • /selected archive entry "opens in new tab" hint — migration pending;
-//     see app/(works)/selected/NOTES.md.
+//     see app/(works)/selected/ANOMALIES.md.
 //
 // Don't add color/border/background transitions to .monostamp.
 //   An earlier pass transitioned color, border-color, and background-color on

@@ -21,12 +21,12 @@ Routes must NOT import from each other. Both consume from shared only.
 
 ## Before any route change
 
-1. Read the route's NOTES.md:
-   - `app/(works)/rr/NOTES.md`
-   - `app/(works)/biconomy/NOTES.md`
-   - `app/(works)/selected/NOTES.md`
-   - `app/components/nav/NOTES.md`
-2. Check the don't-touch list in that NOTES.md
+1. Read the route's ANOMALIES.md:
+   - `app/(works)/rr/ANOMALIES.md`
+   - `app/(works)/biconomy/ANOMALIES.md`
+   - `app/(works)/selected/ANOMALIES.md`
+   - `app/components/nav/ANOMALIES.md`
+2. Check the don't-touch list in that ANOMALIES.md
 3. If touching a shared primitive, grep both routes for consumers
 
 ## Key constraints
@@ -43,5 +43,5 @@ Routes must NOT import from each other. Both consume from shared only.
 - Cross-route imports (route A importing from route B)
 - Silent promotions (copying a pattern instead of promoting to shared)
 - Broken docking relationships (markers, sleds, sticky behavior)
-- Missing NOTES.md updates after architectural changes
+- Missing ANOMALIES.md updates after architectural changes
 - Stale path references (especially `app/rr/` vs `app/(works)/rr/`)

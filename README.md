@@ -27,7 +27,7 @@ Running task list. Keeps the work honest when a session loses thread.
 
 ### `/marks` (active build — see [`MARKS_BRIEF.md`](./MARKS_BRIEF.md))
 
-- [ ] Route skeleton — `layout.tsx`, `page.tsx`, `marks.css`, `NOTES.md`, empty components, data placeholders
+- [ ] Route skeleton — `layout.tsx`, `page.tsx`, `marks.css`, `ANOMALIES.md`, empty components, data placeholders
 - [ ] Shared marks primitive — `app/components/marks/` with six SVG components + typed registry + `LIBRARY.md` entry
 - [ ] Hero — 120px title, gradient + noise mat
 - [ ] Essay — body text, glyph dividers, 6-mark preview row
@@ -40,13 +40,13 @@ Running task list. Keeps the work honest when a session loses thread.
 - [ ] Essay preview row hover + jump
 - [ ] Buffer + infinite loop — double-render + silent scroll-shift
 - [ ] Mobile adjustments — built responsive-ready (no separate pass)
-- [ ] `NOTES.md` — infinite loop reset, settle-vs-timer overlap, why marks were promoted
+- [ ] `ANOMALIES.md` — infinite loop reset, settle-vs-timer overlap, why marks were promoted
 
 ### Refining phase (parallel across shipped routes)
 
 - [ ] Desktop polish — replace placeholders with real proof artifacts; fine-tune components and modules per route
 - [ ] Consistency sweep — log every repeat component/module into [`LIBRARY.md`](./LIBRARY.md) as the single source of truth
-- [ ] Narrow each `NOTES.md` to anomalies + don't-touch only (no code tours, no changelog)
+- [ ] Narrow each `ANOMALIES.md` to anomalies + don't-touch only (no code tours, no changelog)
 - [ ] Responsive-lite pass on `/biconomy` and `/rr` (after `/marks` ships) — usability floor only, not full parity
 
 ### `/names`
@@ -164,7 +164,7 @@ Active routes: `/`, `/selected`, `/biconomy`, `/rr`
 
 ## ↻ Workflow
 
-Work route by route. Read `CLAUDE.md` before starting any session — it carries the working contract, constraints, and session-start checklist. Each route has a `NOTES.md` with architectural decisions and don't-touch items.
+Work route by route. Read `CLAUDE.md` before starting any session — it carries the working contract, constraints, and session-start checklist. Each route has a `ANOMALIES.md` with architectural decisions and don't-touch items.
 
 See [`COLOPHON.md`](./COLOPHON.md) for credits — the visual grammar this site borrows from, the libraries it rides on, and the small tools behind specific pieces.
 

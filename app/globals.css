@@ -99,11 +99,15 @@
   /* ---- Surface ---- */
   --surface-bg: #4C2B18;
 
-  /* ---- Fonts ---- */
+  /* ---- Fonts ───────────────────────────────────────────────────────────
+     Semantic tokens are the single consumption surface for font-family.
+     Route CSS should reference these tokens, not the raw family names.
+     Families are loaded in app/layout.tsx (currently via Google Fonts CDN). */
   --font-display: 'Fraunces', serif;
   --font-body:    'Google Sans', sans-serif;
   --font-ui:      'Google Sans Flex', sans-serif;
   --font-mono:    'Google Sans Code', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
+  --font-symbols: 'Material Symbols Rounded';
 
   /* ---- Spacing scale (8/4/2 rhythm) ---- */
   /* micro: 2px */
@@ -485,7 +489,7 @@ html.fonts-ready .workbench {
 
    --reveal-y and --reveal-delay are intentional fallbacks: routes can set
    them on a specific sheet to customise travel or timing without patching
-   globals. See rr/NOTES.md "Route-specific entrance timing." */
+   globals. See rr/ANOMALIES.md "Route-specific entrance timing." */
 .section-reveal {
   opacity: 0;
   transform: translateY(var(--reveal-y, 32px));
