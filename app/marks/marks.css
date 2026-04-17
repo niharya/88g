@@ -1,0 +1,479 @@
+/* ==========================================================================
+   /marks — Marks & Symbols route
+
+   Editorial credits-reel. One continuous document:
+     HERO (100vh) → ESSAY (auto) → 6 MARK SECTIONS (100vh each) → BUFFER (~80vh)
+     → silent scroll-shift → loops back to HERO.
+
+   Unlike /biconomy and /rr, this route does NOT use `.sheet` containers.
+   The dark field is the medium; each phase paints its own surface within
+   `.route-marks`.
+
+   Route-local tokens live on `.route-marks`. Cross-route tokens (e.g.
+   `--ease-paper`, `--marker-top`, `--workbench-pad-x`) continue to come from
+   globals.css.
+   ========================================================================== */
+
+.route-marks {
+  position: relative;
+  color: var(--marks-ink);
+  /* Route-local palette + timings */
+  --marks-ink:          #f5f5f5;
+  --marks-ink-muted:    rgba(245, 245, 245, 0.62);
+  --marks-bg-rest:      #000;
+
+  /* Phase heights (spec from MARKS_BRIEF.md) */
+  --marks-hero-h:       100vh;
+  --marks-section-h:    100vh;
+  --marks-buffer-h:     80vh;
+
+  /* Hero (chunk 3) — values transcribed from Figma node 2466:3791.
+     Title is Fraunces Regular 120px with WONK alternates, tracked -3.6px,
+     coloured with the grey-880 token. Gradient + noise match the Figma
+     exactly: linear 233.57deg #333 → #000, plus a white-noise tile mixed
+     in via color-dodge. Chunk 8 will swap the gradient to a per-mark
+     palette and animate it. */
+  --marks-title-color:     var(--grey-880);
+  --marks-title-size:      120px;
+  --marks-title-tracking:  -3.6px;
+  --marks-title-top:       37%;    /* = 333 / 900 from the Figma frame */
+  --marks-hero-gradient:   linear-gradient(233.57deg, #333 69.875%, #000 106.73%);
+
+  /* Reel timings — consumed by chunks 8 & 9 */
+  --marks-slide-dur:        4s;     /* auto-advance within a mark */
+  --marks-idle-resume:      24s;    /* resume after user interaction */
+  --marks-gradient-loop:    14s;    /* per-mark palette drift */
+  --marks-noise-loop:       30s;    /* noise background-position drift */
+  --marks-cross-mark-dur:   0.9s;   /* cross-mark gradient crossfade */
+  --marks-settle-delay:     4s;     /* magnetic settle after scroll idle */
+}
+
+
+/* ── Background fixed layer ──────────────────────────────────────────────── */
+/* Sits behind every phase. Owns the gradient via two @property-typed color
+   custom properties; Background.tsx writes these (via inline style) whenever
+   the active mark changes, and the @property registration makes the browser
+   interpolate between the old and new color over 0.9s under --ease-paper.
+   That gives us scroll-driven color morph without a per-frame JS loop.
+   Noise layer is intentionally omitted for now — the brief says ignore noise
+   and focus on the morph. */
+
+@property --marks-bg-stop-a {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #333333;
+}
+@property --marks-bg-stop-b {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #000000;
+}
+
+.marks-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--marks-bg-angle, 233.57deg),
+    var(--marks-bg-stop-a) 69.875%,
+    var(--marks-bg-stop-b) 106.73%
+  );
+  transition:
+    --marks-bg-stop-a 0.9s var(--ease-paper),
+    --marks-bg-stop-b 0.9s var(--ease-paper),
+    --marks-bg-angle  0.9s var(--ease-paper);
+}
+
+/* Paper noise tile over the gradient — transcribed from Figma node 2466:3792.
+   1024×1024 PNG at color-dodge so the grain reads through every palette. */
+.marks-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/marks/noise.png');
+  background-size: 1024px 1024px;
+  background-position: left top;
+  mix-blend-mode: color-dodge;
+  pointer-events: none;
+}
+
+
+/* ── Phase placeholders ──────────────────────────────────────────────────── */
+/* Each phase renders into `.route-marks` directly. All phases carry
+   `position: relative; z-index: 1` so they sit above the fixed Background.
+   Because /marks sits at `app/marks/` outside the (works) workbench shell,
+   phases are naturally full-bleed — no negative margin or 100vw override
+   needed. */
+
+.marks-hero,
+.marks-essay,
+.marks-section,
+.marks-buffer {
+  position: relative;
+  /* No z-index: sections rely on source order to stack above the fixed
+     .marks-background. Adding a z-index here would create stacking contexts
+     that isolate descendants (e.g. the paginator's mix-blend-mode) from
+     the gradient painted by .marks-background. */
+  width: 100%;
+}
+
+.marks-hero     { min-height: var(--marks-hero-h); }
+.marks-section  { min-height: var(--marks-section-h); overflow: hidden; }
+.marks-buffer   { min-height: var(--marks-buffer-h); }
+
+
+/* ── Marks title ─────────────────────────────────────────────────────────── */
+/* Single fixed element — three states, driven by two CSS custom properties:
+     --marks-s      (0→1): hero 120px @ 37vh  →  docked 24px @ 26px
+     --title-reveal (0→1): "MARKS & SYMBOLS"  →  mark name + icon
+   --title-reveal is registered as @property so it can be transitioned when
+   the dominant section settles (mirrors data-settled on MarkSection). */
+
+@property --title-reveal {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.marks-title {
+  --marks-s:      0;
+  --title-reveal: 0;
+
+  position: fixed;
+  left: 50%;
+  top: calc(37vh + (26px - 37vh) * var(--marks-s));
+  transform: translateX(-50%);
+  z-index: 3;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(120px - 96px * var(--marks-s));
+  letter-spacing: calc(-3.6px + 2.88px * var(--marks-s));
+  line-height: 1;
+  color: var(--marks-title-color);
+  text-align: center;
+  white-space: nowrap;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  pointer-events: none;
+}
+
+/* When the dominant section settles, snap --title-reveal to 1 over 0.8s —
+   same mechanism as MarkSection's data-settled snapping --content-reveal. */
+.marks-title[data-settled='true'] {
+  --title-reveal: 1;
+  transition: --title-reveal 0.8s var(--ease-paper);
+}
+
+/* Text wrapper stacks label + mark in the same grid cell — no layout shift
+   as they cross-fade. Icon is absolute so it doesn't affect centering. */
+.marks-title__text {
+  display: inline-grid;
+  position: relative;
+}
+
+.marks-title__label,
+.marks-title__mark {
+  grid-area: 1 / 1;
+}
+
+.marks-title__label {
+  opacity: calc(1 - var(--title-reveal));
+}
+
+.marks-title__mark {
+  opacity: var(--title-reveal);
+}
+
+/* Icon slides in from the right as reveal climbs */
+.marks-title__icon {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: calc(8px + (1 - var(--title-reveal)) * 12px) -50%;
+  opacity: var(--title-reveal);
+  font-size: 18px;
+  line-height: 1;
+}
+
+
+/* ── Essay ───────────────────────────────────────────────────────────────── */
+/* Flow-laid, full-bleed section. The surface is painted by the fixed
+   <Background/>, so the Essay itself is structural only — no background
+   of its own. Content widths mirror the Figma Essay frame (1976:3795):
+     body ¶1      — 625px
+     body ¶2      — 616px
+     preview row  — 1136px
+     caption      — fits naturally
+   All text is Fraunces Regular 24px with -0.72px tracking, grey-720 ink,
+   and the WONK alternates on so it matches the docked title. Wordmarks
+   and glyphs sit at grey-880 (currentColor, one step brighter than body)
+   and keep the per-item Figma widths. Chunk 11 adds hover colorisation;
+   chunk 12 aligns the preview row to MARKS entries by id. */
+
+.marks-essay {
+  /* position, z-index, width are set by the shared phase rule above.
+     Negative margin-top pulls the Essay up so its first paragraph peeks
+     into the Hero viewport at y≈776 (Figma: ¶1 at y=776 in a 900px Hero
+     frame). Scroll distance between the peek and the docked-title Essay
+     view = 100vh, which matches the DockedTitle interpolation range.
+     Expressed viewport-relative so the peek holds on any screen size:
+       offset = (776 − 900) / 900 × 100vh − (pad-top)
+              = −13.78vh − 129px  ≈  Essay top at page-y = 647px */
+  margin-top: calc(-13.78vh - 129px);
+  min-height: 100vh;
+  padding: 129px 0 120px;   /* 129 top to match Figma ¶1-from-Essay-top */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--grey-720);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 1.4;
+  letter-spacing: -0.6px;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  text-align: center;
+}
+
+.marks-essay__body {
+  margin: 0;
+  max-width: 625px;
+}
+.marks-essay__body p { margin: 0; }
+.marks-essay__body--p2 { max-width: 616px; }
+
+.marks-essay__divider {
+  margin: 78px 0 72px;
+  color: var(--grey-880);
+}
+.marks-essay__divider svg {
+  display: block;
+  width: 80px;
+  height: auto;
+}
+
+.marks-essay__preview {
+  width: 100%;
+  max-width: 1136px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--grey-880);
+}
+
+.marks-essay__preview--wordmarks { margin-top: 72px; }
+.marks-essay__preview--glyphs    { margin-top: 76px; justify-content: center; gap: 435px; }
+
+.marks-essay__wordmark,
+.marks-essay__glyph {
+  flex: 0 0 auto;
+  display: block;
+  height: auto;
+}
+
+/* Per-item widths from Figma */
+.marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(1) { width: 218px; }  /* Codezeros */
+.marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(2) { width: 222px; }  /* Slangbusters */
+.marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(3) { width: 216px; }  /* Beringer */
+
+.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(1) { width: 70px; }   /* Ecochain */
+.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(2) { width: 71px; }   /* Kilti */
+
+.marks-essay__caption {
+  margin: 75px 0 0;
+  max-width: 1136px;
+}
+.marks-essay__caption p { margin: 0; }
+
+
+/* (Hero title rule retired — the title is now a route-level, scroll-mapped
+   fixed element styled by `.marks-title` above and DockedTitle.tsx inline.) */
+
+
+/* ── Mark section (chunk 5) ──────────────────────────────────────────────── */
+/* Each mark occupies one 100vh × 100vw panel. Values transcribed from the
+   Aleyr Figma reference (node 1981:4078):
+     • gradient — same 233.57deg shape as the Hero, painted from the mark's
+       bespoke palette (stopA @ 69.875% → stopB @ 106.73%)
+     • mark glyph — centered vertically, `mix-blend-mode: overlay` so the
+       gradient reads through and the ink picks up the palette
+     • bottom chrome stack — paginator (y=780) → divider (y=820, 702px) →
+       caption (y=832) → year (y=859), in a 900px-tall artboard
+   The fixed <Background/> paints the rest-state dark gradient + paper noise
+   underneath; the section's own ::before paints the bespoke gradient over it
+   so the noise tile still reads through (blend handled by the Background's
+   color-dodge layer upstream).
+   Chunk 8 will animate the gradient stops and crossfade between marks. */
+
+.marks-section {
+  overflow: hidden;
+
+  /* Scroll-driven reveal state.
+     `--mark-p` is written by MarkSection.tsx on every scroll: 0 when the
+     section's top is at the viewport bottom, 1 when its top reaches the
+     viewport top. `--content-reveal` is a derived 0→1 that only starts
+     climbing once the palette has had time to morph (p > 0.45), so the
+     sequence is always: color first → details appear.
+     `data-settled` flips to "true" at p ≈ 0.85 and latches; that toggles
+     the transition below, snapping --content-reveal to 1 in 0.8s even if
+     the user stops scrolling mid-reveal. */
+  --mark-p: 0;
+  --content-reveal: clamp(0, (var(--mark-p) - 0.45) / 0.35, 1);
+
+  transition: none;
+}
+
+.marks-section[data-settled='true'] {
+  --content-reveal: 1;
+  transition: --content-reveal 0.8s var(--ease-paper);
+}
+
+@property --content-reveal {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Contents ride `--content-reveal`: opacity fades in and a small upward
+   translate settles. MarkNav and MarkChrome already have their own
+   centering transform, so their reveal uses a compound `translate` instead
+   of `transform` to avoid clobbering it. */
+/* .mark-carousel has no reveal — opacity/transform both create stacking contexts
+   that would sever the glyph's mix-blend-mode from the fixed gradient. The glyph
+   appears with the section; only mark-nav and mark-chrome fade in. */
+
+/* MarkChrome reveal: opacity only — no translate, because `translate`
+   creates a stacking context that would isolate the paginator's
+   mix-blend-mode from the fixed gradient. */
+.marks-section .mark-chrome {
+  opacity: var(--content-reveal);
+}
+
+
+/* ── MarkCarousel (chunk 5, static at slide 0) ───────────────────────────── */
+/* No z-index, no transform on the carousel or track — either would create a
+   stacking context that isolates .mark-carousel__glyph's mix-blend-mode:overlay
+   from .marks-background (the fixed gradient layer in the root stacking context).
+   Slides are absolute-stacked; the active slide is shown via visibility so that
+   no stacking context is created (opacity or transform would both isolate). */
+
+.mark-carousel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* No z-index — source order places this above .marks-background in the root
+     stacking context, which is all that's needed. */
+}
+
+.mark-carousel__slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+}
+
+.mark-carousel__slide--active {
+  visibility: visible;
+}
+
+.mark-carousel__glyph {
+  width: clamp(200px, 22vw, 320px);
+  height: auto;
+  color: var(--marks-ink);
+  mix-blend-mode: overlay;
+}
+
+.mark-carousel__media {
+  position: relative;
+  width: min(70vw, 900px);
+  aspect-ratio: 16 / 10;
+  margin: 0;
+}
+
+.mark-carousel__media img {
+  object-fit: cover;
+}
+
+
+/* ── MarkChrome — bottom chrome (chunk 5) ────────────────────────────────── */
+/* Anchored so the year's baseline sits ~41px from the viewport bottom (matching
+   the Figma, where it lives at y=859 in a 900px frame). The stack flows
+   downward: paginator → divider → caption → year. */
+
+.mark-chrome {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 32px;
+  /* No transform / z-index: both create stacking contexts that would
+     isolate the paginator's mix-blend-mode from the fixed .marks-background
+     gradient. Horizontal centering via left/right + margin-inline: auto. */
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 780px);
+  padding: 0 24px;
+  text-align: center;
+  color: var(--marks-ink);
+}
+
+.mark-chrome__paginator {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: inline-flex;
+  gap: 4px;
+  mix-blend-mode: color-dodge;
+}
+
+.mark-chrome__dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 40px;
+  background: var(--grey-560);
+  transition: width 0.5s var(--ease-paper);
+}
+
+.mark-chrome__dot--active {
+  width: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mark-chrome__dot--active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--grey-720);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: mark-dot-fill var(--marks-slide-dur, 4s) linear forwards;
+}
+
+@keyframes mark-dot-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.mark-chrome__divider {
+  width: min(100%, 702px);
+  height: 1px;
+  background: rgba(245, 245, 245, 0.18);
+  margin-bottom: 12px;
+}
+
+.mark-chrome__caption {
+  margin: 0 0 8px;
+  color: var(--grey-720);
+  white-space: nowrap;
+}
+
+.mark-chrome__year {
+  margin: 0;
+  color: var(--grey-720);
+  white-space: nowrap;
+}
