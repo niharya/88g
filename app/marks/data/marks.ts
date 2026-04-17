@@ -38,7 +38,7 @@ export const MARKS: MarkEntry[] = [
     name:         'Oscar Beringer',
     year:         2023,                                                     // TODO: confirm
     story:        'A signature mark for the pianist, built from a single fluent line.',  // TODO: replace with final copy
-    palette:      { stopA: '#ec1c24', stopB: '#000', angle: 233.57 },       // TODO: confirm against Figma
+    palette:      { stopA: '#4B4B4B', stopB: '#000000', angle: 233.57 },
     previewColor: '#ec1c24',                                                // source SVG red — confirm
     slides: [
       { kind: 'mark' },
@@ -49,11 +49,11 @@ export const MARKS: MarkEntry[] = [
   {
     id:           'codezeros',
     name:         'Codezeros',
-    year:         0,                                              // TODO
-    story:        '',                                             // TODO
-    palette:      { stopA: '#000', stopB: '#000', angle: 135 },   // TODO
-    previewColor: '#FF4B3F',                                      // /selected codezeros tone — confirm
-    slides:       [{ kind: 'mark' }],                             // TODO
+    year:         0,                                                          // TODO: confirm
+    story:        '',                                                         // TODO: replace with final copy
+    palette:      { stopA: '#FF2633', stopB: '#0D0000', angle: 200 },        // derived from source SVG red #ff2633
+    previewColor: '#FF2633',                                                  // source SVG red — confirm
+    slides:       [{ kind: 'mark' }],
   },
   {
     id:           'ecochain',
@@ -74,28 +74,28 @@ export const MARKS: MarkEntry[] = [
   {
     id:           'furrmark',
     name:         'Furrmark',
-    year:         0,                                              // TODO
-    story:        '',                                             // TODO
-    palette:      { stopA: '#000', stopB: '#000', angle: 135 },   // TODO
-    previewColor: '#EF426F',                                      // source SVG pink — confirm
-    slides:       [{ kind: 'mark' }],                             // TODO
+    year:         0,                                                          // TODO: confirm
+    story:        '',                                                         // TODO: replace with final copy
+    palette:      { stopA: '#EF426F', stopB: '#110008', angle: 233.57 },     // derived from source SVG pink #ef426f
+    previewColor: '#EF426F',                                                  // source SVG pink — confirm
+    slides:       [{ kind: 'mark' }],
   },
   {
     id:           'kilti',
     name:         'Kilti',
-    year:         0,                                              // TODO
-    story:        '',                                             // TODO
-    palette:      { stopA: '#000', stopB: '#000', angle: 135 },   // TODO
-    previewColor: '#1E1E1E',                                      // source SVG near-black — confirm (likely wants a color)
-    slides:       [{ kind: 'mark' }],                             // TODO
+    year:         0,                                                          // TODO: confirm
+    story:        '',                                                         // TODO: replace with final copy
+    palette:      { stopA: '#16153A', stopB: '#05050F', angle: 150 },        // deep midnight — source was near-black; TODO: confirm brand color
+    previewColor: '#9B99FF',                                                  // TODO: confirm brand color (sourced near-black #1E1E1E won't read on dark essay)
+    slides:       [{ kind: 'mark' }],
   },
   {
     id:           'slangbusters',
     name:         'Slangbusters',
-    year:         0,                                              // TODO
-    story:        '',                                             // TODO
-    palette:      { stopA: '#000', stopB: '#000', angle: 135 },   // TODO
-    previewColor: '#07F063',                                      // /selected mint tone — confirm
-    slides:       [{ kind: 'mark' }],                             // TODO
+    year:         0,                                                          // TODO: confirm
+    story:        '',                                                         // TODO: replace with final copy
+    palette:      { stopA: '#00CC66', stopB: '#001A09', angle: 233.57 },     // derived from source SVG green #0c6
+    previewColor: '#00CC66',                                                  // source SVG green — confirm
+    slides:       [{ kind: 'mark' }],
   },
 ]

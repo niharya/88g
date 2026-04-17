@@ -33,7 +33,11 @@ export default function MarkChrome({ mark, index }: MarkChromeProps) {
       <ol className="mark-chrome__paginator" aria-label="Slide pagination">
         {mark.slides.map((_, i) => (
           <li
-            key={i}
+            // Keying the active dot by `active-${index}` forces React to
+            // remount it each time a new slide becomes active, which
+            // restarts the CSS fill animation from scaleX(0). Inactive
+            // dots keep stable keys so they don't churn.
+            key={i === index ? `active-${index}` : `inactive-${i}`}
             className={`mark-chrome__dot${i === index ? ' mark-chrome__dot--active' : ''}`}
             aria-current={i === index ? 'true' : undefined}
           />
@@ -42,9 +46,9 @@ export default function MarkChrome({ mark, index }: MarkChromeProps) {
 
       <div className="mark-chrome__divider" aria-hidden="true" />
 
-      <p className="mark-chrome__caption">{captionFor(mark, index)}</p>
+      <p className="mark-chrome__caption t-p3">{captionFor(mark, index)}</p>
 
-      <p className="mark-chrome__year">{mark.name}, {mark.year}</p>
+      <p className="mark-chrome__year t-h5">{mark.name}, {mark.year}</p>
     </div>
   )
 }

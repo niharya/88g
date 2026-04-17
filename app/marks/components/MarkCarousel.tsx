@@ -40,36 +40,31 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
       data-active-slide={index}
       aria-roledescription="carousel"
     >
-      <div
-        className="mark-carousel__track"
-        style={{ transform: `translateX(${-index * 100}vw)` }}
-      >
-        {mark.slides.map((slide, i) => (
-          <div
-            key={i}
-            className="mark-carousel__slide"
-            aria-hidden={i !== index}
-          >
-            {slide.kind === 'mark' ? (
-              <MarkGlyph
-                className="mark-carousel__glyph"
-                aria-label={mark.name}
-                style={{ transform: flipTransform(slide.flip) }}
+      {mark.slides.map((slide, i) => (
+        <div
+          key={i}
+          className={`mark-carousel__slide${i === index ? ' mark-carousel__slide--active' : ''}`}
+          aria-hidden={i !== index}
+        >
+          {slide.kind === 'mark' ? (
+            <MarkGlyph
+              className="mark-carousel__glyph"
+              aria-label={mark.name}
+              style={{ transform: flipTransform(slide.flip) }}
+            />
+          ) : (
+            <figure className="mark-carousel__media">
+              <Image
+                src={slide.src}
+                alt={slide.caption}
+                fill
+                sizes="100vw"
+                unoptimized={slide.kind === 'gif'}
               />
-            ) : (
-              <figure className="mark-carousel__media">
-                <Image
-                  src={slide.src}
-                  alt={slide.caption}
-                  fill
-                  sizes="100vw"
-                  unoptimized={slide.kind === 'gif'}
-                />
-              </figure>
-            )}
-          </div>
-        ))}
-      </div>
+            </figure>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

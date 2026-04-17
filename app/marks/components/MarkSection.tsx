@@ -26,7 +26,6 @@ import { useEffect, useRef, useState } from 'react'
 import type { MarkEntry } from '../data/marks'
 import MarkCarousel from './MarkCarousel'
 import MarkChrome from './MarkChrome'
-import MarkNav from './MarkNav'
 import { useShowcaseTimer } from './hooks/useShowcaseTimer'
 
 interface MarkSectionProps {
@@ -98,7 +97,6 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
       data-mark-id={mark.id}
       data-mark-index={index}
     >
-      <MarkNav name={mark.name} />
       <MarkCarousel mark={mark} index={activeSlide} />
       <MarkChrome mark={mark} index={activeSlide} />
     </section>

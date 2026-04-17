@@ -48,7 +48,6 @@ export default function Essay() {
 
       <div className="marks-essay__preview marks-essay__preview--glyphs">
         <Ecochain className="marks-essay__glyph" />
-        <Furrmark className="marks-essay__glyph" />
         <Kilti className="marks-essay__glyph" />
       </div>
     </section>

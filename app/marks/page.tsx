@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Background from './components/Background'
-import DockedTitle from './components/DockedTitle'
+import MarksTitle from './components/MarksTitle'
 import Hero from './components/Hero'
 import Essay from './components/Essay'
 import MarkSection from './components/MarkSection'
@@ -33,14 +33,10 @@ export default function MarksPage() {
   return (
     <div className="route-marks">
       <Background />
-      <DockedTitle />
+      <MarksTitle />
       <Hero />
       <Essay />
-      {/* Scaffolding pass: Beringer (red) + Ecochain (olive), so the
-          color-morph → details-appear → 800ms settle sequence can be read
-          at a glance across two distinct palettes. The full 6-mark stack
-          comes back once the per-section reveal is locked in. */}
-      {[MARKS[0], MARKS[2]].map((mark, i) => (
+      {MARKS.map((mark, i) => (
         <MarkSection key={mark.id} mark={mark} index={i} />
       ))}
       <Buffer />

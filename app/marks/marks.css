@@ -85,6 +85,19 @@
     --marks-bg-angle  0.9s var(--ease-paper);
 }
 
+/* Paper noise tile over the gradient — transcribed from Figma node 2466:3792.
+   1024×1024 PNG at color-dodge so the grain reads through every palette. */
+.marks-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/marks/noise.png');
+  background-size: 1024px 1024px;
+  background-position: left top;
+  mix-blend-mode: color-dodge;
+  pointer-events: none;
+}
+
 
 /* ── Phase placeholders ──────────────────────────────────────────────────── */
 /* Each phase renders into `.route-marks` directly. All phases carry
@@ -98,7 +111,10 @@
 .marks-section,
 .marks-buffer {
   position: relative;
-  z-index: 1;
+  /* No z-index: sections rely on source order to stack above the fixed
+     .marks-background. Adding a z-index here would create stacking contexts
+     that isolate descendants (e.g. the paginator's mix-blend-mode) from
+     the gradient painted by .marks-background. */
   width: 100%;
 }
 
@@ -107,23 +123,28 @@
 .marks-buffer   { min-height: var(--marks-buffer-h); }
 
 
-/* ── Docked title ────────────────────────────────────────────────────────── */
-/* `.marks-title` is the scroll-mapped "MARKS & SYMBOLS" that lives at the
-   route level. DockedTitle.tsx writes a single `--marks-s` custom property
-   (0 at Hero top → 1 after one viewport of scroll) onto this element; the
-   `calc()` expressions below interpolate font-size / top / letter-spacing
-   between the Hero and docked states. Keeping the math in CSS means the
-   server-rendered HTML and the first client render are byte-identical —
-   no framer-motion SSR churn, no hydration mismatch. */
+/* ── Marks title ─────────────────────────────────────────────────────────── */
+/* Single fixed element — three states, driven by two CSS custom properties:
+     --marks-s      (0→1): hero 120px @ 37vh  →  docked 24px @ 26px
+     --title-reveal (0→1): "MARKS & SYMBOLS"  →  mark name + icon
+   --title-reveal is registered as @property so it can be transitioned when
+   the dominant section settles (mirrors data-settled on MarkSection). */
+
+@property --title-reveal {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
 
 .marks-title {
-  --marks-s: 0;            /* 0 = Hero state, 1 = docked state */
+  --marks-s:      0;
+  --title-reveal: 0;
 
   position: fixed;
   left: 50%;
   top: calc(37vh + (26px - 37vh) * var(--marks-s));
   transform: translateX(-50%);
-  z-index: 3;              /* over Background (0) and phases (1) */
+  z-index: 3;
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
@@ -134,7 +155,45 @@
   text-align: center;
   white-space: nowrap;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
-  pointer-events: none;    /* never blocks clicks to content below */
+  pointer-events: none;
+}
+
+/* When the dominant section settles, snap --title-reveal to 1 over 0.8s —
+   same mechanism as MarkSection's data-settled snapping --content-reveal. */
+.marks-title[data-settled='true'] {
+  --title-reveal: 1;
+  transition: --title-reveal 0.8s var(--ease-paper);
+}
+
+/* Text wrapper stacks label + mark in the same grid cell — no layout shift
+   as they cross-fade. Icon is absolute so it doesn't affect centering. */
+.marks-title__text {
+  display: inline-grid;
+  position: relative;
+}
+
+.marks-title__label,
+.marks-title__mark {
+  grid-area: 1 / 1;
+}
+
+.marks-title__label {
+  opacity: calc(1 - var(--title-reveal));
+}
+
+.marks-title__mark {
+  opacity: var(--title-reveal);
+}
+
+/* Icon slides in from the right as reveal climbs */
+.marks-title__icon {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  translate: calc(8px + (1 - var(--title-reveal)) * 12px) -50%;
+  opacity: var(--title-reveal);
+  font-size: 18px;
+  line-height: 1;
 }
 
 
@@ -170,11 +229,8 @@
   color: var(--grey-720);
   font-family: var(--font-display);
   font-weight: 400;
-  /* Font size trimmed a touch and line-height doubled for more breath — the
-     essay reads slower, with more space between lines, which lets the reel
-     that follows feel like an exhale. */
   font-size: 20px;
-  line-height: 2.4;
+  line-height: 1.4;
   letter-spacing: -0.6px;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   text-align: center;
@@ -207,7 +263,7 @@
 }
 
 .marks-essay__preview--wordmarks { margin-top: 72px; }
-.marks-essay__preview--glyphs    { margin-top: 79px; }
+.marks-essay__preview--glyphs    { margin-top: 76px; justify-content: center; gap: 435px; }
 
 .marks-essay__wordmark,
 .marks-essay__glyph {
@@ -222,12 +278,11 @@
 .marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(3) { width: 216px; }  /* Beringer */
 
 .marks-essay__preview--glyphs .marks-essay__glyph:nth-child(1) { width: 70px; }   /* Ecochain */
-.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(2) { width: 110px; }  /* Furrmark (wide aspect) */
-.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(3) { width: 71px; }   /* Kilti */
+.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(2) { width: 71px; }   /* Kilti */
 
 .marks-essay__caption {
   margin: 75px 0 0;
-  max-width: 900px;
+  max-width: 1136px;
 }
 .marks-essay__caption p { margin: 0; }
 
@@ -284,82 +339,44 @@
    translate settles. MarkNav and MarkChrome already have their own
    centering transform, so their reveal uses a compound `translate` instead
    of `transform` to avoid clobbering it. */
-.marks-section .mark-carousel {
-  opacity: var(--content-reveal);
-  transform: translateY(calc((1 - var(--content-reveal)) * 24px));
-}
-.marks-section .mark-nav,
+/* .mark-carousel has no reveal — opacity/transform both create stacking contexts
+   that would sever the glyph's mix-blend-mode from the fixed gradient. The glyph
+   appears with the section; only mark-nav and mark-chrome fade in. */
+
+/* MarkChrome reveal: opacity only — no translate, because `translate`
+   creates a stacking context that would isolate the paginator's
+   mix-blend-mode from the fixed gradient. */
 .marks-section .mark-chrome {
   opacity: var(--content-reveal);
-  translate: 0 calc((1 - var(--content-reveal)) * 24px);
 }
-
-
-/* ── MarkNav pill (chunk 5, per-section) ─────────────────────────────────── */
-/* Sticky-equivalent top-center pill rendered inside each mark section for
-   chunk 5. Chunk 7 hoists this to route-level with scroll-mapped hand-off
-   from the Hero title, and chunk 11 wires the grid-icon click to jump back
-   to the current cycle's Hero. */
-
-.mark-nav {
-  position: absolute;
-  top: var(--marker-top);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 16px 6px 12px;
-  border-radius: 40px;
-  background: rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--marks-ink);
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: -0.72px;
-  font-variation-settings: 'SOFT' 0, 'WONK' 1;
-  white-space: nowrap;
-}
-
-.mark-nav__icon {
-  font-size: 20px;
-  line-height: 1;
-  opacity: 0.9;
-}
-
-.mark-nav__name { display: inline-block; }
 
 
 /* ── MarkCarousel (chunk 5, static at slide 0) ───────────────────────────── */
-/* Horizontal track sized to one viewport per slide. The track is translated
-   by `-index * 100vw` via an inline transform on the element; chunk 5
-   always passes index 0 so the mark SVG sits centered. */
+/* No z-index, no transform on the carousel or track — either would create a
+   stacking context that isolates .mark-carousel__glyph's mix-blend-mode:overlay
+   from .marks-background (the fixed gradient layer in the root stacking context).
+   Slides are absolute-stacked; the active slide is shown via visibility so that
+   no stacking context is created (opacity or transform would both isolate). */
 
 .mark-carousel {
   position: absolute;
   inset: 0;
-  z-index: 2;
   overflow: hidden;
-}
-
-.mark-carousel__track {
-  display: flex;
-  height: 100%;
-  width: 100%;
-  transition: transform 0.9s var(--ease-paper);
-  will-change: transform;
+  /* No z-index — source order places this above .marks-background in the root
+     stacking context, which is all that's needed. */
 }
 
 .mark-carousel__slide {
-  flex: 0 0 100vw;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  visibility: hidden;
+}
+
+.mark-carousel__slide--active {
+  visibility: visible;
 }
 
 .mark-carousel__glyph {
@@ -388,15 +405,17 @@
 
 .mark-chrome {
   position: absolute;
-  left: 50%;
-  bottom: 41px;
-  transform: translateX(-50%);
-  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 32px;
+  /* No transform / z-index: both create stacking contexts that would
+     isolate the paginator's mix-blend-mode from the fixed .marks-background
+     gradient. Horizontal centering via left/right + margin-inline: auto. */
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 780px;
+  width: min(100%, 780px);
   padding: 0 24px;
   text-align: center;
   color: var(--marks-ink);
@@ -407,7 +426,7 @@
   margin: 0 0 24px;
   padding: 0;
   display: inline-flex;
-  gap: 8px;
+  gap: 4px;
   mix-blend-mode: color-dodge;
 }
 
@@ -415,12 +434,29 @@
   width: 16px;
   height: 16px;
   border-radius: 40px;
-  background: #7b7b7b;
+  background: var(--grey-560);
   transition: width 0.5s var(--ease-paper);
 }
 
 .mark-chrome__dot--active {
   width: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mark-chrome__dot--active::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--grey-720);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: mark-dot-fill var(--marks-slide-dur, 4s) linear forwards;
+}
+
+@keyframes mark-dot-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
 
 .mark-chrome__divider {
@@ -431,22 +467,13 @@
 }
 
 .mark-chrome__caption {
-  margin: 0 0 12px;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: -0.72px;
+  margin: 0 0 8px;
   color: var(--grey-720);
-  font-variation-settings: 'SOFT' 0, 'WONK' 1;
-  max-width: 680px;
+  white-space: nowrap;
 }
 
 .mark-chrome__year {
   margin: 0;
-  font-family: var(--font-sans, var(--font-display));
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--marks-ink-muted);
+  color: var(--grey-720);
+  white-space: nowrap;
 }
