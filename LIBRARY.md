@@ -23,6 +23,26 @@ Add new entries **above the divider at the bottom**, most recent first.
 
 ---
 
+## Tab-switch motion tokens
+
+The default feel for any tabbed section where a title/subtitle morphs and a body panel crossfades between tab states. Captures the six constants (title enter/visible/exit + transition, body variants + transition) that /rr Cards and /biconomy Demos both use.
+
+**Where it lives**
+- [app/lib/motion.ts](app/lib/motion.ts) — the six exports (`TAB_TITLE_ENTER`, `TAB_TITLE_VISIBLE`, `TAB_TITLE_EXIT`, `TAB_TITLE_TRANSITION`, `TAB_BODY_VARIANTS`, `TAB_BODY_TRANSITION`) and the shared `TAB_EASE` tuple.
+- Consumers: [app/(works)/rr/components/Cards.tsx](app/(works)/rr/components/Cards.tsx), [app/(works)/biconomy/components/Demos.tsx](app/(works)/biconomy/components/Demos.tsx).
+
+**AI notes**
+- **Ease is `[0.45, 0, 0.15, 1]`, not `--ease-paper`.** This is deliberate — paper glide is for section reveals; tab switches need to feel responsive to input, not cinematic. Do not unify the two curves.
+- **Both title and body wrap in `AnimatePresence mode="wait"`.** Old content fully exits before new content enters. Do not use `popLayout` here — it produces cross-fades that make the wipe feel uncertain.
+- **Title wipe is clip-path from the top** (`inset(0 0 100% 0)` → `inset(0 0 0% 0)`) plus a small -6px y nudge. Duration 0.12s.
+- **Body is scale 0.985 → 1 + opacity.** Duration 0.15s. The scale is small on purpose; larger values read as zoom, not settle.
+- **Skip first-mount animation via a `hasSwitched` ref.** Flip it to `true` inside the tab handler; pass `initial={hasSwitched.current ? TAB_TITLE_ENTER : false}` on the title. Without this, the page-load reveal replays the wipe, which reads as a glitch.
+- **Body uses `initial={false}` on the `<AnimatePresence>` wrapper** instead of a ref — the motion.div's `initial="enter"` still applies on subsequent tab switches because the key changes.
+- Route-specific bits stay in the consumer: tab state, the title text source (ScrambleText in rr, plain text in biconomy), and any scroll-linked entrance applied on the outer header/body wrappers.
+- **These are JS tokens, not CSS.** Framer Motion consumes the objects directly. Do not mirror them into `globals.css` as custom properties, and do not try to unify `TAB_EASE` with `--ease-paper` — the two tiers exist on purpose.
+
+---
+
 ## Train Marquee
 
 A continuously scrolling horizontal marquee. Decelerates to a stop on hover, spring-starts on hover-out, and lets the user manually scroll to the true end of the track without exposing empty space past the last copy.
