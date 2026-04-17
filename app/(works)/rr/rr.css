@@ -1970,7 +1970,7 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.12px;
-  color: #b3b3b3;
+  color: var(--grey-640);
   white-space: nowrap;
 }
 
@@ -1978,7 +1978,7 @@
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 400;
-  color: #b3b3b3;
+  color: var(--grey-640);
   letter-spacing: -0.12px;
 }
 
@@ -2684,3 +2684,598 @@
   line-height: 1.35;
   letter-spacing: -0.21px;
 }
+
+
+/* ==========================================================================
+   Responsive-lite — mobile (≤767px)
+   Reading fallback, not a second authored composition.
+   See ANOMALIES.md § "Responsive anomalies" for rationale + drop-outs.
+   ========================================================================== */
+
+@media (max-width: 767px) {
+
+  .route-rr {
+    /* Page-wide safe margin. Every full-width element aligns inside this.   */
+    --rr-safe-x: 12px;
+  }
+
+  /* ── Workbench flex chain so the last mat fills remaining viewport ──── */
+
+  .route-rr .workbench {
+    min-height: calc(100vh - 2 * var(--workbench-pad-y));
+    display: flex;
+    flex-direction: column;
+  }
+
+  .route-rr .sheet-stack {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-type: none;
+  }
+
+  .route-rr .sheet {
+    scroll-snap-align: none;
+    min-height: 0;
+    justify-content: flex-start;
+    gap: 48px;
+    padding-left: var(--workbench-pad-x);
+    padding-right: var(--workbench-pad-x);
+  }
+
+  .route-rr .mat {
+    min-height: 0;
+    width: calc(100% + 2 * var(--workbench-pad-x));
+    margin-left: calc(-1 * var(--workbench-pad-x));
+    margin-right: calc(-1 * var(--workbench-pad-x));
+    border-left: none;
+    border-right: none;
+  }
+
+  .route-rr #outcome { flex: 1 0 auto; display: flex; flex-direction: column; }
+  .route-rr #outcome > .mat { flex: 1 0 auto; min-height: 0; }
+
+
+  /* ── Nav pills: project + chapter both docked top of viewport ────────── */
+  /* Project pill left of center, chapter pill right of center. The project  */
+  /* pill is fixed (global). Chapter pill is per-sheet sticky so whichever   */
+  /* sheet is in view is the one whose chapter pill shows. nav-sled's        */
+  /* desktop absolute positioning is unset so sticky can resolve to viewport.*/
+
+  /* Project + Exit dock as a single unit, horizontally centered in viewport.
+     Project ≈ 151px (with "lite" badge), Exit ≈ 85px → 236px total.
+     Project's left edge = 50vw − 118px so the pair is centered. Exit sits
+     immediately after with no gap. */
+  .workbench:has(.route-rr) .project-marker {
+    position: fixed;
+    top: 0;
+    left: calc(50vw - 118px);
+    right: auto;
+    z-index: 40;
+  }
+
+  /* Sled sticks within its sheet so only the current chapter's pill is ever
+     at the viewport top — useDockedMarker relies on that (it keys docked
+     state off getBoundingClientRect().top ≈ 0).
+
+     To dock at viewport y=0 flush with the fixed project pill, the sled's
+     flow position must coincide with sheet-top. As the sheet's first child
+     it naturally sits at sheet.padding-top + sheet.border-top below sheet
+     top; we pull it up the same amount via negative margin so sticky top:0
+     pins cleanly when the sheet reaches the viewport top. */
+  /* Sled sticks at viewY=34 (sheet padding + border) while its sheet is in
+     view. The chapter pill inside is pulled up -34px so it lands at viewY=0,
+     flush with the fixed project pill. Before the sheet reaches the top of
+     the viewport the pill is offset by the workbench padding; once the user
+     scrolls at all, both pills align at y=0. */
+  /* Chapter pill sits inside each mat, centered horizontally with a small
+     buffer from the top. No rotation, no sticky — scrolls with the mat. */
+  .route-rr .nav-sled {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    height: auto;
+    pointer-events: auto;
+    z-index: 30;
+    margin-top: 16px;
+    margin-bottom: 0;
+    opacity: 1;
+    transform: none;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Intro mat: surface card is absolutely positioned at top:48 and overlaps
+     the in-flow chapter pill. Push the canvas down to clear the pill. */
+  .route-rr #intro.mat .nav-sled {
+    margin-top: 16px;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .route-rr #intro .rr-canvas { top: 72px; }
+
+  /* Mechanics is structural-only with no visible mat surface; position the
+     pill absolutely so it lands inside the first visible mat (rr-mat--primary)
+     instead of in the workbench gap above it. */
+  .route-rr #mechanics { position: relative; }
+  .route-rr #mechanics .nav-sled {
+    position: absolute;
+    top: 16px;
+    left: 0;
+    margin-top: 0;
+  }
+
+  .route-rr .chapter-nav {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    display: block;
+    pointer-events: auto;
+  }
+
+  .route-rr .nav-marker--chapter {
+    transform: none;
+  }
+
+  /* Exit pill docks next to the project pill in the top frame. Project pill
+     is fixed at left:12; exit sits immediately after it. */
+  .workbench:has(.route-rr) .exit-marker {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: calc(50vw + 32px);
+    right: auto;
+    z-index: 40;
+  }
+
+
+  /* ── Interstitial text — align to page safe margin ───────────────────── */
+
+  .rr-interstitial-text {
+    width: auto;
+    max-width: none;
+    padding: 0 var(--rr-safe-x);
+    box-sizing: border-box;
+    font-size: clamp(18px, 5.5vw, 24px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+
+  /* ── Canvas break-out: un-pin the 1440×900 fixed composition ─────────── */
+  /* Desktop uses .rr-canvas as a rigid 1440×900 absolute composition. On    */
+  /* mobile we recompose per-chapter: canvas becomes a natural-height flex    */
+  /* column, and each chapter pulls its primary artifact out of absolute.     */
+
+  .route-rr .rr-canvas {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+
+  /* ── Intro — storycard scaled to viewport, internal layout preserved ──── */
+  /* The card keeps its authored 430×624 composition (North Star, Constraints
+     as nested absolute children stay in their authored spots). The whole card
+     is scaled down to viewport-safe width via transform — internal layout is
+     never re-flowed. Canvas is sized to the scaled card so flow follows.     */
+
+  /* The story card is a Framer Motion element whose inline transform resets
+     to `none` on rest — so CSS can't scale the card itself without flicker.
+     Instead scale the canvas wrapper (non-motion), which carries the card as
+     an absolute child and is sized to the card's natural 430×624. The mat
+     reserves the scaled canvas height + top/bottom breathing. */
+  #intro.mat {
+    padding: 0;
+    overflow: clip;
+    position: relative;
+    --rr-intro-card-inset: 20px;
+    --rr-intro-scale: calc(
+      (100vw - 2 * var(--rr-safe-x) - 2 * var(--rr-intro-card-inset)) / 430px
+    );
+    height: calc(48px + 624px * var(--rr-intro-scale) + 48px);
+  }
+
+  #intro .rr-canvas {
+    position: absolute;
+    top: 48px;
+    left: 50%;
+    display: block;
+    width: 430px;
+    height: 624px;
+    min-height: 0;
+    overflow: visible;
+    margin: 0;
+    transform: translateX(-50%) scale(var(--rr-intro-scale));
+    transform-origin: top center;
+  }
+
+  #intro .rr-story-card {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 430px;
+    min-height: 624px;
+    animation: none;
+  }
+  /* Expand-to-sketches affordance is tied to the card-stack which is hidden
+     under lite — the sketches aren't a mobile composition. */
+  #intro .rr-story-card__expand,
+  #intro .rr-card-stack,
+  #intro .rr-enlarged { display: none; }
+
+
+  /* ── Mechanics — preserve desktop rails, collapse scroll pin ─────────── */
+  /* Desktop is a 200vh scroll-pinned mat-split. On mobile we flow both mats  */
+  /* as siblings (no pin, no progress variable), keep the family at natural   */
+  /* pixel size so rails retain their authored flip-out mechanic, and only    */
+  /* re-anchor the rails' open transform so their content lands on-screen.    */
+
+  .rr-mech-scene { height: auto; }
+  .rr-mech-stage {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    overflow: visible;
+  }
+
+  .rr-mat--primary,
+  .rr-mat--secondary {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: auto;
+    visibility: visible;
+  }
+  .rr-mat--primary {
+    padding: 56px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: clip;
+  }
+  .rr-mat--secondary {
+    padding: 40px var(--rr-safe-x);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: var(--sheet-border);
+    border-left: none;
+    border-right: none;
+  }
+
+  /* Family: 520×720 natural, centered via symmetric neg margins. Oversized
+     content (rails at rest) bleeds into the mat's overflow-clip.             */
+  .rr-mech-family {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin-left: calc((100% - 520px) / 2);
+    margin-right: calc((100% - 520px) / 2);
+    flex: none;
+  }
+  /* Kill desktop's inline-style board nudge (reaction to rail open states). */
+  .rr-mech-family .rr-game-board {
+    transform: none !important;
+    transition: none;
+  }
+
+  /* Rails keep their desktop content + flip-out mechanic. On mobile we only
+     override the open-state transform so the panel lands on top of the game
+     board (desktop value slides it right off-screen on a 375 viewport).
+     Inline-style transform is beaten with !important here.
+     When closed, content must stay clipped behind the board (default z-order).
+     When open, rails sit above the board so their tab + content are visible. */
+  .route-rr .rr-rules-rail.is-open,
+  .route-rr .rr-note-rail.is-open {
+    z-index: 5;
+  }
+  /* Rails: closed = body tucked UNDER the gameboard, only the tab peeks past
+     the board's RIGHT edge (the click target). Open = slides RIGHT, body
+     emerges from under the board's right edge and sits ON the gameboard
+     (z-elevated above the board so the body shows through).
+     Closed translateX values place each rail body's right edge ≈ board's
+     right edge so the tab (right:-32 of body) peeks just past it.
+     Inline styles set by JS are beaten with !important here. */
+  .route-rr .rr-rules-rail {
+    transform: translateX(0) rotate(1deg) !important;
+  }
+  .route-rr .rr-rules-rail.is-open {
+    transform: translateX(-50px) rotate(0deg) !important;
+  }
+  .route-rr .rr-note-rail {
+    transform: translateX(0) rotate(1deg) !important;
+  }
+  .route-rr .rr-note-rail.is-open {
+    transform: translateX(0) rotate(0deg) !important;
+  }
+  /* Smoother glide — long deceleration so the close doesn't snap and the
+     open settles. easeOutQuint-style cubic. */
+  .route-rr .rr-rules-rail,
+  .route-rr .rr-note-rail {
+    transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    will-change: transform;
+  }
+  /* Game board sits ABOVE the rails when they're tucked, so the body of
+     each rail that overlaps the board is hidden — only the portion of the
+     rail extending past the board's left edge (small peek + tab) remains
+     visible. When a rail opens it raises its own z-index above the board. */
+  .route-rr .rr-mech-family .rr-game-board {
+    position: relative;
+    z-index: 4;
+  }
+  /* Tab peek on the right edge needs to be tappable above the scorecard.
+     Raise just the tab's stacking, not the whole rail, so closed-state
+     content stays under the board. */
+  /* Preserve desktop's absolute tab placement (right: -32) so tabs peek
+     past the rail body's right edge and stay visible above the scorecard.
+     z-index works on absolute too. */
+  .route-rr .rr-rules-rail__tab,
+  .route-rr .rr-note-rail__tab {
+    z-index: 6;
+  }
+  /* Arrow flips to indicate close when open. */
+  .rr-rules-rail.is-open .rr-rules-rail__arrow { transform: rotate(180deg); }
+  /* Note rail: swap the icon glyph to 'close' when open. */
+  .rr-note-rail.is-open .rr-note-rail__tab-icon::before {
+    content: 'close';
+  }
+  .rr-note-rail.is-open .rr-note-rail__tab-icon {
+    font-size: 0;
+  }
+  .rr-note-rail.is-open .rr-note-rail__tab-icon::before {
+    font-size: 20px;
+  }
+  /* First-visit reveal keyframe is a desktop entrance; no-op on mobile. */
+  .rr-note-rail.is-revealing { animation: none; }
+
+
+  /* ── Secondary mat (post-game storycard) ─────────────────────────────── */
+  /* Mechanics card keeps its authored 384×688 composition — North Star,
+     dotted path, deck fan all stay in their authored absolute positions
+     inside the card. The whole card is scaled down to viewport-safe width.
+     Mat reserves the scaled card height + chrome.                            */
+
+  .rr-mat--secondary {
+    display: block;
+    position: relative;
+    height: calc((100vw - 2 * var(--rr-safe-x)) * 688 / 384 + 112px);
+    padding: 0;
+  }
+  .rr-mat--secondary .rr-story-card--mechanics {
+    position: absolute;
+    top: 56px;
+    left: 50%;
+    width: 384px;
+    height: 688px;
+    min-height: unset;
+    /* Multiplier trims ~15% off the fit-to-viewport scale so the card has
+       breathing room on both sides instead of touching --rr-safe-x. */
+    transform: translateX(-50%) scale(calc((100vw - 2 * var(--rr-safe-x)) / 384px * 0.85));
+    transform-origin: top center;
+  }
+
+  /* Deck-fan overlay (hand holding the card fan): rotate 90° clockwise and
+     slide in from the storycard's left edge as the scene scrolls in. The
+     desktop rule pins the fan to the card's bottom (`bottom: -150; left: -60`);
+     mobile re-anchors to the card's mid-left so the rotated image reads as
+     a hand reaching in from the side. */
+  .rr-mat--secondary .rr-story-card__deck-fan {
+    bottom: auto;
+    /* Shifted up from 55% to 42% — hand sits higher in the card so it
+       reads near the dotted-path landing rather than mid-card. */
+    top: 42%;
+    left: 0;
+    transform-origin: 0% 50%;
+    /* Reduced 20% from prior 1.1 → 0.88. */
+    transform:
+      translate(calc(-300px + 300px * var(--rr-mech-progress, 1)), -50%)
+      rotate(90deg)
+      scale(0.88);
+  }
+
+
+  /* ── Cards & Interface — scale full 1440×900 canvas to viewport ────────── */
+  /* The entire authored composition (header, card fan, interface panel) is    */
+  /* preserved at desktop coordinates and the whole canvas is scaled to fit    */
+  /* viewport width. Canvas is shifted left so the cards / interface (which    */
+  /* live in the canvas-x range 272→1170) sit roughly centered in viewport.   */
+  /* Mat height is set to scaled-canvas height so the section is full length. */
+  /* --rr-cards-scale tuned to make cards "almost fill the screen": roughly    */
+  /* maps the 1100px content span to viewport-safe width.                     */
+
+  /* Cards section: scale chosen so the cards/interface region is the focus
+     and the section is comfortably tall. Canvas (1440×900) is wider than the
+     viewport at this scale; mat clips and centers on the cards/interface
+     midpoint. Title may clip slightly at edges — acceptable for lite.
+     Mat fills the viewport vertically so the shader background reads as a
+     full-bleed surface, not a thin band. Section height = max(scaled-canvas,
+     viewport). Title + tabs get a typography boost below to compensate for
+     the canvas down-scale at mobile font sizes. */
+  #cards.mat {
+    padding: 0;
+    overflow: clip;
+    position: relative;
+    --rr-cards-scale: 0.5;
+    min-height: 100vh;
+    height: max(calc(900px * var(--rr-cards-scale) + 96px), 100vh);
+  }
+
+  /* Higher specificity than the sweeping `.route-rr .rr-canvas` mobile reset
+     above, so the cards canvas keeps its desktop 1440×900 dimensions and is
+     scaled down via transform instead of being flex-flowed. Vertically
+     centered inside the viewport-tall mat. */
+  .route-rr .rr-canvas--cards-evo {
+    position: absolute;
+    top: 50%;
+    /* Center the 1440-wide canvas in the viewport so the title (at canvas-x
+       720) sits on viewport midline and the tabs below it also read centered. */
+    left: calc(50vw - 720px * var(--rr-cards-scale));
+    width: 1440px;
+    height: 900px;
+    min-height: 0;
+    overflow: hidden;
+    display: block;
+    /* translate -50% counteracted by half scaled-height keeps the canvas
+       vertically centered as the mat grows. */
+    transform: translateY(calc(-450px * var(--rr-cards-scale))) scale(var(--rr-cards-scale)) !important;
+    transform-origin: top left;
+    flex: none;
+  }
+
+  /* Title + tab typography boost — canvas scale (0.5) shrinks rendered text
+     too small to read on mobile. Bump base font-sizes so the rendered output
+     lands in mobile-readable range. Title 36→64 (rendered ~32 at 0.5 scale),
+     tabs 12→24 (rendered ~12), subtitle 12→24 (rendered ~12). */
+  .route-rr .rr-canvas--cards-evo .rr-cards-title {
+    font-size: 44px;
+    letter-spacing: -2.2px;
+  }
+  .route-rr .rr-canvas--cards-evo .rr-cards-subtitle {
+    font-size: 22px;
+    letter-spacing: -0.4px;
+    margin-bottom: 32px;
+  }
+  .route-rr .rr-canvas--cards-evo .rr-cards-subtitle-slot {
+    height: 64px;
+  }
+  .route-rr .rr-canvas--cards-evo .rr-cards-tab {
+    font-size: 24px;
+    letter-spacing: -0.4px;
+  }
+
+  /* Slightly tighten the card-fan spread on mobile (10%) — cards feel a bit
+     more grouped without overlapping. Desktop positions untouched. */
+  .route-rr .rr-canvas--cards-evo .rr-card-item--v1 { left: 403px; }
+  .route-rr .rr-canvas--cards-evo .rr-card-item--v2 { left: 513px; }
+  .route-rr .rr-canvas--cards-evo .rr-card-item--v3 { left: 650px; }
+  .route-rr .rr-canvas--cards-evo .rr-card-item--v4 { left: 747px; }
+  .route-rr .rr-canvas--cards-evo .rr-card-item--v5 { left: 843px; }
+
+  /* Body / fan / panel keep their authored positions — no overrides needed.   */
+  /* Tab bar (header) sits at top:40 of canvas; scaled with everything else.   */
+
+  /* Interface notes — keep its authored desktop position relative to the     */
+  /* scaled canvas. Reveal animation (translateX) stays as the desktop spec.  */
+  .rr-interface-notes {
+    cursor: pointer;
+  }
+
+
+  /* ── Outcome — card edge-to-edge, rules panel docked right + swipeable ── */
+
+  #outcome.mat {
+    padding: 0 var(--rr-safe-x) 48px;
+  }
+
+  .rr-canvas--outcome {
+    gap: 32px;
+    align-items: stretch;
+    padding-bottom: 64px; /* ticker rides at the bottom */
+  }
+
+  /* Outcome card: pulled out of absolute, takes viewport-safe width. Scroll-
+     linked sweep-in (-120px x, rotate, opacity 0→1) is forced to rest state
+     because on mobile the mat scroll range collapses and the card would stay
+     invisible.                                                                 */
+  .rr-outcome-card {
+    position: relative;
+    inset: auto;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-width: none;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .rr-outcome-card__inner { padding: 20px; }
+
+  /* Rules group: horizontally swipeable rules panel with caption *below* the
+     panel. Panel keeps its 1349×653 authored composition scaled 0.5 (visual
+     width 674.5px). Negative right margin collapses the panel's layout box
+     to its scaled visual width so the scroll container stops cleanly at the
+     right edge — matches the natural left stop. Label sits below as a flex
+     order:2 child, sized to the scaled panel width so it spans the card.    */
+  .rr-rules-group {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: 0;
+    width: 100%;
+    height: auto;
+    transform: none !important;
+    opacity: 1 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+    padding-bottom: 16px;
+  }
+  .rr-rules-group::-webkit-scrollbar { display: none; }
+  .rr-rules-inner {
+    position: relative;
+    order: 1;
+    transform: scale(0.5) !important;
+    transform-origin: top left;
+    flex: none;
+    /* Panel starts visible at the left edge of the scroll container; user
+       swipes horizontally to reveal the rest of the 674.5px scaled width.
+       Trailing negative margin collapses the 1349px layout box to scaled
+       width so the scroll stops cleanly at the panel's right edge. */
+    margin-left: 0;
+    margin-right: calc(-1349px * 0.5);
+    margin-bottom: calc(-653px * 0.5);
+  }
+  .rr-rules-label {
+    order: 2;
+    position: sticky;
+    left: var(--rr-safe-x);
+    width: calc(100vw - 2 * var(--rr-safe-x));
+    max-width: none;
+    margin: 16px 0 0;
+    z-index: auto;
+    flex-direction: column;
+    gap: 4px;
+  }
+  /* Disable expand-on-click on mobile — the swipeable panel is the reading
+     affordance. Close button is desktop-only.                                */
+  .rr-rules-inner { pointer-events: auto; }
+  .rr-rules-close { display: none; }
+
+  /* Ticker: stretches full-bleed at the bottom of the outcome mat. */
+  .rr-outcome-ticker {
+    margin: 0 calc(-1 * var(--rr-safe-x));
+  }
+
+  /* "lite" badge next to project name (mobile only). ProjectMarker lives in
+     the shell (.workbench), not inside .route-rr, so scope via :has(). */
+  .workbench:has(.route-rr) .nav-marker--project .nav-marker__name::after {
+    content: ' lite';
+    font-family: 'Manufacturing Consent', cursive;
+    color: var(--yellow-480);
+    margin-left: 1px;
+    font-size: calc(1em + 2pt);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+
+}
+

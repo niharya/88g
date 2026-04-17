@@ -346,11 +346,68 @@ loop. See also the `COLOPHON.md` at the repo root.
 
 ---
 
+## Responsive anomalies
+
+### Lite stance summary
+
+`/rr` carries a retrofit-lite pass (≤767px). Desktop is unchanged. The page grows taller on mobile — each chapter recomposes vertically and preserves its desktop content instead of collapsing or replicating the scaled canvas. Anything below is a deviation or constraint future passes should inherit rather than reinvent.
+
+### Chapter nav — per-section sticky sled with absolute pill
+
+`.route-rr .nav-sled` is `position: sticky; top: 0; height: 0; width: 100%` under mobile and sits inside each `.sheet.mat.section-reveal`. `.route-rr .chapter-nav` is `position: absolute; top: 0; right: 12px` inside that sled, so the chapter pill sits tucked against the right edge of the top frame alongside the project pill.
+
+Critical: `position: fixed` would normally be simpler, but every chapter mat carries `transform` (from `section-reveal`'s translateY reveal — which never returns to `transform: none` after settling) and `overflow: clip` (from the `.mat` base class). Transform ancestors trap `fixed` into their containing block, and `overflow: clip` doesn't block `sticky` resolution against the root scroll container. Sticky is the only mechanism that works here without restructuring JSX to move the sled outside the mat. Each chapter has its own sled, so the pill visible in the viewport always corresponds to the currently-scrolled chapter.
+
+Exit marker is dropped on mobile (`display: none`) — the project pill alone is the exit affordance.
+
+### Mechanics — rails keep their flip-out mechanic; auto-behaviors gated off
+
+The scroll-bound 200vh mat split is unbound on mobile: scene height goes `auto`, `useScroll`-driven progress is inert, primary and secondary mats stack as flow siblings. The rails (`.rr-rules-rail`, `.rr-note-rail`) preserve their desktop content and flip-out behavior, but their **open-state transform** is rewritten in CSS: desktop slides them +163/+210px off the right edge of the board; mobile slides them `-118px/-238px` so the opened sheet lands on-screen inside the 375-wide viewport. The inline style set by the React component is beaten with `!important` here.
+
+Tab peek z-index: `.rr-rules-rail__tab` and `.rr-note-rail__tab` get `z-index: 6; position: relative` so the scorecard that overlaps the board's right edge doesn't eat the tap target. The **full rail** stays at default z-order when closed (so its content tucks behind the board) and promotes to `z-index: 5` only when `.is-open`.
+
+Two JS affordances are gated off by `window.matchMedia('(max-width: 767px)')` — both in `Mechanics.tsx`/`RulesRail.tsx`:
+
+- **Rules first-visit auto-open** (1s delay). Skipped on mobile — competes with initial scroll. On mobile the first click on the rail treats firstVisit as "open + mark seen" in one tap, not "dismiss then re-open" (otherwise the user would have to click twice).
+- **End-of-game auto-scroll** to the secondary mat. Skipped on mobile — there is no scroll-bound split to advance to; primary and secondary are sibling blocks, so the scroll jump hijacks the user's position.
+
+Arrow/icon states: when open on mobile, `.rr-rules-rail__arrow` rotates 180° and `.rr-note-rail__tab-icon::before` swaps content to `'close'`.
+
+### Cards — scaled fan + flip-out Interface notes rail
+
+The `Cards` tab keeps its desktop 1200px absolute layout (card positions at `left: 376–864px`). On mobile `.rr-cards-body` gets `overflow: hidden` as a clipping stage, and `.rr-card-fan` gets `width: 1200px; transform: scale(calc((100vw - 2 * var(--rr-safe-x)) / 1200px)); transform-origin: top left`. The fan is a `position: absolute; inset: 0` child of the body so the 1200px layout box doesn't expand the body's scroll width.
+
+Critical: the scale calc **must** divide by `1200px` (length / length = number), not `1200` (length / number = length, which is invalid in `scale()` and falls back to `none`). Earlier pass used `/ 1200` and the transform silently no-op'd.
+
+The `Interface` tab's details panel is promoted to a flip-out rail mirroring the Mechanics note-rail mechanic: `.rr-interface-notes` is `position: absolute; top: 50%; left: auto; right: calc(-1 * var(--rr-safe-x))` inside `.rr-interface-panel`. The `left: auto` override is load-bearing — desktop sets `left: 980px`, which wins over `right` in LTR mode unless explicitly unset. The rail's children (`__frame`, `__body`, `__details`) are desktop-absolute; on mobile they're re-flattened to a flex column with the details label absolute in the top-left corner.
+
+`position: fixed` is **not** viable here either — the rail sits inside the same transform chain as the nav-sled. Absolute-in-panel works because `.rr-interface-panel` is the nearest positioned ancestor and is itself un-transformed.
+
+### Outcome — card edge-to-edge, rules panel horizontally swipeable
+
+`.rr-outcome-card` is pulled out of absolute (`position: relative; inset: auto; width: 100%`) with its scroll-linked entrance force-reset: `transform: none !important; opacity: 1 !important` — the sweep-in maps to a scroll range that collapses when the mat is flow-sized.
+
+`.rr-rules-group` (the 1349×653 rule-card grid) is the main recomposition: it becomes a horizontal scroll strip. The group itself gets `overflow-x: auto; touch-action: pan-x`, and the inner panel keeps its `transform: scale(0.5); transform-origin: top left` so the rules read at roughly half scale. The `.rr-rules-label` header sits as a `position: sticky; left: 0` block at the top of the group with `width: calc(100vw - 2 * var(--rr-safe-x))`, so it stays viewport-wide regardless of the group's 1349-wide scroll extent and doesn't stretch or scroll horizontally with the panel.
+
+### Post-game storycard mat — shrunk card, re-seated fan
+
+The secondary mat (fed by `<StoryCard>` after game-over) takes a mobile-specific treatment: `.rr-story-card--mechanics` gets `max-width: 320px; padding: 92px 14px 24px; margin: 0 auto` so text reads inside the narrow viewport, and `.rr-story-card__deck-fan` is resized to `width: 180px; bottom: -80px; left: -10px; transform: rotate(-12deg) scale(0.9)` so the hand/deck artwork doesn't clip the mat's left edge.
+
+### Intro storycard edge-to-edge
+
+`#intro .rr-story-card` is pulled out of its desktop absolute placement (`position: relative; transform: none !important; width: 100%; padding: 32px 20px`). The peripheral embellishments — expand affordance, card stack, enlarged artwork — drop out under lite (`display: none`), matching the decorative-elements-drop-out rule in the lite stance.
+
+### Mat full-bleed pattern
+
+`.route-rr .mat` gets `width: calc(100% + 2 * var(--workbench-pad-x))` with matching negative horizontal margins, so each mat stretches frame-to-frame. The sheet re-adds the workbench horizontal padding so content inside the mat still respects the safe margin. `#outcome` uses the flex-chain mat-as-last-element pattern to fill remaining viewport height.
+
+---
+
 ## Don't-touch list (without reading why first)
 
 - `--rr-mech-progress` cascade location — must be on the stage, not a mat
 - `.is-split` visibility gate on the secondary mat
-- The fixed 678px width of both mats (this is what makes the choreography feel natural)
+- The fixed 678px width of both mats (this is what makes the desktop choreography feel natural)
 - `#mechanics::after { display: none }`
 - The `?? sheet` fallback in `ChapterMarker.tsx`
 - `rect.top + window.scrollY` (not `offsetTop`) in `handleGameOver`
@@ -363,3 +420,8 @@ loop. See also the `COLOPHON.md` at the repo root.
 - Outcome ticker coordinate-fold: `-(scrollLeft mod segW)` on scroll-idle, and `scrollLeft += -trackX` on first scroll — either alone is wrong
 - Outcome ticker hover-out spring `stiffness 110, damping 14, mass 1` — intentional ~12% overshoot per user request, not a normalization candidate
 - The absence of `@keyframes rr-ticker-scroll` in `rr.css` — do not re-add a CSS animation to `.rr-outcome-ticker__track`
+- `.rr-card-fan` mobile scale divisor is `1200px`, not `1200` — unitless divisor makes `scale()` invalid
+- `.rr-interface-notes` mobile `left: auto` override — desktop `left: 980px` wins over `right` without it
+- Mobile `matchMedia` gates in `RulesRail.tsx` (first-visit auto-open skip + one-click open-on-first-visit) and `Mechanics.tsx` (auto-scroll-to-storycard skip) — reinstating any of these on mobile fights the flow-sized layout
+- The `.nav-sled` sticky+absolute split on mobile — `fixed` is trapped by `section-reveal` transform, `sticky` inside `overflow: clip` still works because it resolves against the root scroll container
+- `.rr-rules-rail.is-open` / `.rr-note-rail.is-open` z-index is scoped to open-state only — promoting closed-state rails above the board leaks their content onto the game face

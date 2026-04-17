@@ -25,6 +25,11 @@ export default function RRLayout({ children }: { children: ReactNode }) {
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Gluten:wght@400;600&display=swap"
       />
+      {/* Mobile-only "lite" badge */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Manufacturing+Consent&display=swap"
+      />
       {children}
     </>
   )

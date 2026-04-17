@@ -44,6 +44,9 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
     if (typeof window === 'undefined') return
     if (window.localStorage.getItem(RULES_SEEN_KEY) !== '1') {
       setFirstVisit(true)
+      // Auto-open first-visit reveal is a desktop affordance — on mobile the
+      // rail is a manual flip-out and auto-opening competes with initial scroll.
+      if (window.matchMedia('(max-width: 767px)').matches) return
       const t = setTimeout(() => setIsOpen(true), 1000)
       return () => clearTimeout(t)
     }
@@ -68,6 +71,16 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
 
   function handleToggle() {
     if (firstVisit) {
+      // On desktop the first-visit overlay auto-opens, so the first click is
+      // dismissal. On mobile there's no auto-open, so the first click should
+      // open the rail (and mark as seen) — otherwise the user has to click twice.
+      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+      if (isMobile) {
+        setFirstVisit(false)
+        setIsOpen(true)
+        try { window.localStorage.setItem(RULES_SEEN_KEY, '1') } catch {}
+        return
+      }
       dismissRules()
       return
     }
