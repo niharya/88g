@@ -19,33 +19,20 @@ import { ScrambleText } from './game/ScrambleText'
 import CardFan from './cards/CardFan'
 import InterfacePanel from './cards/InterfacePanel'
 import RugShader from './RugShader'
+import {
+  TAB_TITLE_ENTER,
+  TAB_TITLE_VISIBLE,
+  TAB_TITLE_EXIT,
+  TAB_TITLE_TRANSITION,
+  TAB_BODY_VARIANTS,
+  TAB_BODY_TRANSITION,
+} from '../../../lib/motion'
 
 type Tab = 'cards' | 'interface'
 
 const TITLES: Record<Tab, string> = {
   cards: 'Evolution of the Card Layouts',
   interface: 'The Arena',
-}
-
-const SUBTITLE_ENTER = { opacity: 0, y: -6, clipPath: 'inset(0 0 100% 0)' }
-const SUBTITLE_VISIBLE = { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }
-const SUBTITLE_EXIT = { opacity: 0, y: -6, clipPath: 'inset(0 0 100% 0)' }
-
-const subtitleTransition = {
-  duration: 0.12,
-  ease: [0.45, 0, 0.15, 1] as const,
-}
-
-// Tab body: subtle crossfade with slight scale
-const bodyVariants = {
-  enter:   { opacity: 0, scale: 0.985 },
-  active:  { opacity: 1, scale: 1 },
-  exit:    { opacity: 0, scale: 0.985 },
-}
-
-const bodyTransition = {
-  duration: 0.15,
-  ease: [0.45, 0, 0.15, 1] as const,
 }
 
 export default function Cards() {
@@ -106,10 +93,10 @@ export default function Cards() {
               <motion.p
                 key="subtitle"
                 className="rr-cards-subtitle"
-                initial={hasSwitched.current ? SUBTITLE_ENTER : false}
-                animate={SUBTITLE_VISIBLE}
-                exit={SUBTITLE_EXIT}
-                transition={subtitleTransition}
+                initial={hasSwitched.current ? TAB_TITLE_ENTER : false}
+                animate={TAB_TITLE_VISIBLE}
+                exit={TAB_TITLE_EXIT}
+                transition={TAB_TITLE_TRANSITION}
               >
                 Over a Period of 3 Months
               </motion.p>
@@ -151,11 +138,11 @@ export default function Cards() {
           <motion.div
             key={tab}
             className="rr-cards-body"
-            variants={bodyVariants}
+            variants={TAB_BODY_VARIANTS}
             initial="enter"
             animate="active"
             exit="exit"
-            transition={bodyTransition}
+            transition={TAB_BODY_TRANSITION}
           >
             {tab === 'cards' ? <CardFan /> : <InterfacePanel />}
           </motion.div>
