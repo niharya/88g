@@ -5,9 +5,8 @@ and cross-file wiring that you would not figure out by reading the code in
 isolation. Read it before changing anything in `app/marks/`. Update it when an
 architectural decision changes — not on every edit.
 
-For project-level rules see `CLAUDE.md`. The build brief lives at
-`app/marks/MARKS_BRIEF.md` and the in-flight scratchpad at `app/marks/WIP.md`
-(both temporary — removed when the route ships).
+For route intent and philosophy see `app/marks/DESIGN.md`. For project-level
+rules see `CLAUDE.md`.
 
 ---
 
@@ -53,15 +52,17 @@ promote to `app/components/marks/` at that point — update all imports in
 
 ## The six marks
 
-Inventory lives in `data/marks.ts`. Fill-in is tracked there with `// TODO`
-comments. Metadata fields to resolve:
+Inventory lives in `data/marks.ts`. Entry shape per mark: `id`, `name`, `year`,
+`story`, `palette` (with optional `stopMid` for gradient smoothing),
+`previewColor`, `slides[]`. The first slide MUST be `{ kind: 'mark' }` —
+that renders the hero SVG at editorial scale; later slides are supporting
+media (`kind: 'image' | 'gif'`) or flipped-mark placeholders until real
+media lands. Slide media paths follow `public/marks/<id>/NN.ext` with
+filename ordering preserved.
 
-- `year`
-- `story` (1–2 line caption for the Essay preview row)
-- `palette.stopA` / `palette.stopB` / `palette.angle`
-- `previewColor` (hover color in the Essay preview row)
-- `slides[1..n]` — supporting media for slides 2+ (JPG/GIF/PNG). Paths follow
-  `public/marks/<id>/NN.ext` with filename ordering preserved.
+Essay reading order is encoded by array order: divider (Furrmark/Aleyr) →
+wordmarks (Codezeros, Slangbusters, Beringer) → glyphs (Ecochain, Kilti).
+Reordering the array re-lays the Essay preview row.
 
 Source SVGs ship in `app/marks/_source/` (underscore prefix — Next.js App
 Router ignores it at routing time). Temporary — removed once the route ships.
@@ -156,6 +157,16 @@ Wheel / touch constants in `MarkSection.tsx`:
 Manual advance also pauses the showcase timer for `idleResumeMs` (24s per
 `useShowcaseTimer`) via `pauseForInteraction()` — leaving this out lets the
 auto-advance fight the user's manual intent.
+
+---
+
+## MarkChrome active-dot remount key
+
+`MarkChrome.tsx` keys the active paginator dot as `active-${index}` while
+inactive dots use stable `inactive-${i}` keys. This forces React to remount
+the active dot on every slide change, which restarts the CSS fill animation
+from `scaleX(0)`. If you unify the keys, the fill animation won't restart
+and the dot appears "stuck" across slide transitions.
 
 ---
 
