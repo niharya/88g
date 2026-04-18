@@ -2743,13 +2743,18 @@
   /* desktop absolute positioning is unset so sticky can resolve to viewport.*/
 
   /* Project + Exit dock as a single unit, horizontally centered in viewport.
-     Project ≈ 151px (with "lite" badge), Exit ≈ 85px → 236px total.
-     Project's left edge = 50vw − 118px so the pair is centered. Exit sits
-     immediately after with no gap. */
+     Both pills are independent React components in the shell — no wrapping
+     element exists to flex-center, so positions are computed from measured
+     pill widths. Update the two width tokens if pill copy or padding changes. */
+  .workbench:has(.route-rr) {
+    --rr-project-pill-w: 151px; /* incl. ' lite' badge */
+    --rr-exit-pill-w:    85px;
+    --rr-pair-offset: calc((var(--rr-project-pill-w) + var(--rr-exit-pill-w)) / 2);
+  }
   .workbench:has(.route-rr) .project-marker {
     position: fixed;
     top: 0;
-    left: calc(50vw - 118px);
+    left: calc(50vw - var(--rr-pair-offset));
     right: auto;
     z-index: 40;
   }
@@ -2822,13 +2827,12 @@
     transform: none;
   }
 
-  /* Exit pill docks next to the project pill in the top frame. Project pill
-     is fixed at left:12; exit sits immediately after it. */
+  /* Exit pill docks immediately after the project pill in the top frame. */
   .workbench:has(.route-rr) .exit-marker {
     display: block;
     position: fixed;
     top: 0;
-    left: calc(50vw + 32px);
+    left: calc(50vw - var(--rr-pair-offset) + var(--rr-project-pill-w));
     right: auto;
     z-index: 40;
   }
@@ -3002,11 +3006,10 @@
   .route-rr .rr-note-rail.is-open {
     transform: translateX(0) rotate(0deg) !important;
   }
-  /* Smoother glide — long deceleration so the close doesn't snap and the
-     open settles. easeOutQuint-style cubic. */
+  /* Long deceleration so the close doesn't snap and the open settles. */
   .route-rr .rr-rules-rail,
   .route-rr .rr-note-rail {
-    transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition: transform 0.95s var(--ease-paper) !important;
     will-change: transform;
   }
   /* Game board sits ABOVE the rails when they're tucked, so the body of

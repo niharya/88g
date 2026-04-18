@@ -100,7 +100,7 @@ When refining any component during this phase, run this short loop. It makes the
 
 ### Stream 3 — responsive (lite)
 
-See "Responsive rules → Responsive-lite stance" below. One reference pass has shipped on `/` and `/selected`. `/marks` is being built responsive-ready from day one. `/biconomy` and `/rr` have not yet had a lite pass.
+See "Responsive rules → Responsive-lite stance" below. Reference passes have shipped on `/`, `/selected`, and `/rr`. `/marks` is being built responsive-ready from day one. `/biconomy` has not yet had a lite pass.
 
 ## Shared design system
 
@@ -255,7 +255,7 @@ All remaining responsive work on this portfolio is "lite" — a usability floor,
 
 **Per-route precedent.**
 
-* `/` and `/selected` are the reference implementations for a retrofit-lite pass (v0.21.0). Follow their patterns when adding lite to `/biconomy` and `/rr`.
+* `/`, `/selected`, and `/rr` are the reference implementations for a retrofit-lite pass. Follow their patterns when adding lite to `/biconomy`.
 * `/marks` is the reference for a *built-responsive-ready* route: `clamp()` for type and spacing, `flex-direction: column` flips for row compositions, tucked pill + 4px frame from day one, no separate mobile pass. Future routes built from scratch should prefer this model.
 * Distinction: retrofit-lite accepts pragmatic drop-outs; built-responsive-ready avoids them by designing the primitives to bend.
 
