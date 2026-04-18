@@ -11,6 +11,14 @@ For project-level rules see `CLAUDE.md`.
 
 ## Known anomalies
 
+### Demos video-item tilt + radius pair (v0.28.0)
+
+The figma-tab video pair in `.demos__media-row--figma` is load-bearing in three ways:
+
+- **Two-child tilt assumption.** The ±1° V-tilt is applied via `:nth-child(1)` and `:nth-child(2)` in `biconomy.css`. A third video in that row would land untilted and read as a bug. If the shape ever changes, move the tilt to a `--tilt` prop-driven scheme.
+- **Matched 24px radius pair.** `.demos__video-frame` and `.demos__video-player` both carry `border-radius: 24px`. The outer frame clips the inner player — if they drift, the poster/video corners expose under the frame shadow.
+- **`tabIndex={-1}` on the `<video>` element.** The entire `.demos__video-item` is a single `<button>`; the inner video must not be focusable or the tab order double-stops. Looks removable — is not.
+
 ### Mat clipping (v0.10.0)
 
 `overflow: clip` was added to the `.mat` base class in `globals.css` during `/rr` work. This is the correct containment rule — all content should live within its mat. Two biconomy sections have pre-existing content that now clips at the mat edge:

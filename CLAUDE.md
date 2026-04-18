@@ -100,7 +100,7 @@ When refining any component during this phase, run this short loop. It makes the
 
 ### Stream 3 — responsive (lite)
 
-See "Responsive rules → Responsive-lite stance" below. One reference pass has shipped on `/` and `/selected`. `/marks` is being built responsive-ready from day one. `/biconomy` and `/rr` have not yet had a lite pass.
+See "Responsive rules → Responsive-lite stance" below. Reference passes have shipped on `/`, `/selected`, and `/rr`. `/marks` is being built responsive-ready from day one. `/biconomy` has not yet had a lite pass.
 
 ## Shared design system
 
@@ -114,7 +114,7 @@ Current shared inventory:
   * `SlideInOnNav` — entrance wrapper tied to page navigation
   * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker` (see `nav/ANOMALIES.md`)
   * `icons/` — hand-rolled animatable SVG icons (`IconArrowRight`, `IconChevronRight`, `IconExternalLink`)
-* **`app/lib/`** — shared utilities (`greeting`, `titleCase`)
+* **`app/lib/`** — shared utilities (`greeting`, `titleCase`, `motion` — tab-switch motion tokens)
 * **`app/globals.css`** — design tokens, `.mat` surface, `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout, four-tier elevation ladder (`--shadow-flat` / `-resting` / `-raised` / `-overlay`), `--backseat-dim`, `--ease-paper`
 
 New shared primitives can originate in any route once they're needed twice. `/biconomy` is the historical donor for much of what's currently shared, but it is not a code dependency.
@@ -180,6 +180,7 @@ All motion in the portfolio follows a paper-physical language. Things glide, set
 3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic. (Documented deviations exist — the train ticker overshoot, the Flows nav settle — and live in their route ANOMALIES.md.)
 4. **Native scroll.** No smooth-scroll libraries, no scroll hijacking. The browser's physics stay in control.
 5. **Scroll-mapped transforms where useful.** `useScroll` + `useTransform` + `useSpring` for elements that respond to scroll position — not just trigger-on-intersection.
+6. **Tab/micro-interaction tier.** Tab switches and quick UI reactions use `TAB_EASE` (`[0.45, 0, 0.15, 1]`) at 0.12–0.15s from `app/lib/motion.ts` — a separate, snappier tier that exists because a tapped tab must resolve inside attention. This is the only documented deviation from rules 1 and 2. Do not unify with `--ease-paper`. See `LIBRARY.md` → "Tab-switch motion tokens".
 
 ### Section reveal choreography
 
@@ -254,7 +255,7 @@ All remaining responsive work on this portfolio is "lite" — a usability floor,
 
 **Per-route precedent.**
 
-* `/` and `/selected` are the reference implementations for a retrofit-lite pass (v0.21.0). Follow their patterns when adding lite to `/biconomy` and `/rr`.
+* `/`, `/selected`, and `/rr` are the reference implementations for a retrofit-lite pass. Follow their patterns when adding lite to `/biconomy`.
 * `/marks` is the reference for a *built-responsive-ready* route: `clamp()` for type and spacing, `flex-direction: column` flips for row compositions, tucked pill + 4px frame from day one, no separate mobile pass. Future routes built from scratch should prefer this model.
 * Distinction: retrofit-lite accepts pragmatic drop-outs; built-responsive-ready avoids them by designing the primitives to bend.
 

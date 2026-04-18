@@ -1475,10 +1475,10 @@
   max-height: fit-content;
   border: 1px solid var(--orange-400);
   color: var(--orange-400);
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.4s var(--ease-paper), color 0.4s var(--ease-paper), border-color 0.4s var(--ease-paper);
 }
 
-.demos__tab-label:hover {
+.demos__tab-label:not(.demos__tab-label--active):hover {
   background-color: var(--orange-100);
 }
 
@@ -1486,6 +1486,11 @@
   border-color: var(--orange-560);
   background-color: var(--orange-560);
   color: var(--orange-100);
+}
+
+.demos__tab-label--active:hover {
+  background-color: var(--orange-720);
+  border-color: var(--orange-720);
 }
 
 /* Graduated padding — tab weight increases left to right */
@@ -1498,8 +1503,8 @@
   margin-left: -1px;
   max-height: fit-content;
   padding: 14px 16px; /* py-3.5 px-4 */
-  border: 1px solid var(--grey-720);
-  background-color: var(--grey-880);
+  border: 1px solid var(--grey-800);
+  background-color: var(--grey-960);
   color: var(--grey-560);
 }
 
@@ -1512,6 +1517,14 @@
   display: flex;
   flex-direction: column;
   gap: 40px; /* gap-10 */
+}
+
+.demos__title-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 128px 0;
+  overflow: hidden; /* clips title reveal */
 }
 
 .demos__title {
@@ -1538,12 +1551,50 @@
   gap: 16px; /* gap-4 */
 }
 
-/* Video item: grows to fill half-width row */
+/* Video item: unified button — video + caption + play icon stack as one unit */
 .demos__video-item {
   min-width: 0;
   display: flex;
   width: 100%;
   flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  opacity: 0.8;
+  transform: rotate(var(--tilt, 0deg)) scale(0.97);
+  transform-origin: center center;
+  transition:
+    transform 0.35s var(--ease-paper),
+    opacity 0.35s var(--ease-paper);
+}
+
+.demos__media-row--figma > .demos__video-item:nth-child(1) { --tilt: -1deg; }
+.demos__media-row--figma > .demos__video-item:nth-child(2) { --tilt: 1deg; }
+
+.demos__video-item:hover:not(.is-playing),
+.demos__video-item:focus-visible:not(.is-playing) {
+  opacity: 0.95;
+}
+
+.demos__video-item:hover:not(.is-playing) .demos__caption,
+.demos__video-item:focus-visible:not(.is-playing) .demos__caption {
+  color: var(--grey-240);
+}
+
+.demos__video-item:hover:not(.is-playing) .demos__play-icon,
+.demos__video-item:focus-visible:not(.is-playing) .demos__play-icon {
+  color: var(--grey-160);
+}
+
+.demos__video-item.is-playing {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
 .demos__image-item {
@@ -1555,11 +1606,25 @@
 /* Video frame: square, max 100dvh */
 .demos__video-frame {
   display: flex;
+  width: 90%;
   min-width: 0;
   aspect-ratio: 1 / 1;
   max-height: 100dvh;
   position: relative;
   overflow: hidden;
+  border-radius: 24px;
+  box-shadow: var(--shadow-resting);
+  transition:
+    box-shadow 0.35s var(--ease-paper);
+}
+
+.demos__video-item:hover:not(.is-playing) .demos__video-frame,
+.demos__video-item:focus-visible:not(.is-playing) .demos__video-frame {
+  box-shadow: var(--shadow-raised);
+}
+
+.demos__video-item.is-playing .demos__video-frame {
+  box-shadow: var(--shadow-raised);
 }
 
 .demos__image-frame {
@@ -1570,24 +1635,16 @@
   overflow: hidden;
 }
 
-/* Video player shell — scales with play state */
 .demos__video-player {
   position: relative;
   overflow: clip;
-  border-radius: 30px;
+  border-radius: 24px;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: var(--grey-880);
-  transform: scale(0.95);
-  transition: transform 0.3s ease-out;
-  cursor: pointer;
-}
-
-.demos__video-player.is-playing {
-  transform: scale(1);
 }
 
 .demos__video-el {
@@ -1596,44 +1653,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-/* Hover / focus overlay */
-.demos__video-controls-overlay {
-  position: absolute;
-  inset: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px; /* gap-3 */
-  background: rgba(0, 0, 0, 0.6);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease-out;
-  border-radius: 28px; /* matches outer radius - inset */
-}
-
-.demos__video-player:hover .demos__video-controls-overlay,
-.demos__video-player:focus-within .demos__video-controls-overlay {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.demos__video-main-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 8px; /* py-1.5 px-2 */
-  border-radius: 16px; /* rounded-2xl */
-  background-color: rgba(20, 20, 20, 0.8); /* bg-gray-880/80 */
-  border: none;
-  cursor: pointer;
-  color: var(--grey-400);
-  transition: background-color 0.15s ease;
-}
-
-.demos__video-main-btn:hover {
-  background-color: var(--grey-880);
 }
 
 .demos__image-el {
@@ -1659,76 +1678,45 @@
   gap: 4px; /* gap-1 */
 }
 
-.demos__caption-inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 4ch;
-  position: relative;
+/* Figma caption — fixed textbox inside the unified unit */
+.demos__video-item .demos__caption {
+  width: 20rem;
+  text-align: center;
+  color: var(--grey-480);
+  transition: color 0.35s var(--ease-paper);
 }
 
-.demos__caption-inner--video {
-  max-width: 24rem; /* max-w-sm */
+.demos__video-item.is-playing .demos__caption {
+  color: var(--grey-240);
 }
 
-.demos__play-aside {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px; /* gap-2 */
-  position: absolute;
-}
-
-.demos__play-aside--left {
-  left: -16px; /* -left-4 */
-  transform: translateX(-100%);
-}
-
-.demos__play-aside--right {
-  right: -16px; /* -right-4 */
-  transform: translateX(100%);
-}
-
-.demos__play-divider {
-  width: 1px;
-  height: 24px; /* h-6 */
-  background-color: var(--grey-640);
-  flex-shrink: 0;
-}
-
-.demos__play-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px; /* p-2 */
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
+/* Play icon — Material Symbols Rounded, weight 500, swaps play_circle / pause_circle */
+.demos__play-icon {
+  font-family: var(--font-symbols);
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
   color: var(--grey-400);
-  transition: transform 0.3s ease-out;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  transition: color 0.35s var(--ease-paper);
+  user-select: none;
+  margin-top: -6px;
 }
 
-.demos__play-btn:hover,
-.demos__play-btn:focus-visible {
-  transform: scale(1.1);
+.demos__video-item.is-playing .demos__play-icon {
+  color: var(--grey-160);
 }
 
-.demos__play-btn:active {
-  transform: scale(0.95);
-}
-
-.demos__play-btn--left  { margin-right: -8px; } /* -mr-2 */
-.demos__play-btn--right { margin-left: -8px; }  /* -ml-2 */
-
-.demos__icon-sm { width: 20px; height: 20px; }  /* size-5 */
-.demos__icon-lg { width: 40px; height: 40px; }  /* size-10 */
-
-.demos__caption {
+/* Image-tab caption stays non-tilted, text-only, not interactive */
+.demos__image-item .demos__caption {
   text-align: center;
   color: var(--grey-560);
   height: fit-content;
-  width: fit-content;
+  width: 100%;
 }
 
 .demos__link {
@@ -1792,13 +1780,14 @@
   top: 0;
   display: flex;
   color: var(--grey-560);
+  background-color: var(--grey-960);
   text-align: center;
   flex-direction: column;
   height: fit-content;
   width: fit-content;
   padding: 4px 8px; /* py-1 px-2 */
   border: 2px solid var(--mint-100);
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition: opacity 0.5s var(--ease-paper), transform 0.5s var(--ease-paper);
   pointer-events: none;
 }
 
