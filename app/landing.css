@@ -1167,7 +1167,7 @@ textarea.contact-form__input {
   padding: 0;
   cursor: pointer;
   color: var(--terra-960);
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, opacity var(--dur-fast) var(--ease-snap);
   text-decoration: none;
 }
 
@@ -1178,6 +1178,17 @@ textarea.contact-form__input {
 .contact-form__submit-btn:focus-visible {
   outline: 2px solid var(--terra-800);
   outline-offset: 2px;
+}
+
+/* Press acknowledgment — opacity target (0.6) matches :disabled below so
+   the click state flows directly into the sending state with no visual
+   handoff: click dims to 0.6 on pointerdown, React commits :disabled at
+   the same 0.6, progress bar begins filling. The base rule's opacity
+   transition covers the keyboard-submit path where :active never fires
+   (enter key → straight to :disabled), easing 1→0.6 instead of hard-cut. */
+.contact-form__submit-btn:not(:disabled):active {
+  opacity: 0.6;
+  transition: opacity var(--dur-instant) var(--ease-snap);
 }
 
 
