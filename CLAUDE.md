@@ -14,6 +14,7 @@ The working contract is distributed across five documents. Read the ones relevan
 * **`COLOPHON.md`** — origins, credits, historical sources
 * **`docs/claude/memory.md`** — durable project identity memory
 * **`docs/responsive.md`** — full responsive rules (summary lives in this file)
+* **`docs/vocabulary.md`** — design-language ↔ code-identifier mapping (mat, sheet, surface, rail, marker, etc.). Read this when feedback or a commit message names something and you're not sure which class / component it refers to.
 
 Older routes (`/biconomy`, `/rr`, `/selected`) predate `DESIGN.md` and only have `ANOMALIES.md`; their intent is captured in the case-study copy itself.
 

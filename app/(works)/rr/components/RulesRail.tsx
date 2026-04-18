@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Rail from './Rail'
 
 const RULES_SEEN_KEY = 'rr-rules-seen'
 
@@ -52,11 +53,6 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
     }
   }, [])
 
-  // Emit open-state to parent so the note rail can react to our state.
-  useEffect(() => {
-    onOpenChange?.(isOpen)
-  }, [isOpen, onOpenChange])
-
   // External dismiss (e.g. "Start game" button)
   useEffect(() => {
     if (dismiss && firstVisit) dismissRules()
@@ -94,15 +90,14 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
       : CLOSED_REST_TRANSFORM
 
   return (
-    <div
-      className={`rr-rules-rail${isOpen ? ' is-open' : ''}`}
-      style={{ transform }}
-      onClick={handleToggle}
-      role="button"
-      aria-label={isOpen ? 'Close rules' : 'Open rules'}
-      aria-expanded={isOpen}
+    <Rail
+      className="rr-rules-rail"
+      isOpen={isOpen}
+      transform={transform}
+      onToggle={handleToggle}
+      onOpenChange={onOpenChange}
+      ariaLabel={isOpen ? 'Close rules' : 'Open rules'}
     >
-
       {/* Vertical tab — visual only, click is on the whole rail */}
       <div className="rr-rules-rail__tab">
         <span className="rr-rules-rail__tab-inner">
@@ -121,7 +116,6 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
           <li className="rr-rules-rail__item">Unused cards shuffle back into the deck</li>
         </ul>
       </div>
-
-    </div>
+    </Rail>
   )
 }

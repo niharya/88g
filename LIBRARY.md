@@ -23,6 +23,27 @@ Add new entries **above the divider at the bottom**, most recent first.
 
 ---
 
+## Rail (rr-local-shared)
+
+Stateless shell for the tuck-push-reveal drawer pattern in `/rr` — the primitive behind `NoteRail` and `RulesRail`. Renders a positioned `<div>` that composes `is-open` / `is-revealing` classes, applies an inline transform, and optionally wraps itself as a role="button". Consumer owns state, transform math, CSS class prefix, and tab/content JSX.
+
+**Where it lives**
+- [app/(works)/rr/components/Rail.tsx](app/(works)/rr/components/Rail.tsx) — the component.
+- Consumers: [NoteRail.tsx](app/(works)/rr/components/NoteRail.tsx), [RulesRail.tsx](app/(works)/rr/components/RulesRail.tsx).
+- CSS lives per-consumer in [rr.css](app/(works)/rr/rr.css) under `── Rules Rail ──` and `── Note Rail ──`. No shared `.rr-rail` base class — the shared layer is the React shell, not the CSS.
+
+**AI notes**
+- **Route-local-shared, not globally shared.** Two consumers, both in `/rr`. Per CLAUDE.md's promotion rule (count is measured across routes, not call sites), stays at `app/(works)/rr/components/` until a non-rr consumer needs it. NavPill is the sibling precedent for this.
+- **Stateless by design.** Consumer owns `isOpen`, sibling-open coordination, first-visit logic. This is what lets NoteRail and RulesRail have different state models (NoteRail is a pure toggle; RulesRail has a first-visit localStorage auto-open path + external dismiss signal) without the shell growing branches.
+- **Transform values are not shared.** NoteRail and RulesRail have different open transforms (210px vs 163px) and different nudged transforms (-12px vs -50px) because they tuck under different edges of the game board. These are coordinate-system tunings, not tokens — keep them inline in each consumer.
+- **Two interaction shapes via one prop.** Passing `onToggle` makes the whole rail a button (RulesRail pattern — vertical text, click anywhere). Omitting it leaves interactions to inner children (NoteRail pattern — icon tab button, click-content-to-close). Don't add a third shape; if the third consumer needs something different, the shell can grow a variant then.
+- **The reveal-keyframe escape hatch.** NoteRail has a one-shot `rr-note-rail-reveal` CSS keyframe on mount. While the keyframe is running, it owns the transform — the consumer passes `transform={undefined}` during that phase. The shell forwards nothing (no inline style), so the animation is uncontested. Don't collapse the `transform ? { transform } : undefined` guard into `{ transform }`; passing `undefined` as a style value still applies, which fights the keyframe.
+- **Promotion path.** Lift to `app/components/Rail/` the moment a non-rr consumer needs the same mechanism. At that point, consider: (a) promoting the `.rr-*-rail` CSS into a shared `.rail` base with variant modifiers; (b) making `className` optional / defaulting to `.rail`.
+- What's route-specific: CSS class prefixes, transform values, tab + content JSX, first-visit state semantics.
+- What's library-ready: the shell logic (class composition, open-change emission, dual-interaction-shape prop).
+
+---
+
 ## Sheet
 
 The paper chapter container used by every works route. Renders a `section.sheet.mat.section-reveal`, wires up a nav-sled with `ChapterMarker`, triggers the entrance reveal via `useReveal`, and runs a scroll-linked "card placement" glide on the first `.surface` element inside.

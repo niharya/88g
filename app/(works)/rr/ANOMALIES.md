@@ -112,6 +112,9 @@ All three elements (board, rules, note) use the same 0.55s `--ease-paper` transi
 - Keep the `transition: transform 0.55s var(--ease-paper)` on the base CSS rule, not on `is-open`. Transitions need to live on the element state that's present at both endpoints.
 - Do not reintroduce `motion.div` for the rail's open/close. If it seems tempting, re-read this note and test in a preview *inside* the mat-settle family.
 
+### Shared shell: `Rail.tsx`
+Both rails render through a shared stateless shell at `app/(works)/rr/components/Rail.tsx` (see `LIBRARY.md` → Rail). The shell owns: class composition (`is-open`, `is-revealing`), the whole-rail button mode toggled by `onToggle`, and emitting `onOpenChange`. The **transform string itself is still computed in each consumer** — the pixel math (210, 163, -12, -50) is tuned per the rail's position in the coordinate system and cannot be shared. The anomaly rules above (inline transform, no `motion.div`, no `.is-open` CSS transform rule) still hold because the shell passes `style={{ transform }}` through unchanged.
+
 ---
 
 ## Rejected approaches
