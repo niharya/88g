@@ -22,6 +22,16 @@
 }
 
 
+/* ── RR route tokens ─────────────────────────────────────────────────────── */
+/* Route-local because only /rr consumes them. Personality lives in surface
+   colors — sheet edge and parchment memo background. */
+
+:root {
+  --rr-border:   #d2ddd2;  /* sheet edge */
+  --rr-memo-bg:  #ece6d6;  /* surface card background (parchment) */
+}
+
+
 /* ── RR z-index stack ────────────────────────────────────────────────────── */
 
 :root {
@@ -168,7 +178,7 @@
   justify-content: center;
   box-shadow: inset 0px 0.5px 2px 0px var(--yellow-560);
   color: var(--yellow-720);
-  transition: box-shadow 0.2s ease, background-color 0.15s ease;
+  transition: box-shadow var(--dur-fast) var(--ease-snap), background-color var(--dur-fast) var(--ease-snap);
 }
 
 .rr-story-card__expand:hover {
@@ -300,7 +310,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background var(--dur-fast) var(--ease-snap), border-color var(--dur-fast) var(--ease-snap);
 }
 
 .rr-enlarged__close:hover {
@@ -354,7 +364,7 @@
 }
 
 #intro.mat {
-  transition: background-color 0.35s ease;
+  transition: background-color var(--dur-slide) var(--ease-snap);
 }
 
 #intro.mat:has([data-enlarged]) {
@@ -545,7 +555,7 @@
   height: 2px;
   background: currentColor;
   opacity: 0;
-  transition: opacity 0.12s ease;
+  transition: opacity var(--dur-instant) var(--ease-snap);
   pointer-events: none;
 }
 
@@ -663,7 +673,7 @@
 
 .rr-rules-rail__arrow {
   flex-shrink: 0;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
 }
 
 .rr-rules-rail__arrow.is-flipped {
@@ -1456,7 +1466,7 @@
   white-space: normal;
   word-wrap: break-word;
   opacity: 0;
-  transition: opacity 0.22s ease;
+  transition: opacity var(--dur-fast) var(--ease-snap);
   pointer-events: none;
 }
 
@@ -1771,7 +1781,7 @@
 /* ── Expand/collapse dim transition (card) ── */
 
 .rr-outcome-card {
-  transition: filter 0.3s ease, scale 0.3s ease;
+  transition: filter var(--dur-slide) var(--ease-snap), scale var(--dur-slide) var(--ease-snap);
 }
 
 
@@ -1935,7 +1945,7 @@
 /* Same language as intro enlarged: desaturate, shrink, tilt, bg → blue-960 */
 
 #outcome.mat {
-  transition: background-color 0.35s ease;
+  transition: background-color var(--dur-slide) var(--ease-snap);
 }
 
 #outcome.mat:has([data-rules-expanded]) {
@@ -2018,7 +2028,7 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: background 0.2s ease;
+  transition: background var(--dur-fast) var(--ease-snap);
 }
 
 .rr-rules-close:hover {
@@ -2038,7 +2048,7 @@
   box-shadow: 0px 3.8px 11.4px 0px rgba(19,215,245,0.5);
   box-sizing: border-box;
   padding: 21px;
-  transition: transform 0.22s var(--ease-paper);
+  transition: transform var(--dur-fast) var(--ease-paper);
 }
 
 .rr-rule-card:hover {

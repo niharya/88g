@@ -200,7 +200,7 @@ export default function Flows() {
       // POST to the dev-only API route so the capture lands on disk
       // (.claude/hud-captures.json). Fire-and-forget; UI updates
       // independently via the captureHud return value.
-      fetch('/api/hud-capture', {
+      fetch('/api/dev-tools/hud-capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

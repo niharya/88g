@@ -42,7 +42,7 @@
   border: none;
   cursor: pointer;
   color: inherit;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background var(--dur-fast) var(--ease-snap), color var(--dur-fast) var(--ease-snap);
 }
 
 .navpill__btn:hover {
@@ -177,7 +177,7 @@
   background: rgba(226, 246, 166, 0.6); /* olive-80/60 */
   cursor: pointer;
   border: none;
-  transition: background 0.1s ease-out, transform 0.1s ease-out;
+  transition: background var(--dur-instant) var(--ease-snap), transform var(--dur-instant) var(--ease-snap);
 }
 
 .intro__toggle:hover {
@@ -202,7 +202,7 @@
   height: 4px;
   border-radius: 50%;
   background: var(--olive-400);
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
 }
 
 .intro__dot.is-top { transform: translateY(2px); }
@@ -220,7 +220,7 @@
   fill: none;
 }
 .intro__hl-icon .icon-hl-barrel {
-  transition: translate 0.3s var(--ease-paper);
+  transition: translate var(--dur-slide) var(--ease-paper);
 }
 
 .intro__hl-icon.is-active .icon-hl-tip {
@@ -243,7 +243,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;    /* gap-3 — spread in closed state */
-  transition: gap 0.2s ease-out;
+  transition: gap var(--dur-fast) var(--ease-snap);
 }
 
 .intro__memo-cards.is-open {
@@ -266,7 +266,7 @@
 /* Middle card (Who uses it?) rests at -1deg — implies depth/stacking */
 .intro__memo-card--mid {
   transform: rotate(-1deg);
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
 }
 
 /* Middle card corrects on reveal */
@@ -352,7 +352,7 @@
   gap: var(--flows-main-gap);
   max-width: 1000px;
   width: 100%;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
 }
 
 .flows__main.is-notes-open {
@@ -411,7 +411,7 @@
   gap: 8px; /* gap-2 */
   padding: 4px 6px; /* p-1 px-1.5 */
   border-radius: 8px; /* rounded-lg */
-  transition: background 0.15s ease-out;
+  transition: background var(--dur-fast) var(--ease-snap);
 }
 
 .flows__ba-pill:hover {
@@ -450,7 +450,7 @@
   border: 1px solid var(--orange-560);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background var(--dur-fast) var(--ease-snap), border-color var(--dur-fast) var(--ease-snap);
 }
 
 .flows__ba-switch[aria-checked='true'] {
@@ -573,7 +573,7 @@
   outline-offset: -8px;
   background: var(--olive-80);
   color: var(--olive-800);
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
   transform: translateX(0) rotate(1deg);
   position: relative;
 }
@@ -608,7 +608,7 @@
 
 .flows__notes-arrow {
   flex-shrink: 0;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
 }
 
 .flows__notes-arrow.is-flipped {
@@ -636,7 +636,7 @@
 
 .flows__note-item {
   /* inherits t-p4 from list */
-  transition: color 0.2s var(--ease-paper), opacity 0.2s var(--ease-paper);
+  transition: color var(--dur-fast) var(--ease-paper), opacity var(--dur-fast) var(--ease-paper);
   cursor: default;
 }
 
@@ -885,7 +885,7 @@
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--dur-fast) var(--ease-snap);
 }
 
 .hud-panel__capture:hover {
@@ -1083,7 +1083,7 @@
   position: relative;
   width: 100%;
   z-index: 1;
-  transition: transform 0.3s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
 }
 
 .bips__iframe-col.is-open {
@@ -1132,7 +1132,7 @@
   position: absolute;
   right: 0;
   height: 100%;
-  transition: transform 0.3s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
   transform: translateX(0) rotate(1deg);
 }
 
@@ -1165,7 +1165,7 @@
 
 .bips__notes-arrow {
   flex-shrink: 0;
-  transition: transform 0.3s ease-out;
+  transition: transform var(--dur-slide) var(--ease-snap);
 }
 
 .bips__notes-arrow.is-flipped {
@@ -1787,7 +1787,7 @@
   width: fit-content;
   padding: 4px 8px; /* py-1 px-2 */
   border: 2px solid var(--mint-100);
-  transition: opacity 0.5s var(--ease-paper), transform 0.5s var(--ease-paper);
+  transition: opacity var(--dur-settle) var(--ease-paper), transform var(--dur-settle) var(--ease-paper);
   pointer-events: none;
 }
 

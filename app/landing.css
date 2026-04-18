@@ -374,7 +374,7 @@ html.fonts-ready .hero-card__bg {
   align-items: center;
   justify-content: center;
   box-shadow: inset 0px 0.5px 2px 0px var(--terra-560);
-  transition: box-shadow 0.2s ease, background-color 0.15s ease;
+  transition: box-shadow var(--dur-fast) var(--ease-snap), background-color var(--dur-fast) var(--ease-snap);
   position: relative;
   mix-blend-mode: multiply;
 }
@@ -419,7 +419,7 @@ html.fonts-ready .hero-card__bg {
   background: var(--terra-320);
   border: 2px solid var(--terra-960);
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--dur-fast) var(--ease-snap);
   text-decoration: none;
 
   /* Tuck-out entrance — the Works pill sits hidden beneath the hero card
@@ -506,7 +506,7 @@ html.fonts-ready .projects-btn {
   position: relative;
   width: 458px;
   height: 308px;
-  transition: transform 0.5s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 .spectrum__bg {
@@ -658,7 +658,7 @@ html.fonts-ready .projects-btn {
   border-top: 1px solid var(--terra-800);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.3s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
 }
 
 /* Progress bar — fills left-to-right on send, on the submit field's divider */
@@ -758,7 +758,7 @@ html.fonts-ready .projects-btn {
 
 .contact-card--form-open .contact-card__action-line {
   transform: scaleX(1);
-  transition: transform 0.3s var(--ease-paper) 0.1s;
+  transition: transform var(--dur-slide) var(--ease-paper) var(--dur-instant);
 }
 
 .contact-card--form-open .contact-card__form-reveal {
@@ -808,7 +808,7 @@ html.fonts-ready .projects-btn {
 
 /* Form-closing: reverse (no stagger) */
 .contact-form__field .contact-form__line {
-  transition: transform 0.2s var(--ease-paper);
+  transition: transform var(--dur-fast) var(--ease-paper);
 }
 
 .contact-form__field .contact-form__input-area {
@@ -1082,7 +1082,7 @@ textarea.contact-form__input {
 }
 
 .contact-form__submit .icon-arrow-right-shaft {
-  transition: translate 0.3s var(--ease-paper);
+  transition: translate var(--dur-slide) var(--ease-paper);
 }
 
 .contact-form__submit:hover .icon-arrow-right-shaft {

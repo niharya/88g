@@ -76,7 +76,7 @@ under a refactor, breakage is acceptable; fixing it is not a priority.
 `Flows.tsx` ships with a chip-coordinate authoring HUD gated by the `?hud=1`
 URL param. When active, BeforeAfter chips become draggable via NATIVE pointer
 events (`setPointerCapture` + `pointermove`) and a floating HudPanel exposes a
-capture button that posts the current chip layout to `/api/hud-capture`. That
+capture button that posts the current chip layout to `/api/dev-tools/hud-capture`. That
 route writes to `.claude/hud-captures.json` on POST and returns 403 in
 production — the endpoint is intentionally dev-only. Captures are also
 mirrored to `localStorage` under `__hudAllCaptures`, keyed by
@@ -90,7 +90,7 @@ positions survive page reloads during an authoring session.
   drag, which fights the state-driven `left/top` writes and produces stuck or
   snapping chips. `hudMode` triggers the native-pointer code path for this
   reason.
-- The 403 guard in `app/api/hud-capture/route.ts` must stay — this is a
+- The 403 guard in `app/api/dev-tools/hud-capture/route.ts` must stay — this is a
   filesystem-writing endpoint.
 - Leave `__hudAllCaptures` under that exact key; the rehydrate-on-mount path
   reads it literally.

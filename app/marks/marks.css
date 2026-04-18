@@ -162,7 +162,7 @@
    same mechanism as MarkSection's data-settled snapping --content-reveal. */
 .marks-title[data-settled='true'] {
   --title-reveal: 1;
-  transition: --title-reveal 0.8s var(--ease-paper);
+  transition: --title-reveal var(--dur-glide) var(--ease-paper);
 }
 
 /* Text wrapper stacks label + mark in the same grid cell — no layout shift
@@ -326,7 +326,7 @@
 
 .marks-section[data-settled='true'] {
   --content-reveal: 1;
-  transition: --content-reveal 0.8s var(--ease-paper);
+  transition: --content-reveal var(--dur-glide) var(--ease-paper);
 }
 
 @property --content-reveal {
@@ -435,7 +435,7 @@
   height: 16px;
   border-radius: 40px;
   background: var(--grey-560);
-  transition: width 0.5s var(--ease-paper);
+  transition: width var(--dur-settle) var(--ease-paper);
 }
 
 .mark-chrome__dot--active {

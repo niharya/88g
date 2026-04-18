@@ -1,6 +1,8 @@
 // Tab-switch motion tokens — shared across routes with tabbed sections.
 //
 // Ease: [0.45, 0, 0.15, 1] — snappier than --ease-paper on purpose.
+// Mirrors --ease-snap in globals.css. Keep the two in sync: if one
+// changes, change the other.
 // Paper glide belongs to section reveals; tab switches need to feel
 // responsive to input, not cinematic. Do not unify the two curves.
 //

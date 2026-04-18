@@ -109,22 +109,28 @@
   --font-mono:    'Google Sans Code', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
   --font-symbols: 'Material Symbols Rounded';
 
-  /* ---- Spacing scale (8/4/2 rhythm) ---- */
-  /* micro: 2px */
+  /* ---- Spacing scale (8/4/2 rhythm) ----
+     micro:     2px
+     secondary: multiples of 4 up to 24 (4, 8, 12, 16, 20, 24)
+     primary:   multiples of 8 from 32 onward (32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112)
+     ------------------------------------------------------------------ */
   --space-2:   2px;
-  /* secondary: multiples of 4 */
   --space-4:   4px;
   --space-8:   8px;
   --space-12:  12px;
-  /* primary: multiples of 8 */
   --space-16:  16px;
+  --space-20:  20px;
   --space-24:  24px;
   --space-32:  32px;
   --space-40:  40px;
   --space-48:  48px;
+  --space-56:  56px;
   --space-64:  64px;
   --space-72:  72px;
+  --space-80:  80px;
+  --space-88:  88px;
   --space-96:  96px;
+  --space-104: 104px;
   --space-112: 112px;
 
   /* ---- Elevation ladder ------------------------------------------------
@@ -158,10 +164,6 @@
   /* ---- Grid ---- */
   --grid-line: rgba(140, 110, 45, 0.11);
 
-  /* ---- Canvas colors ---- */
-  --rr-canvas:   #f2f3ef;
-  --rr-border:   #d2ddd2;
-  --rr-memo-bg:  #ece6d6;
 }
 
 
@@ -233,7 +235,7 @@
   text-decoration-thickness: 2px;
   text-underline-offset: 2px;
   position: relative;
-  transition: text-decoration-color 0.12s ease;
+  transition: text-decoration-color var(--dur-instant) var(--ease-snap);
 }
 
 .t-btn1::after {
@@ -245,7 +247,7 @@
   height: 2px;
   background: currentColor;
   opacity: 0;
-  transition: opacity 0.12s ease;
+  transition: opacity var(--dur-instant) var(--ease-snap);
   pointer-events: none;
 }
 
@@ -358,8 +360,27 @@ p, li {
   --card-tilt:        1deg;
 
   /* Motion — paper-settle vocabulary.
-     One curve for almost everything. Long durations. No bounce. */
+     One curve for almost everything. Long durations. No bounce.
+
+     Duration tiers (named by feel, not by ms):
+       --dur-instant  underlines, chevron micro, tiny opacity fades
+       --dur-fast     small hover reactions, color/border swaps
+       --dur-slide    hover transforms, short paper settles
+       --dur-settle   reveal phase 3, standard settles, landing hovers
+       --dur-glide    reveal phase 1, long paper settles, marks title reveal
+
+     Easing:
+       --ease-paper   the one paper curve — spatial settles, reveals, transitions
+       --ease-snap    snappy UI tier — tab switches, micro reactions.
+                      Mirrors TAB_EASE in app/lib/motion.ts. */
   --ease-paper:       cubic-bezier(0.5, 0, 0.2, 1);
+  --ease-snap:        cubic-bezier(0.45, 0, 0.15, 1);
+
+  --dur-instant:      0.1s;
+  --dur-fast:         0.2s;
+  --dur-slide:        0.3s;
+  --dur-settle:       0.5s;
+  --dur-glide:        0.8s;
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);
@@ -380,7 +401,7 @@ p, li {
 }
 html.fonts-ready .workbench {
   opacity: 1;
-  transition: opacity 0.5s var(--ease-paper);
+  transition: opacity var(--dur-settle) var(--ease-paper);
 }
 
 

@@ -423,7 +423,7 @@
 }
 
 .project-card__arrow .icon-chevron-shaft {
-  transition: translate 0.3s var(--ease-paper);
+  transition: translate var(--dur-slide) var(--ease-paper);
 }
 .project-card:hover .project-card__arrow .icon-chevron-shaft {
   translate: 3px 0;
@@ -657,7 +657,7 @@
 }
 
 .ap-entry__meta .icon-ext .icon-ext-arrow {
-  transition: translate 0.3s var(--ease-paper);
+  transition: translate var(--dur-slide) var(--ease-paper);
 }
 a.ap-entry:hover .icon-ext .icon-ext-arrow {
   translate: 2px -2px;
@@ -705,7 +705,7 @@ a.ap-entry:hover .ap-entry__meta span:first-child {
   margin-top: 4px;
   opacity: 0;
   translate: 0 -4px;
-  transition: opacity 0.3s var(--ease-paper), translate 0.3s var(--ease-paper);
+  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
   pointer-events: none;
 }
 a.ap-entry:hover .ap-entry__hint {

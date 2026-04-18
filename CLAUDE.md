@@ -24,7 +24,7 @@ CLAUDE.md is a **working contract**, not a knowledge base. Keep it tight.
 * reusable primitive catalog with usage notes → `LIBRARY.md`
 * credits, historical sources, colophon items → `COLOPHON.md`
 * durable project identity memory → `docs/claude/memory.md`
-* route build briefs → that route's brief file (e.g. `MARKS_BRIEF.md`)
+* route design intent (philosophy, behavior spec, motion vocab for one route) → that route's `DESIGN.md`
 * changelog, session logs, recent-work summaries → git history
 * ephemeral state (current blockers, today's tasks) → conversation or plan tool
 
@@ -115,7 +115,7 @@ Current shared inventory:
   * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker` (see `nav/ANOMALIES.md`)
   * `icons/` — hand-rolled animatable SVG icons (`IconArrowRight`, `IconChevronRight`, `IconExternalLink`)
 * **`app/lib/`** — shared utilities (`greeting`, `titleCase`, `motion` — tab-switch motion tokens)
-* **`app/globals.css`** — design tokens, `.mat` surface, `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout, four-tier elevation ladder (`--shadow-flat` / `-resting` / `-raised` / `-overlay`), `--backseat-dim`, `--ease-paper`
+* **`app/globals.css`** — design tokens, `.mat` surface, `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout, four-tier elevation ladder (`--shadow-flat` / `-resting` / `-raised` / `-overlay`), `--backseat-dim`, spacing scale (`--space-2` through `--space-112`), motion tokens (`--ease-paper`, `--ease-snap`, `--dur-instant` / `-fast` / `-slide` / `-settle` / `-glide`)
 
 New shared primitives can originate in any route once they're needed twice. `/biconomy` is the historical donor for much of what's currently shared, but it is not a code dependency.
 
@@ -138,9 +138,12 @@ Log anomalies in the route they affect. If a global change causes a side effect 
 
 ### For `/marks` (active build)
 
-* `MARKS_BRIEF.md` at repo root — full build brief, chunked plan, data shape, motion spec
-* Route-local (scaffold pending per the brief): `app/(works)/marks/{page,layout}.tsx`, `app/(works)/marks/marks.css`, `app/(works)/marks/ANOMALIES.md`, `app/(works)/marks/components/`, `app/(works)/marks/data/marks.ts`
-* Shared marks primitive (promoted because marks are reused across routes): `app/components/marks/` — inline SVG components using `currentColor`, with a typed registry
+* **Route lives at `app/marks/`, NOT `app/(works)/marks/`.** This is deliberate — `/marks` is a continuous editorial document, not a sheet-stack project. It opts out of the workbench shell (no 8px frame, no `TransitionSlot`, no `ProjectMarker`). Only `ExitMarker` is carried in via `app/marks/layout.tsx`.
+* `app/marks/DESIGN.md` — route intent: concept, auto-scroll behavior, infinite-loop spec, motion vocab, mobile guidance. Stable; doesn't rot.
+* `app/marks/ANOMALIES.md` — load-bearing wiring and don't-touch items.
+* Route-local: `app/marks/{page,layout}.tsx`, `app/marks/marks.css`, `app/marks/components/`, `app/marks/data/marks.ts`
+* Mark SVG components are **route-local** at `app/marks/components/marks/` — one consumer, no promotion yet. Promote to `app/components/marks/` the moment a second route (landing spotlight, tooltip, etc.) needs them.
+* Source SVGs live at `app/marks/_source/` (underscore prefix → Next.js ignores at routing time).
 * Assets: `public/marks/<mark-id>/*.{jpg,gif,png}`
 
 ### Refining phase — everywhere
@@ -153,8 +156,6 @@ Log anomalies in the route they affect. If a global change causes a side effect 
 ## Reference material
 
 Everything under `reference/` is read-only context. Never modify it.
-
-* `reference/marks-source/` — the six mark SVG source files for `/marks`
 
 Historical references (the original Biconomy source, the vanilla portfolio, and the v0 Rug Rumble prototype) have been removed from the repo now that their routes are shipped.
 
@@ -180,7 +181,8 @@ All motion in the portfolio follows a paper-physical language. Things glide, set
 3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic. (Documented deviations exist — the train ticker overshoot, the Flows nav settle — and live in their route ANOMALIES.md.)
 4. **Native scroll.** No smooth-scroll libraries, no scroll hijacking. The browser's physics stay in control.
 5. **Scroll-mapped transforms where useful.** `useScroll` + `useTransform` + `useSpring` for elements that respond to scroll position — not just trigger-on-intersection.
-6. **Tab/micro-interaction tier.** Tab switches and quick UI reactions use `TAB_EASE` (`[0.45, 0, 0.15, 1]`) at 0.12–0.15s from `app/lib/motion.ts` — a separate, snappier tier that exists because a tapped tab must resolve inside attention. This is the only documented deviation from rules 1 and 2. Do not unify with `--ease-paper`. See `LIBRARY.md` → "Tab-switch motion tokens".
+6. **Tab/micro-interaction tier.** Tab switches and quick UI reactions use `--ease-snap` (`cubic-bezier(0.45, 0, 0.15, 1)`) at 0.1–0.2s — a separate, snappier tier that exists because a tapped tab must resolve inside attention. This is the only documented deviation from rules 1 and 2. Do not unify with `--ease-paper`. The CSS token `--ease-snap` is mirrored in JS as `TAB_EASE` in `app/lib/motion.ts` — keep them in sync. See `LIBRARY.md` → "Tab-switch motion tokens".
+7. **Use tokens, not raw values.** Durations come from `--dur-instant` (0.1s), `--dur-fast` (0.2s), `--dur-slide` (0.3s), `--dur-settle` (0.5s), `--dur-glide` (0.8s). Easings come from `--ease-paper` or `--ease-snap`. New values imply a new tier — flag before authoring.
 
 ### Section reveal choreography
 
@@ -314,7 +316,7 @@ Before implementing any section or touching shared code:
 1. Read the relevant route's `ANOMALIES.md` for decisions, anomalies, and don't-touch items
 2. Read `LIBRARY.md` to see if the pattern you need already exists as a shared primitive
 3. Read only the closest matching existing pattern — not broad swathes
-4. For a new `/marks` section, read `MARKS_BRIEF.md` for the plan and read the matching shared primitive
+4. For a new `/marks` section, read `app/marks/DESIGN.md` for the intent and `app/marks/ANOMALIES.md` for the wiring
 5. Present a short mapping of the plan to the current system
 6. Wait for confirmation before writing code
 
@@ -345,7 +347,7 @@ To reduce token use and drift:
 
 ## Versioning and pushing
 
-Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.25.0`.
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.31.0`.
 
 Before pushing:
 
@@ -380,7 +382,7 @@ Before implementing anything, confirm:
 * anything promoted to shared is imported from the new location and has a `LIBRARY.md` entry
 * read the `ANOMALIES.md` for the route you are about to work on — anomalies and don't-touch items you will not find in the code alone
 * read `LIBRARY.md` if you're about to build something that might already exist
-* read `MARKS_BRIEF.md` if working on `/marks`
+* read `app/marks/DESIGN.md` and `app/marks/ANOMALIES.md` if working on `/marks`
 * read `COLOPHON.md` only if the question is about origins, credits, or where a pattern comes from
 * read `docs/claude/memory.md` only if the question is about project identity/audience
 
