@@ -486,6 +486,19 @@
   color: var(--grey-640);
 }
 
+/* Live-link nameplate — restores the active nav-marker chrome on the
+   otherwise-muted nameplate slot. Renders as a Next.js <Link> with
+   nav-marker--chapter styling so it matches the archive toggle's weight.
+   The selectors below unset the nameplate's shared muted overrides and
+   let nav.css's nav-marker--chapter rules apply. */
+.selected-nameplate--link .nav-marker__content {
+  color: var(--grey-480);
+  opacity: 0.8;
+}
+.selected-nameplate--link .nav-icon {
+  color: inherit;
+}
+
 /* Single dots between nameplates and before archive */
 .selected-tl__dot-single {
   position: absolute;

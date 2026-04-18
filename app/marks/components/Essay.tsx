@@ -1,3 +1,5 @@
+'use client'
+
 // Essay — body copy + glyph dividers + 6-mark preview row.
 //
 // Values transcribed from the Figma Essay frame (node 1976:3795):
@@ -10,12 +12,41 @@
 //     the 80×50 divider bounds in the Figma; we reuse the mark component
 //     rather than shipping a one-off ornament asset)
 //
-// Chunk 7 adds the scroll-mapped docked title that sits above this section.
-// Chunk 11 adds hover colorisation + click-to-jump on the preview row.
-// Chunk 12 rewires the preview row to read from MARKS (data/marks.ts) by
-// id instead of the hand-ordered arrangement here.
+// Preview row is interactive: each mark is a <button> that colorises on hover
+// (via `--preview-color` inline, consumed by CSS `:hover { color: … }`) and
+// on click paper-glides the viewport to that mark's section top.
 
 import { Beringer, Codezeros, Ecochain, Furrmark, Kilti, Slangbusters } from './marks'
+import { MARKS } from '../data/marks'
+import { scrollGlide } from '../lib/scrollGlide'
+import type { MarkId } from './marks/types'
+import type { CSSProperties } from 'react'
+
+const previewColorFor = (id: MarkId): string =>
+  MARKS.find((m) => m.id === id)?.previewColor ?? 'currentColor'
+
+const jumpTo = (id: MarkId) => () => {
+  const section = document.querySelector<HTMLElement>(
+    `.marks-section[data-mark-id="${id}"]`,
+  )
+  if (!section) return
+  const top = section.getBoundingClientRect().top + window.scrollY
+  scrollGlide(top)
+}
+
+type Props = { id: MarkId; style?: CSSProperties; children: React.ReactNode }
+const PreviewBtn = ({ id, style, children }: Props) => (
+  <button
+    type="button"
+    className="marks-essay__preview-btn"
+    data-mark-id={id}
+    aria-label={MARKS.find((m) => m.id === id)?.name}
+    onClick={jumpTo(id)}
+    style={{ '--preview-color': previewColorFor(id), ...style } as CSSProperties}
+  >
+    {children}
+  </button>
+)
 
 export default function Essay() {
   return (
@@ -36,9 +67,15 @@ export default function Essay() {
       </div>
 
       <div className="marks-essay__preview marks-essay__preview--wordmarks">
-        <Codezeros className="marks-essay__wordmark" />
-        <Slangbusters className="marks-essay__wordmark" />
-        <Beringer className="marks-essay__wordmark" />
+        <PreviewBtn id="codezeros">
+          <Codezeros className="marks-essay__wordmark" />
+        </PreviewBtn>
+        <PreviewBtn id="slangbusters">
+          <Slangbusters className="marks-essay__wordmark" />
+        </PreviewBtn>
+        <PreviewBtn id="beringer">
+          <Beringer className="marks-essay__wordmark" />
+        </PreviewBtn>
       </div>
 
       <div className="marks-essay__caption">
@@ -47,8 +84,12 @@ export default function Essay() {
       </div>
 
       <div className="marks-essay__preview marks-essay__preview--glyphs">
-        <Ecochain className="marks-essay__glyph" />
-        <Kilti className="marks-essay__glyph" />
+        <PreviewBtn id="ecochain">
+          <Ecochain className="marks-essay__glyph" />
+        </PreviewBtn>
+        <PreviewBtn id="kilti">
+          <Kilti className="marks-essay__glyph" />
+        </PreviewBtn>
       </div>
     </section>
   )

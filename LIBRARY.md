@@ -197,3 +197,28 @@ A small monospace stamp — hairline-bordered pill or vertical stamp housing one
 ---
 
 <!-- New entries above this line, most recent first. Keep entries tight — link to the source, don't copy it. -->
+
+---
+
+## Promotion candidates
+
+Pieces not yet shared but expected to be needed in a second route. Per CLAUDE.md's promotion rule, the move happens at the second consumer — these entries exist so the move is fast when the moment comes.
+
+### Paginator (dot-row with active-pill morph)
+
+- **Current home:** [app/marks/components/MarkChrome.tsx](app/marks/components/MarkChrome.tsx) — the `.mark-chrome__paginator` `ol` plus its `.mark-chrome__dot` / `.mark-chrome__dot--active` rules in [app/marks/marks.css](app/marks/marks.css).
+- **Shape when promoted:** stateless. Props `count`, `activeIndex`, optional `onSelect(index)`. Active-dot fill is a CSS animation attached to `.mark-chrome__dot--active::before` — no JS restart or `key=` remount trick. The animation plays from the start whenever the `--active` modifier class lands on a dot. If a future consumer re-uses a single `<li>` across indices instead of re-rendering the list, they'll need `key={activeIndex}` to force the restart — flag at promotion time. Tone via `--tone-*` tokens, not hex. No route-specific class names inside.
+- **Why not yet:** single consumer today (MarkChrome).
+- **Likely next consumer:** case-study chapter pager, `/names` category slider, or any future carousel.
+- **Pre-promotion hygiene:** keep route-local but authored with tokens + stateless API so the eventual move is a lift, not a rewrite. This is the `maybe` tag from CLAUDE.md's refining-component loop.
+
+### Gradient + banding recipe
+
+Not a component — a recipe. When a future route needs a large flat gradient that animates between palettes:
+
+1. Declare each stop as `@property <color>` with `inherits: false` and a sensible initial-value (see `--marks-bg-stop-a/b` in [app/marks/marks.css](app/marks/marks.css)). Browser interpolates between palettes automatically — no JS tween loop.
+2. Transition those custom properties under `--ease-paper` (0.9s is the calibrated value on /marks).
+3. If banding shows, layer a tile-noise `::after`: balanced **black/white threshold** noise (via `<feComponentTransfer>` with `feFuncR/G/B type='discrete' tableValues='0 1'`), `opacity: 0.12–0.18`, `mix-blend-mode: normal`. Greyscale noise can't dither under normal blend — it only darkens uniformly. The threshold step is load-bearing. Pattern inspired by js-noisy-gradient (apankrat).
+4. Keep the noise tile ~160–220px with `background-repeat: repeat`; the tile edge is invisible at these sizes and seeds.
+
+Live instance: [app/marks/marks.css](app/marks/marks.css) — `.marks-background` + `.marks-background::after`.

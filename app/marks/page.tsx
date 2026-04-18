@@ -11,9 +11,8 @@ import { MARKS } from './data/marks'
 //
 // Editorial credits-reel: hero → essay → 6 mark sections → buffer → loops.
 // Built as one continuous document (not a sheet stack), so it does NOT use
-// `<Sheet>` or the `.sheet` class. The `.route-marks` wrapper is the
-// load-bearing top-level — TransitionSlot's ghost-content-dim selector
-// targets `.route-marks > *` for this route.
+// `<Sheet>` or the `.sheet` class. The `.route-marks` wrapper carries every
+// route-local CSS token (see `marks.css`).
 
 export const metadata: Metadata = {
   title: 'Marks & Symbols',

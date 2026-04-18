@@ -20,7 +20,7 @@ is a continuous editorial document, not a sheet-stack project.
 `reference/marks-source/` into `app/marks/_source/` (underscore prefix →
 Next.js App Router ignores it at routing time).
 
-**Title dock choreography** (`components/DockedTitle.tsx`)
+**Title dock choreography** (`components/MarksTitle.tsx`)
 The `MARKS & SYMBOLS` hero title smoothly docks into the header **before the
 essay reaches the top of the viewport**. Implemented as a CSS custom
 property `--marks-s` written by a scroll listener; font-size, top offset,
@@ -48,12 +48,10 @@ The sequence is **color → details → snap**, not "everything at once":
    `--content-reveal` is forced to 1 with a 0.8s `--ease-paper` transition,
    so the composition "lands" even if the user stops scrolling mid-reveal.
 
-**Scaffolding inventory** — `page.tsx` renders only Beringer (red) +
-Ecochain (olive) right now: `[MARKS[0], MARKS[2]].map(...)`. Two distinct
-palettes let the color-morph → details → settle sequence be read at a
-glance. Ecochain got a real (placeholder) palette
-(`#4CB400 → #0A2E10`) and flipped-mark placeholder slides to exercise the
-carousel.
+**All six marks rendering** — `page.tsx` is `MARKS.map(...)` across the full
+inventory. Beringer + Ecochain have real (or placeholder-real) palettes and
+multi-slide carousels; the other four still have derived-from-source-SVG
+palettes and single-slide `[{ kind: 'mark' }]` entries.
 
 ---
 
@@ -61,17 +59,14 @@ carousel.
 
 - **Remaining 4 marks** — Codezeros, Furrmark, Kilti, Slangbusters all
   still have TODO'd year/story/palette/previewColor in `data/marks.ts`.
-  Unscaffold `page.tsx` back to `MARKS.map(...)` once palettes are real.
+  Palettes for those four are derived from source-SVG hex, not authored.
 - **Real supporting media** — slides 2+ are currently `{ kind: 'mark',
-  flip: 'x' | 'y' }` placeholders. Replace with JPGs/GIFs in
+  flip: 'x' | 'y' }` placeholders on Beringer + Ecochain. The other four
+  are single-slide only. Replace/extend with JPGs/GIFs in
   `public/marks/<id>/NN.ext`.
 - **Mobile composition** — not designed yet. Current layout is
   desktop-only. Follow CLAUDE.md responsive rules (recompose, don't
   replicate).
-- **NOTES.md refresh** — stale paths. It still references
-  `app/(works)/marks/` and shell edits to ShellNav/TransitionSlot that
-  reflect an earlier plan. Reconcile against current reality before next
-  pass.
 - **Copy pass** — essay body, per-mark story lines. Currently
   placeholder.
 
@@ -79,11 +74,6 @@ carousel.
 
 ## Known oddities
 
-- **`app/(works)/ShellNav.tsx` and `app/(works)/TransitionSlot.tsx` are
-  modified in git status** but the changes are from the earlier plan
-  where `/marks` lived inside `(works)/`. Those edits are no longer
-  reachable from the current route (it's at `app/marks/`, outside the
-  works group). Decide on next pass whether to revert them or re-wire.
 - **Preview tool quirks** — IntersectionObserver callbacks don't fire in
   Claude Preview; `preview_screenshot` sometimes renders blank at
   mid-scroll positions even when `getComputedStyle` shows correct state.

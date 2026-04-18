@@ -5,6 +5,7 @@
 // an imaginary cursor draws the timeline top-to-bottom, elements appear
 // as the cursor reaches their vertical position.
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import ProjectCard from './ProjectCard'
 import { getGreeting } from '../../../lib/greeting'
@@ -209,19 +210,21 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
         transition={{ ...SPRING_POP, delay: D.dotMid1 }}
       />
 
-      {/* Nameplate: Marks And Symbols Made */}
+      {/* Nameplate: Marks And Symbols Made — live link to /marks. Unlike the
+          Names Coined nameplate (still paper-stage, muted), this one routes
+          through the shared (works) nav so the shell chrome transitions in. */}
       <motion.div
-        className="selected-nameplate selected-nameplate--marks"
+        className="selected-nameplate selected-nameplate--marks selected-nameplate--link"
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...SPRING_PLACE, delay: D.marks }}
       >
-        <div className="nav-marker">
+        <Link href="/marks" className="nav-marker nav-marker--chapter">
           <span className="nav-marker__content">
-            <span className="nav-icon nav-icon--muted" aria-hidden="true">category</span>
-            <span className="nav-marker__title t-btn1" style={{ color: 'var(--grey-640)' }}>Marks and Symbols Made</span>
+            <span className="nav-icon" aria-hidden="true">category</span>
+            <span className="nav-marker__title t-btn1">Marks and Symbols Made</span>
           </span>
-        </div>
+        </Link>
       </motion.div>
 
       {/* Single dot: after Marks And Symbols Made */}

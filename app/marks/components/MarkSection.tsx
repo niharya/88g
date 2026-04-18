@@ -22,11 +22,13 @@
 // event); reveal + settle live here so the wiring for each phase stays
 // close to the element it affects.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MarkEntry } from '../data/marks'
+import { MARKS } from '../data/marks'
 import MarkCarousel from './MarkCarousel'
 import MarkChrome from './MarkChrome'
 import { useShowcaseTimer } from './hooks/useShowcaseTimer'
+import { scrollGlide } from '../lib/scrollGlide'
 
 interface MarkSectionProps {
   mark:  MarkEntry
@@ -84,10 +86,87 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
     }
   }, [])
 
-  const { index: activeSlide } = useShowcaseTimer({
+  // When the last slide wraps, paper-glide into the next mark section.
+  // Last mark in MARKS is the handoff point to the Buffer — chunk 6 wires
+  // that to the infinite-loop reset. Until then, last mark simply stops
+  // advancing (no buffer target yet).
+  const advanceToNextMark = useCallback(() => {
+    const nextIdx = index + 1
+    const nextMark = MARKS[nextIdx]
+    if (!nextMark) return
+    const nextSection = document.querySelector<HTMLElement>(
+      `.marks-section[data-mark-id="${nextMark.id}"]`,
+    )
+    if (!nextSection) return
+    const top = nextSection.getBoundingClientRect().top + window.scrollY
+    scrollGlide(top)
+  }, [index])
+
+  const { index: activeSlide, setIndex, pauseForInteraction } = useShowcaseTimer({
     total:  mark.slides.length,
     active,
+    onWrap: advanceToNextMark,
   })
+
+  // Horizontal trackpad/wheel + touch swipe → manual slide advance.
+  // Listener lives on the section so the interaction surface matches the
+  // visible mark zone. Only the active (dominant) section consumes input.
+  // Each manual advance pauses the auto-advance timer for idleResumeMs.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    if (!active) return
+
+    const WHEEL_THRESHOLD    = 30     // min |deltaX| to count as intent
+    const WHEEL_COOLDOWN_MS  = 400    // trackpad inertia guard
+    const TOUCH_THRESHOLD    = 40     // min |dx| to count as swipe
+
+    let wheelCooldownUntil = 0
+    const nudge = (dir: 1 | -1) => {
+      pauseForInteraction()
+      setIndex((prev) => (prev + dir + mark.slides.length) % mark.slides.length)
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      const dx = e.deltaX
+      if (Math.abs(dx) < WHEEL_THRESHOLD) return
+      if (Math.abs(dx) < Math.abs(e.deltaY)) return
+      const now = performance.now()
+      if (now < wheelCooldownUntil) return
+      wheelCooldownUntil = now + WHEEL_COOLDOWN_MS
+      nudge(dx > 0 ? 1 : -1)
+    }
+
+    let tStartX = 0
+    let tStartY = 0
+    let tracking = false
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0]
+      tStartX = t.clientX
+      tStartY = t.clientY
+      tracking = true
+    }
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!tracking) return
+      tracking = false
+      const t = e.changedTouches[0]
+      const dx = t.clientX - tStartX
+      const dy = t.clientY - tStartY
+      if (Math.abs(dx) < TOUCH_THRESHOLD) return
+      if (Math.abs(dx) < Math.abs(dy)) return
+      // Swipe LEFT (dx < 0) advances to the next slide.
+      nudge(dx < 0 ? 1 : -1)
+    }
+
+    el.addEventListener('wheel',      onWheel,      { passive: true })
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchend',   onTouchEnd,   { passive: true })
+    return () => {
+      el.removeEventListener('wheel',      onWheel)
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchend',   onTouchEnd)
+    }
+  }, [active, setIndex, pauseForInteraction, mark.slides.length])
 
   return (
     <section
