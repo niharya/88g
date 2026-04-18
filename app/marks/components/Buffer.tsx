@@ -1,14 +1,28 @@
-// Buffer — fade-to-black reel cut.
+'use client'
+
+// Buffer — fade-to-black reel cut between the last mark and the next Hero.
 //
-// Layout of the 80vh buffer (from MARKS_BRIEF.md):
-//   • ~25vh — Mark 6 gradient fades to pure black
-//   • ~30vh — pure black with slow noise drift
-//   • ~25vh — black fades into Hero's gradient
+// Three stacked zones in flex-column (heights per MARKS_BRIEF):
+//   • fade-out (25vh) — linear-gradient(transparent → black) overlays the
+//     fixed Mark 6 palette, so the mark gradient visibly dissolves into black.
+//   • black    (30vh) — opaque black with the route's noise tile. While this
+//     zone dominates the viewport, Background.tsx (chunk 5 update) resets the
+//     palette to hero-grey under opaque black — invisible palette swap.
+//   • fade-in  (25vh) — linear-gradient(black → transparent) reveals the now
+//     hero-palette fixed background, easing the reel into the next Hero.
 //
-// The silent scroll-shift reset (useInfiniteLoop) fires inside this region
-// during chunk 13, so the fade-to-black visually masks any frame-level
-// imperfection in the jump.
+// In chunk 6 the infinite-loop's silent scroll-shift fires during the black
+// zone; the opacity mask here is what makes that reset imperceptible.
+
+import { useInfiniteLoop } from './hooks/useInfiniteLoop'
 
 export default function Buffer() {
-  return <section className="marks-buffer" aria-hidden="true" />
+  useInfiniteLoop()
+  return (
+    <section className="marks-buffer" aria-hidden="true">
+      <div className="marks-buffer__zone" data-buffer-zone="fade-out" />
+      <div className="marks-buffer__zone" data-buffer-zone="black" />
+      <div className="marks-buffer__zone" data-buffer-zone="fade-in" />
+    </section>
+  )
 }

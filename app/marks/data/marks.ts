@@ -27,19 +27,27 @@ export type MarkEntry = {
   name:         string
   year:         number
   story:        string
-  palette:      { stopA: string; stopB: string; angle: number }  // angle in deg
+  // `stopMid` is an optional third stop placed at the geometric midpoint
+  // between stopA (69.875%) and stopB (106.73%). It exists to smooth the
+  // transition on marks whose A→B endpoints would otherwise band across
+  // large flat areas. When omitted, the gradient falls back to a pure
+  // A→B two-stop via color-mix in the CSS layer.
+  palette:      { stopA: string; stopB: string; stopMid?: string; angle: number }
   previewColor: string
   slides:       MarkSlide[]
 }
 
+// Order mirrors the Essay's reading order: divider → wordmarks row → glyphs row.
+//   Furrmark (divider) → Codezeros, Slangbusters, Beringer (wordmarks)
+//                      → Ecochain, Kilti (glyphs)
 export const MARKS: MarkEntry[] = [
   {
-    id:           'beringer',
-    name:         'Oscar Beringer',
-    year:         2023,                                                     // TODO: confirm
-    story:        'A signature mark for the pianist, built from a single fluent line.',  // TODO: replace with final copy
-    palette:      { stopA: '#4B4B4B', stopB: '#000000', angle: 233.57 },
-    previewColor: '#ec1c24',                                                // source SVG red — confirm
+    id:           'furrmark',
+    name:         'Aleyr',
+    year:         2021,
+    story:        'This mark is the face your pet makes when your hand rests on its head.',
+    palette:      { stopA: '#2B0E13', stopMid: '#491821', stopB: '#912F41', angle: 45 },  // bottom-left #2B0E13 → mid (50%) #491821 → top-right #912F41
+    previewColor: '#902F41',
     slides: [
       { kind: 'mark' },
       { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
@@ -49,22 +57,10 @@ export const MARKS: MarkEntry[] = [
   {
     id:           'codezeros',
     name:         'Codezeros',
-    year:         0,                                                          // TODO: confirm
-    story:        '',                                                         // TODO: replace with final copy
-    palette:      { stopA: '#FF2633', stopB: '#0D0000', angle: 200 },        // derived from source SVG red #ff2633
-    previewColor: '#FF2633',                                                  // source SVG red — confirm
-    slides:       [{ kind: 'mark' }],
-  },
-  {
-    id:           'ecochain',
-    name:         'Ecochain',
-    year:         0,                                                          // TODO
-    story:        '',                                                         // TODO
-    // Placeholder palette tuned to sit far enough from Beringer red to make
-    // the crossfade legible during structural scaffolding. Real Figma palette
-    // will replace this.
-    palette:      { stopA: '#4CB400', stopB: '#0A2E10', angle: 233.57 },
-    previewColor: '#4CB400',                                                  // /selected olive tone — confirm
+    year:         2019,
+    story:        'A wordmark for a studio that writes code others read twice.',
+    palette:      { stopA: '#4D0B0F', stopMid: '#80131A', stopB: '#FF2633', angle: 45 },  // primary #FF2633 × (0.3, 0.5, 1.0)
+    previewColor: '#FF2633',
     slides: [
       { kind: 'mark' },
       { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
@@ -72,30 +68,55 @@ export const MARKS: MarkEntry[] = [
     ],
   },
   {
-    id:           'furrmark',
-    name:         'Furrmark',
-    year:         0,                                                          // TODO: confirm
-    story:        '',                                                         // TODO: replace with final copy
-    palette:      { stopA: '#EF426F', stopB: '#110008', angle: 233.57 },     // derived from source SVG pink #ef426f
-    previewColor: '#EF426F',                                                  // source SVG pink — confirm
-    slides:       [{ kind: 'mark' }],
+    id:           'slangbusters',
+    name:         'Slangbusters',
+    year:         2020,
+    story:        'Built for a bureau that untangles jargon and leaves plain language standing.',
+    palette:      { stopA: '#003D1F', stopMid: '#006633', stopB: '#00CC66', angle: 45 },  // primary #00CC66 × (0.3, 0.5, 1.0)
+    previewColor: '#00CC66',
+    slides: [
+      { kind: 'mark' },
+      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
+      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+    ],
+  },
+  {
+    id:           'beringer',
+    name:         'Oscar Beringer',
+    year:         2023,
+    story:        'A signature mark for the pianist, drawn as one fluent line.',
+    palette:      { stopA: '#47080B', stopMid: '#760E12', stopB: '#EC1C24', angle: 45 },  // primary #EC1C24 × (0.3, 0.5, 1.0)
+    previewColor: '#EC1C24',
+    slides: [
+      { kind: 'mark' },
+      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
+      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+    ],
+  },
+  {
+    id:           'ecochain',
+    name:         'Ecochain',
+    year:         2022,
+    story:        'A glyph for a supply chain that grows instead of extracts.',
+    palette:      { stopA: '#173600', stopMid: '#265A00', stopB: '#4CB400', angle: 45 },  // primary #4CB400 × (0.3, 0.5, 1.0)
+    previewColor: '#4CB400',
+    slides: [
+      { kind: 'mark' },
+      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
+      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+    ],
   },
   {
     id:           'kilti',
     name:         'Kilti',
-    year:         0,                                                          // TODO: confirm
-    story:        '',                                                         // TODO: replace with final copy
-    palette:      { stopA: '#16153A', stopB: '#05050F', angle: 150 },        // deep midnight — source was near-black; TODO: confirm brand color
-    previewColor: '#9B99FF',                                                  // TODO: confirm brand color (sourced near-black #1E1E1E won't read on dark essay)
-    slides:       [{ kind: 'mark' }],
-  },
-  {
-    id:           'slangbusters',
-    name:         'Slangbusters',
-    year:         0,                                                          // TODO: confirm
-    story:        '',                                                         // TODO: replace with final copy
-    palette:      { stopA: '#00CC66', stopB: '#001A09', angle: 233.57 },     // derived from source SVG green #0c6
-    previewColor: '#00CC66',                                                  // source SVG green — confirm
-    slides:       [{ kind: 'mark' }],
+    year:         2024,
+    story:        'Drawn for a practice that holds ceremony in small, precise gestures.',
+    palette:      { stopA: '#2F2E4D', stopMid: '#4E4D80', stopB: '#9B99FF', angle: 45 },  // primary #9B99FF × (0.3, 0.5, 1.0)
+    previewColor: '#9B99FF',
+    slides: [
+      { kind: 'mark' },
+      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
+      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+    ],
   },
 ]

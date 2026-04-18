@@ -51,8 +51,12 @@ export function useShowcaseTimer({
 
   // Advance tick — only runs when active, not paused, visible, reduced-motion
   // not set. Depends on `index` so each tick re-arms the next one.
+  //
+  // Single-slide marks (total === 1) still tick: `next = 0` which === 0,
+  // so `onWrap` fires every `slideMs` — that hands off to the next mark.
+  // Without this behavior, a 1-slide mark would park the reel indefinitely.
   useEffect(() => {
-    if (!active || paused || total <= 1) return
+    if (!active || paused || total < 1) return
     if (typeof window === 'undefined') return
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches

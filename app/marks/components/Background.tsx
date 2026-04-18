@@ -20,7 +20,24 @@
 import { useEffect, useRef } from 'react'
 import { MARKS } from '../data/marks'
 
-const HERO_PALETTE = { stopA: '#333333', stopB: '#000000', angle: 233.57 }
+type Palette = { stopA: string; stopB: string; stopMid?: string; angle: number }
+const HERO_PALETTE: Palette = { stopA: '#333333', stopB: '#000000', angle: 233.57 }
+
+// Linear RGB midpoint of two hex colors. Used when a palette doesn't declare
+// a `stopMid` — the three-stop gradient in marks.css needs a real color for
+// the middle stop (an @property with initial-value defeats `var(…, fallback)`
+// tricks), so we derive one here rather than branching the CSS.
+function midHex(a: string, b: string): string {
+  const toRGB = (h: string) => {
+    const n = parseInt(h.slice(1), 16)
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const
+  }
+  const [ar, ag, ab] = toRGB(a)
+  const [br, bg, bb] = toRGB(b)
+  const mix = (x: number, y: number) => Math.round((x + y) / 2)
+  const hex = (n: number) => n.toString(16).padStart(2, '0')
+  return `#${hex(mix(ar, br))}${hex(mix(ag, bg))}${hex(mix(ab, bb))}`
+}
 
 export default function Background() {
   const ref = useRef<HTMLDivElement>(null)
@@ -56,13 +73,49 @@ export default function Background() {
           }
         }
       })
+
+      // Buffer black zone: when the opaque black zone dominates the viewport,
+      // reset palette back to Hero. The overlay is fully opaque during the
+      // black zone, so the palette swap underneath is imperceptible — by the
+      // time the fade-in zone reveals the fixed background, it's hero-grey
+      // again, easing the reel into the next Hero cycle.
+      const blackZone = document.querySelector<HTMLElement>(
+        '.marks-buffer__zone[data-buffer-zone="black"]',
+      )
+      if (blackZone) {
+        const rect = blackZone.getBoundingClientRect()
+        const overlap = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0))
+        const score = overlap / vh
+        if (score > best.score) {
+          best = { id: '__hero__', palette: HERO_PALETTE, score }
+        }
+      }
       if (best.id !== activeId) {
         activeId = best.id
         el.style.setProperty('--marks-bg-stop-a', best.palette.stopA)
         el.style.setProperty('--marks-bg-stop-b', best.palette.stopB)
         el.style.setProperty('--marks-bg-angle', `${best.palette.angle}deg`)
+        // Always write the midpoint — either the palette's declared stopMid,
+        // or a computed A/B average. Declaring the @property with an
+        // initial-value means a CSS-side `var(…, color-mix(…))` fallback
+        // would never fire, so we resolve it here.
+        const mid = ('stopMid' in best.palette && best.palette.stopMid)
+          ? best.palette.stopMid
+          : midHex(best.palette.stopA, best.palette.stopB)
+        el.style.setProperty('--marks-bg-stop-mid', mid)
       }
     }
+
+    // Tab-hidden gate for ambient CSS animations. `html[data-marks-hidden]`
+    // is the single switch the stylesheet keys off — see the
+    // `animation-play-state: paused` rule in marks.css. Reduced-motion is
+    // handled purely via @media in the same place; no JS guard needed.
+    const onVisibility = () => {
+      document.documentElement.dataset.marksHidden =
+        document.visibilityState === 'hidden' ? 'true' : 'false'
+    }
+    onVisibility()
+    document.addEventListener('visibilitychange', onVisibility)
 
     apply()
     window.addEventListener('scroll', apply, { passive: true })
@@ -70,6 +123,7 @@ export default function Background() {
     return () => {
       window.removeEventListener('scroll', apply)
       window.removeEventListener('resize', apply)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 

@@ -68,6 +68,34 @@
   inherits: false;
   initial-value: #000000;
 }
+/* Midpoint stop at 88.3% (geometric midpoint of stopA at 69.875% and stopB
+   at 106.73%). Background.tsx always writes a value — either the palette's
+   declared stopMid or a computed A/B average — so this registration is only
+   here for @property-driven interpolation on palette changes. */
+@property --marks-bg-stop-mid {
+  syntax: '<color>';
+  inherits: false;
+  /* The literal hex here is registration-only — Background.tsx always writes
+     a resolved value (palette stopMid or computed A/B midpoint) before first
+     paint, so this initial-value is never consumed in practice. */
+  initial-value: #1a1a1a;
+}
+/* Ambient drift — a registered <number> so CSS can interpolate it inside a
+   keyframe. It's intentionally decoupled from the palette stops: Background.tsx
+   owns the stops (scroll-driven morph), and the drift keyframe owns --drift-t
+   (time-driven breath). They compose at the gradient: --drift-t nudges the
+   MID stop toward stopB on peak, which reads as a slow palette breath
+   without touching the extreme hues or fighting the scroll morph. */
+@property --marks-bg-drift-t {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes marks-bg-drift {
+  0%, 100% { --marks-bg-drift-t: 0; }
+  50%      { --marks-bg-drift-t: 1; }
+}
 
 .marks-background {
   position: fixed;
@@ -76,27 +104,59 @@
   pointer-events: none;
   background: linear-gradient(
     var(--marks-bg-angle, 233.57deg),
-    var(--marks-bg-stop-a) 69.875%,
-    var(--marks-bg-stop-b) 106.73%
+    var(--marks-bg-stop-a) 0%,
+    color-mix(
+      in oklab,
+      var(--marks-bg-stop-mid),
+      var(--marks-bg-stop-b) calc(var(--marks-bg-drift-t) * 15%)
+    ) 50%,
+    var(--marks-bg-stop-b) 100%
   );
   transition:
-    --marks-bg-stop-a 0.9s var(--ease-paper),
-    --marks-bg-stop-b 0.9s var(--ease-paper),
-    --marks-bg-angle  0.9s var(--ease-paper);
+    --marks-bg-stop-a   0.9s var(--ease-paper),
+    --marks-bg-stop-mid 0.9s var(--ease-paper),
+    --marks-bg-stop-b   0.9s var(--ease-paper),
+    --marks-bg-angle    0.9s var(--ease-paper);
+  animation: marks-bg-drift var(--marks-gradient-loop) var(--ease-paper) infinite;
 }
 
-/* Paper noise tile over the gradient — transcribed from Figma node 2466:3792.
-   1024×1024 PNG at color-dodge so the grain reads through every palette. */
+/* Tab hidden → pause ambient motion. Reduced-motion users get no animation
+   at all. Both suspensions apply to drift keyframes here and noise drift
+   on the ::after tile below. */
+html[data-marks-hidden='true'] .marks-background,
+html[data-marks-hidden='true'] .marks-background::after {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marks-background,
+  .marks-background::after {
+    animation: none;
+  }
+}
+
+/* Noise dither — balanced black/white speckle, normal blend.
+   Kills the 8-bit banding across the large flat gradient. feComponentTransfer
+   thresholds the fractalNoise output to pure black or pure white per pixel;
+   at low opacity this perturbs each gradient pixel by a tiny +/- delta, which
+   is what breaks the visible banding. Greyscale noise can't dither under
+   normal blend — it only darkens — so the threshold step is load-bearing.
+   Pattern inspired by js-noisy-gradient (apankrat/js-noisy-gradient); we
+   render as a static CSS background tile rather than per-frame canvas. */
 .marks-background::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/marks/noise.png');
-  background-size: 1024px 1024px;
-  background-position: left top;
-  mix-blend-mode: color-dodge;
   pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 1'/%3E%3CfeFuncG type='discrete' tableValues='0 1'/%3E%3CfeFuncB type='discrete' tableValues='0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.15;
+  animation: marks-noise-drift var(--marks-noise-loop) linear infinite;
 }
+@keyframes marks-noise-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 220px 220px; }
+}
+
 
 
 /* ── Phase placeholders ──────────────────────────────────────────────────── */
@@ -120,30 +180,62 @@
 
 .marks-hero     { min-height: var(--marks-hero-h); }
 .marks-section  { min-height: var(--marks-section-h); overflow: hidden; }
-.marks-buffer   { min-height: var(--marks-buffer-h); }
+.marks-buffer {
+  min-height: var(--marks-buffer-h);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Three-zone reel cut. Each zone paints on top of the fixed background,
+   so the fade gradients dissolve the Mark 6 palette into black, hold on
+   black (while Background.tsx palette-resets invisibly), then reveal the
+   hero palette on the way out. */
+.marks-buffer__zone {
+  width: 100%;
+  flex: 0 0 auto;
+}
+.marks-buffer__zone[data-buffer-zone='fade-out'] {
+  height: 25vh;
+  background: linear-gradient(180deg, transparent 0%, var(--marks-bg-rest) 100%);
+}
+.marks-buffer__zone[data-buffer-zone='black'] {
+  height: 30vh;
+  background-color: var(--marks-bg-rest);
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 1'/%3E%3CfeFuncG type='discrete' tableValues='0 1'/%3E%3CfeFuncB type='discrete' tableValues='0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  animation: marks-noise-drift var(--marks-noise-loop) linear infinite;
+}
+.marks-buffer__zone[data-buffer-zone='fade-in'] {
+  height: 25vh;
+  background: linear-gradient(180deg, var(--marks-bg-rest) 0%, transparent 100%);
+}
+html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marks-buffer__zone[data-buffer-zone='black'] { animation: none; }
+}
 
 
 /* ── Marks title ─────────────────────────────────────────────────────────── */
-/* Single fixed element — three states, driven by two CSS custom properties:
-     --marks-s      (0→1): hero 120px @ 37vh  →  docked 24px @ 26px
-     --title-reveal (0→1): "MARKS & SYMBOLS"  →  mark name + icon
-   --title-reveal is registered as @property so it can be transitioned when
-   the dominant section settles (mirrors data-settled on MarkSection). */
-
-@property --title-reveal {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
+/* Single fixed element; three states share one DOM node.
+     --marks-s (0→1): hero 120px @ 37vh → docked 24px @ 26px (same text).
+     Text changes (label↔name, name↔name) use a reel-roll in `.marks-title__cell`
+     — two slots ping-pong inside a clipped cell, old rolls up, new rolls up
+     from below. JS writes inline transforms; CSS owns the transition. */
 
 .marks-title {
-  --marks-s:      0;
-  --title-reveal: 0;
+  --marks-s: 0;
 
+  /* Spans the full viewport width and centers content via text-align. This
+     keeps the row on a fixed horizontal axis while the cell's width animates
+     between mark-name lengths — without it, translateX(-50%) on the h1 would
+     re-center the whole unit live, reading as a diagonal drift during the
+     reel roll. */
   position: fixed;
-  left: 50%;
-  top: calc(37vh + (26px - 37vh) * var(--marks-s));
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  top: calc(37vh + (var(--marker-top) - 37vh) * var(--marks-s));
   z-index: 3;
   margin: 0;
   font-family: var(--font-display);
@@ -156,46 +248,63 @@
   white-space: nowrap;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   pointer-events: none;
+  cursor: default;
 }
 
-/* When the dominant section settles, snap --title-reveal to 1 over 0.8s —
-   same mechanism as MarkSection's data-settled snapping --content-reveal. */
-.marks-title[data-settled='true'] {
-  --title-reveal: 1;
-  transition: --title-reveal 0.8s var(--ease-paper);
+/* In mark state the title doubles as the grid-back affordance. */
+.marks-title[data-in-mark='true'] {
+  pointer-events: auto;
+  cursor: pointer;
+  mix-blend-mode: overlay;
+  transition: color 0.3s var(--ease-paper);
+}
+.marks-title[data-in-mark='true']:hover,
+.marks-title[data-in-mark='true']:focus-visible {
+  color: var(--marks-ink);
+  outline: none;
 }
 
-/* Text wrapper stacks label + mark in the same grid cell — no layout shift
-   as they cross-fade. Icon is absolute so it doesn't affect centering. */
-.marks-title__text {
-  display: inline-grid;
+/* Row holds only the cell in flow; the icon-slot is absolutely positioned off
+   the cell's left edge. That keeps the cell centered in the row (and thus
+   the viewport) regardless of its width, so text inside the cell stays on a
+   fixed horizontal axis when width transitions across phase boundaries
+   (hero↔dock, mark-zone↔label). If the icon were a flex sibling, the cell's
+   own center would drift L→R as width changed — the classic phase-boundary
+   skew. */
+.marks-title__row {
+  display: inline-block;
   position: relative;
 }
 
-.marks-title__label,
-.marks-title__mark {
+/* Reel cell — the clipped track that holds the two ping-pong text slots.
+   `inline-grid` stacks both slots in the same grid cell so translateY is
+   measured from a common origin. Width is authored from MarksTitle.tsx on
+   each roll (measured from an off-flow sizer) so the cell transitions
+   smoothly to the target text's width alongside the roll — prevents the
+   grid icon from snapping to its new position when mark-name length
+   changes. `overflow: hidden` clips both the roll (vertical) and any
+   residual outgoing text that runs wider than the new cell (horizontal).
+   Height is 1.2em so glyph ascenders/descenders (Fraunces has generous
+   extents) aren't clipped by the line-box. */
+.marks-title__cell {
+  display: inline-grid;
+  justify-items: center;
+  overflow: hidden;
+  height: 1.2em;
+  transition: width 0.4s var(--ease-paper);
+}
+
+/* Slots share `grid-area: 1 / 1` — identical position, independent transforms.
+   Line-height matches the cell so glyphs are vertically centered at any
+   font-size. The transition is on `transform` — MarksTitle.tsx writes inline
+   transforms to drive each roll. */
+.marks-title__slot {
   grid-area: 1 / 1;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: transform 0.4s var(--ease-paper);
+  will-change: transform;
 }
-
-.marks-title__label {
-  opacity: calc(1 - var(--title-reveal));
-}
-
-.marks-title__mark {
-  opacity: var(--title-reveal);
-}
-
-/* Icon slides in from the right as reveal climbs */
-.marks-title__icon {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  translate: calc(8px + (1 - var(--title-reveal)) * 12px) -50%;
-  opacity: var(--title-reveal);
-  font-size: 18px;
-  line-height: 1;
-}
-
 
 /* ── Essay ───────────────────────────────────────────────────────────────── */
 /* Flow-laid, full-bleed section. The surface is painted by the fixed
@@ -265,6 +374,21 @@
 .marks-essay__preview--wordmarks { margin-top: 72px; }
 .marks-essay__preview--glyphs    { margin-top: 76px; justify-content: center; gap: 435px; }
 
+.marks-essay__preview-btn {
+  /* Button reset — the row stays a row of marks, not a row of buttons. */
+  all: unset;
+  display: block;
+  cursor: pointer;
+  color: inherit;
+  transition: color 0.4s var(--ease-paper);
+  /* Hover colorizes the SVG via currentColor (marks use fill="currentColor"). */
+}
+.marks-essay__preview-btn:hover,
+.marks-essay__preview-btn:focus-visible {
+  color: var(--preview-color, currentColor);
+  outline: none;
+}
+
 .marks-essay__wordmark,
 .marks-essay__glyph {
   flex: 0 0 auto;
@@ -272,13 +396,17 @@
   height: auto;
 }
 
-/* Per-item widths from Figma */
-.marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(1) { width: 218px; }  /* Codezeros */
-.marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(2) { width: 222px; }  /* Slangbusters */
-.marks-essay__preview--wordmarks .marks-essay__wordmark:nth-child(3) { width: 216px; }  /* Beringer */
+/* Per-item widths from Figma — applied to the button wrapper so the flex
+   row's item widths stay stable regardless of the SVG fill color on hover. */
+.marks-essay__preview--wordmarks > .marks-essay__preview-btn:nth-child(1) { width: 218px; }  /* Codezeros */
+.marks-essay__preview--wordmarks > .marks-essay__preview-btn:nth-child(2) { width: 222px; }  /* Slangbusters */
+.marks-essay__preview--wordmarks > .marks-essay__preview-btn:nth-child(3) { width: 216px; }  /* Beringer */
 
-.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(1) { width: 70px; }   /* Ecochain */
-.marks-essay__preview--glyphs .marks-essay__glyph:nth-child(2) { width: 71px; }   /* Kilti */
+.marks-essay__preview--glyphs > .marks-essay__preview-btn:nth-child(1) { width: 70px; }   /* Ecochain */
+.marks-essay__preview--glyphs > .marks-essay__preview-btn:nth-child(2) { width: 71px; }   /* Kilti */
+
+.marks-essay__preview-btn .marks-essay__wordmark,
+.marks-essay__preview-btn .marks-essay__glyph { width: 100%; }
 
 .marks-essay__caption {
   margin: 75px 0 0;
@@ -380,11 +508,31 @@
 }
 
 .mark-carousel__glyph {
-  width: clamp(200px, 22vw, 320px);
+  width: auto;
   height: auto;
   color: var(--marks-ink);
   mix-blend-mode: overlay;
 }
+
+/* Per-mark editorial scale, calibrated against Furrmark (160px wide, ~99px
+   tall — its 1.618:1 aspect). Glyph marks (square-ish) match on width;
+   wordmarks match on height so the cap height reads at comparable weight
+   instead of stretching across the canvas. "Small and strong" — the form
+   is the point; the field of gradient around it does the heavy lifting. */
+.marks-section[data-mark-id='furrmark']     .mark-carousel__glyph { width: 160px; }
+.marks-section[data-mark-id='ecochain']     .mark-carousel__glyph { width: 120px; }
+.marks-section[data-mark-id='kilti']        .mark-carousel__glyph { width: 110px; }
+.marks-section[data-mark-id='codezeros']    .mark-carousel__glyph { height: 44px; }
+.marks-section[data-mark-id='slangbusters'] .mark-carousel__glyph { height: 56px; }  /* taller viewBox — the horn adds vertical mass */
+.marks-section[data-mark-id='beringer']     .mark-carousel__glyph { height: 44px; }
+
+/* Duotone depth — the source marks were originally multi-tone, and while we
+   render everything as a single overlay-blended ink here, the hierarchy
+   needs to survive. Paths tagged `data-depth` render at reduced opacity so
+   the secondary element (horn, accent) recedes slightly behind the primary
+   (wordmark). Values deliberately subtle — the overlay blend already
+   modulates perceived strength against the gradient. */
+.mark-carousel__glyph [data-depth] { fill-opacity: 0.55; }
 
 .mark-carousel__media {
   position: relative;
@@ -476,4 +624,49 @@
   margin: 0;
   color: var(--grey-720);
   white-space: nowrap;
+}
+
+
+/* ── Mobile lite ─────────────────────────────────────────────────────────── */
+/* Per CLAUDE.md responsive-lite stance: usability floor, not a second
+   composition. Scope:
+     • title scales down so "MARKS & SYMBOLS" fits at 375px without overflow
+       (same dock interpolation range, just a smaller hero size)
+     • Essay preview rows flip to column — the 1136px / 435px gap horizontal
+       compositions don't fit narrow viewports and there's no meaning
+       preserved by horizontal arrangement at that scale
+     • Essay body/caption maxed to viewport width minus safe padding
+     • Mark carousel media: single column already (min(70vw, 900px)); no change
+     • Mark chrome: already uses min(100%, 780px) + 24px padding; no change
+   No JS media queries, no transform: scale, no !important. */
+@media (max-width: 767px) {
+  .marks-title {
+    /* Hero 56px → docked 24px. Letter-spacing scales with font-size so the
+       same dock interpolation shape holds, just compressed. */
+    font-size: calc(56px - 32px * var(--marks-s));
+    letter-spacing: calc(-1.68px + 0.96px * var(--marks-s));
+  }
+
+  .marks-essay {
+    padding: 88px 24px 80px;
+  }
+  .marks-essay__body,
+  .marks-essay__body--p2,
+  .marks-essay__caption {
+    max-width: 100%;
+  }
+  .marks-essay__divider { margin: 56px 0 48px; }
+
+  .marks-essay__preview {
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+  }
+  .marks-essay__preview--wordmarks { margin-top: 56px; }
+  .marks-essay__preview--glyphs    { margin-top: 56px; gap: 48px; }
+
+  /* Buffer shortens proportionally so the black zone still dominates at
+     small viewport heights. Percentages are of the buffer track itself —
+     the total stays 80vh via the section rule above. */
+  .marks-buffer { /* structural only; zones already sized by vh fractions */ }
 }
