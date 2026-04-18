@@ -26,25 +26,20 @@ Breakpoints: mobile < 768px, tablet 768–1023px, desktop ≥ 1024px.
 
 Start with the mobile composition as a separate design, not a derivative of desktop. If an approach feels hacky, it probably is — find a better mechanism (CSS visibility classes, clamp, container queries, breakpoint-scoped property overrides) before committing.
 
-## Responsive-lite stance (refining phase)
+## Crafted-lite stance
 
-All remaining responsive work on this portfolio is "lite" — a usability floor, not a composition pass. The goal is: the route does not break on mobile or tablet, touch users can read and navigate it, and nothing implies an interaction that fails. That is the gate. Do not auto-escalate past it.
+Responsive work on this portfolio is **crafted-lite**. Two layers:
 
-**What "lite" means.**
+1. **Content and density → lite.** A usability floor. Drop ornaments, reduce proof-artifact density, simplify complex grids, remove what won't read at 375px. If a route fails this floor, it isn't shipped.
+2. **Composition → crafted.** What remains is *authored* for mobile — not mechanically column-stacked from desktop. Section order, spacing tiers, typographic hierarchy, section-to-section rhythm, and touch affordances are chosen for the phone. `/marks` is the quality bar for what authored-for-mobile reads like.
 
-* Usability and non-breakage at mobile/tablet widths, nothing more.
-* Accommodations are made *per-route*, scoped inside media queries, with zero desktop side effects.
-* Desktop remains the canonical composition. Mobile is a reading fallback.
-* A route is "done" under lite when a phone user can read it end-to-end without horizontal scroll, overflowing text, or tap targets that miss.
+For the shape-by-shape decision tree, sanctioned techniques, banned hacks, and per-route field notes, see [`docs/responsive-playbook.md`](./responsive-playbook.md). This file carries principles; the playbook carries decisions.
 
-**What "lite" is not.**
+**Practical test.** If a designer were authoring this section from scratch for a 375px viewport, what composition would they choose? That is the crafted answer. Anything less is a retrofit.
 
-* Not a second authored composition.
-* Not visual parity with the desktop reading experience.
-* Not a reason to redesign sections whose meaning depends on spatial layout.
-* Not a license to rebuild scroll-bound or absolute-positioned desktop set pieces for small screens.
+### The lite floor (content and density)
 
-**Minimum floor every route must meet under lite.**
+Every route must clear this floor before any crafted layering.
 
 * No horizontal overflow at 375px.
 * Body copy readable at 375px without zoom; no `transform: scale()` fixes.
@@ -55,25 +50,45 @@ All remaining responsive work on this portfolio is "lite" — a usability floor,
 * Responsive copy variants via the two-span CSS visibility pattern when phrasing differs.
 * `:hover`-only affordances disabled or replaced on touch.
 
-**Explicitly de-scoped under lite.**
+**What drops without re-authoring.**
 
-* Decorative desktop elements (timeline bars, dot clusters, spatial markers) may be removed on mobile rather than recomposed.
-* Hand-placed desktop embellishments (rotated stamps, offset notes, marginalia) are allowed to drop out on mobile.
-* Proof-artifact-dense sections (multi-pane game boards, scroll-choreographed splits, dense editorial grids) do **not** get a bespoke mobile composition. They render in a simplified single-column form or collapse to a representative still.
-* Per-section mobile art direction. If the desktop section doesn't fit, simplify — don't re-author.
+* Decorative desktop elements (timeline bars, dot clusters, spatial markers) — remove on mobile; do not shrink.
+* Hand-placed embellishments (rotated stamps, offset notes, marginalia) — allowed to drop out.
+* Proof-artifact-dense set pieces (scroll-choreographed splits, dense editorial grids) — simplify or still; do not rebuild.
 
-**Per-route precedent.**
+### The crafted layer (composition)
 
-* `/`, `/selected`, and `/rr` are the reference implementations for a retrofit-lite pass. Follow their patterns when adding lite to `/biconomy`.
-* `/marks` is the reference for a *built-responsive-ready* route: `clamp()` for type and spacing, `flex-direction: column` flips for row compositions, tucked pill + 4px frame from day one, no separate mobile pass. Future routes built from scratch should prefer this model.
-* Distinction: retrofit-lite accepts pragmatic drop-outs; built-responsive-ready avoids them by designing the primitives to bend.
+What survives the floor gets composed with intent.
 
-**Don't-do list (tempting, out of scope).**
+* **Reading order is named, not inferred.** Flow isn't the default — you choose the order a phone reader's eye takes.
+* **Spacing is authored per transition.** Pick a `--space-*` tier between siblings and a larger one between groups. No default `gap` stands in for a decision.
+* **Typography is re-anchored, not scaled.** Desktop hero sizes do not shrink to mobile; they re-declare inside the breakpoint.
+* **Wide artifacts are re-expressed.** A desktop-width screenshot becomes a mobile-authored asset, a representative still, or a native-mobile swipe strip — not a miniature.
+* **Hover-dependent affordances are replaced with explicit touch targets**, not just disabled.
 
-* Don't rebuild `/rr`'s Mechanics scroll-bound mat-split for mobile. Collapse or still it.
-* Don't redesign `/biconomy`'s Flows standby/active composition for mobile. Linearize it.
-* Don't re-author dense editorial grids as custom mobile layouts — stack them.
-* Don't invent new mobile-only primitives. If a route needs one, flag it and confirm before building.
+### Newly banned under crafted-lite
+
+The old "lite" stance tolerated these as pragmatic shortcuts. Crafted-lite does not.
+
+* `transform: scale()` on a whole authored canvas (preserving desktop composition at a miniaturized scale). Existing instances at `/rr` intro, `/rr` cards, `/rr` secondary-mat storycard are flagged as *shipped under lite, would be recomposed under crafted-lite*.
+* Horizontal scroll strip with inner `scale(0.5)` on desktop-width content — same retrofit tell, scoped to scan-scroll. `/rr` rules-group is flagged.
+
+Strips themselves are still sanctioned when the inner content is natively authored for mobile.
+
+### Per-route precedent
+
+* `/marks` is the **composition quality bar** — built responsive-ready, authored gaps, breakpoint-scoped derived formulas, per-viewport asset decisions. Copy its quality, not its values.
+* `/selected` and `/` are the **retrofit-lite reference implementations** — clean passes under the old stance, broadly compliant with crafted-lite.
+* `/rr` is the **mechanics reference** — scroll unbind, `matchMedia` gate, measured-pair docked pills, React-inline-style conflict discovery. It is *not* a composition reference; its canvas scales predate crafted-lite.
+* `/biconomy` has not had a responsive pass yet. The first crafted-lite application is the BIPs reference alongside the playbook.
+
+### Don't-do list
+
+* Don't rebuild scroll-bound desktop set pieces for mobile. Collapse or still them.
+* Don't scale an authored desktop canvas to fit a phone viewport. Re-author or reduce.
+* Don't re-author dense editorial grids as custom mobile layouts — stack or reduce.
+* Don't invent new mobile-only primitives. If a route needs one, flag it.
 * Don't promote lite patterns to shared until a second route actually needs them.
+* Don't use `!important` outside the React-inline-style gate (see playbook → Named patterns).
 
-Log lite decisions and drop-outs in each route's `ANOMALIES.md` under a "Responsive anomalies" section, following `app/(works)/selected/ANOMALIES.md` as the template.
+Log crafted-lite decisions and drop-outs in each route's `ANOMALIES.md` under a "Responsive anomalies" section, following `app/(works)/selected/ANOMALIES.md` as the template.

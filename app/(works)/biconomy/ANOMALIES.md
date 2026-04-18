@@ -166,3 +166,120 @@ moves into shared the *second* time it's needed"), the count is measured
 across routes, not call sites. Promote NavPill to `app/components/` the
 moment a third consumer outside `/biconomy` needs it, and flag the move
 before doing it.
+
+---
+
+## Responsive anomalies (mobile ≤767px)
+
+`/biconomy` has only just begun its crafted-lite pass. The BIPs chapter is
+the reference section that ships with `docs/responsive-playbook.md` — the
+remaining chapters (Intro, UX Audit, Flows, Multiverse, Demos, API, Situational
+Awareness) have **not yet had a pass**. Until they do, any mobile breakage in
+those sections is expected and unaddressed.
+
+The BIPs mobile block lives at the end of `biconomy.css` under the heading
+`/* ── BIPs — crafted-lite pass ── */`. Each composition decision below
+maps to a shape in the playbook; read that entry before modifying.
+
+### BIPs — grid unbind (Shape 1)
+
+Desktop is a 4-col grid with two deliberate overlaps on row 1: the header
+card occupies `grid-column: 2 / 4` while the stats row occupies
+`grid-column: 1 / -1` with `align-items: flex-end`, so the Fraunces stats
+phrases ("Seven ideas surfaced" / "Three shipped") anchor to the bottom of
+row 1, visually *under* the card. That overlap is the composition.
+
+On mobile the overlap cannot survive — there is no horizontal axis to
+compose against. The mobile block drops the grid entirely (`display: flex;
+flex-direction: column; gap: var(--space-48)`) so all three row groups
+(card, stats, notion section) flow as linear siblings. The authored
+48px step between them is chosen, not inherited from the desktop 96px
+grid-gap.
+
+### BIPs — stats couplet (Shape 4)
+
+Desktop's `.bips__stats` is a `repeat(4, 1fr)` grid with `.bips__stats-left`
+at col 1 and `.bips__stats-right` at col 4, leaving cols 2-3 as deliberate
+negative space. On mobile that space collapses; the stats are re-composed
+as a centered vertical couplet — `display: flex; flex-direction: column;
+align-items: center; gap: var(--space-8)` — so the two Fraunces highlights
+read as a paired editorial statement instead of opposed bookends.
+
+### BIPs — notion section padding
+
+Desktop uses `padding-left: 128px; padding-right: 128px` on
+`.bips__notion-section` to frame the iframe as a scholarly insert. At 375px
+viewport minus 24px workbench pad-x per side, no content would fit under
+that cushion. The mobile block zeroes both padding values.
+
+### BIPs — notes rail re-authored as inline accordion (Shape 10)
+
+This is the main composition decision. On desktop the notes rail is an
+**absolute-positioned rotated drawer** — `position: absolute; right: 0;
+max-width: 240px; transform: translateX(0) rotate(1deg)` at rest,
+`translateX(112px) rotate(0deg)` when open; the iframe column simultaneously
+shifts `translateX(-128px)` so the rail emerges into negative space. The
+rail tab is a `writing-mode: vertical-lr` button pinned at `right: -32px`.
+
+None of those coordinates translate to 375px. Under crafted-lite, the rail
+is **re-anchored**, not scaled:
+
+- `position: static`, full width, flex column — rail joins the flow below
+  the iframe.
+- Tab becomes a **horizontal full-width button** with `writing-mode:
+  horizontal-tb`, `min-height: 44px` (touch target floor), authored
+  `var(--space-12) var(--space-16)` padding.
+- Rotation removed (`transform: none` in both closed and `.is-open` states).
+- Iframe-column `translateX(-128px)` disabled — full-width iframe.
+- Content behaves as a classic accordion: `max-height: 0` collapsed →
+  `max-height: none` when `.is-open`, padding-top/bottom toggled in lock-step.
+  Outline restored only in the open state (outline on a zero-height element
+  ghosts an orphan hairline).
+- **No max-height transition** on the accordion. A CSS transition between
+  `0` and a fixed-px max-height was tried first and behaved unreliably on
+  the first toggle — the animation registered in `getAnimations()` but
+  never advanced. Instant toggle is the kept behavior. The tactile feedback
+  comes from the class change, padding jump, and outline delta — not from
+  a height sweep. Do not re-add the transition without a measured-scrollHeight
+  JS hook; the naive CSS form does not work here.
+- **`flex: 0 0 auto` on `.bips__notes-content` mobile.** The desktop rule
+  sets `flex: 1 1 0%` so content fills the rail. On mobile the rail is
+  `height: auto` and the parent can't provide space to grow into, so
+  `flex: 1 1 0%` resolves to zero and the content collapses even with
+  `max-height` set. Switching to `flex: 0 0 auto` lets the content size to
+  itself (capped by max-height). Do not remove this override.
+- Tab arrow direction is re-targeted for vertical expansion:
+  `rotate(-90deg)` = ↑ (open/collapse), `.is-flipped rotate(90deg)` = ↓
+  (closed/expand). On desktop the same rotations indicate left/right
+  emergence.
+
+**No `!important` required.** BIPs rail state is className-driven in
+`BIPs.tsx:104` — the consumer toggles `is-open` on the rail's className, not
+an inline `style={{ transform }}`. The React-inline-style conflict gate
+(playbook → Named patterns) does not apply here, which is the cleanest
+version of Shape 10. Compare to `/rr` rails, which *do* require the gate.
+
+### BIPs — iframe height cap
+
+Desktop passes `height="600"` as an iframe attribute. CSS overrides to
+`480px` on mobile — at 375px width, a 600px-tall Notion embed dominates the
+scroll and buries the notes accordion beneath it. 480px is authored, not
+scaled; it is the height at which the embed reads as a framed artifact and
+the surrounding composition stays legible.
+
+### Don't touch
+
+- **Do not reintroduce `transform: scale()` on any BIPs canvas.** The
+  desktop card, stats, iframe are all preserved at their desktop
+  compositions via the mobile re-authoring; none are scaled. This is the
+  crafted-lite stance and the playbook's Banned hacks section spells it
+  out.
+- **Do not add `!important` to the BIPs mobile block.** Rail state is
+  className-driven, so the gate does not apply. If you are reaching for
+  `!important`, you are fighting specificity from a different source.
+- **Do not assume other biconomy chapters will follow the BIPs shape.**
+  UX Audit, Flows, Multiverse, Demos, and the API section exercise
+  different shapes (scroll-linked chip layers, before/after media, dense
+  demo grids) and will need their own authored decisions.
+
+*Reference pass: 19 April 2026 (playbook v1).*

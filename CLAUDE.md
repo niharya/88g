@@ -13,7 +13,8 @@ The working contract is distributed across five documents. Read the ones relevan
 * **Per-route `ANOMALIES.md`** — load-bearing wiring, don't-touch items, cross-file constraints. Read before editing the route
 * **`COLOPHON.md`** — origins, credits, historical sources
 * **`docs/claude/memory.md`** — durable project identity memory
-* **`docs/responsive.md`** — full responsive rules (summary lives in this file)
+* **`docs/responsive.md`** — full responsive rules and crafted-lite stance (summary lives in this file)
+* **`docs/responsive-playbook.md`** — shape-by-shape decision tree for responsive passes. Read before any retrofit, review, or forward pass
 * **`docs/vocabulary.md`** — design-language ↔ code-identifier mapping (mat, sheet, surface, rail, marker, etc.). Read this when feedback or a commit message names something and you're not sure which class / component it refers to.
 
 Older routes (`/biconomy`, `/rr`, `/selected`) predate `DESIGN.md` and only have `ANOMALIES.md`; their intent is captured in the case-study copy itself.
@@ -112,9 +113,9 @@ When refining any component during this phase, run this short loop. It makes the
 5. **Promotion is one commit.** Move to `app/components/<Name>/`, update all consumer imports, add the `LIBRARY.md` entry. Not three PRs.
 6. **Anomalies split by scope.** Load-bearing internals of the primitive go in its `LIBRARY.md` AI notes. Route-specific consequences of consuming it go in that route's `ANOMALIES.md`.
 
-### Stream 3 — responsive (lite)
+### Stream 3 — responsive (crafted-lite)
 
-See "Responsive rules → Responsive-lite stance" below. Reference passes have shipped on `/`, `/selected`, and `/rr`. `/marks` is being built responsive-ready from day one. `/biconomy` has not yet had a lite pass.
+See "Responsive rules → Crafted-lite stance" below, plus `docs/responsive-playbook.md` for the shape-by-shape decision tree. Lite-floor passes have shipped on `/`, `/selected`, and `/rr`. `/marks` is the composition quality bar (built responsive-ready). `/biconomy` has not yet had its crafted-lite pass — the BIPs chapter is the reference application that accompanies the playbook.
 
 ## Shared design system
 
@@ -220,8 +221,9 @@ Core principles:
 * **Recompose, don't replicate.** Mobile is a purposeful different composition, not desktop scaled down.
 * **No hacks.** No `transform: scale()` on text, no `!important` chains, no hidden-but-present DOM tricks.
 * **Structural breakpoints for layout, fluid scaling for sizing** (clamp, vw). No JS media queries.
-* **Lite stance (refining phase).** Usability floor, not composition pass. Desktop is canonical; mobile is a reading fallback. `/`, `/selected`, `/rr` are retrofit-lite references; `/marks` is the built-responsive-ready reference. `/biconomy` has not had a lite pass yet.
-* Log lite decisions in each route's `ANOMALIES.md` under "Responsive anomalies".
+* **Crafted-lite stance.** Two layers: content/density → lite floor (drop ornaments, reduce density, meet 375px usability minimums); composition → crafted (what remains is authored for mobile, not mechanically column-stacked). `/marks` is the composition quality bar. `/rr` is the mechanics reference (scroll unbind, React-inline-style gate) but not a composition reference — its canvas scales predate crafted-lite. `/biconomy` has not had its pass yet.
+* **Newly banned under crafted-lite:** `transform: scale()` on whole authored canvases; horizontal scroll strips with inner `scale()` on desktop-width content. See `docs/responsive-playbook.md` → Banned hacks.
+* Log crafted-lite decisions in each route's `ANOMALIES.md` under "Responsive anomalies".
 
 ## Core design principle
 
