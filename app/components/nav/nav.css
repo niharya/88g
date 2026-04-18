@@ -42,6 +42,17 @@
 a.nav-marker {
   cursor: pointer;
   text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+
+/* Press acknowledgment — fires on mousedown so the click registers before
+   the route change commits. Scoped to anchor variants (NiharHomeLink,
+   ExitMarker, and the /selected → /marks nameplate) — button.nav-marker
+   (chapter tray toggle, archive toggle) already has in-route visual feedback
+   via the state it drives, and div.nav-marker is static. */
+a.nav-marker:active {
+  opacity: 0.72;
+  transition: opacity var(--dur-instant) var(--ease-snap);
 }
 
 .nav-marker--exit .nav-marker__content {
