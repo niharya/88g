@@ -304,7 +304,7 @@
   z-index: 10;
   display: flex;
   justify-content: center;
-  gap: 10px; /* gap-2.5 */
+  gap: var(--space-12);
   margin-top: 10px; /* gap-2.5 from Intro */
   /* --active-t: 0 = standby (centered, switch hidden, text desat) */
   /*           1 = default (left-aligned, switch + nav visible)    */
