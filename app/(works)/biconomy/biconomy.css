@@ -409,7 +409,7 @@
   max-height: fit-content;
   align-items: center;
   gap: 8px; /* gap-2 */
-  padding: 4px 6px; /* p-1 px-1.5 */
+  padding: var(--space-4) var(--space-8);
   border-radius: 8px; /* rounded-lg */
   transition: background var(--dur-fast) var(--ease-snap);
 }
