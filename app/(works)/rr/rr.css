@@ -703,7 +703,7 @@
   letter-spacing: -0.28px;
   color: var(--terra-960);
   line-height: 1.35;
-  padding: 11px 0;
+  padding: var(--space-12) 0;
   border-bottom: 1px solid var(--yellow-240);
 }
 
