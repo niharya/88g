@@ -334,7 +334,7 @@
                                    Do not edit directly; adjust --rail-width,
                                    --main-open-shift, or --rail-open-tuck. */
   --flows-header-h: 24px;
-  --flows-main-gap: 10px;
+  --flows-main-gap: var(--space-8);
   --rail-parent-top-offset: calc(var(--flows-header-h) + var(--flows-main-gap));
   --rail-frame-inset: 20px;
   --rail-width: 220px;
