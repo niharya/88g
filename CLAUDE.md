@@ -301,7 +301,7 @@ To reduce token use and drift:
 
 ## Versioning and pushing
 
-Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.31.0`.
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.33.0`.
 
 Before pushing:
 
