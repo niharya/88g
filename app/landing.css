@@ -532,7 +532,7 @@ html.fonts-ready .projects-btn {
   top: 8px;
   width: 64px;
   height: 258px;
-  background: linear-gradient(to bottom, rgba(178, 48, 0, 0.05), #B23000);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--orange-800) 5%, transparent), var(--orange-800));
   opacity: 0.1;
 }
 

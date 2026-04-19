@@ -112,8 +112,8 @@
 
 /* Surface open: content and border ghost back (240ms delay matches original) */
 .intro__inner.is-open {
-  color: rgba(1, 59, 102, 0.2);
-  border-color: rgba(3, 100, 167, 0.2);
+  color: color-mix(in srgb, var(--blue-960) 20%, transparent);
+  border-color: color-mix(in srgb, var(--blue-800) 20%, transparent);
   transition-delay: 240ms;
 }
 
@@ -174,7 +174,7 @@
   gap: 16px; /* 2×8 */
   width: 112px; /* w-28 */
   padding: 8px;  /* p-2 */
-  background: rgba(226, 246, 166, 0.6); /* olive-80/60 */
+  background: color-mix(in srgb, var(--olive-80) 60%, transparent);
   cursor: pointer;
   border: none;
   transition: background var(--dur-instant) var(--ease-snap), transform var(--dur-instant) var(--ease-snap);

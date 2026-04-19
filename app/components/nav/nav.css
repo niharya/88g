@@ -47,7 +47,7 @@ a.nav-marker {
 .nav-marker--exit .nav-marker__content {
   padding: 4px 8px 4px 32px; /* mirrored: generous left gap, tight right edge */
   gap: 4px;
-  color: #028634;             /* mint-720 */
+  color: var(--mint-720);
 }
 
 

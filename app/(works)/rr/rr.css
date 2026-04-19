@@ -1519,7 +1519,7 @@
   width: 224px;
   height: 530px;
   transform: rotate(1deg);
-  background: #ffebbd;
+  background: var(--yellow-80);
   box-shadow: var(--shadow-resting);
   transition: transform 0.52s var(--ease-paper);
   cursor: pointer;
@@ -1537,7 +1537,7 @@
 .rr-interface-notes__frame {
   position: absolute;
   inset: 4px;
-  border: 1px solid #f0bb01;
+  border: 1px solid var(--yellow-320);
   display: flex;
   flex-direction: column;
 }
@@ -1568,7 +1568,7 @@
 
 .rr-interface-note__divider {
   border: none;
-  border-top: 1px solid #f0bb01;
+  border-top: 1px solid var(--yellow-320);
   margin: 0;
   flex-shrink: 0;
 }
@@ -1588,7 +1588,7 @@
 }
 
 .rr-interface-notes__arrow {
-  color: #cd9f09;
+  color: var(--yellow-480);
   display: block;
   width: 20px;
   height: 20px;
@@ -1608,7 +1608,7 @@
   font-weight: 800;
   font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
   letter-spacing: -0.24px;
-  color: #cd9f09;
+  color: var(--yellow-480);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   text-transform: capitalize;
@@ -1793,7 +1793,7 @@
   top: 137px;
   width: 288px;
   height: 330px;
-  background: #533301;
+  background: var(--terra-960);
   padding: 8px;
   /* Outcome card sits above the outcome scene — overlay tier */
   box-shadow: var(--shadow-overlay);
@@ -1802,7 +1802,7 @@
 .rr-outcome-card__inner {
   width: 100%;
   height: 100%;
-  border: 1px solid #a16803;
+  border: 1px solid var(--terra-720);
   padding: 15px;
   display: flex;
   flex-direction: column;
@@ -1813,14 +1813,14 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.12px;
-  color: #fedaad;
+  color: var(--terra-160);
   line-height: 1.65;
   margin: 0;
 }
 
 .rr-outcome-card__divider {
   border: none;
-  border-top: 1px solid #a16803;
+  border-top: 1px solid var(--terra-720);
   margin: 0;
   flex-shrink: 0;
 }
@@ -1858,7 +1858,7 @@
   font-size: 24px;
   font-weight: 400;
   letter-spacing: -0.72px;
-  color: #fedaad;
+  color: var(--terra-160);
   line-height: 1;
 }
 
@@ -1867,7 +1867,7 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: -0.24px;
-  color: #fedaad;
+  color: var(--terra-160);
   text-transform: capitalize;
   line-height: 1.35;
   white-space: pre-line;
