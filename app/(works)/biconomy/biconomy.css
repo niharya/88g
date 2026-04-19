@@ -304,7 +304,7 @@
   z-index: 10;
   display: flex;
   justify-content: center;
-  gap: 10px; /* gap-2.5 */
+  gap: var(--space-12);
   margin-top: 10px; /* gap-2.5 from Intro */
   /* --active-t: 0 = standby (centered, switch hidden, text desat) */
   /*           1 = default (left-aligned, switch + nav visible)    */
@@ -334,7 +334,7 @@
                                    Do not edit directly; adjust --rail-width,
                                    --main-open-shift, or --rail-open-tuck. */
   --flows-header-h: 24px;
-  --flows-main-gap: 10px;
+  --flows-main-gap: var(--space-8);
   --rail-parent-top-offset: calc(var(--flows-header-h) + var(--flows-main-gap));
   --rail-frame-inset: 20px;
   --rail-width: 220px;
@@ -409,7 +409,7 @@
   max-height: fit-content;
   align-items: center;
   gap: 8px; /* gap-2 */
-  padding: 4px 6px; /* p-1 px-1.5 */
+  padding: var(--space-4) var(--space-8);
   border-radius: 8px; /* rounded-lg */
   transition: background var(--dur-fast) var(--ease-snap);
 }
