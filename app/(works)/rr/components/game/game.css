@@ -105,7 +105,7 @@
 }
 
 .rr-egg-anim {
-  transition: fill 500ms ease-out, stroke 500ms ease-out;
+  transition: fill var(--dur-settle) var(--ease-paper), stroke var(--dur-settle) var(--ease-paper);
 }
 
 @keyframes rr-game-pulse {
@@ -133,7 +133,7 @@
    the bottom-center pivot so they fan out like a held hand of cards.
    Transition carries over when --idle is removed for the spread animation. */
 .rr-game-panel--idle .rr-game__player-card {
-  transition: transform 0.5s ease;
+  transition: transform var(--dur-settle) var(--ease-paper);
   transform-origin: bottom center;
 }
 .rr-game-panel--idle .rr-game__player-card--left {
@@ -147,7 +147,7 @@
    reach the actual panel borders (not just the content edge). On game start
    the negative margin transitions back to 0 and the line "shortens". */
 .rr-game__scorecard {
-  transition: margin 0.5s ease, width 0.5s ease;
+  transition: margin var(--dur-settle) var(--ease-paper), width var(--dur-settle) var(--ease-paper);
 }
 .rr-game-panel--idle .rr-game__scorecard {
   margin-left: calc(-1 * var(--panel-pad));
@@ -175,7 +175,7 @@
 .rr-game__round-label {
   text-align: center;
   margin-bottom: calc(var(--panel-pad) * 0.67);
-  transition: transform 0.45s ease;
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 /* At --final: Game Over drops down to sit right above the Defeat text */
@@ -205,7 +205,7 @@
 
 /* Opponent card slot — animates between resting and unused-after-pick states */
 .rr-game__opp-card {
-  transition: transform 0.5s ease, opacity 0.5s ease;
+  transition: transform var(--dur-settle) var(--ease-paper), opacity var(--dur-settle) var(--ease-paper);
 }
 
 .rr-game__opp-card--unused {
@@ -255,7 +255,7 @@
 
 .rr-game__player-card {
   transform-origin: bottom center;
-  transition: transform 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+  transition: transform var(--dur-slide) var(--ease-paper), opacity var(--dur-slide) var(--ease-paper), margin var(--dur-slide) var(--ease-paper);
 }
 
 .rr-game__player-card--left  {
@@ -297,7 +297,7 @@
 .rr-flip-card__inner {
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.4s ease;
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 .rr-flip-card[data-flipped="true"] .rr-flip-card__inner {
   transform: rotateY(180deg);
@@ -331,7 +331,7 @@
   letter-spacing: var(--num-tracking);
   line-height: 1;
   box-shadow: var(--card-shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition: transform var(--dur-fast) var(--ease-snap), box-shadow var(--dur-fast) var(--ease-snap), background-color var(--dur-fast) var(--ease-snap);
 }
 
 .rr-num-card--lg { height: var(--card-h-lg); font-size: var(--num-lg); }
@@ -483,7 +483,7 @@
   letter-spacing: 0.1em;
   color: var(--rr-game-mute);
   white-space: nowrap;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--dur-slide) var(--ease-paper);
 }
 
 /* ── Game-over choreography: text fade (step 1+) ─────────────────────────── */
@@ -496,7 +496,7 @@
 .rr-game-panel--ending .rr-game__opp-card,
 .rr-game-panel--ending .rr-game__player-card,
 .rr-game-panel--ending .rr-deck-strip__chips > * {
-  transition: transform 0.5s ease, translate 0.35s ease-out;
+  transition: transform var(--dur-settle) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
   transform-origin: center center;
   /* Stack-lift rides on top of the transform via the separate `translate`
      property. --stack-lift is set by merged/final states for the nudge. */
@@ -507,7 +507,7 @@
 .rr-game-panel--revealed .rr-game__opp-card,
 .rr-game-panel--revealed .rr-game__player-card,
 .rr-game-panel--revealed .rr-deck-strip__chips > * {
-  transition: transform 0.3s ease-out, translate 0.35s ease-out;
+  transition: transform var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
 }
 
 /* Opponent pair collapses to its own center */
@@ -622,14 +622,14 @@
 /* Magician shake on every face-down card — swap of face prop happens in
    React at this exact moment, so the shake reads as "the reveal" */
 .rr-game-panel--final .rr-face-down-card {
-  animation: rr-card-shake 0.42s var(--ease-paper);
+  animation: rr-card-shake var(--dur-settle) var(--ease-paper);
 }
 
 /* Hide the smaller opp backs + deck chips at --final so the stack reads as
    a single clean stack of player-sized cards — no size-mismatch peeking. */
 .rr-game-panel--ending .rr-game__opp-card,
 .rr-game-panel--ending .rr-deck-strip__chips > * {
-  transition: transform 0.5s ease, translate 0.35s ease-out, opacity 0.25s ease;
+  transition: transform var(--dur-settle) var(--ease-paper), translate var(--dur-slide) var(--ease-paper), opacity var(--dur-slide) var(--ease-paper);
 }
 .rr-game-panel--final .rr-game__opp-card,
 .rr-game-panel--final .rr-deck-strip__chips > * {
@@ -679,7 +679,7 @@
   line-height: 1;
   white-space: nowrap;
   opacity: 0;
-  animation: rr-verdict-in 0.4s ease 0.2s forwards;
+  animation: rr-verdict-in var(--dur-settle) var(--ease-paper) var(--dur-fast) forwards;
 }
 @keyframes rr-verdict-in {
   to { opacity: 1; }
@@ -699,7 +699,7 @@
   white-space: nowrap;
   transform: translateX(-50%) translateY(calc(7 * var(--u)));
   opacity: 0;
-  animation: rr-play-again-nudge 0.35s ease-out 0.05s forwards;
+  animation: rr-play-again-nudge var(--dur-slide) var(--ease-paper) 0.05s forwards;
 }
 .rr-game-play-again:hover {
   color: var(--orange-560);
@@ -766,7 +766,7 @@
 }
 
 .rr-scorecard__skewer {
-  transition: stroke-width 300ms ease-out;
+  transition: stroke-width var(--dur-slide) var(--ease-paper);
 }
 
 /* Idle-state skewer — DOM line that spans the real container width.

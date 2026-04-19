@@ -11,6 +11,21 @@ For project-level rules see `CLAUDE.md`.
 
 ## Known anomalies
 
+### Flows switch-thumb overshoot (documented deviation)
+
+`biconomy.css:468` — the `.flows__ba-switch-thumb` transitions `transform` with
+`cubic-bezier(0, 1, 0.31, 1.05)`. The `1.05` final y deliberately overshoots `1`,
+giving the thumb a tiny settle-past-target before landing. This is one of the
+two documented deviations from the "no bounce, no overshoot" rule in `CLAUDE.md`
+(the other being the train ticker). Do not normalize to `--ease-paper` or
+`--ease-snap` — the micro-overshoot is what makes the switch feel physical.
+
+### Note-pointer bounce (documented deviation)
+
+`biconomy.css:740` — `.ba__note-pointer` uses `0.14s cubic-bezier(0.3, 1.3, 0.5, 1)`
+with a peak >1 for a dampened springy nudge on hover. Intentional. Same rule:
+do not flatten to paper/snap.
+
 ### Demos video-item tilt + radius pair (v0.28.0)
 
 The figma-tab video pair in `.demos__media-row--figma` is load-bearing in three ways:

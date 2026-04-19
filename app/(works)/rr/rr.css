@@ -29,6 +29,7 @@
 :root {
   --rr-border:   #d2ddd2;  /* sheet edge */
   --rr-memo-bg:  #ece6d6;  /* surface card background (parchment) */
+  --rr-note-ink: #3b4b5c;  /* handwritten-note ink — cooler than terra-960 */
 }
 
 
@@ -236,7 +237,7 @@
   width: 0;
   height: 0;
   z-index: 1;
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 
 .rr-card-stack--expanded {
@@ -572,7 +573,7 @@
 .rr-constraints-card__toggle-icon {
   font-size: 16px !important;
   color: var(--olive-800);
-  transition: transform 0.25s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
 }
 
 .rr-constraints-card--expanded .rr-constraints-card__toggle-icon {
@@ -607,7 +608,7 @@
   font-weight: 400;
   letter-spacing: -0.72px;
   line-height: 1.35;
-  color: #3b4b5c;
+  color: var(--rr-note-ink);
   text-align: center;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
 }
@@ -640,7 +641,7 @@
   color: var(--terra-800);
   z-index: var(--rr-z-story);
   cursor: pointer;
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 
 /* Vertical tab button — positioned to the right of the rail body */
@@ -731,7 +732,7 @@
   background: var(--yellow-960);
   color: var(--yellow-480);
   z-index: var(--rr-z-story);
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 
 /* First-reveal: slide out from under the game board — start fully tucked at
@@ -972,7 +973,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  transition: background 0.28s ease, box-shadow 0.28s ease;
+  transition: background var(--dur-slide) var(--ease-paper), box-shadow var(--dur-slide) var(--ease-paper);
 }
 
 .rr-switch-pill:hover {
@@ -995,7 +996,7 @@
   height: 32px;
   border-radius: 14px;
   background: var(--yellow-240);
-  transition: top 0.28s var(--ease-paper), background 0.28s ease;
+  transition: top var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
   pointer-events: none;
   z-index: 0;
 }
@@ -1238,7 +1239,7 @@
   text-align: center;
   white-space: nowrap;
   margin: 0;
-  animation: title-press 0.5s var(--ease-paper) both;
+  animation: title-press var(--dur-settle) var(--ease-paper) both;
 }
 
 @keyframes title-press {
@@ -1311,7 +1312,7 @@
   height: 2px;
   background: currentColor;
   opacity: 0;
-  transition: opacity 0.32s var(--ease-paper);
+  transition: opacity var(--dur-slide) var(--ease-paper);
   pointer-events: none;
 }
 
@@ -1400,7 +1401,7 @@
   user-select: none;
   pointer-events: auto;
   /* Springier overshoot than the original 1.18 — pushes the bounce a bit further */
-  transition: transform 0.46s var(--ease-paper), filter 0.22s ease, z-index 0s;
+  transition: transform var(--dur-settle) var(--ease-paper), filter var(--dur-fast) var(--ease-snap), z-index 0s;
 }
 
 /* Hover lift — only when nothing selected */
@@ -1431,7 +1432,7 @@
   pointer-events: none;
   /* Default: card resting on surface — short, close shadow */
   filter: drop-shadow(var(--rr-card-shadow-rest));
-  transition: filter 0.38s var(--ease-paper);
+  transition: filter var(--dur-slide) var(--ease-paper);
 }
 
 /* Lifted card: higher above surface → longer, softer, darker shadow */
@@ -1497,7 +1498,7 @@
   width: 897px;
   height: 638px;
   z-index: 2;
-  transition: transform 0.52s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 .rr-interface-desktop__img {
@@ -1519,9 +1520,9 @@
   width: 224px;
   height: 530px;
   transform: rotate(1deg);
-  background: #ffebbd;
+  background: var(--yellow-80);
   box-shadow: var(--shadow-resting);
-  transition: transform 0.52s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
   cursor: pointer;
 }
 
@@ -1537,7 +1538,7 @@
 .rr-interface-notes__frame {
   position: absolute;
   inset: 4px;
-  border: 1px solid #f0bb01;
+  border: 1px solid var(--yellow-320);
   display: flex;
   flex-direction: column;
 }
@@ -1559,7 +1560,7 @@
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
-  color: #3b4b5c;
+  color: var(--rr-note-ink);
   letter-spacing: -0.12px;
   line-height: 1.5;
   padding: 7px 0;
@@ -1568,7 +1569,7 @@
 
 .rr-interface-note__divider {
   border: none;
-  border-top: 1px solid #f0bb01;
+  border-top: 1px solid var(--yellow-320);
   margin: 0;
   flex-shrink: 0;
 }
@@ -1588,13 +1589,13 @@
 }
 
 .rr-interface-notes__arrow {
-  color: #cd9f09;
+  color: var(--yellow-480);
   display: block;
   width: 20px;
   height: 20px;
   flex-shrink: 0;
   transform: rotate(180deg);         /* points right (peeking out) */
-  transition: transform 0.4s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 /* Arrow flips left when note is revealed */
@@ -1608,7 +1609,7 @@
   font-weight: 800;
   font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
   letter-spacing: -0.24px;
-  color: #cd9f09;
+  color: var(--yellow-480);
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   text-transform: capitalize;
@@ -1719,7 +1720,7 @@
      width-agnostic — the extra 5px becomes distributed flex padding. */
   left: 125px;
   width: 264px;
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 .rr-mech-family .rr-rules-rail { left: 214px; }
 /* Note at rest is centered horizontally inside the 264px game-board (125→389):
@@ -1793,7 +1794,7 @@
   top: 137px;
   width: 288px;
   height: 330px;
-  background: #533301;
+  background: var(--terra-960);
   padding: 8px;
   /* Outcome card sits above the outcome scene — overlay tier */
   box-shadow: var(--shadow-overlay);
@@ -1802,7 +1803,7 @@
 .rr-outcome-card__inner {
   width: 100%;
   height: 100%;
-  border: 1px solid #a16803;
+  border: 1px solid var(--terra-720);
   padding: 15px;
   display: flex;
   flex-direction: column;
@@ -1813,14 +1814,14 @@
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.12px;
-  color: #fedaad;
+  color: var(--terra-160);
   line-height: 1.65;
   margin: 0;
 }
 
 .rr-outcome-card__divider {
   border: none;
-  border-top: 1px solid #a16803;
+  border-top: 1px solid var(--terra-720);
   margin: 0;
   flex-shrink: 0;
 }
@@ -1858,7 +1859,7 @@
   font-size: 24px;
   font-weight: 400;
   letter-spacing: -0.72px;
-  color: #fedaad;
+  color: var(--terra-160);
   line-height: 1;
 }
 
@@ -1867,7 +1868,7 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: -0.24px;
-  color: #fedaad;
+  color: var(--terra-160);
   text-transform: capitalize;
   line-height: 1.35;
   white-space: pre-line;
@@ -3019,7 +3020,7 @@
   /* Long deceleration so the close doesn't snap and the open settles. */
   .route-rr .rr-rules-rail,
   .route-rr .rr-note-rail {
-    transition: transform 0.95s var(--ease-paper) !important;
+    transition: transform var(--dur-glide) var(--ease-paper) !important;
     will-change: transform;
   }
   /* Game board sits ABOVE the rails when they're tucked, so the body of
