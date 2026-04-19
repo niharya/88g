@@ -236,7 +236,7 @@
   width: 0;
   height: 0;
   z-index: 1;
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 
 .rr-card-stack--expanded {
@@ -572,7 +572,7 @@
 .rr-constraints-card__toggle-icon {
   font-size: 16px !important;
   color: var(--olive-800);
-  transition: transform 0.25s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
 }
 
 .rr-constraints-card--expanded .rr-constraints-card__toggle-icon {
@@ -640,7 +640,7 @@
   color: var(--terra-800);
   z-index: var(--rr-z-story);
   cursor: pointer;
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 
 /* Vertical tab button — positioned to the right of the rail body */
@@ -731,7 +731,7 @@
   background: var(--yellow-960);
   color: var(--yellow-480);
   z-index: var(--rr-z-story);
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 
 /* First-reveal: slide out from under the game board — start fully tucked at
@@ -972,7 +972,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  transition: background 0.28s ease, box-shadow 0.28s ease;
+  transition: background var(--dur-slide) var(--ease-paper), box-shadow var(--dur-slide) var(--ease-paper);
 }
 
 .rr-switch-pill:hover {
@@ -995,7 +995,7 @@
   height: 32px;
   border-radius: 14px;
   background: var(--yellow-240);
-  transition: top 0.28s var(--ease-paper), background 0.28s ease;
+  transition: top var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
   pointer-events: none;
   z-index: 0;
 }
@@ -1238,7 +1238,7 @@
   text-align: center;
   white-space: nowrap;
   margin: 0;
-  animation: title-press 0.5s var(--ease-paper) both;
+  animation: title-press var(--dur-settle) var(--ease-paper) both;
 }
 
 @keyframes title-press {
@@ -1311,7 +1311,7 @@
   height: 2px;
   background: currentColor;
   opacity: 0;
-  transition: opacity 0.32s var(--ease-paper);
+  transition: opacity var(--dur-slide) var(--ease-paper);
   pointer-events: none;
 }
 
@@ -1400,7 +1400,7 @@
   user-select: none;
   pointer-events: auto;
   /* Springier overshoot than the original 1.18 — pushes the bounce a bit further */
-  transition: transform 0.46s var(--ease-paper), filter 0.22s ease, z-index 0s;
+  transition: transform var(--dur-settle) var(--ease-paper), filter var(--dur-fast) var(--ease-snap), z-index 0s;
 }
 
 /* Hover lift — only when nothing selected */
@@ -1431,7 +1431,7 @@
   pointer-events: none;
   /* Default: card resting on surface — short, close shadow */
   filter: drop-shadow(var(--rr-card-shadow-rest));
-  transition: filter 0.38s var(--ease-paper);
+  transition: filter var(--dur-slide) var(--ease-paper);
 }
 
 /* Lifted card: higher above surface → longer, softer, darker shadow */
@@ -1497,7 +1497,7 @@
   width: 897px;
   height: 638px;
   z-index: 2;
-  transition: transform 0.52s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 .rr-interface-desktop__img {
@@ -1521,7 +1521,7 @@
   transform: rotate(1deg);
   background: var(--yellow-80);
   box-shadow: var(--shadow-resting);
-  transition: transform 0.52s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
   cursor: pointer;
 }
 
@@ -1594,7 +1594,7 @@
   height: 20px;
   flex-shrink: 0;
   transform: rotate(180deg);         /* points right (peeking out) */
-  transition: transform 0.4s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 /* Arrow flips left when note is revealed */
@@ -1719,7 +1719,7 @@
      width-agnostic — the extra 5px becomes distributed flex padding. */
   left: 125px;
   width: 264px;
-  transition: transform 0.55s var(--ease-paper);
+  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
 }
 .rr-mech-family .rr-rules-rail { left: 214px; }
 /* Note at rest is centered horizontally inside the 264px game-board (125→389):
@@ -3019,7 +3019,7 @@
   /* Long deceleration so the close doesn't snap and the open settles. */
   .route-rr .rr-rules-rail,
   .route-rr .rr-note-rail {
-    transition: transform 0.95s var(--ease-paper) !important;
+    transition: transform var(--dur-glide) var(--ease-paper) !important;
     will-change: transform;
   }
   /* Game board sits ABOVE the rails when they're tucked, so the body of
