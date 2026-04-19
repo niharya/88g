@@ -35,7 +35,7 @@
   position: relative;
   overflow: hidden;
   height: 900px;
-  transition: height 0.45s var(--ease-paper);
+  transition: height var(--dur-settle) var(--ease-paper);
 
   /* Font gate — matches the .workbench reveal. Root layout adds
      .fonts-ready to <html> once web fonts load. */
@@ -425,7 +425,7 @@ html.fonts-ready .hero-card__bg {
   /* Tuck-out entrance — the Works pill sits hidden beneath the hero card
      (hero is z:10, landing__content z:5) and slides down into view once
      the card has landed. Plays on every mount via animation-play-state. */
-  animation: works-tuck-out 0.6s var(--ease-paper) 0.45s both;
+  animation: works-tuck-out var(--dur-settle) var(--ease-paper) 0.45s both;
   animation-play-state: paused;
 }
 
@@ -550,13 +550,13 @@ html.fonts-ready .projects-btn {
 .spectrum__cell {
   width: 24px;
   height: 24px;
-  transition: background-color 0.4s ease;
+  transition: background-color var(--dur-settle) var(--ease-paper);
 }
 
 .spectrum__label {
   position: absolute;
   white-space: nowrap;
-  transition: color 0.4s ease;
+  transition: color var(--dur-settle) var(--ease-paper);
 }
 
 .spectrum__label--left {
@@ -623,7 +623,7 @@ html.fonts-ready .projects-btn {
   color: var(--terra-960);
   width: 336px;
   margin-bottom: 40px;
-  transition: opacity 0.25s ease;
+  transition: opacity var(--dur-slide) var(--ease-paper);
 }
 
 /* ---- Action wrap ---- */
@@ -701,7 +701,7 @@ html.fonts-ready .projects-btn {
 }
 
 .contact-card__action--morphing {
-  animation: action-morph 0.35s var(--ease-paper);
+  animation: action-morph var(--dur-slide) var(--ease-paper);
 }
 
 /* ---- Contact footer ---- */
@@ -748,7 +748,7 @@ html.fonts-ready .projects-btn {
   max-height: 0;
   overflow: hidden;
   margin: 0 -24px;
-  transition: max-height 0.4s var(--ease-paper);
+  transition: max-height var(--dur-settle) var(--ease-paper);
 }
 
 /* Form-open orchestration */
@@ -818,7 +818,7 @@ html.fonts-ready .projects-btn {
 }
 
 .contact-card__action-line {
-  transition: transform 0.25s var(--ease-paper) 0.1s;
+  transition: transform var(--dur-slide) var(--ease-paper) 0.1s;
 }
 
 /* Form layout */
@@ -839,7 +839,7 @@ html.fonts-ready .projects-btn {
   border-top: 1px solid var(--terra-800);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.25s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
 }
 
 .contact-form__fields {
@@ -1121,7 +1121,7 @@ textarea.contact-form__input {
   background: var(--grey-960);
   border-color: var(--grey-880);
   color: var(--olive-800);
-  animation: pill-enter 0.35s var(--ease-paper) both;
+  animation: pill-enter var(--dur-slide) var(--ease-paper) both;
 }
 
 .contact-form__error-pill {
@@ -1170,7 +1170,7 @@ textarea.contact-form__input {
 
 .landing__section--spectrum.spectrum--aligned {
   transform: translateX(-50%) rotate(-1deg);
-  transition: transform 0.6s var(--ease-paper);
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 
