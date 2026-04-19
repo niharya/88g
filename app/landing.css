@@ -459,6 +459,15 @@ html.fonts-ready .projects-btn {
   opacity: 1;
 }
 
+/* Press acknowledgment — fires on mousedown so the click registers before the
+   outgoing page yields to the inbound route. Fast-in via --dur-instant; base
+   rule's 200ms opacity eases the release. Opacity-only to avoid colliding
+   with the works-tuck-out entrance keyframe's transform. */
+.projects-btn:active {
+  opacity: 0.6;
+  transition: opacity var(--dur-instant) var(--ease-snap);
+}
+
 .projects-btn:focus-visible {
   outline: 2px solid var(--terra-800);
   outline-offset: 2px;
@@ -591,9 +600,17 @@ html.fonts-ready .projects-btn {
   cursor: pointer;
   position: relative;
   z-index: 2;
+  transition: opacity var(--dur-fast) var(--ease-snap);
 }
 
 /* hover handled by t-btn1 token */
+
+/* Press acknowledgment — mirrors .projects-btn; the spectrum footer "Works"
+   link is the second landing → /selected doorway. */
+.spectrum__link:active {
+  opacity: 0.55;
+  transition: opacity var(--dur-instant) var(--ease-snap);
+}
 
 .spectrum__link:focus-visible {
   outline: 2px solid var(--terra-800);
@@ -1150,7 +1167,7 @@ textarea.contact-form__input {
   padding: 0;
   cursor: pointer;
   color: var(--terra-960);
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, opacity var(--dur-fast) var(--ease-snap);
   text-decoration: none;
 }
 
@@ -1161,6 +1178,17 @@ textarea.contact-form__input {
 .contact-form__submit-btn:focus-visible {
   outline: 2px solid var(--terra-800);
   outline-offset: 2px;
+}
+
+/* Press acknowledgment — opacity target (0.6) matches :disabled below so
+   the click state flows directly into the sending state with no visual
+   handoff: click dims to 0.6 on pointerdown, React commits :disabled at
+   the same 0.6, progress bar begins filling. The base rule's opacity
+   transition covers the keyboard-submit path where :active never fires
+   (enter key → straight to :disabled), easing 1→0.6 instead of hard-cut. */
+.contact-form__submit-btn:not(:disabled):active {
+  opacity: 0.6;
+  transition: opacity var(--dur-instant) var(--ease-snap);
 }
 
 
