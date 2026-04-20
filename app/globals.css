@@ -428,7 +428,7 @@ html.fonts-ready .workbench {
 
 @media (max-width: 767px) {
   .workbench::before {
-    border-width: 4px;
+    display: none;
   }
 }
 

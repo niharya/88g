@@ -355,32 +355,9 @@ loop. See also the `COLOPHON.md` at the repo root.
 
 `/rr` carries a retrofit-lite pass (≤767px). Desktop is unchanged. The page grows taller on mobile — each chapter recomposes vertically and preserves its desktop content instead of collapsing or replicating the scaled canvas. Anything below is a deviation or constraint future passes should inherit rather than reinvent.
 
-### Pending: replace Manufacturing Consent font with SVG mark
+### Nav pills — use shared defaults, no route-specific overrides
 
-The `' lite'` badge appended to the project pill on mobile (`.workbench:has(.route-rr) .nav-marker--project .nav-marker__name::after`) currently uses Google Fonts' `Manufacturing Consent` — loaded via a `<link>` in `app/(works)/rr/layout.tsx`. The font ships to all viewports despite being mobile-only and bypasses the `--font-*` token convention.
-
-User will provide an SVG replacement. When that lands: remove the `<link>` from `layout.tsx`, swap the `::after` content rule for an inline-SVG image (or pseudo-element `background-image`), and delete this entry.
-
-### Top frame — docked Project + Exit pair, centered in viewport
-
-Project marker and Exit marker are independent React components rendered by the works shell — no parent element wraps them on mobile. To dock them as a single horizontally-centered pair, two CSS variables (`--rr-project-pill-w`, `--rr-exit-pill-w`) hold their measured widths, and `--rr-pair-offset` is half of their sum. Project's `left` = `50vw − pair-offset`; Exit's `left` = `50vw − pair-offset + project-pill-w`. They abut with no gap.
-
-If the project pill copy changes (e.g. the `' lite'` badge is removed) or either pill's padding shifts, update the two width tokens. There is no flex-wrapper alternative without restructuring the shell JSX.
-
-Both pills are `position: fixed; top: 0; z-index: 40`. The 4px viewport frame (z: 9999) overlaps the pills' first few pixels for the tucked feel.
-
-### Chapter pill — in-flow per-mat, with two per-chapter exceptions
-
-`.route-rr .nav-sled` is the chapter pill container. On mobile it's `position: relative; display: flex; justify-content: center; margin-top: 16px`, so the pill sits in normal flow at the top of each mat, centered horizontally with a small buffer. The pill scrolls with its mat (no sticky).
-
-Two chapters need overrides because their mats don't have ordinary flow content at the top:
-
-1. **`#intro`** — the surface card (`.rr-canvas`) is `position: absolute; top: 48px` on desktop. The in-flow pill would overlap it. Mobile pushes the canvas down to `top: 72px` and pins the sled `position: absolute; top: 0` inside the relative `#intro.mat` so the pill lands above the card.
-2. **`#mechanics`** — the section is structural-only (`background: none; padding: 0`). The first visible mat is `.rr-mat--primary` inside `.rr-mech-stage`. The in-flow pill would render in workbench whitespace before mat-primary starts. Mobile makes `#mechanics` relative and pins the sled `position: absolute; top: 16px`, which lands the pill inside mat-primary's top padding.
-
-Cards and Outcome use the in-flow default — their first content has enough top padding to clear the pill.
-
-Section-reveal still applies (`opacity: 1` is forced on the sled to bypass the gate, since the absolute-positioned variants on intro/mech don't reliably inherit the revealed state).
+`/rr` uses the shared nav pill system without any route-scoped mobile CSS. Project + Exit are fixed to the viewport corners via `app/components/nav/nav.css`; Chapter is sticky inside each `<Sheet>` via `.nav-sled`. All three recompose at ≤767px through `:root`-scoped token overrides in `globals.css`. **Do not reintroduce per-route pill positioning.** A previous pass centre-docked Project + Exit as a pair (via measured `--rr-project-pill-w` / `--rr-exit-pill-w` tokens), pulled the chapter pill into flow inside each mat, and added per-chapter absolute overrides for `#intro` and `#mechanics` — all deleted in v0.30.0. See `LIBRARY.md` → "Nav pill system" and `app/components/nav/README.md` for the full rationale and rejected approaches.
 
 ### Mechanics — rails: tab peeks past board's right edge; opens onto board
 
@@ -420,9 +397,29 @@ The secondary mat (`.rr-mat--secondary`, fed by `<StoryCard>` after game-over) p
 
 The `.rr-story-card__deck-fan` overlay (hand holding card fan) is re-anchored from the desktop bottom-pinned position to the card's mid-left: `top: 42%; left: 0; transform-origin: 0% 50%; transform: translate(...) rotate(90deg) scale(0.88)`. The translate is driven by `--rr-mech-progress` so the hand slides in as the scene scrolls into view (this CSS variable is inert on mobile since the scroll choreography is unbound, so the fan rests at its end position).
 
-### Intro storycard edge-to-edge
+### Intro storycard — biconomy-style natural flow
 
-`#intro .rr-story-card` is pulled out of its desktop absolute placement (`position: relative; transform: none !important; width: 100%; padding: 32px 20px`). The peripheral embellishments — expand affordance, card stack, enlarged artwork — drop out under lite (`display: none`), matching the decorative-elements-drop-out rule in the lite stance.
+`#intro` on mobile mirrors the biconomy blue-card pattern: the mat becomes a flex container centering a single column (`max-width: 430px`). `.rr-canvas` drops its absolute frame (`position: relative; width: 100%; height: auto; transform: none`). `.rr-story-card` becomes a vertical `flex-direction: column; gap: 32px` stack; its three absolute-positioned children (body, constraints, north-star) are flattened to relative flow and ordered via CSS `order` (body:1, constraints:2, north-star:3) so reading order on mobile matches desktop visual order (constraints above north-star). Peripheral embellishments — expand affordance, card stack, enlarged artwork — drop out (`display: none`) per the lite decorative-drop-out rule.
+
+### Outcome card — preserved desktop composition
+
+`.rr-outcome-card` on mobile keeps the authored desktop dimensions (288×330, 8px outer padding, 15px inner padding) — only unpinned from absolute (`position: relative; inset: auto; margin: 0 auto; align-self: center`) so the card flows inside the mat. The entrance scroll-map and FM transform are neutralized with `transform: none !important; opacity: 1 !important` (React-inline-style gate) since the sweep-in maps to a scroll range that collapses when the mat is flow-sized.
+
+### Rules panel — swipeable image with co-scrolling caption
+
+The rules image keeps its desktop 1349×653 composition, scaled 0.5 inside a horizontal-overflow container (`.rr-rules-group`). The group breaks out of the mat's `--rr-card-inset-x` via negative margins and adds `padding: 0 --space-24 --space-16` so the image has a small gap at both scroll extremes. `.rr-rules-label` (the caption) is width-matched to the scaled image (`width: calc(1349px * 0.5)`), anchored at `left: 0`, and in flow — so panning the image pans the caption in lockstep. Desktop row structure (title | note at baseline) is preserved by not re-flowing the label to column. Click-to-expand is disabled on mobile (`.rr-rules-inner { pointer-events: none }`) because the scroll gesture is the mobile reading affordance; the overflow container still receives pan because pointer events bypass the inner.
+
+### Deck-fan end position — by-eye on mobile
+
+`.rr-story-card__deck-fan` inside `.rr-mat--secondary` uses a translate range `-220px → +80px` keyed to `--rr-mech-progress`. On mobile `--rr-mech-progress` rests at 1 so the fan lands at x = +80 — pushed inside the card's left edge so the hand reads as holding the deck against the card rather than hanging off the side. The original `-300 → 0` range had the fan anchored at the card's left edge; the +80 offset is an eyeballed-collab nudge.
+
+### Chapter pill — date subtitle hidden on rr
+
+`.route-rr .nav-marker__year { display: none }` inside the mobile block — chapter dates (Sep 2024 etc.) are suppressed at ≤767px to keep the pill tight. Desktop still shows them. No effect on other routes since the rule is `.route-rr`-scoped.
+
+### First sheet top-bleed
+
+`.route-rr .sheet-stack > .sheet:first-child { margin-top: calc(-1 * var(--workbench-pad-y)) }` — intro's mat extends under the top workbench padding so it reads edge-to-edge on all four sides. Pills (fixed at `--marker-top`) still land on the mat surface because they sit above it in z-order.
 
 ### Mat full-bleed pattern
 
@@ -451,7 +448,5 @@ The `.rr-story-card__deck-fan` overlay (hand holding card fan) is re-anchored fr
 - `--rr-cards-scale` divisor pattern (`* var(--rr-cards-scale)`) for canvas positioning — `left: calc(50vw - 720px * var(--rr-cards-scale))` keeps the title centered as the scale changes
 - `.rr-mat--secondary` height formula `(100vw - safe-x*2) * 688 / 384 + 112px` is locked to the storycard's 384×688 aspect — changing card dimensions requires recomputing both the scale denominator and this height
 - Mobile `matchMedia` gates in `RulesRail.tsx` (first-visit auto-open skip + one-click open-on-first-visit) and `Mechanics.tsx` (auto-scroll-to-storycard skip) — reinstating any of these on mobile fights the flow-sized layout
-- `--rr-project-pill-w` / `--rr-exit-pill-w` are measured pill widths, not arbitrary tokens — must be re-measured if pill copy or padding changes, otherwise the docked pair drifts off center
-- `#intro` and `#mechanics` chapter pills are `position: absolute` (not the in-flow default) because their first content blocks would overlap or sit outside the visible mat — see "Chapter pill — in-flow per-mat, with two per-chapter exceptions"
 - `.rr-rules-rail.is-open` / `.rr-note-rail.is-open` z-index is scoped to open-state only — promoting closed-state rails above the board leaks their content onto the game face
 - Rails mobile open-state translateX values (`-50px` for rules, `0` for note) — these aren't symmetric because each rail has a different desktop natural position; recomputing requires reading current bounding rect with the board overlay in place
