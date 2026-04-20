@@ -1076,8 +1076,10 @@ formulas, per-viewport asset decisions, no retrofits.
   *chosen* 48px gap, not a default (`marks.css:661`).
 - Title scale is a breakpoint-scoped linear formula (Shape 14), not a
   naive `clamp()` (`marks.css:646`).
-- Buffer fractions are left alone — the authored vh split works at all
-  viewports (`marks ANOMALIES.md:197`).
+- BlankSection + HeroClone stay at 100vh on every viewport — they are
+  dominance candidates for the wrap-on-dock teleport; shrinking them
+  below `DOMINANCE_RATIO` (0.72) would make the wrap unreachable
+  (`marks ANOMALIES.md` → "Responsive anomalies").
 - Mark carousel already uses `min(…vw, …px)` — no mobile override needed.
 - No tucked pill because `/marks` doesn't use the works nav shell; the
   title itself is the nav.

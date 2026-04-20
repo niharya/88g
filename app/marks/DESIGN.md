@@ -39,8 +39,9 @@ The route is three layouts stacked into one continuous reel:
 Hero             (title moment — full-bleed, pre-dock)
 Essay            (editorial intro + preview rows of the six marks)
 Mark view × 6    (the primitive — one canonical composition, six instances)
-Buffer           (25vh fade-out → 30vh black → 25vh fade-in)
-                 (infinite loop fires here; reader returns to Hero)
+Blank            (100vh pure-black void — calm beat before the restart)
+Hero clone       (100vh hero palette — identical paint to the real Hero)
+                 (on dock, scrollTo(0, 0); reader is back at the real Hero)
 ```
 
 The title (`MarksTitle`) is a persistent `h1` that spans the whole route,
@@ -138,13 +139,27 @@ not fight the reader's intent.
 
 ## Infinite loop
 
-At the bottom of the reel, `Buffer` emits three zones (fade-out / black /
-fade-in). The loop fires while the black zone dominates the viewport
-(`FIRE_OVERLAP = 0.9`), doing a `scrollTo(0, 0)` while the palette has already
-swapped back to `HERO_PALETTE`. The reader sees a seamless return to the top.
+At the bottom of the reel, two 100vh canvases — `BlankSection` and
+`HeroClone` — close the loop using the clone-and-teleport pattern borrowed
+from slider libraries (Embla, Swiper, keen-slider):
 
-Threshold tuning (arm/fire/re-fire guard) is documented in ANOMALIES — those
-values are load-bearing, not arbitrary.
+1. After the last mark (Kilti), `BlankSection` paints a calm black void so
+   the reel doesn't cut straight from proof back into the title.
+2. `HeroClone` paints the identical hero palette as the real Hero at the
+   top of the document.
+3. When the dominance-snap docks the reader into the clone (same rule that
+   docks every other mark), `HeroClone` fires a `scrollTo(0, 0)` — an
+   instant, invisible jump back to the real Hero.
+
+Three pieces of continuity make the teleport imperceptible: Background
+paints the hero palette on both sides, `MarksTitle` reads "big hero" at
+both anchors via a `distToNearestHero` helper (not `scrollY` directly),
+and the destination at `y=0` looks pixel-identical to the clone at dock.
+
+Because the teleport lands at `y=0`, the reader can't scroll up from the
+real Hero (the browser has nothing above) — the reel only goes forward,
+exactly as if it were genuinely infinite. Arming and edge-trigger wiring
+are documented in ANOMALIES.
 
 ---
 
@@ -201,8 +216,8 @@ under "Responsive anomalies". The short version:
 - Title scale uses a breakpoint-scoped linear formula, not `clamp()`, because
   the dock interpolation is a derived product of scroll progress × size range.
 - Essay preview rows flip to `flex-direction: column` with a 48px gap.
-- Buffer heights stay in vh — shrinking them would break the infinite-loop
-  fire window.
+- Blank + Hero-clone stay at 100vh on every viewport — they are dominance
+  candidates, so shrinking them would break the wrap-on-dock fire window.
 - No tucked pill — `MarksTitle` is the nav and already docks at any viewport.
 
 ---

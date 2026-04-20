@@ -16,8 +16,13 @@
 import type { MarkEntry } from '../data/marks'
 
 interface MarkChromeProps {
-  mark:  MarkEntry
-  index: number  // active slide index
+  mark:   MarkEntry
+  index:  number  // active slide index
+  active?: boolean // section is dominant — gates the fill animation
+  clickPaused?: boolean // click-to-jump pause → locks fill to full (consumed)
+  hoverPaused?: boolean // hover pause → freezes fill in place (reading)
+  onJump?: (index: number) => void
+  onHoverChange?: (hovered: boolean) => void  // hover on chrome (paginator + caption) → freeze timer
 }
 
 function captionFor(mark: MarkEntry, index: number): string {
@@ -27,20 +32,39 @@ function captionFor(mark: MarkEntry, index: number): string {
   return slide.caption
 }
 
-export default function MarkChrome({ mark, index }: MarkChromeProps) {
+export default function MarkChrome({ mark, index, active, clickPaused, hoverPaused, onJump, onHoverChange }: MarkChromeProps) {
   return (
-    <div className="mark-chrome">
-      <ol className="mark-chrome__paginator" aria-label="Slide pagination">
+    <div
+      className="mark-chrome"
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+    >
+      <ol
+        className="mark-chrome__paginator"
+        aria-label="Slide pagination"
+        data-active-section={active ? 'true' : 'false'}
+        data-click-paused={clickPaused ? 'true' : 'false'}
+        data-hover-paused={hoverPaused ? 'true' : 'false'}
+      >
         {mark.slides.map((_, i) => (
           <li
-            // Keying the active dot by `active-${index}` forces React to
-            // remount it each time a new slide becomes active, which
-            // restarts the CSS fill animation from scaleX(0). Inactive
-            // dots keep stable keys so they don't churn.
-            key={i === index ? `active-${index}` : `inactive-${i}`}
+            // Keying the active dot by `active-${index}-${active ? 'on' : 'off'}` forces
+            // React to remount the dot both on slide change AND when the
+            // section becomes dominant — restarting the CSS fill animation
+            // from scaleX(0) each time. Without the active flag, the animation
+            // would already have completed (forwards fill-mode) by the time
+            // the reader arrives at this section via auto-advance.
+            key={i === index ? `active-${index}-${active ? 'on' : 'off'}` : `inactive-${i}`}
             className={`mark-chrome__dot${i === index ? ' mark-chrome__dot--active' : ''}`}
             aria-current={i === index ? 'true' : undefined}
-          />
+          >
+            <button
+              type="button"
+              className="mark-chrome__dot-btn"
+              aria-label={`Go to slide ${i + 1}`}
+              onClick={() => onJump?.(i)}
+            />
+          </li>
         ))}
       </ol>
 
