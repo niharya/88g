@@ -33,10 +33,12 @@ route-local.
 
 ## Page anatomy
 
+The route is three layouts stacked into one continuous reel:
+
 ```
-Hero             (100vh spacer — title lives above, docked via scrollY)
+Hero             (title moment — full-bleed, pre-dock)
 Essay            (editorial intro + preview rows of the six marks)
-MarkSection × 6  (one per mark — hero slide + supporting slides carousel)
+Mark view × 6    (the primitive — one canonical composition, six instances)
 Buffer           (25vh fade-out → 30vh black → 25vh fade-in)
                  (infinite loop fires here; reader returns to Hero)
 ```
@@ -46,6 +48,42 @@ driven by scrollY. It scales from a hero moment at the top (120px, ~37vh) into
 a docked pill (24px, `top: --marker-top`) as the reader scrolls past Hero, then
 re-expands inside each mark section as a per-section title (reel-roll ping-pong
 between two slots, direction following scroll).
+
+### The three layouts
+
+1. **Hero.** A title moment. The `MarksTitle` lives here at full size before
+   it docks. No other content — the reel earns its opening by withholding.
+2. **Essay.** Editorial intro text, then preview rows for the six marks. This
+   is the only place the reader sees all six at once; clicking a row glides
+   them into the corresponding mark view.
+3. **Mark view.** One composition, six instances. See next section.
+
+---
+
+## Mark view as primitive
+
+Every mark view is **the same composition**. Aleyr is the canonical reference —
+when it changes, the other five change with it. Only four things vary per
+instance:
+
+| Prop                 | What varies                                            |
+|----------------------|--------------------------------------------------------|
+| `gradient`           | Background palette (tweened via `@property <color>`)   |
+| `mark`               | The mark SVG itself (wordmark, glyph, or divider)      |
+| `name`               | The mark's name (drives `MarksTitle` in this section)  |
+| `supportingGraphics` | The carousel slides (application shots, context, etc.) |
+
+Everything else — layout rhythm, reveal sequence, carousel mechanics, timer
+behavior, paginator, title dock position, snap latch — is **identical across
+all six**. If a mark view needs something Aleyr doesn't have, that's a signal
+to change Aleyr first, not to fork the primitive.
+
+**Aleyr is the reference** because it's the simplest case (solo divider, no
+wordmark complications) — the primitive works when Aleyr works.
+
+The primitive is route-local (`app/marks/components/MarkSection.tsx`) until a
+second consumer appears. If `/` ever spotlights a mark, or a tooltip surfaces
+one, that's the promotion trigger — not before.
 
 ---
 

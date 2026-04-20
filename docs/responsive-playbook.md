@@ -30,6 +30,47 @@ crafted answer. Anything less is a retrofit.
 
 ---
 
+## Modes of use
+
+This playbook supports two modes. Know which one you're in before you start.
+
+### Autonomous mode
+
+The implementer walks the decision tree alone — reads the shape, picks the
+reduction, authors the composition, commits. The checklist below is a gate.
+Used for forward passes on new routes where no CD is driving.
+
+### Eyeballed-collab mode (the default now)
+
+A CD points at a shape by eye and directs the change ("this should wrap
+sooner", "hide that on mobile", "move the note under the image, not beside
+it"). The implementer's job is to:
+
+1. **Translate intent into clean code.** Use the sanctioned techniques below
+   as the toolkit. The CD isn't required to know the playbook — they know
+   what they want to see.
+2. **Push back with alternatives if the ask would require a banned hack.**
+   The banned-hacks list is the spine. If the literal ask can't be delivered
+   without `scale()` on a canvas, or `!important` outside the React-inline
+   gate, or a JS media query for layout — name the constraint, offer the
+   nearest clean option in playbook vocabulary, and let the CD redirect.
+3. **Log decisions as they happen.** Every eyeballed change that departs
+   from the desktop composition gets a line in the route's `ANOMALIES.md`
+   under "Responsive anomalies" — what changed, why, which shape or pattern
+   it maps to.
+
+The checklist below still applies in collab mode, but as vocabulary, not a
+gate. The CD has already answered "what drops out" by pointing. The
+implementer still owns questions 6 (touch targets), 7 (React-inline-style
+conflict), 8 (tokens), 9 (mat-as-last), 10 (wide artifact) — the invisible
+ones.
+
+**Governing principle.** When in doubt, preserve proof over minimalism.
+Portfolio integrity > hide-count. If a directed change would leave a
+chapter without its evidence, the implementer flags it before cutting.
+
+---
+
 ## Before you touch anything — pre-flight checklist
 
 Run through this before writing CSS. Most responsive regressions come from
@@ -1072,3 +1113,21 @@ but log the decision so the next reader can reason about it.
 - Don't force a section into a shape that doesn't fit. A misfit entry
   weakens every other entry.
 - Don't promote a one-off to this playbook. Wait for the second instance.
+
+### Under eyeballed-collab mode specifically
+
+When the CD proposes a response outside the 15 shapes, the implementer's
+job is to build it *if* it can be built with sanctioned techniques. If not,
+the order of operations is:
+
+1. Name the constraint out loud (e.g. "that ask needs `scale()` on the
+   canvas, which is banned under crafted-lite").
+2. Offer the nearest clean alternative in playbook vocabulary (e.g.
+   "re-authored asset, representative still, or column-linearize with
+   authored gap").
+3. Let the CD pick, redirect, or accept the compromise.
+4. Log the outcome in `ANOMALIES.md` with enough detail that the next
+   reader can tell it was a considered choice, not a shortcut.
+
+Never build a banned hack to satisfy an eyeballed ask. The CD is directing
+the surface; the implementer holds the floor.
