@@ -1,6 +1,11 @@
-// BiconomyChip — three Biconomy marks, each with a distinct tilt + float.
-// A pure mark artifact — no text, no explanation.
-// Source-locked: exact transforms from original BiconomyChip.js.
+'use client'
+
+// BiconomyChip — three Biconomy marks, each with a distinct tilt.
+// Marks sit on the chip midline (aligned with dividers); tilt is the only
+// hand-placed character at rest. Hover rolls a fresh ±2° offset per mark
+// and lets it settle via paper-physical easing.
+
+import { useState } from 'react'
 
 const BiconomyMark = ({ className }: { className?: string }) => (
   <svg
@@ -19,24 +24,44 @@ const BiconomyMark = ({ className }: { className?: string }) => (
   </svg>
 )
 
-// Three marks with individual tilt + vertical offset — source values preserved exactly
-const transforms = [
-  { y: -10.5, rotate: 2.3 },
-  { y: -7.8,  rotate: -1.7 },
-  { y: -13.2, rotate: 3.9 },
-]
+const baseRotations = [2.3, -1.7, 3.9]
 
 export default function BiconomyChip() {
+  const [hoverOffsets, setHoverOffsets] = useState<(number | null)[]>([null, null, null])
+
+  const roll = (i: number) => {
+    setHoverOffsets(prev => {
+      const next = [...prev]
+      next[i] = (Math.random() * 4) - 2
+      return next
+    })
+  }
+  const reset = (i: number) => {
+    setHoverOffsets(prev => {
+      const next = [...prev]
+      next[i] = null
+      return next
+    })
+  }
+
   return (
     <div className="biconomy-chip">
-      {transforms.map((t, i) => (
-        <span key={i} className="biconomy-chip__slot">
-          {i > 0 && <div className="biconomy-chip__divider" aria-hidden="true" />}
-          <div style={{ transform: `translateY(${t.y}px) rotate(${t.rotate}deg)` }}>
-            <BiconomyMark />
-          </div>
-        </span>
-      ))}
+      {baseRotations.map((base, i) => {
+        const offset = hoverOffsets[i] ?? 0
+        return (
+          <span key={i} className="biconomy-chip__slot">
+            {i > 0 && <div className="biconomy-chip__divider" aria-hidden="true" />}
+            <div
+              className="biconomy-chip__mark"
+              style={{ transform: `rotate(${base + offset}deg)` }}
+              onMouseEnter={() => roll(i)}
+              onMouseLeave={() => reset(i)}
+            >
+              <BiconomyMark />
+            </div>
+          </span>
+        )
+      })}
     </div>
   )
 }

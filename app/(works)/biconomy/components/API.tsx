@@ -10,87 +10,159 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import TwitterEmbed from './TwitterEmbed'
 import NavPill from './NavPill'
+import IconExternalLink from '../../../components/icons/IconExternalLink'
+import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../../lib/motion'
 
-const API_SLIDES = [
+type Slide = { src: string; caption: string }
+type Flow = { id: string; name: string; slides: Slide[]; raw?: boolean }
+
+const FLOWS: Flow[] = [
   {
-    src: '/images/biconomy/api/1.png',
-    caption: 'Instead of treating APIs as lists, I explored them as navigable spaces.',
+    id: 'connecting-wallet',
+    name: 'Connecting Wallet',
+    slides: [
+      {
+        src: '/images/biconomy/api/flows/flow-1-1.jpeg',
+        caption: 'A standby mark, a stepper, and a receiver — each a grammar piece before connection.',
+      },
+      {
+        src: '/images/biconomy/api/flows/flow-1-2.jpeg',
+        caption: 'Unplugged at rest. A B-mark waits in the top-right for a hover or a click.',
+      },
+      {
+        src: '/images/biconomy/api/flows/flow-1-3.jpeg',
+        caption: 'Once paired, the unit settles — QR, desktop, and session hand-offs stay in the same surface.',
+      },
+    ],
   },
   {
-    src: '/images/biconomy/api/2.png',
-    caption: "The most powerful interface is the one that doesn't exist.",
+    id: 'sending-assets',
+    name: 'Sending Assets',
+    slides: [
+      {
+        src: '/images/biconomy/api/flows/flow-2-1.jpeg',
+        caption: 'From a deployed smart wallet to a signed transaction — three steps on one continuous surface.',
+      },
+      {
+        src: '/images/biconomy/api/flows/flow-2-2.jpeg',
+        caption: 'Send To accepts the address; Select Asset unfolds below without changing context.',
+      },
+      {
+        src: '/images/biconomy/api/flows/flow-2-3.jpeg',
+        caption: 'Amount, gas, and total share the canvas. An operating-currency toggle sits a tap away.',
+      },
+    ],
   },
   {
-    src: '/images/biconomy/api/3.png',
-    caption: 'A proof of concept for a new way to interact with APIs.',
+    id: 'nav-signing',
+    name: 'Navigation & Signing',
+    raw: true,
+    slides: [
+      {
+        src: '/images/biconomy/api/flows/flow-3-1.jpeg',
+        caption: 'Navigation collapses into the address itself — menu opens down, the asset library tucks below.',
+      },
+      {
+        src: '/images/biconomy/api/flows/flow-4-1.jpeg',
+        caption: 'Signing stays legible — network, request type, forwarder details, keys, then sign or reject.',
+      },
+    ],
   },
 ]
 
-const N = API_SLIDES.length
-
 // Stack: front (z 3) at 0,0 · 2nd (z 2) at -64,-64 · 3rd (z 1) at -128,-128
-function getStackStyle(slideIndex: number, frontIndex: number) {
-  const distance = (slideIndex - frontIndex + N) % N
+function getStackStyle(slideIndex: number, frontIndex: number, total: number) {
+  const distance = (slideIndex - frontIndex + total) % total
   if (distance === 0) return { zIndex: 3, x: 0,    y: 0    }
   if (distance === 1) return { zIndex: 2, x: -64,  y: -64  }
   if (distance === 2) return { zIndex: 1, x: -128, y: -128 }
   return                     { zIndex: 0, x: -128, y: -128 }
 }
 
-function APISlider({ className }: { className?: string }) {
-  const [currentIndex, setCurrentIndex] = useState(0)
+type SliderProps = {
+  className?: string
+  flow: Flow
+  currentIndex: number
+  onPrev: () => void
+  onNext: () => void
+}
 
-  const goPrev = () => setCurrentIndex(i => (i - 1 + N) % N)
-  const goNext = () => setCurrentIndex(i => (i + 1) % N)
+function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProps) {
+  const total = flow.slides.length
+  const currentSlide = flow.slides[currentIndex]
+  const captionKey = `${flow.id}-${currentIndex}`
 
   return (
-    <div className={`api__slider ${className ?? ''}`}>
+    <div className={`api__slider ${className ?? ''}${flow.raw ? ' api__slider--raw' : ''}`}>
       <div className="api__slider-inner">
-        {/* Stack container — pl-128 pt-128 creates depth reveal room */}
-        <div className="api__stack-wrap">
-          <div className="api__stack">
-            {API_SLIDES.map((slide, slideIndex) => {
-              const { zIndex, x, y } = getStackStyle(slideIndex, currentIndex)
-              return (
-                <div
-                  key={slideIndex}
-                  className="api__card"
-                  style={{
-                    zIndex,
-                    transform: `translate3d(${x}px, ${y}px, 0)`,
-                    transition: 'transform 300ms ease-out',
-                    willChange: 'transform',
-                  }}
-                >
-                  <div className="api__card-frame">
-                    <img
-                      src={slide.src}
-                      alt=""
-                      className="api__card-img"
-                      draggable={false}
-                    />
+        {/* Stack container — pl-128 pt-128 creates depth reveal room.
+            Flow switch runs through AnimatePresence with the tab-switch tokens
+            (mode="wait", TAB_BODY_VARIANTS). Slide advance within a flow is
+            a CSS transform — the stack itself doesn't remount. */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={flow.id}
+            className={`api__stack-wrap${flow.raw ? ' api__stack-wrap--raw' : ''}`}
+            onClick={onNext}
+            role="button"
+            tabIndex={0}
+            aria-label="Next slide"
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onNext()
+              }
+            }}
+            variants={TAB_BODY_VARIANTS}
+            initial="enter"
+            animate="active"
+            exit="exit"
+            transition={TAB_BODY_TRANSITION}
+          >
+            <div className="api__stack">
+              {flow.slides.map((slide, slideIndex) => {
+                const { zIndex, x, y } = getStackStyle(slideIndex, currentIndex, total)
+                return (
+                  <div
+                    key={`${flow.id}-${slideIndex}`}
+                    className="api__card"
+                    style={{
+                      zIndex,
+                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      transition: 'transform 300ms ease-out',
+                      willChange: 'transform',
+                    }}
+                  >
+                    <div className="api__card-frame">
+                      <img
+                        src={slide.src}
+                        alt=""
+                        className="api__card-img"
+                        draggable={false}
+                      />
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+                )
+              })}
+            </div>
+          </motion.div>
+        </AnimatePresence>
 
         {/* Caption + nav row */}
         <div className="api__caption-row">
-          <AnimatePresence mode="popLayout" initial={false}>
+          <AnimatePresence mode="wait" initial={false}>
             <motion.p
-              key={currentIndex}
-              initial={{ opacity: 0.5, filter: 'blur(4px)' }}
+              key={captionKey}
+              initial={{ opacity: 0, filter: 'blur(4px)' }}
               animate={{ opacity: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, filter: 'blur(4px)', transition: { duration: 1, ease: 'easeOut' } }}
+              exit={{ opacity: 0, filter: 'blur(4px)', transition: { duration: 0.3, ease: 'easeOut' } }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
               className="api__caption t-p4"
             >
-              {API_SLIDES[currentIndex].caption}
+              {currentSlide.caption}
             </motion.p>
           </AnimatePresence>
-          <NavPill onPrev={goPrev} onNext={goNext} prevLabel="Previous slide" nextLabel="Next slide" />
+          <NavPill onPrev={onPrev} onNext={onNext} prevLabel="Previous slide" nextLabel="Next slide" />
         </div>
       </div>
     </div>
@@ -134,6 +206,20 @@ function MediumXMassageIcon() {
 }
 
 export default function API() {
+  const [activeFlowId, setActiveFlowId] = useState(FLOWS[0].id)
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const activeFlow = FLOWS.find(f => f.id === activeFlowId) ?? FLOWS[0]
+  const total = activeFlow.slides.length
+
+  const goPrev = () => setCurrentIndex(i => (i - 1 + total) % total)
+  const goNext = () => setCurrentIndex(i => (i + 1) % total)
+  const selectFlow = (id: string) => {
+    if (id === activeFlowId) return
+    setActiveFlowId(id)
+    setCurrentIndex(0)
+  }
+
   return (
     <section id="api" className="api">
 
@@ -158,21 +244,42 @@ export default function API() {
         </div>
       </div>
 
-      {/* ── Slider + side col ───────────────────────────────────────────── */}
+      {/* ── Slider + flows side col ─────────────────────────────────────── */}
       <div className="api__two-col">
-        <APISlider className="api__slider-col" />
+        <APISlider
+          className="api__slider-col"
+          flow={activeFlow}
+          currentIndex={currentIndex}
+          onPrev={goPrev}
+          onNext={goNext}
+        />
         <div className="api__side-col">
-          <img
-            src="/images/biconomy/api/send_assets.png"
-            alt=""
-            className="api__send-assets"
-            draggable={false}
-          />
-          <p className="t-p4 api__side-text">
-            I read a few Asimov stories, hoping for a direction. I got ideas for
-            the structure of the API and the way it will interface with the rest
-            of the client dApp.
-          </p>
+          <div className="api__side-sheet">
+            <div className="api__flows-list" role="tablist" aria-label="API flows">
+              <h3 className="api__flows-label t-h5">Flows</h3>
+              {FLOWS.map((flow, i) => {
+                const isActive = flow.id === activeFlowId
+                return (
+                  <button
+                    key={flow.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`api__flow-item${isActive ? ' is-active' : ''}`}
+                    onClick={() => selectFlow(flow.id)}
+                  >
+                    <span className="api__flow-num t-p4">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="api__flow-name t-p3">{flow.name}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="t-p4 api__side-text">
+              I read a few Asimov stories, hoping for a direction. I got ideas for
+              the structure of the API and the way it will interface with the rest
+              of the client dApp.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -188,11 +295,29 @@ export default function API() {
           </div>
         </div>
         <div className="api__tweet-col">
-          <p className="t-p4 api__tweet-label">
+          <p className="t-h5 api__tweet-label">
             Post walking you through the full context
+            <IconExternalLink size={14} className="api__tweet-label-ext icon-ext" />
           </p>
-          <TwitterEmbed tweetId="1555817593185107968" />
+          <TwitterEmbed
+            tweetId="1555817593185107968"
+            body={
+              'An experiment in API design: if sci‑fi can inspire rockets, how about an interface? A thread on Science Fiction meeting Interface Fiction — walking through the full context of this exploration.'
+            }
+            timestamp="9:14 AM · Aug 5, 2022"
+          />
+          <span className="api__tweet-hint">opens in new tab</span>
         </div>
+      </div>
+
+      {/* ── Trailing zhao.eth card — closing artifact, centered ─────────── */}
+      <div className="api__trailing">
+        <img
+          src="/images/biconomy/api/send_assets.png"
+          alt=""
+          className="api__trailing-img"
+          draggable={false}
+        />
       </div>
 
     </section>

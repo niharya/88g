@@ -298,3 +298,61 @@ the surrounding composition stays legible.
   demo grids) and will need their own authored decisions.
 
 *Reference pass: 19 April 2026 (playbook v1).*
+
+## StayingAnchored photostack (v0.35.0)
+
+The original grid of 7 placeholder slots was replaced with a single pile of
+10 personal photos. Load-bearing choices:
+
+- **Rotations are seeded once on mount**, client-side only, via `useEffect`
+  (initial state is a zero array to keep SSR output deterministic and avoid
+  hydration mismatches). Cycling through the stack does **not** reshuffle
+  tilts — only a page reload does. This is intentional; if a future session
+  wires rotation re-rolls onto click/keydown, the stack stops feeling like a
+  physical pile and starts feeling animated.
+- **No transitions on the z-swap.** The "tak-tak" snap is the interaction.
+  No Framer Motion, no CSS `transition` on `rotate`, `z-index`, `opacity`.
+- **Prints preserve native aspect ratios.** The wrapper `.sa__photo` is
+  `width: fit-content; height: fit-content` with `line-height: 0` to kill
+  inline-image baseline gap. The image itself is capped at `max-width:
+  400px; max-height: 480px`. Do not add a fixed frame — portraits and
+  landscapes must read at their natural shapes.
+- **Forward cycle semantics.** Clicking the stack advances; the first
+  image reappears only after the last. NavPill arrows scrub both
+  directions. If you unify them to forward-only, the arrow UI lies.
+
+## BiconomyChip hover roll (v0.35.0)
+
+The header note used to say "source-locked: exact transforms from original
+BiconomyChip.js." That is no longer true. The component now:
+
+- Keeps the three base rotations (`2.3`, `-1.7`, `3.9`) as rest state.
+- On hover per mark, rolls a fresh `±2°` offset via `Math.random()` and
+  settles via paper easing.
+
+If you grep for "source-locked" and find it in the old comment, it's gone
+on purpose — the rest state is preserved, the hover is the net-new gesture.
+Vertical offsets (`y: -10.5`, etc.) were dropped — marks now sit on the
+chip midline, aligned with the dividers.
+
+## Tweet-card hover chain via `:has()` (v0.35.0)
+
+The API section's tweet column uses a `:has()` selector on the parent
+`.api__tweet-col` to drive animations on the *label row* (h5 title with
+external-link icon + "opens in new tab" hint pill) when the sibling
+`.tweet-card` anchor is hovered. The label row is not inside the anchor —
+it sits above the card — so `:has()` is doing the cross-sibling work.
+
+Touch points if this breaks:
+
+- The anchor must remain `.tweet-card`; renaming it silently breaks the
+  selector.
+- Browsers without `:has()` (older Safari/Firefox pre-2023) will simply
+  show the label statically — no fallback needed, degrades gracefully.
+
+## `#1DA1F2` (v0.35.0)
+
+One hardcoded hex in `biconomy.css` — Twitter's brand blue, used only for
+the `.tweet-card__bird` hover color. It is a brand citation, not part of
+the portfolio's token ladder. Leave it hardcoded; do not introduce a
+`--twitter-blue` token unless a second consumer appears.
