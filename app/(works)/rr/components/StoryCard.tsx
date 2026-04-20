@@ -19,22 +19,38 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
   // Card ref — used for both position measurement and scroll tracking
   const cardRef = useRef<HTMLDivElement>(null)
   const linkRef = useRef<HTMLSpanElement>(null)
+  const northStarRef = useRef<HTMLDivElement>(null)
   const [pathPos, setPathPos] = useState({ top: 261, left: 93 })
+  // dx/dy: offset from SVG origin (link bottom-center) to North Star top-center
+  const [dotEnd, setDotEnd] = useState({ dx: 185, dy: 281 })
 
   // Measure after fonts are settled — avoids font-swap reflow misreads
   useEffect(() => {
     const measure = () => {
       const link = linkRef.current
       const card = cardRef.current
-      if (!link || !card) return
+      const ns   = northStarRef.current
+      if (!link || !card || !ns) return
       const lr = link.getBoundingClientRect()
       const cr = card.getBoundingClientRect()
-      setPathPos({
-        top:  Math.round(lr.bottom - cr.top  - 3),
-        left: Math.round(lr.left + lr.width / 2 - cr.left - 1),
+      const nr = ns.getBoundingClientRect()
+      // Divide by scale: getBoundingClientRect gives screen coords but CSS
+      // top/left and SVG coords are in the card's local (pre-transform) space.
+      const scaleX = card.offsetWidth > 0 ? cr.width / card.offsetWidth : 1
+      const scaleY = card.offsetHeight > 0 ? cr.height / card.offsetHeight : 1
+      const originX = Math.round((lr.left + lr.width / 2 - cr.left) / scaleX - 1)
+      const originY = Math.round((lr.bottom - cr.top) / scaleY - 3)
+      setPathPos({ top: originY, left: originX })
+      setDotEnd({
+        dx: Math.round((nr.left + nr.width / 2 - cr.left) / scaleX - originX),
+        dy: Math.round((nr.top - cr.top) / scaleY - originY),
       })
     }
     document.fonts.ready.then(measure)
+    // Re-measure when card resizes (deck-fan img load shifts card height)
+    const ro = new ResizeObserver(measure)
+    if (cardRef.current) ro.observe(cardRef.current)
+    return () => ro.disconnect()
   }, [])
 
   // One-shot path draw — fires 3s after the mat split has settled.
@@ -42,8 +58,8 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
   // path top-to-bottom, rather than scrolling the dot pattern (old dashoffset
   // approach). The path itself is always fully drawn; the clip controls visibility.
   const pathProgress = useMotionValue(0)
-  // 340 = viewBox height (320) + small overshoot so the clip fully clears the bottom
-  const clipHeight = useTransform(pathProgress, [0, 1], [0, 340])
+  // Fixed ceiling: NS is at ~282px below link, 350 clears it with room to spare
+  const clipHeight = useTransform(pathProgress, [0, 1], [0, 350])
   // Once drawn, the path stays — never resets on scroll-back.
   const hasDrawn = useRef(false)
 
@@ -157,39 +173,89 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
         </div>
       </div>
 
-      {/* Dotted path — clipPath rect grows top-to-bottom to reveal dots progressively */}
+      {/* Dotted line from "only test" to North Star top-center.
+          Many small dots sampled along an S-curve cubic bezier (two bends)
+          so the line reads as a hand-drawn trail rather than a straight run.
+          SVG origin = link bottom-center (set via inline top/left).
+          ClipPath rect grows top-to-bottom to reveal dots sequentially. */}
       <div
         className="rr-story-card__dotted-path"
         style={{ top: pathPos.top, left: pathPos.left }}
         aria-hidden="true"
       >
-        <motion.svg
-          viewBox="0 0 160 320"
-          width="160"
-          height="320"
-          fill="none"
-          overflow="visible"
-        >
-          <defs>
-            <clipPath id="rr-dot-path-clip">
-              {/* x/width over-extend left/right so curved portions aren't clipped horizontally */}
-              <motion.rect x="-30" y="-10" width="220" style={{ height: clipHeight }} />
-            </clipPath>
-          </defs>
-          <path
-            d="M 2 0 C 20 80, 130 130, 110 210 C 90 275, 30 290, 47 315"
-            stroke="var(--yellow-800)"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="0 5"
-            clipPath="url(#rr-dot-path-clip)"
-          />
-        </motion.svg>
+        {(() => {
+          const { dx, dy } = dotEnd
+          // S-curve control points: perpendicular offsets give two bends.
+          // Amplitude scales off dy so the curve stays gentle at any card scale.
+          const amp = Math.max(22, Math.min(36, dy * 0.09))
+          const cp1x = dx * 0.25 + amp, cp1y = dy * 0.33
+          const cp2x = dx * 0.75 - amp, cp2y = dy * 0.67
+          const bezier = (t: number) => {
+            const mt = 1 - t
+            return {
+              x: 3*mt*mt*t*cp1x + 3*mt*t*t*cp2x + t*t*t*dx,
+              y: 3*mt*mt*t*cp1y + 3*mt*t*t*cp2y + t*t*t*dy,
+            }
+          }
+          // Arc-length sampling: subdivide finely, accumulate length, then
+          // space dots evenly along the curve (~13px apart).
+          const SUBDIV = 120
+          const samples: { x: number; y: number; d: number }[] = []
+          let total = 0
+          let prev = bezier(0)
+          samples.push({ ...prev, d: 0 })
+          for (let i = 1; i <= SUBDIV; i++) {
+            const p = bezier(i / SUBDIV)
+            total += Math.hypot(p.x - prev.x, p.y - prev.y)
+            samples.push({ x: p.x, y: p.y, d: total })
+            prev = p
+          }
+          const spacing = 13
+          const count = Math.max(2, Math.round(total / spacing))
+          const step = total / (count - 1)
+          const dots: { x: number; y: number }[] = []
+          let si = 0
+          for (let i = 0; i < count; i++) {
+            const target = i * step
+            while (si < samples.length - 1 && samples[si + 1].d < target) si++
+            const a = samples[si], b = samples[Math.min(si + 1, samples.length - 1)]
+            const span = b.d - a.d || 1
+            const f = (target - a.d) / span
+            dots.push({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f })
+          }
+          const pad = 40
+          const vbW = dx + pad
+          const vbH = dy + pad
+          return (
+            <motion.svg
+              viewBox={`0 0 ${vbW} ${vbH}`}
+              width={vbW}
+              height={vbH}
+              fill="none"
+              overflow="visible"
+            >
+              <defs>
+                <clipPath id="rr-dot-path-clip">
+                  <motion.rect x="-20" y="0" width={vbW + 40} style={{ height: clipHeight }} />
+                </clipPath>
+              </defs>
+              {dots.map((pt, i) => (
+                <circle
+                  key={i}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={1.6}
+                  fill="var(--yellow-800)"
+                  clipPath="url(#rr-dot-path-clip)"
+                />
+              ))}
+            </motion.svg>
+          )
+        })()}
       </div>
 
       {/* North Star (story view only) */}
-      <div className="rr-north-star-card rr-north-star-card--incoming" aria-label="North Star">
+      <div ref={northStarRef} className="rr-north-star-card rr-north-star-card--incoming" aria-label="North Star">
         <p className="rr-north-star-card__label">North Star</p>
         <p className="rr-north-star-card__text">
           A game that people can enjoy and want to come back to

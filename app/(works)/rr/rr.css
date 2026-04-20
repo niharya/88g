@@ -72,6 +72,15 @@
   scroll-snap-align: start;
 }
 
+/* Double the vertical gap between sheets that follow the mechanics sheet —
+   gives the cards + outcome chapters more breathing room after the dense
+   mechanics scene. Sheets use vertical margins (see globals.css), so a
+   doubled top margin collapses with the previous sheet's standard bottom
+   margin to yield stack-gap * 2. */
+.route-rr #mechanics ~ .sheet {
+  margin-top: calc(var(--stack-gap) * 2);
+}
+
 
 /* ── Section entrance ──────────────────────────────────────────────────── */
 /* Section reveals are handled by useReveal hook + .section-reveal class
@@ -1971,8 +1980,11 @@
 
 .rr-rules-label {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  /* center keeps the divider's vertical extent aligned with the x-height of
+     both labels; baseline left the divider floating above the text line. */
+  align-items: center;
+  /* 8px + 1px divider (border-left on __note) + 8px padding-left on __note */
+  gap: 8px;
   margin-bottom: 14px;
 }
 
@@ -1991,6 +2003,21 @@
   font-weight: 400;
   color: var(--grey-640);
   letter-spacing: -0.12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Vertical divider between "Rules of the game" and the note. 8px flex-gap
+   sits before the pseudo; 8px margin-right sits after. Height is shorter
+   than the text line (10px vs ~15px line-box) for a lighter visual weight,
+   and colored --grey-720 — one stop lighter than the --grey-640 text. */
+.rr-rules-label__note::before {
+  content: '';
+  display: inline-block;
+  width: 1px;
+  height: 10px;
+  background: var(--grey-720);
+  margin-right: 8px;
 }
 
 
@@ -2705,6 +2732,22 @@
 
 @media (max-width: 767px) {
 
+  /* Halve the workbench horizontal pad on mobile (24 → 12) so the docked
+     nav pills — ProjectMarker, ChapterMarker, ExitMarker — get more room
+     at the frame edges. `.route-rr` is nested inside `.workbench`, so the
+     var override has to sit on the workbench itself (targeted via :has()
+     to scope it to /rr only). Other routes unaffected. */
+  .workbench:has(.route-rr) { --workbench-pad-x: 12px; }
+
+  /* Tighten the top gutter for all three docked chips on /rr mobile.
+     `useDockedMarker` reads this token live (not hardcoded), so the
+     shared `.chapter-nav.is-docked` class still lands at y=8 and the
+     desktop border-halving rule in nav.css applies here without needing
+     a /rr-specific override. The sled-left formula in nav.css already
+     compensates for `workbench-pad-x - sheet-bleed + 2px`, which yields
+     the correct flush position on mobile too. */
+  .workbench:has(.route-rr) { --marker-top: 8px; }
+
   .route-rr {
     /* Page-wide safe margin. Every full-width element aligns inside this.   */
     --rr-safe-x: 12px;
@@ -2766,6 +2809,17 @@
      RR-only: hide the chapter date subtitle on mobile to keep the pill tight. */
   .route-rr .nav-marker__year { display: none; }
 
+  /* Nav-sled flush override. The shared formula in nav.css assumes the
+     sheet's viewport-left = workbench-pad-x − sheet-bleed (i.e. sheet
+     margin-left = −sheet-bleed). On /rr mobile the sheet is recomposed
+     with margin-left: −workbench-pad-x (see `.route-rr .mat` above and
+     the sheet width block), so the sheet's viewport-left is 0 and the
+     shared formula lands 10px short of the project pill. Scope the
+     override to /rr mobile only — desktop still uses the shared formula. */
+  .route-rr .nav-sled {
+    left: calc(var(--project-marker-right) - 2px);
+  }
+
 
   /* ── Interstitial text — align to page safe margin ───────────────────── */
 
@@ -2806,7 +2860,7 @@
        rr) + --marker-top (16) = 64px. This makes the gap below the chapter
        pill equal to the gap above it, so the pill sits visually centred
        between the sheet top and the card top. */
-    padding: var(--space-64) var(--rr-card-inset-x) var(--space-48);
+    padding: var(--space-104) var(--rr-card-inset-x);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -2859,12 +2913,32 @@
     align-self: flex-end;
     margin-top: var(--space-8);
     order: 3;
+    z-index: 1;
   }
 
   /* Decorative siblings drop out under lite */
   #intro .rr-story-card__expand,
   #intro .rr-card-stack,
   #intro .rr-enlarged { display: none; }
+
+  /* Constraint card overlay — expand overlays North Star instead of pushing it.
+     Framer animates __hidden height in flow (0 → 123px). A matching negative
+     margin-top on North Star cancels the push so its visual position stays fixed;
+     z-index: 3 on constraints lifts its stacking context above North Star so the
+     expanded content overlays rather than sits behind it. */
+  #intro .rr-constraints-card { position: relative; z-index: 3; }
+  #intro .rr-north-star-card {
+    /* Ease must match Intro.tsx's EASE const (ease-snap = [0.45, 0, 0.15, 1])
+       used by the constraint-hidden height animation, so the margin pull-up
+       and the constraint grow cancel frame-for-frame. Any mismatch shows up
+       as the story card subtly pulsing height during the toggle. */
+    transition: margin-top var(--dur-slide) var(--ease-snap);
+  }
+  /* When expanded: HIDDEN_OPEN_H = 123px; margin cancels the 123px push exactly.
+     Start value (var(--space-8) = 8px) is the resting gap set above. */
+  #intro .rr-story-card:has(.rr-constraints-card--expanded) .rr-north-star-card {
+    margin-top: calc(-123px + var(--space-8));
+  }
 
 
   /* ── Mechanics — preserve desktop rails, collapse scroll pin ─────────── */
@@ -2937,28 +3011,17 @@
     z-index: 5;
   }
   /* Rails: closed = body tucked UNDER the gameboard, only the tab peeks past
-     the board's RIGHT edge (the click target). Open = slides RIGHT, body
-     emerges from under the board's right edge and sits ON the gameboard
-     (z-elevated above the board so the body shows through).
-     Closed translateX values place each rail body's right edge ≈ board's
-     right edge so the tab (right:-32 of body) peeks just past it.
-     Inline styles set by JS are beaten with !important here. */
-  .route-rr .rr-rules-rail {
-    transform: translateX(0) rotate(1deg) !important;
-  }
-  .route-rr .rr-rules-rail.is-open {
-    transform: translateX(-50px) rotate(0deg) !important;
-  }
-  .route-rr .rr-note-rail {
-    transform: translateX(0) rotate(1deg) !important;
-  }
-  .route-rr .rr-note-rail.is-open {
-    transform: translateX(0) rotate(0deg) !important;
-  }
-  /* Long deceleration so the close doesn't snap and the open settles. */
+     the board's RIGHT edge (the click target). Open = body slides into view
+     and z-elevates above the board.
+     Transforms are NOT overridden here — CSS transform transitions on
+     children of `.rr-mech-family` stall (see ANOMALIES). Mobile-specific
+     open transforms are emitted inline from RulesRail.tsx / NoteRail.tsx
+     (OPEN_TRANSFORM_MOBILE), matching the desktop inline-style pattern.
+     Transition timing can still live in CSS — it applies to the inline
+     transform changes just like on desktop. */
   .route-rr .rr-rules-rail,
   .route-rr .rr-note-rail {
-    transition: transform var(--dur-glide) var(--ease-paper) !important;
+    transition: transform var(--dur-glide) var(--ease-paper);
     will-change: transform;
   }
   /* Game board sits ABOVE the rails when they're tucked, so the body of
@@ -3083,8 +3146,9 @@
     overflow: hidden;
     display: block;
     /* translate -50% counteracted by half scaled-height keeps the canvas
-       vertically centered as the mat grows. */
-    transform: translateY(calc(-450px * var(--rr-cards-scale))) scale(var(--rr-cards-scale)) !important;
+       vertically centered as the mat grows. Extra -33px lifts the whole
+       content block (header + body) 33 physical px for mobile breathing. */
+    transform: translateY(calc(-450px * var(--rr-cards-scale) - 33px)) scale(var(--rr-cards-scale)) !important;
     transform-origin: top left;
     flex: none;
   }
@@ -3128,16 +3192,148 @@
   }
 
 
+  /* ── Interface tab: seamless-switch mobile layout ───────────────────────── */
+  /* Canvas stays at scale(0.5) for BOTH tabs so the title, tabs, subtitle,
+     shader bg, and section height remain constant when switching. Only the
+     BODY content repositions inside the scaled canvas — image centered in the
+     visible canvas range, notes card below it.                               */
+
+  /* Allow expanded notes body to spill below the canvas box into the mat
+     (mat still clips). Without this, canvas overflow:hidden would crop the
+     accordion body when it expands past canvas-y 900.                        */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] {
+    overflow: visible;
+  }
+
+  /* Screenshot — repositioned in canvas coords. Visible canvas-x on 375px
+     viewport is ~[345, 1095]; left:377 + width:686 centers inside that with a
+     16px physical gutter each side. Height auto = natural image aspect. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-desktop {
+    left: 377px;
+    top: 248px;
+    width: 686px;
+    height: auto;
+  }
+
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-desktop__img {
+    height: auto;
+    object-fit: contain;
+  }
+
+  /* Notes card — sits below the image at the same horizontal extent. No
+     rotation on mobile (the stacked, aligned read beats the playful skew
+     at this scale). Flex column so its children can use `order` to put the
+     Details pill at the top and the body below. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes {
+    left: 377px;
+    top: 760px;
+    width: 686px;
+    height: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* No slide-apart on mobile — they stack, so the reveal is the accordion. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-panel--revealed .rr-interface-desktop,
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-panel--revealed .rr-interface-notes {
+    transform: none;
+  }
+
+  /* Frame holds the body; ordered below the Details pill so the pill stays
+     fixed at the top of the card as the body grows downward. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes__frame {
+    position: relative;
+    inset: auto;
+    height: auto;
+    order: 2;
+    border: none;
+  }
+
+  /* Body: collapsed = 0 height, expanded = grows downward into the mat.
+     Padding in canvas-px; font-sizes boosted so rendered size lands readable
+     after the 0.5 canvas scale. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes__body {
+    position: relative;
+    inset: auto;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 28px;
+    transition:
+      max-height var(--dur-slide) var(--ease-paper),
+      padding var(--dur-slide) var(--ease-paper);
+  }
+
+  /* Expanded body: sized to content with a small bottom buffer. A fixed
+     ceiling (560px canvas-px ≈ 280px physical) comfortably clears the 8
+     notes + dividers + padding on any viewport. The viewport-capped min()
+     keeps the body accessible on very short viewports by enabling internal
+     scroll instead of extending past the mat. Padding is tucked tight to
+     the last line (padding-bottom 20) so the sheet ends with a reasonable
+     buffer rather than a viewport-derived gap. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-panel--revealed .rr-interface-notes__body {
+    max-height: min(560px, calc(100vh - 320px));
+    padding: 16px 28px 20px;
+    overflow-y: auto;
+  }
+
+  /* Remove the extra divider above the first note (only the between-note
+     dividers are wanted). Component emits one <hr> before the .map()
+     output; hide that first one via structural selector. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes__body > .rr-interface-note__divider:first-child {
+    display: none;
+  }
+
+  /* Boost note typography so it reads at canvas scale 0.5 (rendered ~11px). */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-note {
+    font-size: 22px;
+    letter-spacing: -0.22px;
+    padding: 12px 0;
+  }
+
+  /* Details pill — row layout, pinned at top of card. */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes__details {
+    position: relative;
+    inset: auto;
+    order: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    gap: 16px;
+    border-bottom: 1px solid var(--yellow-320);
+  }
+
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes__label {
+    writing-mode: horizontal-tb;
+    transform: none;
+    order: 1;
+    font-size: 22px;
+    letter-spacing: -0.44px;
+  }
+
+  /* Arrow points down at rest, up when revealed. Reset desktop rotate(180). */
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-notes__arrow {
+    transform: rotate(-90deg);
+    flex-shrink: 0;
+    order: 2;
+    width: 36px;
+    height: 36px;
+  }
+
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-panel--revealed .rr-interface-notes__arrow {
+    transform: rotate(90deg);
+  }
+
+
   /* ── Outcome — card edge-to-edge, rules panel docked right + swipeable ── */
 
   #outcome.mat {
-    /* Match intro's pill-centred top padding so content clears the chapter
-       pill and sits with equal space above and below the pill. */
-    padding: var(--space-64) var(--rr-card-inset-x) var(--space-48);
+    padding: var(--space-88) var(--rr-card-inset-x) var(--space-64);
   }
 
   .rr-canvas--outcome {
-    gap: 32px;
+    gap: var(--space-56);
     align-items: stretch;
     padding-bottom: 64px; /* ticker rides at the bottom */
   }
@@ -3157,12 +3353,12 @@
     opacity: 1 !important;
   }
 
-  /* Rules group: horizontally swipeable rules panel with caption *below* the
+  /* Rules group: horizontally draggable rules panel with caption *below* the
      panel. Panel keeps its 1349×653 authored composition scaled 0.5 (visual
-     width 674.5px). Negative right margin collapses the panel's layout box
-     to its scaled visual width so the scroll container stops cleanly at the
-     right edge — matches the natural left stop. Label sits below as a flex
-     order:2 child, sized to the scaled panel width so it spans the card.    */
+     width 674.5px). Native scroll is replaced on mobile by a Framer Motion
+     drag="x" wrapper (.rr-rules-dragwrap) with elastic bounds and spring-
+     back — native horizontal scroll on the group, no Framer drag. Page
+     vertical scroll still works because overflow-y is visible.            */
   .rr-rules-group {
     position: relative;
     top: auto;
@@ -3171,7 +3367,7 @@
     width: auto;
     /* Break out of the mat's card-inset-x so the rules image sits edge-to-edge
        on both sides. Inner padding adds a small gap at scroll start/end so
-       the image doesn't touch either viewport edge when panned.             */
+       the image doesn't touch either viewport edge.                        */
     margin: 0 calc(-1 * var(--rr-card-inset-x));
     height: auto;
     transform: none !important;
@@ -3180,11 +3376,11 @@
     flex-direction: column;
     align-items: flex-start;
     overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: visible;
     overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    touch-action: pan-x pan-y;
     padding: 0 var(--space-24) var(--space-16);
+    scrollbar-width: none;
   }
   .rr-rules-group::-webkit-scrollbar { display: none; }
   .rr-rules-inner {
@@ -3193,30 +3389,27 @@
     transform: scale(0.5) !important;
     transform-origin: top left;
     flex: none;
-    /* Panel starts visible at the left edge of the scroll container; user
-       swipes horizontally to reveal the rest of the 674.5px scaled width.
-       Trailing negative margin collapses the 1349px layout box to scaled
-       width so the scroll stops cleanly at the panel's right edge. */
+    /* Scale collapses visual width to 674.5; margin-right pulls the label's
+       top edge up against the panel's visual bottom via negative margin-
+       bottom, keeping the caption tucked under the image rather than pushed
+       down by the 653-tall layout box.                                     */
     margin-left: 0;
     margin-right: calc(-1349px * 0.5);
     margin-bottom: calc(-653px * 0.5);
   }
   .rr-rules-label {
     order: 2;
-    position: relative;
-    left: 0;
-    /* Match the scaled image width so the caption is anchored to the image's
-       left edge and scrolls with it when the user pans horizontally. Keeps
-       the desktop row structure: title | note at baseline.                 */
-    width: calc(1349px * 0.5);
+    /* Flows inside the horizontally scrolling group (not sticky): the whole
+       caption is a single line that overflows the viewport and scrolls with
+       the rules card. "Rules of the game" + "(Appears at the start…)" reads
+       as one continuous line trailing the image. */
+    white-space: nowrap;
     max-width: none;
     /* 6px margin-top is a by-eye nudge (no --space-6 token); 12 → --space-12. */
     margin: 6px 0 0 var(--space-12);
-    z-index: auto;
   }
-  /* Disable expand-on-click on mobile — the swipeable panel is the reading
-     affordance. Close button is desktop-only.                                */
-  .rr-rules-inner { pointer-events: none; }
+  /* Disable expand-on-click on mobile — the draggable panel is the reading
+     affordance. Close button is desktop-only.                               */
   .rr-rules-close { display: none; }
 
   /* Ticker: stretches full-bleed at the bottom of the outcome mat. */
