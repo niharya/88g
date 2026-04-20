@@ -14,14 +14,18 @@
 // old and new values over 0.9s under `--ease-paper`. We get smooth color
 // morphing on scroll without a per-frame JS tween loop.
 //
-// When no mark section is dominant (Hero, Essay, Buffer), the palette
-// falls back to the Hero's dark gradient (#333 → #000).
+// When no mark section is dominant (Hero, Essay), the palette falls back
+// to the Hero's dark gradient (#333 → #000). The tail of the document —
+// BlankSection (pure black) and HeroClone (hero gradient) — participate
+// in the dominance contest directly so their palettes win as scroll
+// approaches them, making the clone-and-teleport wrap invisible.
 
 import { useEffect, useRef } from 'react'
 import { MARKS } from '../data/marks'
 
 type Palette = { stopA: string; stopB: string; stopMid?: string; angle: number }
-const HERO_PALETTE: Palette = { stopA: '#333333', stopB: '#000000', angle: 233.57 }
+const HERO_PALETTE:  Palette = { stopA: '#333333', stopB: '#000000', angle: 233.57 }
+const BLACK_PALETTE: Palette = { stopA: '#000000', stopB: '#000000', angle: 180 }
 
 // Linear RGB midpoint of two hex colors. Used when a palette doesn't declare
 // a `stopMid` — the three-stop gradient in marks.css needs a real color for
@@ -74,20 +78,27 @@ export default function Background() {
         }
       })
 
-      // Buffer black zone: when the opaque black zone dominates the viewport,
-      // reset palette back to Hero. The overlay is fully opaque during the
-      // black zone, so the palette swap underneath is imperceptible — by the
-      // time the fade-in zone reveals the fixed background, it's hero-grey
-      // again, easing the reel into the next Hero cycle.
-      const blackZone = document.querySelector<HTMLElement>(
-        '.marks-buffer__zone[data-buffer-zone="black"]',
-      )
-      if (blackZone) {
-        const rect = blackZone.getBoundingClientRect()
+      // Tail of the document: BlankSection (pure black) and HeroClone
+      // (hero gradient) contest dominance the same way mark sections do.
+      // Having them participate here is what makes the wrap invisible —
+      // by the time the clone is docked, Background is already painting
+      // the same palette as the real Hero at y=0.
+      const blank = document.querySelector<HTMLElement>('.marks-blank')
+      if (blank) {
+        const rect = blank.getBoundingClientRect()
         const overlap = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0))
         const score = overlap / vh
         if (score > best.score) {
-          best = { id: '__hero__', palette: HERO_PALETTE, score }
+          best = { id: '__blank__', palette: BLACK_PALETTE, score }
+        }
+      }
+      const heroClone = document.querySelector<HTMLElement>('.marks-hero-clone')
+      if (heroClone) {
+        const rect = heroClone.getBoundingClientRect()
+        const overlap = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0))
+        const score = overlap / vh
+        if (score > best.score) {
+          best = { id: '__hero_clone__', palette: HERO_PALETTE, score }
         }
       }
       if (best.id !== activeId) {

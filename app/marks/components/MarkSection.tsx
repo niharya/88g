@@ -28,6 +28,7 @@ import { MARKS } from '../data/marks'
 import MarkCarousel from './MarkCarousel'
 import MarkChrome from './MarkChrome'
 import { useShowcaseTimer } from './hooks/useShowcaseTimer'
+import { useDominanceSnap } from './hooks/useDominanceSnap'
 import { scrollGlide } from '../lib/scrollGlide'
 
 interface MarkSectionProps {
@@ -40,6 +41,10 @@ interface MarkSectionProps {
 // it flipping each frame if the user parks right at the edge).
 const SETTLE_IN  = 0.85
 const SETTLE_OUT = 0.60
+
+// Dominance-based snap lives in useDominanceSnap (shared with BlankSection
+// and HeroClone). MarkSection only owns the --mark-p/--mark-v/data-settled
+// writes, delivered via the hook's onScroll callback.
 
 export default function MarkSection({ mark, index }: MarkSectionProps) {
   const ref = useRef<HTMLElement>(null)
@@ -58,51 +63,52 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
     return () => observer.disconnect()
   }, [])
 
-  // Scroll listener that writes `--mark-p` + toggles `data-settled`.
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    let settled = false
-    const update = () => {
-      const vh = window.innerHeight || 1
-      const top = el.getBoundingClientRect().top
-      const p = Math.max(0, Math.min(1, (vh - top) / vh))
-      el.style.setProperty('--mark-p', String(p))
+  // Per-frame writes for this section: --mark-p (entry progress),
+  // --mark-v (centered-ness), and the data-settled latch with hysteresis.
+  // The dominance-based snap + listener plumbing lives in useDominanceSnap.
+  const settledRef = useRef(false)
+  const onScroll = useCallback((el: HTMLElement, rect: DOMRect, vh: number) => {
+    const top = rect.top
+    const p = Math.max(0, Math.min(1, (vh - top) / vh))
+    el.style.setProperty('--mark-p', String(p))
 
-      if (!settled && p >= SETTLE_IN) {
-        settled = true
-        el.dataset.settled = 'true'
-      } else if (settled && p <= SETTLE_OUT) {
-        settled = false
-        delete el.dataset.settled
-      }
-    }
-    update()
-    window.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      window.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
+    // --mark-v: centered-ness, 1 when the section sits centered in the
+    // viewport, 0 when it's fully off (either direction). Drives the
+    // scroll-tied exit fade + scale per-leaf in CSS.
+    const centerDist = Math.abs((rect.top + rect.height / 2) - vh / 2)
+    const v = Math.max(0, Math.min(1, 1 - centerDist / vh))
+    el.style.setProperty('--mark-v', String(v))
+
+    if (!settledRef.current && p >= SETTLE_IN) {
+      settledRef.current = true
+      el.dataset.settled = 'true'
+    } else if (settledRef.current && p <= SETTLE_OUT) {
+      settledRef.current = false
+      delete el.dataset.settled
     }
   }, [])
+  useDominanceSnap(ref, { onScroll })
 
   // When the last slide wraps, paper-glide into the next mark section.
-  // Last mark in MARKS is the handoff point to the Buffer — chunk 6 wires
-  // that to the infinite-loop reset. Until then, last mark simply stops
-  // advancing (no buffer target yet).
+  // After the final mark (Kilti) the next section is BlankSection, then
+  // HeroClone — which teleports back to the real Hero when it docks.
   const advanceToNextMark = useCallback(() => {
     const nextIdx = index + 1
     const nextMark = MARKS[nextIdx]
-    if (!nextMark) return
-    const nextSection = document.querySelector<HTMLElement>(
-      `.marks-section[data-mark-id="${nextMark.id}"]`,
-    )
+    // Next mark exists → glide to it. If we're on the last mark (Kilti),
+    // glide to BlankSection — the reel continues into the blank → clone
+    // → teleport loop without the viewer having to scroll manually.
+    const nextSection = nextMark
+      ? document.querySelector<HTMLElement>(
+          `.marks-section[data-mark-id="${nextMark.id}"]`,
+        )
+      : document.querySelector<HTMLElement>('.marks-blank')
     if (!nextSection) return
     const top = nextSection.getBoundingClientRect().top + window.scrollY
     scrollGlide(top)
   }, [index])
 
-  const { index: activeSlide, setIndex, pauseForInteraction } = useShowcaseTimer({
+  const { index: activeSlide, setIndex, pauseForInteraction, setHoverPaused, clickPaused, hoverPaused } = useShowcaseTimer({
     total:  mark.slides.length,
     active,
     onWrap: advanceToNextMark,
@@ -158,13 +164,26 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
       nudge(dx < 0 ? 1 : -1)
     }
 
+    // Keyboard arrows on the dominant mark — bounded within this mark
+    // (no cross-mark hop). Counts as interaction → click-pause semantics.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      // Ignore if the user is typing into a field.
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      e.preventDefault()
+      nudge(e.key === 'ArrowRight' ? 1 : -1)
+    }
+
     el.addEventListener('wheel',      onWheel,      { passive: true })
     el.addEventListener('touchstart', onTouchStart, { passive: true })
     el.addEventListener('touchend',   onTouchEnd,   { passive: true })
+    window.addEventListener('keydown', onKey)
     return () => {
       el.removeEventListener('wheel',      onWheel)
       el.removeEventListener('touchstart', onTouchStart)
       el.removeEventListener('touchend',   onTouchEnd)
+      window.removeEventListener('keydown', onKey)
     }
   }, [active, setIndex, pauseForInteraction, mark.slides.length])
 
@@ -177,7 +196,31 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
       data-mark-index={index}
     >
       <MarkCarousel mark={mark} index={activeSlide} />
-      <MarkChrome mark={mark} index={activeSlide} />
+      <MarkChrome
+        mark={mark}
+        index={activeSlide}
+        active={active}
+        clickPaused={clickPaused}
+        hoverPaused={hoverPaused}
+        onJump={(i) => {
+          pauseForInteraction()
+          setIndex(i)
+          // Snap this section to viewport top so the jumped-to slide is
+          // actually in view — the user may have clicked from a section
+          // that's only partially docked.
+          const el = ref.current
+          if (el) {
+            const top = el.getBoundingClientRect().top + window.scrollY
+            if (Math.abs(top - window.scrollY) > 1) {
+              // --dur-settle (0.5s) — snappier than the default paper glide,
+              // matches the "settles into place" semantic for a paginator click.
+              const dur = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-settle')) * 1000
+              scrollGlide(top, dur || 500)
+            }
+          }
+        }}
+        onHoverChange={setHoverPaused}
+      />
     </section>
   )
 }

@@ -1,30 +1,27 @@
 'use client'
 
-// MarkCarousel — horizontal translateX track, index-driven.
+// MarkCarousel — index-driven slide stage with tab-switch crossfade.
 //
-// Slide 1 is always the SVG mark (rendered via the route-local marks barrel).
-// Slides 2+ are Next <Image>s driven by the MarkEntry.slides list, OR
-// additional placeholder 'mark' slides with a `flip` set (scaleX/Y(-1)) so
-// the carousel has real content to tick through before production media
-// lands.
+// Slide 1 is always the SVG mark; slides 2+ are Next <Image>s (or flipped
+// placeholder marks) from MarkEntry.slides.
 //
-// The mark sits at editorial scale, centered, with `mix-blend-mode: overlay`
-// so the gradient reads through the glyph and the ink picks up the palette.
-// Horizontal trackpad/wheel advance + 40px touch threshold land in a later
-// chunk alongside the showcase timer's interaction-pause wiring.
+// Transition model: AnimatePresence mode="wait" + TAB_BODY_VARIANTS, the
+// same pattern used by /rr Cards (cards | interface) and /biconomy Demos.
+// Only the active slide is in the DOM at a time — Presence drives the
+// exit (old slide) before the enter (new slide) so the crossfade reads as
+// a tab switch rather than a pile of stacked layers.
 
+import { AnimatePresence, motion } from 'framer-motion'
 import Image from 'next/image'
 import type { MarkEntry } from '../data/marks'
 import { marks } from './marks'
+import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../lib/motion'
 
 interface MarkCarouselProps {
   mark:  MarkEntry
   index: number  // active slide index (0-based), driven by useShowcaseTimer.
 }
 
-// Map MarkSlide.flip to the inline transform applied on the glyph. Inline
-// style keeps the MarkComponent pure (no wrapper div) while still stacking
-// cleanly with the existing `mix-blend-mode: overlay` from marks.css.
 function flipTransform(flip?: 'x' | 'y'): string | undefined {
   if (flip === 'x') return 'scaleX(-1)'
   if (flip === 'y') return 'scaleY(-1)'
@@ -33,6 +30,7 @@ function flipTransform(flip?: 'x' | 'y'): string | undefined {
 
 export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
   const MarkGlyph = marks[mark.id]
+  const slide = mark.slides[index]
 
   return (
     <div
@@ -40,11 +38,15 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
       data-active-slide={index}
       aria-roledescription="carousel"
     >
-      {mark.slides.map((slide, i) => (
-        <div
-          key={i}
-          className={`mark-carousel__slide${i === index ? ' mark-carousel__slide--active' : ''}`}
-          aria-hidden={i !== index}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={index}
+          className={`mark-carousel__slide mark-carousel__slide--active${slide.kind === 'mark' ? ' mark-carousel__slide--blend' : ''}`}
+          variants={TAB_BODY_VARIANTS}
+          initial="enter"
+          animate="active"
+          exit="exit"
+          transition={TAB_BODY_TRANSITION}
         >
           {slide.kind === 'mark' ? (
             <MarkGlyph
@@ -63,8 +65,8 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
               />
             </figure>
           )}
-        </div>
-      ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }

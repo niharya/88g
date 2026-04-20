@@ -2,8 +2,8 @@
    /marks — Marks & Symbols route
 
    Editorial credits-reel. One continuous document:
-     HERO (100vh) → ESSAY (auto) → 6 MARK SECTIONS (100vh each) → BUFFER (~80vh)
-     → silent scroll-shift → loops back to HERO.
+     HERO (100vh) → ESSAY (auto) → 6 MARK SECTIONS (100vh each) →
+     BLANK (100vh) → HERO-CLONE (100vh) → teleport(0,0) → loops back to HERO.
 
    Unlike /biconomy and /rr, this route does NOT use `.sheet` containers.
    The dark field is the medium; each phase paints its own surface within
@@ -25,7 +25,6 @@
   /* Phase heights (spec from MARKS_BRIEF.md) */
   --marks-hero-h:       100vh;
   --marks-section-h:    100vh;
-  --marks-buffer-h:     80vh;
 
   /* Hero (chunk 3) — values transcribed from Figma node 2466:3791.
      Title is Fraunces Regular 120px with WONK alternates, tracked -3.6px,
@@ -40,10 +39,10 @@
   --marks-hero-gradient:   linear-gradient(233.57deg, #333 69.875%, #000 106.73%);
 
   /* Reel timings — consumed by chunks 8 & 9 */
-  --marks-slide-dur:        4s;     /* auto-advance within a mark */
+  --marks-slide-dur:        8s;     /* auto-advance within a mark */
   --marks-idle-resume:      24s;    /* resume after user interaction */
   --marks-gradient-loop:    14s;    /* per-mark palette drift */
-  --marks-noise-loop:       30s;    /* noise background-position drift */
+  --marks-noise-loop:       60s;    /* noise background-position drift */
   --marks-cross-mark-dur:   0.9s;   /* cross-mark gradient crossfade */
   --marks-settle-delay:     4s;     /* magnetic settle after scroll idle */
 }
@@ -169,7 +168,8 @@ html[data-marks-hidden='true'] .marks-background::after {
 .marks-hero,
 .marks-essay,
 .marks-section,
-.marks-buffer {
+.marks-blank,
+.marks-hero-clone {
   position: relative;
   /* No z-index: sections rely on source order to stack above the fixed
      .marks-background. Adding a z-index here would create stacking contexts
@@ -178,43 +178,15 @@ html[data-marks-hidden='true'] .marks-background::after {
   width: 100%;
 }
 
-.marks-hero     { min-height: var(--marks-hero-h); }
-.marks-section  { min-height: var(--marks-section-h); overflow: hidden; }
-.marks-buffer {
-  min-height: var(--marks-buffer-h);
-  display: flex;
-  flex-direction: column;
-}
+.marks-hero        { min-height: var(--marks-hero-h); }
+.marks-section     { min-height: var(--marks-section-h); overflow: hidden; }
 
-/* Three-zone reel cut. Each zone paints on top of the fixed background,
-   so the fade gradients dissolve the Mark 6 palette into black, hold on
-   black (while Background.tsx palette-resets invisibly), then reveal the
-   hero palette on the way out. */
-.marks-buffer__zone {
-  width: 100%;
-  flex: 0 0 auto;
-}
-.marks-buffer__zone[data-buffer-zone='fade-out'] {
-  height: 25vh;
-  background: linear-gradient(180deg, transparent 0%, var(--marks-bg-rest) 100%);
-}
-.marks-buffer__zone[data-buffer-zone='black'] {
-  height: 30vh;
-  background-color: var(--marks-bg-rest);
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='discrete' tableValues='0 1'/%3E%3CfeFuncG type='discrete' tableValues='0 1'/%3E%3CfeFuncB type='discrete' tableValues='0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  animation: marks-noise-drift var(--marks-noise-loop) linear infinite;
-}
-.marks-buffer__zone[data-buffer-zone='fade-in'] {
-  height: 25vh;
-  background: linear-gradient(180deg, var(--marks-bg-rest) 0%, transparent 100%);
-}
-html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
-  animation-play-state: paused;
-}
-@media (prefers-reduced-motion: reduce) {
-  .marks-buffer__zone[data-buffer-zone='black'] { animation: none; }
-}
+/* Tail of the reel — a blank void followed by a hero clone. Both are
+   structural 100vh canvases; they paint nothing themselves (Background.tsx
+   paints their palettes). See BlankSection.tsx / HeroClone.tsx and
+   ANOMALIES → "Clone-and-teleport infinite reel". */
+.marks-blank,
+.marks-hero-clone { min-height: 100vh; }
 
 
 /* ── Marks title ─────────────────────────────────────────────────────────── */
@@ -445,8 +417,13 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
      sequence is always: color first → details appear.
      `data-settled` flips to "true" at p ≈ 0.85 and latches; that toggles
      the transition below, snapping --content-reveal to 1 in 0.8s even if
-     the user stops scrolling mid-reveal. */
+     the user stops scrolling mid-reveal.
+     `--mark-v` (0→1, written in the same scroll listener) is centered-ness:
+     1 when the section sits centered in the viewport, 0 fully off either
+     side. Drives the scroll-tied exit fade + scale on children below. */
   --mark-p: 0;
+  --mark-v: 1;
+
   --content-reveal: clamp(0, (var(--mark-p) - 0.45) / 0.35, 1);
 
   transition: none;
@@ -455,6 +432,25 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
 .marks-section[data-settled='true'] {
   --content-reveal: 1;
   transition: --content-reveal var(--dur-glide) var(--ease-paper);
+}
+
+/* Scroll-tied exit fade + scale. Driven by --mark-v (1 centered → 0 off
+   either side). Applied per-leaf because ancestor opacity/transform forms
+   an isolation group that breaks mix-blend-mode on the mark glyph and the
+   paginator. Each blend element gets its OWN opacity/transform — that
+   composes cleanly with its blend.
+
+   The mark carousel slide is skipped: AnimatePresence owns its inline
+   opacity/scale (for the tab-switch crossfade) and would override CSS
+   anyway. The glyph exits naturally via section overflow as you scroll. */
+.marks-section .mark-chrome__paginator,
+.marks-section .mark-chrome__divider,
+.marks-section .mark-chrome__caption,
+.marks-section .mark-chrome__year {
+  opacity: var(--mark-v);
+  transform: scale(calc(0.88 + 0.12 * var(--mark-v)));
+  transform-origin: center center;
+  will-change: opacity, transform;
 }
 
 @property --content-reveal {
@@ -511,6 +507,14 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
   width: auto;
   height: auto;
   color: var(--marks-ink);
+}
+
+/* mix-blend-mode lives on the slide wrapper (not the glyph) so it sits on the
+   same element whose opacity animates during AnimatePresence. Otherwise, the
+   opacity<1 parent forms a group that isolates the child's blend target —
+   producing a white flash mid-transition as the glyph briefly blends against
+   a transparent group instead of the palette backdrop. */
+.mark-carousel__slide--blend {
   mix-blend-mode: overlay;
 }
 
@@ -584,12 +588,28 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
   border-radius: 40px;
   background: var(--grey-560);
   transition: width var(--dur-settle) var(--ease-paper);
+  position: relative;
 }
 
 .mark-chrome__dot--active {
   width: 32px;
-  position: relative;
   overflow: hidden;
+}
+
+/* Click target — fills the dot. `all: unset` strips default button chrome;
+   absolute inset covers the dot surface. Focus-visible ring is route-local,
+   pill-shaped to match the dot. */
+.mark-chrome__dot-btn {
+  all: unset;
+  position: absolute;
+  inset: 0;
+  display: block;
+  border-radius: inherit;
+  cursor: pointer;
+}
+.mark-chrome__dot-btn:focus-visible {
+  outline: 2px solid var(--marks-ink);
+  outline-offset: 3px;
 }
 
 .mark-chrome__dot--active::before {
@@ -599,7 +619,33 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
   background: var(--grey-720);
   transform-origin: left center;
   transform: scaleX(0);
-  animation: mark-dot-fill var(--marks-slide-dur, 4s) linear forwards;
+}
+
+/* Fill animation runs only while the section is dominant (active). Gating on
+   `data-active-section` prevents the animation from firing on mount for every
+   section on page load — otherwise all six paginators would play through and
+   land at scaleX(1) before the reader ever arrives, making auto-advance
+   handoffs land on a pre-filled pill. */
+.mark-chrome__paginator[data-active-section='true']
+  .mark-chrome__dot--active::before {
+  animation: mark-dot-fill var(--marks-slide-dur, 8s) linear forwards;
+}
+
+/* Hover pause = "I'm reading" — freeze the fill exactly where it is. The JS
+   tick is also halted via deadline tracking (useShowcaseTimer), so when the
+   cursor leaves, both CSS and JS resume from where they stopped. */
+.mark-chrome__paginator[data-hover-paused='true']
+  .mark-chrome__dot--active::before {
+  animation-play-state: paused;
+}
+
+/* Click pause = "I jumped / I've seen it" — show the slide as consumed (fill
+   locked to full). On release, the animation re-engages from scaleX(0) and
+   races the re-armed advance. */
+.mark-chrome__paginator[data-click-paused='true']
+  .mark-chrome__dot--active::before {
+  animation: none;
+  transform: scaleX(1);
 }
 
 @keyframes mark-dot-fill {
@@ -617,7 +663,8 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
 .mark-chrome__caption {
   margin: 0 0 8px;
   color: var(--grey-720);
-  white-space: nowrap;
+  max-width: min(100%, 702px);
+  text-wrap: pretty;
 }
 
 .mark-chrome__year {
@@ -639,6 +686,40 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
      • Mark carousel media: single column already (min(70vw, 900px)); no change
      • Mark chrome: already uses min(100%, 780px) + 24px padding; no change
    No JS media queries, no transform: scale, no !important. */
+/* ── Exit marker override (route-scoped via marks.css load) ─────────────────
+   /marks strips the pill chrome off EXIT: no white container, no border —
+   just icon + label with `mix-blend-mode: overlay` so it reads through the
+   palette. Vertically aligned to the docked title row (same --marker-top),
+   with flex centering so the 12px label sits on the same visual axis as
+   the 24px title cap-height. */
+/* Align EXIT to the docked title row. Container height 24px matches the
+   title's line-box; icon + label stay center-aligned to each other (not
+   baseline — material-symbols and UI labels have different baselines, so
+   baseline-aligning splits them vertically). */
+.exit-marker {
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+.exit-marker .nav-marker--exit {
+  background: none;
+  border: none;
+  box-shadow: none;
+  mix-blend-mode: overlay;
+}
+
+.exit-marker .nav-marker--exit .nav-marker__content {
+  padding: 0;
+  align-items: center;
+  color: white;
+}
+
+.exit-marker .nav-marker--exit:hover,
+.exit-marker .nav-marker--exit:focus-visible {
+  background: none;
+}
+
 @media (max-width: 767px) {
   .marks-title {
     /* Hero 56px → docked 24px. Letter-spacing scales with font-size so the
@@ -665,8 +746,4 @@ html[data-marks-hidden='true'] .marks-buffer__zone[data-buffer-zone='black'] {
   .marks-essay__preview--wordmarks { margin-top: 56px; }
   .marks-essay__preview--glyphs    { margin-top: 56px; gap: 48px; }
 
-  /* Buffer shortens proportionally so the black zone still dominates at
-     small viewport heights. Percentages are of the buffer track itself —
-     the total stays 80vh via the section rule above. */
-  .marks-buffer { /* structural only; zones already sized by vh fractions */ }
 }

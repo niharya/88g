@@ -9,8 +9,15 @@
 //   State 2 — Docked (--marks-s = 1):   "MARKS & SYMBOLS" at 24px,  26px top
 //   State 3 — Mark   (in mark zone):    "<Mark name>" + grid icon, same 24px
 //
-// States 1↔2 are driven by `--marks-s` (scrollY / 50vh, clamped 0..1) — text
-// is identical across both, so scaling happens around stable content.
+// States 1↔2 are driven by `--marks-s` — clamped 0..1 over 50vh of scroll
+// distance from the nearest hero anchor. There are TWO hero anchors: the
+// real <Hero/> at scrollY=0 and the <HeroClone/> at the tail of the
+// document. At both anchors --marks-s = 0 (big hero state); between them
+// the title settles into the docked-pill state. This is what makes the
+// clone-and-teleport wrap invisible — the title reads "big" on both sides
+// of the teleport, so the y=clone→y=0 jump isn't betrayed by a title pop.
+// Text is identical across State 1 and State 2, so scaling happens around
+// stable content.
 //
 // States 2↔3 and mark→mark transitions are a reel-roll: two slots ping-pong
 // inside a clipped cell. Roll direction follows scroll direction — scrolling
@@ -171,6 +178,16 @@ export default function MarksTitle() {
     // settle rather than a drag against raw scroll velocity.
     const smoothstep = (t: number) => t * t * (3 - 2 * t)
 
+    // Scroll-distance to the nearest hero anchor (real Hero at y=0, or the
+    // HeroClone at its page-top). Drives --marks-s so both anchors read
+    // "big hero" and the clone-teleport wrap leaves no title artifact.
+    const distToNearestHero = (y: number): number => {
+      const clone = document.querySelector<HTMLElement>('.marks-hero-clone')
+      if (!clone) return y
+      const cloneTop = clone.getBoundingClientRect().top + y
+      return Math.min(y, Math.max(0, cloneTop - y))
+    }
+
     const update = () => {
       const y  = window.scrollY
       if (y > lastScrollY)      scrollDir = 'down'
@@ -178,7 +195,7 @@ export default function MarksTitle() {
       lastScrollY = y
 
       const vh = window.innerHeight || 1
-      const raw = Math.max(0, Math.min(1, y / (vh * DOCK_FRACTION)))
+      const raw = Math.max(0, Math.min(1, distToNearestHero(y) / (vh * DOCK_FRACTION)))
       el.style.setProperty('--marks-s', String(smoothstep(raw)))
 
       const nextCommitted = computeCommittedId()
@@ -201,7 +218,10 @@ export default function MarksTitle() {
 
     // Initial paint — write the initial target directly to slot-a so a
     // deep-link / refresh on a mark section doesn't play a catch-up roll.
-    const initialS = Math.max(0, Math.min(1, window.scrollY / ((window.innerHeight || 1) * DOCK_FRACTION)))
+    const initialS = Math.max(
+      0,
+      Math.min(1, distToNearestHero(window.scrollY) / ((window.innerHeight || 1) * DOCK_FRACTION)),
+    )
     el.style.setProperty('--marks-s', String(smoothstep(initialS)))
 
     committedId = computeCommittedId()

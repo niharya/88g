@@ -38,7 +38,7 @@ Running task list. Keeps the work honest when a session loses thread.
 - [ ] Showcase timer — `useShowcaseTimer` (4s/slide, 24s idle, visibility pause, reduced motion)
 - [ ] Magnetic settle — `useMagneticSettle` (4s scroll-end, ≥70% in-view)
 - [ ] Essay preview row hover + jump
-- [ ] Buffer + infinite loop — double-render + silent scroll-shift
+- [x] Clone-and-teleport infinite reel — BlankSection + HeroClone, dominance-snap wraps to `y=0`
 - [ ] Mobile adjustments — built responsive-ready (no separate pass)
 - [ ] `ANOMALIES.md` — infinite loop reset, settle-vs-timer overlap, why marks were promoted
 
