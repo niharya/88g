@@ -127,7 +127,7 @@ Current shared inventory:
   * `Sheet`, `useReveal`, `PaperFilter` — paper/reveal primitives
   * `Monostamp` — monospace stamp (pill + tall variants, four tones, active state)
   * `SlideInOnNav` — entrance wrapper tied to page navigation
-  * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker` (see `nav/ANOMALIES.md`)
+  * `nav/` — `ChapterMarker`, `ProjectMarker`, `ExitMarker`, `MarkerSlot`, `useDockedMarker`. **Before changing anything in `app/components/nav/`, read `LIBRARY.md` → "Nav pill system" and `app/components/nav/README.md`.** Architectural anomalies in `nav/ANOMALIES.md`.
   * `icons/` — hand-rolled animatable SVG icons (`IconArrowRight`, `IconChevronRight`, `IconExternalLink`)
 * **`app/lib/`** — shared utilities (`greeting`, `titleCase`, `motion` — tab-switch motion tokens)
 * **`app/globals.css`** — design tokens, `.mat` surface, `.fonts-ready` gating, typography scale, `.section-reveal` entrance system, `.transition-slot`/`.transition-pane` layout, four-tier elevation ladder (`--shadow-flat` / `-resting` / `-raised` / `-overlay`), `--backseat-dim`, spacing scale (`--space-2` through `--space-112`), motion tokens (`--ease-paper`, `--ease-snap`, `--dur-instant` / `-fast` / `-slide` / `-settle` / `-glide`)

@@ -151,7 +151,6 @@ Pure functions shared across routes. No UI, no state.
 **Where they live**
 - [app/lib/greeting.ts](app/lib/greeting.ts) — time-of-day greeting string ("Good morning", etc.). Consumed on landing.
 - [app/lib/titleCase.ts](app/lib/titleCase.ts) — APA title case. Used anywhere UI copy is authored in sentence case but rendered as a title. `.t-h5` assumes inputs are already APA-cased via this function.
-
 ---
 
 ## Tab-switch motion tokens
