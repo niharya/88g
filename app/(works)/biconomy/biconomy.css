@@ -337,9 +337,9 @@
   --flows-main-gap: var(--space-8);
   --rail-parent-top-offset: calc(var(--flows-header-h) + var(--flows-main-gap));
   --rail-frame-inset: 20px;
-  --rail-width: 220px;
+  --rail-width: 240px;
   --main-open-shift: 120px;
-  --rail-open-tuck: 24px;
+  --rail-open-tuck: var(--space-16);
   --rail-open-shift: calc(var(--rail-width) - var(--rail-open-tuck) - var(--main-open-shift));
 }
 
@@ -1124,7 +1124,7 @@
 
 .bips__notes-rail {
   display: flex;
-  max-width: 240px;
+  max-width: var(--rail-width);
   gap: 2px; /* gap-0.5 */
   align-items: flex-start; /* items-start */
   background: var(--olive-80);
@@ -1137,7 +1137,7 @@
 }
 
 .bips__notes-rail.is-open {
-  transform: translateX(112px) rotate(0deg); /* translate-x-28 */
+  transform: translateX(var(--space-112)) rotate(0deg);
 }
 
 .bips__notes-tab {
@@ -1364,6 +1364,10 @@
 
 .biconomy-chip__slot {
   display: contents;
+}
+
+.biconomy-chip__mark {
+  transition: transform var(--dur-settle) var(--ease-paper);
 }
 
 .biconomy-chip__divider {
@@ -1893,21 +1897,27 @@
   padding-top: 128px;      /* pt-[128px] */
 }
 
-/* Stack container — overflow: visible so offset cards show behind */
+/* Stack container — overflow: visible so offset cards show behind.
+   Click anywhere → next slide. */
 .api__stack-wrap {
   position: relative;
   width: 100%;
   min-width: 0;
   aspect-ratio: 4 / 3;
   overflow: visible;
+  cursor: pointer;
 }
 
+.api__stack-wrap:focus-visible {
+  outline: 2px solid var(--olive-400);
+  outline-offset: 8px;
+}
+
+/* Card fills the stack-wrap; image letterboxes inside so portraits
+   and landscapes render at the same authored height. */
 .api__card {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;               /* gap-4 */
-  width: 100%;
+  inset: 0;
 }
 
 /* Card image frame — black bg, thin border, upward shadow.
@@ -1915,21 +1925,48 @@
    monitor" effect, not a container elevation. Keep values inline. */
 .api__card-frame {
   position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--grey-240);
   background: black;
   box-shadow: 0 -4.84px 4.84px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* Raw variant — no black monitor frame, image sits directly on the mat
+   but keeps the same 1px border as landscape frames. Used by nav-signing
+   where portrait sketches read better without a letterboxed box. */
+.api__stack-wrap--raw .api__card-frame {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.api__stack-wrap--raw .api__card-img {
+  border: 1px solid var(--grey-240);
+}
+
 .api__card-img {
-  object-fit: contain;
-  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
+  object-fit: contain;
   display: block;
   user-select: none;
   pointer-events: none;
 }
 
-/* Caption + nav row */
+/* Caption + nav row. For the raw (portrait) variant, constrain width to
+   match the letterboxed image width — 3/4 of stack height, stack is 4:3,
+   so image = 56.25% of stack-wrap width. Centered to align with image. */
+.api__slider--raw .api__caption-row {
+  width: 56.25%;
+  margin-inline: auto;
+}
+
 .api__caption-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -1944,30 +1981,123 @@
   text-align: start;
 }
 
-/* ── Side column ── */
+/* ── Side column — olive sheet housing the flows list + asimov copy.
+   Palette + inner outline mirror .bips__notes-content. ── */
 
 .api__side-col {
   grid-column: 5 / 7;     /* col-span-2 */
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
-  gap: 16px;               /* gap-4 */
 }
 
-.api__send-assets {
-  width: 120px;
-  height: 64px;
-  object-fit: contain;
-  user-select: none;
-  pointer-events: none;
-  filter: drop-shadow(0.68px 0.68px 1.37px rgba(0, 0, 0, 0.24));
+.api__side-sheet {
+  background: var(--olive-80);
+  color: var(--olive-800);
+  /* Outer padding: content inset (24) so inner outline sits 8px from sheet edge.
+     Flows-list uses negative margins to reach the outline and full-bleed dividers. */
+  padding: var(--space-24);
+  outline: 1px solid var(--olive-400);
+  outline-offset: -8px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+/* ── Flows list — numbered switcher. Dividers extend to the inner
+      olive outline (−16px margin-inline reaches the outline, which sits
+      8px from the sheet edge → 24 − 8 = 16). ── */
+
+.api__flows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-inline: calc(var(--space-16) * -1);
+}
+
+.api__flows-label {
+  color: var(--olive-720);
+  padding: 0 var(--space-16) var(--space-16);
+  margin: 0;
+}
+
+.api__flow-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--olive-560);
+  border-top: 1px solid var(--olive-400);
+  transition: color var(--dur-fast) var(--ease-snap);
+}
+
+.api__flow-item:last-child {
+  border-bottom: 1px solid var(--olive-400);
+}
+
+.api__flow-item:hover,
+.api__flow-item:focus-visible {
+  color: var(--olive-720);
+  outline: none;
+}
+
+.api__flow-item.is-active {
+  color: var(--olive-960);
+}
+
+.api__flow-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--olive-400);
+  font-weight: 400;
+  transition: color var(--dur-fast) var(--ease-snap),
+              font-weight var(--dur-fast) var(--ease-snap);
+}
+
+.api__flow-item:hover .api__flow-num,
+.api__flow-item:focus-visible .api__flow-num {
+  color: var(--olive-720);
+}
+
+/* Selected numeral — one weight stop heavier (400 → 500). Label weight
+   is unchanged; only color communicates selection on the label. */
+.api__flow-item.is-active .api__flow-num {
+  color: var(--olive-960);
+  font-weight: 600;
+}
+
+.api__flow-name {
+  text-wrap: balance;
 }
 
 .api__side-text {
   text-wrap: balance;
-  max-width: 240px;
-  color: var(--grey-480);
+  color: var(--olive-720);
+  margin: 0;
+}
+
+/* ── Trailing zhao.eth card — closing artifact on the mat ── */
+
+.api__trailing {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-48);
+}
+
+.api__trailing-img {
+  width: 200px;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+  transform: rotate(-2deg);
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.06));
 }
 
 /* ── Twitter section ── */
@@ -2027,15 +2157,169 @@
 
 /* Tweet column */
 .api__tweet-col {
-  width: 550px;
+  width: 384px;            /* snapped: 8-grid multiple, ~2/3 of prior 550px */
   margin-top: 112px;       /* mt-28 = 7rem */
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
 }
 
+/* Label — the "title" of this column. Single line, icon inline at the end.
+   Reacts to hover on the sibling .tweet-card via :has() on the column. */
 .api__tweet-label {
+  color: var(--grey-320);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--space-8);
+  white-space: nowrap;
+}
+
+.api__tweet-label-ext {
   color: var(--grey-480);
+  flex-shrink: 0;
+}
+
+.api__tweet-label-ext .icon-ext-arrow {
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+
+.api__tweet-col:has(.tweet-card:hover) .api__tweet-label-ext .icon-ext-arrow,
+.api__tweet-col:has(.tweet-card:focus-visible) .api__tweet-label-ext .icon-ext-arrow {
+  translate: 2px -2px;
+}
+
+.api__tweet-hint {
+  align-self: flex-end;
+  margin-top: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  padding: 3px 6px;
+  border: 1px solid var(--grey-400);
+  border-radius: 4px;
+  color: var(--grey-480);
+  background: transparent;
+  opacity: 0;
+  translate: 0 -4px;
+  transition: opacity var(--dur-slide) var(--ease-paper),
+              translate var(--dur-slide) var(--ease-paper);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.api__tweet-col:has(.tweet-card:hover) .api__tweet-hint,
+.api__tweet-col:has(.tweet-card:focus-visible) .api__tweet-hint {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ── Tweet card — static replacement for Twitter's widget.
+      Structure: identity row (avatar + names + original bird), body, timestamp.
+      Whole card is an anchor to the thread on X. ── */
+
+/* Olive/green notes style, matching .api__side-sheet and .bips__notes-content.
+   Inner outline sits 8px in from the sheet edge; content inset is 16px from
+   the outline (padding 24 − 8 = 16). */
+.tweet-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-24);
+  background: var(--olive-80);
+  color: var(--olive-800);
+  outline: 1px solid var(--olive-400);
+  outline-offset: -8px;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-paper);
+}
+
+
+.tweet-card:hover,
+.tweet-card:focus-visible {
+  background: color-mix(in srgb, var(--olive-80) 70%, var(--olive-160));
+  outline-color: var(--olive-560);
+}
+
+.tweet-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+}
+
+.tweet-card__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.tweet-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--olive-160);
+  color: var(--olive-800);
+  border: 1px solid var(--olive-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.tweet-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tweet-card__avatar-letter {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.tweet-card__names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tweet-card__name {
+  color: var(--olive-960);
+}
+
+.tweet-card__handle {
+  color: var(--olive-560);
+}
+
+.tweet-card__bird {
+  color: var(--olive-720);
+  flex-shrink: 0;
+  transition: color var(--dur-slide) var(--ease-paper),
+              rotate var(--dur-slide) var(--ease-paper);
+}
+
+.tweet-card:hover .tweet-card__bird,
+.tweet-card:focus-visible .tweet-card__bird {
+  color: #1DA1F2;
+  rotate: -2deg;
+}
+
+.tweet-card__body {
+  color: var(--olive-800);
+  text-wrap: pretty;
+  margin: 0;
+}
+
+.tweet-card__timestamp {
+  color: var(--olive-560);
+  display: block;
 }
 
 /* ==========================================================================
@@ -2060,77 +2344,69 @@
   color: var(--blue-800);
 }
 
-/* 10-column photo/prose grid */
-.sa__grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 16px;             /* gap-4 */
+/* Photostack — all prints pile into a fixed frame, random tilts, instant
+   z-order swap on click. No transitions; the "tak-tak" snap is the point. */
+.sa__stack-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-32);
+  padding-top: var(--space-32);
+  padding-bottom: var(--space-32);
 }
 
-/* Photo base */
+.sa__stack {
+  position: relative;
+  width: 440px;            /* bounding box — large enough for widest landscape */
+  height: 560px;           /* and tallest portrait with polaroid mat */
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Each print sizes to its image's natural aspect — no letterboxing, no
+   cropping. Portraits stay portrait, landscapes stay landscape. The print is
+   absolutely centered inside the stack bounding box so rotations pivot
+   cleanly regardless of aspect. */
 .sa__photo {
-  height: fit-content;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
   border: 1px solid var(--grey-320);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  transform-origin: center center;
+  /* Wrapper shrink-wraps the image — no padding, no background, just a border. */
+  width: fit-content;
+  height: fit-content;
+  line-height: 0;          /* kill inline-image baseline gap */
+  /* No transition — swap is instantaneous. */
 }
 
 .sa__photo-img {
   pointer-events: none;
   user-select: none;
-  height: 100%;
-  width: 100%;
-  object-fit: contain;
   display: block;
+  /* Cap the long side so prints stay consistent in scale across orientations. */
+  max-width: 400px;
+  max-height: 480px;
+  width: auto;
+  height: auto;
 }
 
-/* Photo positions — explicit grid placement */
-
-.sa__photo--a {
-  grid-column: 4 / 6;
-  grid-row: 1;
-}
-
-.sa__photo--b {
-  grid-column: 6 / 8;
-  grid-row: 1;
-}
-
-.sa__photo--c {
-  grid-column: 3 / 5;
-  grid-row: 2;
-}
-
-.sa__photo--d {
-  grid-column: 5 / 7;
-  grid-row: 2;
-}
-
-.sa__prose-1 {
-  grid-column: 3 / 7;
-  grid-row: 3;
-}
-
-.sa__photo--e {
-  grid-column: 5 / 7;
-  grid-row: 4;
-  margin-top: 80px;      /* mt-20 = 5rem */
-}
-
-.sa__prose-2 {
-  grid-column: 7 / 10;
-  grid-row: 4 / 6;
-  margin-top: 80px;      /* mt-20 = 5rem */
+/* Prose block below the stack — same visual treatment as .sa__lead
+   (centered column, blue-800, capped width). */
+.sa__prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 384px;
+  text-align: center;
+  color: var(--blue-800);
   text-wrap: pretty;
-}
-
-.sa__photo--f {
-  grid-column: 3 / 5;
-  grid-row: 5;
-}
-
-.sa__photo--g {
-  grid-column: 5 / 7;
-  grid-row: 5;
+  padding-top: var(--space-16);
+  padding-bottom: var(--space-40);
 }
 
 /* ── Reduced motion ── */
