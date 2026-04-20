@@ -226,6 +226,16 @@ button.nav-marker {
   color: var(--grey-640);
 }
 
+/* Full ↔ short title swap.
+   Default (desktop): show full, hide short.
+   Mobile (<768): if a shortTitle exists, show short, hide full. When the
+   component omits the short span, the full title is used on all widths. */
+.nav-marker__title-short { display: none; }
+@media (max-width: 767px) {
+  .nav-marker__title:has(.nav-marker__title-short) .nav-marker__title-full { display: none; }
+  .nav-marker__title-short { display: inline; }
+}
+
 
 /* ── Nav arrow ───────────────────────────────────────────────────────────── */
 /* Rotated by ChapterMarker.tsx toward sheet center on every scroll frame.    */

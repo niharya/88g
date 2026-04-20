@@ -30,7 +30,12 @@ function StaticChapterMarker({ chapter }: { chapter: Chapter }) {
       <div className="nav-marker nav-marker--chapter" style={{ borderLeftWidth: 1 }}>
         <span className="nav-marker__content">
           <span className="nav-icon" aria-hidden="true">arrow_downward</span>
-          <span className="nav-marker__title t-btn1">{chapter.title}</span>
+          <span className="nav-marker__title t-btn1">
+            <span className="nav-marker__title-full">{chapter.title}</span>
+            {chapter.shortTitle && (
+              <span className="nav-marker__title-short">{chapter.shortTitle}</span>
+            )}
+          </span>
           <span className="nav-marker__year t-p4">{chapter.year}</span>
         </span>
       </div>
@@ -72,7 +77,12 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
           >
             <span className="nav-marker__content">
               <span className="nav-icon" aria-hidden="true">arrow_upward</span>
-              <span className="nav-marker__title t-btn1">{ch.title}</span>
+              <span className="nav-marker__title t-btn1">
+                <span className="nav-marker__title-full">{ch.title}</span>
+                {ch.shortTitle && (
+                  <span className="nav-marker__title-short">{ch.shortTitle}</span>
+                )}
+              </span>
               <span className="nav-marker__year t-p4">{ch.year}</span>
             </span>
           </motion.button>
@@ -88,7 +98,12 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
       >
         <span className="nav-marker__content">
           <span ref={arrowRef} className="nav-icon nav-arrow" aria-hidden="true">arrow_downward</span>
-          <span className="nav-marker__title t-btn1">{chapter.title}</span>
+          <span className="nav-marker__title t-btn1">
+            <span className="nav-marker__title-full">{chapter.title}</span>
+            {chapter.shortTitle && (
+              <span className="nav-marker__title-short">{chapter.shortTitle}</span>
+            )}
+          </span>
           <span className="nav-marker__year t-p4">{chapter.year}</span>
         </span>
       </button>
@@ -108,7 +123,12 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
           >
             <span className="nav-marker__content">
               <span className="nav-icon" aria-hidden="true">arrow_downward</span>
-              <span className="nav-marker__title t-btn1">{ch.title}</span>
+              <span className="nav-marker__title t-btn1">
+                <span className="nav-marker__title-full">{ch.title}</span>
+                {ch.shortTitle && (
+                  <span className="nav-marker__title-short">{ch.shortTitle}</span>
+                )}
+              </span>
               <span className="nav-marker__year t-p4">{ch.year}</span>
             </span>
           </motion.button>

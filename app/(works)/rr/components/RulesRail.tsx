@@ -11,6 +11,10 @@ const CLOSED_REST_TRANSFORM = 'rotate(1deg)'
 // larger nudge, otherwise it'd float away from the board edge.
 const CLOSED_NUDGED_TRANSFORM = 'translateX(-50px) rotate(1deg)'
 const OPEN_TRANSFORM = 'translateX(163px) rotate(0deg)'
+// Mobile: board doesn't nudge, family is natural-scale 520px-wide. Desktop
+// 163px slide runs right off the mat edge — instead pull the panel LEFT so
+// it lands on top of the game board.
+const OPEN_TRANSFORM_MOBILE = 'translateX(-50px) rotate(0deg)'
 
 function ArrowBackIcon({ className }: { className?: string }) {
   return (
@@ -40,6 +44,16 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
   // After dismissal (click sheet / Start game) it tucks back and stays tucked.
   const [firstVisit, setFirstVisit] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 767px)')
+    const apply = () => setIsMobile(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -84,8 +98,8 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
   }
 
   const transform = isOpen
-    ? OPEN_TRANSFORM
-    : otherOpen
+    ? (isMobile ? OPEN_TRANSFORM_MOBILE : OPEN_TRANSFORM)
+    : otherOpen && !isMobile
       ? CLOSED_NUDGED_TRANSFORM
       : CLOSED_REST_TRANSFORM
 

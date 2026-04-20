@@ -91,7 +91,9 @@ The docked-nav system used by every works route: chapter marker, project marker,
 
 **AI notes**
 - **Import from the barrel (`./nav`), not from individual files.** `index.ts` is the public API. Reaching past it couples consumers to the internal file layout.
-- **`MARKER_TOP` in `useDockedMarker.ts` must match `--marker-top` in `nav.css` (24px).** Noted in `index.ts`. Changing one without the other breaks the docking position. Do not forget.
+- **Docked threshold is read live from the `--marker-top` CSS property** via `readMarkerTopFrom(nav)` in `useDockedMarker.ts` — not a constant. This lets routes override the token per breakpoint (`/rr` mobile uses 8px) without desyncing the JS dock check. Don't cache the read; don't switch the source element to `document.documentElement`. Full rationale in `nav/ANOMALIES.md`.
+- **`MarkerSlot` publishes `--project-marker-right` through four triggers** — ResizeObserver (size), IntersectionObserver (visibility), matchMedia on 767 + 1023 (pill left-shift at breakpoint), MutationObserver on `.workbench` class/childList (route swap + `:has()`-scoped pad overrides). All four are load-bearing; removing any one reintroduces stale variable bugs. Rationale in `nav/ANOMALIES.md`.
+- **`Chapter.shortTitle?`** is an optional mobile-only label. When set, `ChapterMarker` renders both `.nav-marker__title-full` and `.nav-marker__title-short` spans; `nav.css` swaps them via a `:has()` rule inside `@media (max-width: 767px)`. Don't collapse the two-span markup back to bare `{chapter.title}` — that deletes the mobile affordance silently.
 - **Route layouts must import `./nav/nav.css`** to activate the system. Importing the components alone renders them unstyled.
 - **Each route defines its own `Chapter[]`** in its `nav/chapters.ts`. The nav cluster itself is content-free.
 - **Mobile pattern is in `CLAUDE.md`, not in nav.css alone.** The tucked-under-top-frame behavior is documented in CLAUDE.md's "Global mobile patterns" section and implemented through `.workbench::before` (frame) + `--marker-top` (0 on mobile). Nav.css only handles the marker side.

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Rail from './Rail'
 
 const CLOSED_REST_TRANSFORM = 'rotate(1deg)'
@@ -12,6 +12,9 @@ const CLOSED_NUDGED_TRANSFORM = 'translateX(-12px) rotate(1deg)'
 // board nudge above is load-bearing — they must agree or the note will land
 // offset from the board edge.
 const OPEN_TRANSFORM = 'translateX(210px) rotate(0deg)'
+// Mobile: board doesn't nudge; note already starts at left:129 which is near
+// board's left edge. Zero translation on open keeps it visible under the mat.
+const OPEN_TRANSFORM_MOBILE = 'translateX(0px) rotate(0deg)'
 
 interface NoteRailProps {
   /** Slide the rail out from under the game board on mount (closed state). */
@@ -25,14 +28,24 @@ interface NoteRailProps {
 
 export default function NoteRail({ playReveal = false, otherOpen = false, onOpenChange }: NoteRailProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 767px)')
+    const apply = () => setIsMobile(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
 
   // During the reveal keyframe (playReveal && !isOpen), leave transform undefined
   // so the CSS animation owns it — inline style loses to a running CSS animation
   // anyway, but keeping the branch explicit matches original intent.
   let transform: string | undefined
   if (playReveal && !isOpen) transform = undefined
-  else if (isOpen) transform = OPEN_TRANSFORM
-  else if (otherOpen) transform = CLOSED_NUDGED_TRANSFORM
+  else if (isOpen) transform = isMobile ? OPEN_TRANSFORM_MOBILE : OPEN_TRANSFORM
+  else if (otherOpen && !isMobile) transform = CLOSED_NUDGED_TRANSFORM
   else transform = CLOSED_REST_TRANSFORM
 
   return (

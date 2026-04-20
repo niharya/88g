@@ -52,8 +52,29 @@ Previously, ProjectMarker measured its own right edge on mount via a single
 `useEffect` with `getBoundingClientRect`. This was fragile — missed font loads,
 text changes, and layout shifts.
 
-Now: MarkerSlot (left) uses a `ResizeObserver` + resize listener to continuously
-publish `--project-marker-right` on `<html>`. The measurement is always current.
+Now: MarkerSlot (left) uses **four** triggers to publish
+`--project-marker-right` on `<html>`, each catching a different kind of
+change:
+
+- **`ResizeObserver`** — pill content size changes (font load, text swap).
+- **`IntersectionObserver`** — visibility transitions (shell going from
+  `display: none` → visible on route change).
+- **`matchMedia` on the 767 and 1023 breakpoints** — the pill's fixed
+  `left` is driven by `--workbench-pad-x`, which changes at those media
+  queries. The pill moves horizontally without resizing; ResizeObserver
+  misses it. The matchMedia listener catches the crossing.
+- **`MutationObserver` on the `.workbench`** (attributes + childList) —
+  route swaps add/remove a direct child whose class drives a `:has()`
+  override on `--workbench-pad-x` (e.g. `.workbench:has(.route-rr)` uses
+  `12px` instead of `24px` on mobile). Attribute/child mutations re-publish
+  on `requestAnimationFrame` so the pill's post-swap right edge lands in
+  the CSS variable.
+
+**Don't remove any of the four** — each fixes a real failure mode that
+the others don't catch. The previous implementation only had ResizeObserver
+and IntersectionObserver, which left `--project-marker-right` stale after
+route transitions and media-query crossings (fixed April 2026 — caused a
+10px horizontal gap between project and chapter pills on `/rr` mobile).
 
 The `.project-marker` CSS class lives on MarkerSlot's wrapper div, not on
 ProjectMarker itself. All existing CSS selectors (nav.css, selected.css, rr.css)
@@ -139,19 +160,36 @@ attribute — see `app/(works)/rr/ANOMALIES.md`).
 
 ---
 
-## `MARKER_TOP` is duplicated in JS and CSS
+## `MARKER_TOP` is read live from the nav element, not documentElement
 
-`useDockedMarker.ts` has `const MARKER_TOP = 24`. This **must** match
-`--marker-top` in `nav.css`. The JS uses it for two things:
+`useDockedMarker.ts` reads `--marker-top` at every scroll frame via
+`readMarkerTopFrom(nav)`. The JS uses it for two things:
 
-- Docked detection: `Math.abs(navRect.top - MARKER_TOP) < 4` decides whether the
-  sticky marker is currently stuck.
+- Docked detection: `Math.abs(navRect.top - readMarkerTopFrom(nav)) < 4`
+  decides whether the sticky marker is currently stuck.
 - Tray-open scroll alignment: when the tray opens, the page is nudged so the
   marker stays visually at MARKER_TOP after `position: sticky` switches to
   `relative`.
 
-If you change one, change both. There is no CSS-only way to detect "is this
-sticky element currently stuck", so the JS measurement is necessary.
+**Why the nav element, not `document.documentElement`:** some routes scope
+their `--marker-top` override to an ancestor (e.g. `/rr` mobile puts
+`--marker-top: 8px` on `.workbench:has(.route-rr)` so it only applies on
+that route). The nav is inside the workbench, so `getComputedStyle(nav)`
+resolves the value through the inherited cascade. Reading from
+`document.documentElement` would return the globals value (24 desktop,
+16 mobile) and `is-docked` would flicker on/off around the threshold —
+the exact "stroke thins briefly then reverts" symptom that was fixed
+April 2026.
+
+There is no CSS-only way to detect "is this sticky element currently
+stuck", so the JS measurement is necessary. Fallback is 24px.
+
+**Don't cache the read.** `readMarkerTopFrom` runs on every scroll frame by
+design — it piggybacks on the scroll handler which already calls
+`getBoundingClientRect` on the same frame, so layout is flushed regardless.
+A "smart" cache invalidated on matchMedia + class-change events would be
+strictly more code for a two-digit integer lookup, and would reintroduce
+the stale-value class of bug this change fixed.
 
 ---
 
@@ -176,6 +214,50 @@ effect.
 `CLAUDE.md` calls this out explicitly: **do not change the chapter tray tilt
 behavior unless explicitly asked.** It's load-bearing for the visual identity of
 all routes.
+
+---
+
+## `Chapter.shortTitle` — two-span swap for mobile
+
+Chapter type has an optional `shortTitle`. When set, all four
+`ChapterMarker` render sites (static pill, dynamic pill, above-flyout,
+below-flyout) render the title as two sibling spans:
+
+```tsx
+<span className="nav-marker__title t-btn1">
+  <span className="nav-marker__title-full">{chapter.title}</span>
+  {chapter.shortTitle && (
+    <span className="nav-marker__title-short">{chapter.shortTitle}</span>
+  )}
+</span>
+```
+
+Default CSS hides `.nav-marker__title-short`. Inside `@media (max-width:
+767px)`, a `:has()` rule inverts the visibility **only** when a short span
+is present:
+
+```css
+.nav-marker__title-short { display: none; }
+@media (max-width: 767px) {
+  .nav-marker__title:has(.nav-marker__title-short) .nav-marker__title-full { display: none; }
+  .nav-marker__title-short { display: inline; }
+}
+```
+
+**Don't:**
+- Collapse the two-span markup back to `{chapter.title}` as a "cleanup."
+  That silently deletes the mobile affordance for every route that ships
+  a `shortTitle`.
+- Move the `:has()` swap out of the `@media (max-width: 767px)` block.
+  Without the media gate, desktop switches to the short label too.
+- Drop the `:has()` predicate. Without it, every chapter with an empty
+  `shortTitle` span (none of them, since the `&&` guards it — but a
+  future edit could regress this) would hide the full title on mobile
+  and show nothing.
+
+Used by: `/rr` (Intro/Mechanics/Cards have short labels; Outcome keeps the
+full label). Routes with no short labels are unaffected — the render sites
+omit the second span and the `:has()` rule never matches.
 
 ---
 
@@ -263,6 +345,7 @@ block legitimately overrides it inline (8px → 4px).
 - `.project-marker` class name on MarkerSlot (targeted by 4 CSS sites)
 - `.section-reveal` class on Sheet — consumed by globals.css and by TransitionSlot
 - `.transitioning` on `.workbench` — the contract between TransitionSlot and useReveal
+- The two-span title markup in `ChapterMarker` (full + optional short) and the `:has()` swap rule in `nav.css` — both required for per-chapter mobile labels
 
 ---
 

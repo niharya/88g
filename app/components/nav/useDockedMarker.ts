@@ -11,12 +11,27 @@
 // pointing to the <section> element. The hook finds sheet-stack via
 // containerRef.closest('.sheet-stack') for tray operations.
 //
-// MARKER_TOP must match --marker-top in nav.css (24px).
+// MARKER_TOP is read from the live `--marker-top` CSS custom property so
+// routes that override the token for different breakpoints (e.g. /rr mobile
+// using 8px) still dock correctly. Falls back to 24px if unreadable.
+//
+// IMPORTANT: read from the nav element itself (not documentElement) so
+// workbench-scoped overrides like `.workbench:has(.route-rr) { --marker-top: 8px }`
+// resolve through the inherited cascade. Reading from documentElement would
+// return the globals value (16px at ≤767px) and `is-docked` would flicker
+// on/off around the threshold instead of latching cleanly.
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Chapter } from './types'
 
-const MARKER_TOP = 24 // px — must match --marker-top in nav.css
+const MARKER_TOP_FALLBACK = 24
+
+function readMarkerTopFrom(el: Element | null): number {
+  if (typeof window === 'undefined' || !el) return MARKER_TOP_FALLBACK
+  const raw = getComputedStyle(el).getPropertyValue('--marker-top').trim()
+  const parsed = parseFloat(raw)
+  return Number.isFinite(parsed) ? parsed : MARKER_TOP_FALLBACK
+}
 
 // Spring specs matching intro surface
 const SPRING     = { type: 'spring' as const, duration: 0.5,  bounce: 0.15 }
@@ -61,7 +76,7 @@ export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMa
       const dy = (targetRect.top  + targetRect.height / 2) - (navRect.top  + navRect.height / 2)
       arrow.style.transform = `rotate(${Math.atan2(dy, dx) * (180 / Math.PI) - 90}deg)`
 
-      nav.classList.toggle('is-docked', Math.abs(navRect.top - MARKER_TOP) < 4)
+      nav.classList.toggle('is-docked', Math.abs(navRect.top - readMarkerTopFrom(nav)) < 4)
     }
 
     update()
@@ -85,7 +100,7 @@ export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMa
     const nav = navRef.current
     if (!nav) return
     // Measure directly — the .is-docked class can be stale during layout transitions
-    if (Math.abs(nav.getBoundingClientRect().top - MARKER_TOP) >= 4) return
+    if (Math.abs(nav.getBoundingClientRect().top - readMarkerTopFrom(nav)) >= 4) return
 
     // Instant-scroll sheet top to y=0 so marker stays at MARKER_TOP visually when
     // position switches from sticky to relative (avoids a jarring jump upward).
@@ -106,7 +121,7 @@ export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMa
     } else {
       const nav = navRef.current
       if (!nav) return
-      if (Math.abs(nav.getBoundingClientRect().top - MARKER_TOP) < 4) {
+      if (Math.abs(nav.getBoundingClientRect().top - readMarkerTopFrom(nav)) < 4) {
         openTray()
       } else {
         // Not docked — scroll so the section's top edge lands flush with the viewport.
