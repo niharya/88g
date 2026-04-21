@@ -7,8 +7,11 @@ import './globals.css'
 // metadataBase resolves relative URLs for OG/Twitter tags. Keep aligned with
 // the live domain. Child routes set their own `title` (template fills in the
 // suffix) and can override `description` / `openGraph` where they differ.
-// Favicon + OG assets live in /public (favicon.ico, favicon.svg,
-// apple-touch-icon.png, og-image.png).
+// Favicon: startooth parts (star = top 8-pointer, tooth = bottom rhombus)
+// in three token colors (blue/olive/terra @720). Six static SVGs in /public.
+// Inline script below coin-flips to one combination per hard reload.
+// Apple icon is the file-convention app/apple-icon.tsx (sticky — iOS home
+// screen doesn't re-roll). OG image lives in /public/og-image.png.
 export const metadata: Metadata = {
   metadataBase: new URL('https://nihar.works'),
   title: {
@@ -24,11 +27,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: 'any' },
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/apple-touch-icon.png',
+    icon: [{ url: '/icon-star-blue.svg', type: 'image/svg+xml' }],
   },
   openGraph: {
     type: 'website',
@@ -71,6 +70,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           if (document.fonts && document.fonts.ready) {
             document.fonts.ready.then(function() { clearTimeout(t); done(); });
           }
+        `}</Script>
+        {/* Favicon swap — uniform pick across six startooth variants on each
+            hard reload: star or tooth, in blue/olive/terra @720. SSR ships
+            star-blue as default; script may swap to any of the six. */}
+        <Script id="favicon-swap" strategy="afterInteractive">{`
+          var shapes = ['star', 'tooth'];
+          var tones = ['blue', 'olive', 'terra'];
+          var shape = shapes[Math.floor(Math.random() * shapes.length)];
+          var tone = tones[Math.floor(Math.random() * tones.length)];
+          var link = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+          if (link) link.href = '/icon-' + shape + '-' + tone + '.svg';
         `}</Script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
