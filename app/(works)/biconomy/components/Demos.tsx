@@ -164,7 +164,8 @@ export default function Demos() {
               htmlFor="demo-figma"
               className={`demos__tab-label demos__tab-label--figma t-h5${currentDemo === 'figma' ? ' demos__tab-label--active' : ''}`}
             >
-              Figma Prototypes
+              <span className="demos__tab-label-full">Figma Prototypes</span>
+              <span className="demos__tab-label-short">Prototypes</span>
             </label>
 
             <input

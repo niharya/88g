@@ -201,15 +201,22 @@ before doing it.
 
 ## Responsive anomalies (mobile ≤767px)
 
-`/biconomy` has only just begun its crafted-lite pass. The BIPs chapter is
-the reference section that ships with `docs/responsive-playbook.md` — the
-remaining chapters (Intro, UX Audit, Flows, Multiverse, Demos, API, Situational
-Awareness) have **not yet had a pass**. Until they do, any mobile breakage in
-those sections is expected and unaddressed.
+`/biconomy` has completed its first crafted-lite pass across every
+chapter (BIPs, Intro, UX Audit/Flows, Multiverse, Demos, API, Situational
+Awareness). All mobile blocks live at the end of `biconomy.css` under
+the heading `/* Crafted-lite pass — mobile */`. Each composition
+decision below maps to a shape in `docs/responsive-playbook.md`; read
+that entry before modifying.
 
-The BIPs mobile block lives at the end of `biconomy.css` under the heading
-`/* ── BIPs — crafted-lite pass ── */`. Each composition decision below
-maps to a shape in the playbook; read that entry before modifying.
+**Known gaps deferred for a second pass** (tracked when relevant, not
+blockers):
+
+- `--biconomy-card-inset-x` token for gutter consistency across chapter
+  surfaces (BIPs / Intro / Demos share an inset but still use literals).
+- Full mat-bleed (Shape 12 left/right) — only the first-mat top bleed
+  has been applied.
+- Situational Awareness chip-row / prose spacing audit (only photostack
+  scale touched this pass).
 
 ### BIPs — grid unbind (Shape 1)
 
@@ -314,6 +321,279 @@ the surrounding composition stays legible.
 
 *Reference pass: 19 April 2026 (playbook v1).*
 
+### Flows — crafted-lite pass (UX Audit)
+
+Mobile re-composes the Flows section into a four-row vertical
+sequence, mirroring BIPs Shape 10 for the notes rail but with an
+extra mechanic to handle Flows' scroll-linked standby→active state.
+
+**Row order (mobile):**
+
+1. title + BA switch (adjacent, left-aligned — same pairing as desktop)
+2. image frame
+3. counter + NavPill (space-between)
+4. notes accordion
+
+**DOM flattening via `display: contents`.** `.flows__nav` is nested
+inside `.flows__header` in the DOM, so CSS `order` can't relocate it
+to row 3 without restructuring. Instead, `.flows__main` and
+`.flows__header` both get `display: contents` on mobile — their
+children become flex items of `.flows` directly, and `order: 1–4`
+places them independently. Desktop DOM is untouched. If the Flows
+section ever needs an accessibility landmark on `.flows__main`,
+`display: contents` may strip it in some older browsers; current
+usage has no landmark role, so this is fine.
+
+**React-inline-style gate (required here).** Unlike BIPs, Flows
+writes Framer motion values as inline `style={{ x: ... }}` on
+`.flows__header-left` (leftTranslateX) and `.flows__nav`
+(navTranslateX). On mobile the standby→active choreography is
+visually disabled — the layout renders statically active — so these
+inline transforms must be overridden with
+`transform: none !important` on both elements. This is the gate the
+playbook names under "Named patterns." Removing `!important` lets
+the springs re-assert themselves and the title group drifts +32px
+right on scroll-in.
+
+**Force `--active-t: 1 !important` on `.flows`.** `Flows.tsx` sets
+`style={{ '--active-t': activeT }}` as an inline CSS variable on
+`<motion.section>` so CSS `calc()` interpolations (pill saturation,
+switch-wrap expansion, label color mix) track the spring. Inline CSS
+variables win over stylesheet rules at equal specificity, so the
+mobile override needs `!important` to force the saturated/expanded
+look at all scroll positions.
+
+**Notes rail → inline accordion.** Same architectural move as BIPs:
+`.flows__notes-wrap` flips `position: absolute → static`; rail loses
+rotation + drawer translate; tab flips from `writing-mode:
+vertical-lr` absolute-pinned to horizontal full-width 44px-min
+button; content `flex: 0 0 auto` with `max-height: 0 ↔ none` instant
+toggle (the same first-render max-height-transition bug BIPs
+documented applies here — do not re-add the transition without a
+measured-scrollHeight JS hook). Outline on rail deferred to `.is-open`
+to avoid a zero-height ghost hairline. `.flows__main.is-notes-open`
+transform is irrelevant under `display: contents` but kept neutralized
+for clarity.
+
+**Snap-on-open (mobile only).** When `showNotes` flips to `true`,
+`Flows.tsx` scrolls so the title row sits ~72px below the viewport
+top (clear of the project/chapter pill strip + breathing space).
+Implementation:
+
+- Ref on `.flows__header-left` — not on `.flows` — because the
+  title row is the anchor the user should land on, not the section
+  top.
+- `matchMedia('(max-width: 767px)')` gate — desktop behavior
+  unchanged (rail emerges beside main, no scroll needed).
+- `requestAnimationFrame` wrapper so the class toggle + layout
+  reflow complete before `getBoundingClientRect()` measures.
+- `window.scrollTo({ top, behavior: 'smooth' })` — 72px offset
+  absorbs `--workbench-pad-y` + pill row + a small cushion. If the
+  shell's top pill strip changes height, revisit the offset.
+
+**Don't touch:**
+
+- The `display: contents` on `.flows__main` and `.flows__header` is
+  load-bearing for the row re-order. If a background/border/padding
+  is ever added to either wrapper for desktop purposes, scope it
+  away from mobile or the re-order stops working.
+- Keep both `transform: none !important` overrides. Removing one
+  while the other stays produces a half-drifted layout that's
+  visibly broken at scroll-in.
+- Keep the snap ref on `.flows__header-left`. Moving it to
+  `.flows` means landing ~20px above where the user expects
+  (section padding above the title).
+- Snap fires on open only — not close. Closing in place preserves
+  the user's reading position.
+
+### Demos — crafted-lite pass (tabs + videos)
+
+Two composition moves — tab re-stack and video scroll strip — plus
+two collapsed-cushion fixes for `.demos__title-header` and
+`.demos__media-row--single`.
+
+**Tab re-stack → two-row box.** Desktop is a single horizontal strip
+with graduated left→right padding (8/12 → 10/14 → 12/16) and
+"Evolution of the Demos" appended as a disabled tag. At 375px the
+row would overflow and the graduated padding reads as broken rather
+than intentional. Mobile composition:
+
+```
+┌────────────────────────────────────┐
+│      Evolution of the Demos        │  row 1
+├──────────┬──────────┬──────────────┤
+│  Figma   │   Web    │    Game      │  row 2
+└──────────┴──────────┴──────────────┘
+```
+
+- `.demos__tab-group` becomes `flex-wrap: wrap; align-items: stretch`.
+- `.demos__tab-disabled` gets `order: 0; flex: 1 1 100%` → row 1
+  full-width. Desktop-only `.grey-*` styling kept intact.
+- Three `.demos__tab-label` items get `order: 1; flex: 1 1 0` →
+  row 2 equal thirds.
+- Graduated padding dropped — all three active tabs land on
+  `padding: var(--space-12) var(--space-8)` with `min-height: 44px`.
+- Row 2 top edge hugs row 1 bottom edge via `margin-top: -1px` on
+  the labels — borders overlap so the stack reads as one box even
+  though row 1 uses grey tokens and row 2 uses orange.
+- First row-2 tab (`--figma`) drops the `margin-left: -1px` desktop
+  overlap — sits flush to the container's left edge instead.
+
+**No JSX change.** The re-order is purely CSS `order`. The DOM stays
+radio / label / radio / label / radio / label / disabled-span; only
+mobile visual order differs. Keyboard tab order follows DOM, so
+radio-arrow navigation still cycles figma → web → game (the
+disabled span is not focusable either way).
+
+**Video scroll strip (Shape 11 option 3).** Root cause of the
+pre-pass invisibility: desktop `padding: 0 128px` on both
+`.demos__media-row--figma` and `.demos__media-row--single`. At
+375px that leaves negative content width — videos had no room, not
+just bad sizing. Mobile:
+
+- Figma row (two videos): `overflow-x: auto; scroll-snap-type: x
+  mandatory; scroll-padding-inline: var(--space-24)`. Each
+  `.demos__video-item` locks to `flex: 0 0 80vw` with
+  `scroll-snap-align: start`. Second video peeks past the right
+  edge as the scroll affordance. Scrollbar hidden
+  (`scrollbar-width: none` + `::-webkit-scrollbar { display: none }`).
+- Single row (web / game): drops the 128px padding, gets a 24px
+  cushion. Stays single-column — one image, no strip.
+- `max-height: 100dvh` dropped — the 1:1 aspect ratio drives height
+  from width now.
+- `.demos__video-frame { width: 100% }` replaces the desktop 90%.
+  90% was the inset inside the desktop tilted-pair composition;
+  irrelevant when items are authored-sized.
+- `.demos__video-item .demos__caption { width: auto; max-width:
+  100% }` — desktop locks `width: 20rem` (320px), which crushes the
+  layout at 375px.
+- **±1° tilts dropped.** Desktop sets `--tilt: -1deg` / `1deg` on
+  `:nth-child(1)` / `(2)`. When only one video is visible at a
+  time in the scroll strip, a lone tilted item reads as broken
+  rather than composed. Override both nth-child rules to
+  `--tilt: 0deg`.
+
+**Don't-touch:**
+
+- Keep the DOM order radio/label triples + trailing disabled span.
+  If you reorder the JSX to put evolution first (matching mobile
+  visual order), desktop's graduated left→right composition
+  breaks.
+- Keep `margin-top: -1px` on row-2 labels. Without it the box
+  shows a 1px gap between evolution and the three tabs and the
+  "flush" composition fails.
+- Don't reintroduce `padding: 0 128px` on any demos media row on
+  mobile. That cushion is the desktop composition — 24px is the
+  mobile authored value.
+- Don't reintroduce the tilts behind a media query. If you think
+  they should return, revisit the whole scroll-strip shape — the
+  two aren't compatible.
+- Title-header cushion (`padding: 20px 128px 0` → `20px 24px 0`) is
+  a literal 24px today. When the `--biconomy-card-inset-x` token
+  lands (plan item #6), swap literals for token.
+
+### Nav pills — year hide (Shape 6 / Shape 7)
+
+Biconomy's project/exit/chapter pills inherit the shared mobile behavior
+from [`app/components/nav/nav.css`](../../components/nav/nav.css) at
+`<768px` — tightened pill padding (4/16/4/6) and the short-title swap
+(unused here; "Biconomy" is already short). Route-local addition: hide
+`.nav-marker__year` on mobile so chapter date subtitles like "2022–24"
+don't widen the pill past comfortable at 375px. Mirrors the `/rr` pattern
+at [`rr.css:2810`](../rr/rr.css:2810).
+
+**Deferred.** The nav-sled `left` override that `/rr` carries
+([`rr.css:2819`](../rr/rr.css:2819)) is not needed yet — biconomy mats are
+not full-bleed (Shape 12 hasn't been applied), so the shared sled formula
+still aligns to the project pill. Revisit when the mat-bleed pass lands.
+
+### Intro — first-mat top bleed + open-travel + toggle anchor (UX Audit)
+
+First chunk of the UX Audit chapter's mobile pass. Three changes:
+
+- **First mat top bleed (Shape 12 partial).** The first sheet's mat
+  extends to the viewport top via `margin-top: calc(-1 * var(--workbench-pad-y))`
+  on `.route-biconomy .sheet-stack > .sheet:first-child`. Pills land on
+  the mat surface as the top row. Left/right mat-bleed is deferred until
+  the chapter-wide mat pass.
+- **Open travel on mobile is `-60%` instead of `-50%`.** Desktop
+  half-shifts the surface because the memo cards sit beside it with
+  horizontal room. On a 375px viewport, `-50%` leaves the cards partly
+  covered, but anything past `-60%` throws the blue surface off-screen
+  instead of letting it rest adjacent to the green memo cards.
+  `Intro.tsx` reads `matchMedia('(max-width: 767px)')` into an
+  `isMobile` state and feeds `-60%` into Framer's `animate.x` when open.
+  SSR default is `false` — matches the closed-state x:0 so there's no
+  hydration mismatch.
+
+The intro surface's inner padding is *not* touched on mobile — the 48px
+frame is load-bearing for the card's visual framing. An earlier pass
+tightened it to 24px; that was reverted.
+
+- **Toggle anchor shift (`right: 0` → `right: 34px`) on mobile.** The
+  toggle's Framer rest state (inline `translateX(50%)` — `whileInView`
+  at `once:true` never re-fires on hydration, so this is the effective
+  resting transform) pushes the handle past the memo container's right
+  edge by half its own width. On desktop that lands the icon + dots
+  past the surface right edge, visible. On a 375px viewport that same
+  translate throws both past the viewport right edge; only a 14px green
+  strip shows between surface-right and viewport-right, and it was
+  empty. Shifting the CSS anchor from `right: 0` to `right: 34px` at
+  `<768px` moves the natural anchor 34px left, so the translated rest
+  position lands with the dots at ~367–371 — inside the visible strip
+  with ~6px of breathing room on both sides.
+
+On mobile the slide-out handle is hidden entirely (`display: none`) and
+replaced by a **single-icon expand pill** inset into the top-right of
+the blue surface (`.intro-expand`). The pill's DOM + CSS is **ported
+shape-for-shape from `/rr` Intro's first story card**
+(`.rr-story-card__expand` at `rr.css:175`, consumed in
+`app/(works)/rr/components/Intro.tsx`) — not from the two-slot
+`.rr-switch-pill` used elsewhere in RR. Blue tokens in place of yellow:
+
+- 36×40, `border-radius: 18px`, `background: var(--blue-100)`,
+  `box-shadow: inset 0 0.5px 2px var(--blue-560)`, icon color
+  `var(--blue-720)`.
+- Positioned `top: 20px; right: 20px` inside `.intro__surface` —
+  breathing room from both edges (RR uses 24/24; scaled down because
+  the biconomy surface is more compact).
+- Single Material Symbols icon — `expand_content` when closed,
+  `collapse_content` when open. Swap happens by rendering the glyph
+  text from the `open` state; no knob, no slots.
+- States (`:hover`, `:active`, `:focus-visible`) use `--blue-160 /
+  -480 / -800` mirroring RR's yellow chain.
+
+The pill shares `setOpen` + `aria-expanded` with the (desktop-only)
+slide-out handle — the two affordances are mutually exclusive but
+functionally equivalent. Desktop hides the pill (default
+`display: none`) and keeps the handle.
+
+- **"dashboard" as an inline trigger.** `.intro__dashboard-trigger` is
+  a `<button>` wrapping the `.text-marker` highlight. `onClick` calls
+  the same `setOpen` as the pill + handle. No visible affordance —
+  `text-decoration: none`; reads as part of the running text and is
+  clickable (cursor: pointer + focus-visible outline for keyboard
+  users). An earlier pass added a dotted underline; it was removed on
+  request.
+
+**Don't touch (expand pill).** Keep `type="button"` and keep it inside
+`.intro__surface` so it translates with the surface on open. Keep the
+icon swap driven by the `open` state (not CSS content) — Material
+Symbols resolves the glyph from the child text node. If `/rr`'s
+`.rr-story-card__expand` ever gets promoted into a shared primitive,
+re-source this intro pill from the shared module — they should stay
+structurally identical.
+
+**Don't touch (dashboard trigger).** Keep `type="button"` and the
+`.text-marker` class. Removing `text-marker` drops the yellow
+highlight; omitting `type="button"` makes it a form submitter in any
+future `<form>` wrapper.
+
+**Don't touch.** The surface's `animate.x` is dual-valued per viewport.
+If you change the closed resting x (currently `0`), keep the open value
+as a derived constant — the open/closed interpolation needs to start
+from wherever closed rests.
+
 ## StayingAnchored photostack (v0.35.0)
 
 The original grid of 7 placeholder slots was replaced with a single pile of
@@ -364,6 +644,129 @@ Touch points if this breaks:
   selector.
 - Browsers without `:has()` (older Safari/Firefox pre-2023) will simply
   show the label statically — no fallback needed, degrades gracefully.
+
+### BIPs — footer bleed + row2 alignment
+
+Two small but non-obvious moves in the BIPs card footer on mobile.
+
+- **Bleed relaxation.** Desktop `.bips__card-footer { margin: 32px -32px
+  -32px -32px }` cancels exactly against the 48–64px card-inner padding,
+  leaving a visible inset between the card outer edge and the footer
+  content. On mobile we collapse card-inner padding to 32px, which means
+  the desktop -32px bleed would leave the footer content literally flush
+  to the card outer edge. Mobile overrides the margin to `32px -16px
+  -32px -16px` — 16px of breathing inset at both sides. The hairline
+  rule in row 1 still reads wide; the text no longer butts the edge.
+- **Row 2 per-child text-align.** Desktop's `.bips__footer-row2` uses
+  `justify-content: space-between` to distribute three phrases
+  ("from an insight" / "to a proposal with legs" / "to a mock project.")
+  across the full width as a left / center / right triad. Column-stacking
+  at the mobile breakpoint would normally collapse this into three
+  left-aligned lines, losing the distribution semantics. Per-child
+  `text-align: left | center | right` on `:nth-child(1..3)` preserves
+  the desktop placement vertically — the triad reads the same left →
+  center → right cadence, just down instead of across.
+
+### Multiverse — crafted-lite pass
+
+Composition moves:
+
+- **Grid unbind.** Desktop `.multiverse` is a 4-col grid with the
+  poster-col at `grid-column: 2 / 4` and captions at `1 / -1` or
+  `1 / 3`. Mobile drops the grid entirely (`display: flex;
+  flex-direction: column; gap: var(--space-48)`) and resets each
+  child's `grid-column` concerns via a flex-only composition.
+- **Poster cap relaxation.** Desktop caps the poster at
+  `max-width: fit-content; max-height: 80vh`. The `fit-content` cap
+  makes the image render at its natural width (small on mobile) even
+  though its parent is full-width — visually undersized. Mobile overrides
+  both caps to `max-width: 100%; max-height: none; width: 100%` so the
+  image fills the column with a narrow 16px gutter inside
+  `.multiverse__poster-col`. Border-radius reduced from 24 → 16.
+  The `useScroll`-driven dissolve and blur are **untouched** —
+  motion survives the static-value edits.
+- **Caption max-widths unbound.** Desktop pins `.multiverse__before-text`
+  and `.multiverse__after-text` to `max-width: 240px` inside their grid
+  columns. Mobile drops the cap so captions use the full column width
+  with a standard `--space-24` cushion.
+
+### API — crafted-lite pass
+
+Composition moves:
+
+- **Both section grids unbound.** `.api__two-col` (6-col grid: slider
+  4/5 + side-col 5/7) and `.api__twitter-row` (flex row, 48px gap) both
+  collapse into single flex columns on mobile. DOM order was already
+  correct for the desired vertical stacking — no JSX re-order needed:
+  - **Block 1**: slider (images + caption w/ arrows) → olive side-sheet
+    (flows list + Asimov text).
+  - **Block 2**: white quote-card (Medium×X spin badge) → olive tweet-col
+    (label + TwitterEmbed).
+- **Slider depth padding halved.** Desktop `.api__slider-inner`
+  reserves `padding-left: 128px; padding-top: 128px` so the 2nd and
+  3rd stacked cards peek up-left of the front card. At 375px that
+  crushes usable image width. Halved to 64px — the depth read
+  survives with ~30% less reveal room, adequate for the tight layout.
+- **Slider gap.** 24px added between the stack and the caption row so
+  the stack peek doesn't run into the caption on switch.
+- **Caption viewport-left alignment.** `.api__caption-row` gets
+  `margin-left: calc(var(--space-64) * -1)` to cancel the slider-inner's
+  64px depth padding and land the caption at the sheet's natural left
+  edge (not the image's left). This is a mobile-only trick — desktop
+  keeps the caption aligned with the image.
+- **Raw-variant caption reset.** `.api__slider--raw .api__caption-row`
+  carries `width: 56.25%; margin-inline: auto` on desktop to match the
+  portrait image's letterboxed width. Mobile resets both (`width: 100%;
+  margin-inline: 0`) because the raw image also fills the width on
+  mobile.
+- **Caption jump prevention.** `.api__caption { min-height: calc(1.4em
+  * 4) }` reserves four lines. Captions vary from 1 to 4 lines across
+  slides and flows; without this, AnimatePresence `mode="wait"` collapses
+  the row mid-exit and content below jumps. Pair with `align-items:
+  start` on the row so the NavPill stays pinned at the first-line
+  position rather than centering in the reserved block.
+- **Quote-card repadded.** Desktop `.api__quote-card { padding-right:
+  160px }` reserves space for the absolute spin badge in the bottom-right.
+  At mobile widths 160px eats most of the column; override to
+  `padding: var(--space-40); padding-bottom: var(--space-96);
+  padding-right: var(--space-40)`. The spin badge shrinks from 64 → 56px
+  (inner icon 56 → 48) and re-pins to `bottom: 16; right: 16` so it
+  clears the prose that now flows where the padding used to be.
+- **Tweet card desaturation.** `.tweet-card { filter: saturate(0.3) }`
+  on mobile only. The olive palette reads as dominant in the shortened
+  single-column layout; low saturation keeps the material cue without
+  the green overpowering the block. First and only use of `filter` in
+  this route — if another surface needs the same treatment, consider
+  promoting to a CSS variable.
+
+**Don't touch:**
+
+- Keep the caption `margin-left: -64px` in lock-step with the
+  slider-inner's `padding-left: 64px`. If one changes, the other must.
+- Keep the caption `min-height: calc(1.4em * 4)`. Reducing it re-introduces
+  the jump on slide/flow switch. Increasing it wastes vertical space.
+- Keep `.api__caption-row { align-items: start }` on mobile. Without
+  it the NavPill either stretches (default grid) or floats mid-row
+  (centered) — both read as broken.
+
+### Staying Anchored — photostack breathability
+
+`.sa__stack` desktop reserves a 440×560 bounding box with image caps
+of 400×480. At 375px this overflows the viewport. Mobile reduces the
+authored values to 320×420 bounding box + 280×360 image caps (roughly
+72–75% of desktop) — the photostack now fits with ~28px breathing on
+each side of a 375px viewport.
+
+- **No `transform: scale()`.** Crafted-lite bans `scale()` on authored
+  canvases (playbook → Banned hacks) because it crushes pixel fidelity
+  and interaction hit targets proportional to the scale. Reducing
+  static values is the sanctioned approach.
+- **Rotations track automatically.** `StayingAnchored.tsx` seeds the
+  print rotations once on mount based on the stack bounding box.
+  Smaller box → same angular variance but scaled stack → rotations
+  read correctly without any JS adjustment.
+
+---
 
 ## `#1DA1F2` (v0.35.0)
 

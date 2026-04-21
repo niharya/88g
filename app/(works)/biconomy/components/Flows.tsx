@@ -76,6 +76,28 @@ export default function Flows() {
     setCurrentSlide(i => (i === TOTAL_SLIDES ? 1 : i + 1))
   }
 
+  // ── Mobile: snap on notes-open ──────────────────────────────────────────────
+  // When the accordion opens on mobile, scroll so the title + BA switch sit
+  // near the top with breathing space above. Desktop unaffected — the rail
+  // emerges beside main, no scroll needed.
+  // Ref is on the title row specifically; wait one rAF so layout settles
+  // after the class toggle before measuring.
+  const headerLeftRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!showNotes) return
+    if (typeof window === 'undefined') return
+    if (!window.matchMedia('(max-width: 767px)').matches) return
+    const id = requestAnimationFrame(() => {
+      const el = headerLeftRef.current
+      if (!el) return
+      // Offset keeps the title row clear of the top pill strip
+      // (project/chapter pills + marker-top + small breathing space).
+      const top = el.getBoundingClientRect().top + window.scrollY - 72
+      window.scrollTo({ top, behavior: 'smooth' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [showNotes])
+
   // ── Standby → active state ──────────────────────────────────────────────────
   // The audit-flow top bar has two states:
   //   • standby  — title + (desaturated) "Before Audit" text centered.
@@ -265,7 +287,7 @@ export default function Flows() {
         {/* Header */}
         <div className="flows__header t-h5">
           <div className="flows__header-spacer" aria-hidden="true" />
-          <motion.div className="flows__header-left" style={{ x: leftTranslateX }}>
+          <motion.div ref={headerLeftRef} className="flows__header-left" style={{ x: leftTranslateX }}>
             {/* Title + toggle blur-swap on flow change. Snap curve + short
                 durations so the label lands well before the image finishes
                 materializing — the image trails the label rather than the

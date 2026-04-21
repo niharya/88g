@@ -130,6 +130,35 @@
   border-top: 1px dashed var(--blue-320);
 }
 
+/* "dashboard" inline trigger — fires the same open/close as the pill.
+   No visible affordance (no underline); reads as part of the running
+   text but is clickable. Focus-visible still shows an outline for
+   keyboard users. */
+.intro__dashboard-trigger {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.intro__dashboard-trigger:focus-visible {
+  outline: 2px solid var(--blue-800);
+  outline-offset: 2px;
+}
+
+/* Expand pill — ported shape-for-shape from /rr Intro's
+   `.rr-story-card__expand`. Single-icon rounded pill that toggles the
+   intro reveal. Biconomy uses blue tokens in place of yellow.
+   Mobile-only; hidden on desktop (slide-out handle is used there). */
+.intro-expand {
+  display: none;
+}
+
 /* Context block — second reading half */
 .intro__context {
   display: flex;
@@ -1517,6 +1546,11 @@
 .demos__tab-label--web   { padding: 10px 14px; } /* py-2.5 px-3.5 */
 .demos__tab-label--game  { padding: 12px 16px; } /* py-3 px-4 */
 
+/* Label-swap pair — desktop shows the full label; mobile block
+   overrides visibility so a shorter "Prototypes" takes its place. */
+.demos__tab-label-full { display: inline; }
+.demos__tab-label-short { display: none; }
+
 .demos__tab-disabled {
   display: flex;
   margin-left: -1px;
@@ -2449,6 +2483,84 @@
 
 @media (max-width: 767px) {
 
+  /* ── Nav pills — shared mobile behavior + year hide ───────────────────
+     Project/Exit/Chapter pills inherit mobile padding and short-title swap
+     from app/components/nav/nav.css. Route-local additions (mirror /rr):
+     - Halve --workbench-pad-x (24→12) so project/exit pills tuck closer to
+       the frame edges. Also tightens sheet horizontal padding on mobile.
+     - Halve --marker-top (16→8) for a tighter top gutter; useDockedMarker
+       reads this token live, so docked chapter pill follows.
+     - Hide .nav-marker__year so chapter date subtitles don't widen the pill.
+     Nav-sled formula override is not needed yet — biconomy mats are not
+     full-bleed (Shape 12 pending). Revisit when the mat pass lands. */
+  .workbench:has(.route-biconomy) { --workbench-pad-x: 12px; }
+  .workbench:has(.route-biconomy) { --marker-top: 8px; }
+  .route-biconomy .nav-marker__year { display: none; }
+
+  /* ── First mat — top bleed (Shape 12 partial) ─────────────────────────
+     First sheet's mat reaches the top frame, same pattern /rr uses. Full
+     mat-bleed (left/right) is deferred for biconomy until the mat pass;
+     this is just the top edge so pills land on the mat surface. */
+  .route-biconomy .sheet-stack > .sheet:first-child {
+    margin-top: calc(-1 * var(--workbench-pad-y));
+  }
+
+  /* ── Intro toggle — keep the three dots on-screen ─────────────────────
+     Framer's inline translateX rest state pushes the toggle past the
+     memo container's right edge by ~half its own width. On desktop that
+     lands the handle past the surface right edge. On a 375px viewport
+     it throws the dots past the viewport right. Shift the toggle's
+     anchor left (right:0 → right:40px) so the same translate settles
+     with the dots inside the visible green strip. CSS-only to avoid
+     racing Framer's mount/hydration. */
+  /* Slide-out handle is replaced by a corner inset on mobile. Hide it
+     along with its contents so nothing peeks out from behind the surface. */
+  .intro__toggle {
+    display: none;
+  }
+
+  /* Expand pill — reveal on mobile. Shape ported from /rr Intro's
+     `.rr-story-card__expand` (rr.css:175); only tokens differ. Padding
+     from the surface edge is set explicitly on both sides so the pill
+     doesn't sit flush. RR uses top/right 24px inside a larger card;
+     our intro surface is more compact, so 20px gives equivalent
+     breathing room proportional to the smaller canvas. */
+  .intro-expand {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 2;
+    width: 36px;
+    height: 40px;
+    border-radius: 18px;
+    background: var(--blue-100);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0px 0.5px 2px 0px var(--blue-560);
+    color: var(--blue-720);
+    transition: box-shadow var(--dur-fast) var(--ease-snap),
+                background-color var(--dur-fast) var(--ease-snap);
+  }
+
+  .intro-expand:hover {
+    background: var(--blue-160);
+    box-shadow: inset 0px 1px 5px 0px var(--blue-560);
+  }
+
+  .intro-expand:active {
+    background: var(--blue-160);
+    box-shadow: inset 0px 2px 8px 1px var(--blue-480);
+  }
+
+  .intro-expand:focus-visible {
+    outline: 2px solid var(--blue-800);
+    outline-offset: 2px;
+  }
+
   /* ── BIPs — crafted-lite pass ─────────────────────────────────────────
      Composition moves:
      - Grid unbind (Shape 1): 4-col overlap collapses to authored flex column.
@@ -2479,10 +2591,25 @@
     max-width: none;
   }
 
+  /* Footer bleed — reduce neg-margin so text doesn't butt the card edge.
+     Desktop's 48–64px card-inner padding + -32px bleed leaves a visible
+     inset. Mobile collapses card-inner to 32px; matching bleed of -32px
+     would make the row sit flush. -16px gives a 16px breathing inset
+     while keeping the hairline rule visually wide. */
+  .bips__card-footer {
+    margin: 32px -16px -32px -16px;
+  }
+
+  /* Row 2 — three phrases. Desktop distributes them left-center-right
+     via `justify-content: space-between`. On mobile, column stack with
+     per-child text-align preserves that semantic order vertically. */
   .bips__footer-row2 {
     flex-direction: column;
     gap: var(--space-4);
   }
+  .bips__footer-row2 > span:nth-child(1) { text-align: left; }
+  .bips__footer-row2 > span:nth-child(2) { text-align: center; }
+  .bips__footer-row2 > span:nth-child(3) { text-align: right; }
 
   .bips__stats-row {
     align-items: center;
@@ -2587,5 +2714,546 @@
     padding-bottom: 24px;
     outline: 1px solid var(--olive-400);
     outline-offset: -8px;
+  }
+
+  /* ── Flows — crafted-lite pass ────────────────────────────────────────
+     Composition moves:
+     - Force active state (--active-t:1): the standby→active scroll
+       mechanic is a desktop duality that depends on a horizontal axis
+       to compose against. At 375px there's no room for "centered
+       standby" vs "left-docked active" — just render the active
+       layout from the start. The JS spring keeps running, but CSS +
+       React-inline-style gate neutralize its visible outputs.
+     - Header re-stack: title / BA pill / nav counter+NavPill stack
+       vertically. Flex-wrap on header + width:100% on title forces
+       three rows with breathing room.
+     - Notes rail (Shape 10): absolute rotated drawer becomes inline
+       accordion below the frame, mirroring BIPs. But unlike BIPs,
+       Flows writes inline styles on .flows__header-left and .flows__nav
+       via Framer motion values, so this block DOES need the React-
+       inline-style gate (transform: none !important). */
+
+  /* Force active state on mobile. Inline style={{'--active-t': activeT}}
+     on <motion.section> writes the live spring, so !important is
+     required to win. Keeps pill orange-saturated, switch expanded,
+     label colored from --active-t=1 onward. */
+  .flows {
+    --active-t: 1 !important;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+
+  /* Re-order to mobile reading sequence:
+       1. title + BA switch
+       2. image frame
+       3. counter + NavPill
+       4. notes accordion
+     .flows__main and .flows__header flatten via display:contents so
+     their children become flex items of .flows — order can then
+     place them independently. Desktop DOM is untouched. */
+  .flows__main,
+  .flows__header {
+    display: contents;
+  }
+  .flows__header-spacer {
+    display: none;
+  }
+
+  /* Row 1 — title + BA switch adjacent (left-aligned, same pairing
+     as desktop). */
+  .flows__header-left {
+    order: 1;
+    width: 100%;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
+  /* Row 2 — image frame. */
+  .flows__frame {
+    order: 2;
+  }
+
+  /* Row 3 — counter + NavPill. */
+  .flows__nav {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Row 4 — notes accordion wrap. */
+  .flows__notes-wrap {
+    order: 4;
+  }
+
+  /* React-inline-style gate: Framer writes x-translate on header-left
+     and nav via motion values. On mobile the layout is statically
+     active — null those transforms. */
+  .flows__header-left,
+  .flows__nav {
+    transform: none !important;
+  }
+
+  /* Notes rail → inline accordion (mirrors BIPs Shape 10).
+     .flows__notes-wrap on desktop is absolutely positioned over the
+     main column to anchor the rail inside the frame. On mobile the
+     rail joins the flow below the frame, so the wrap becomes static
+     and sheds its frame-inset padding. */
+  .flows__notes-wrap {
+    position: static;
+    padding: 0;
+    height: auto;
+    width: 100%;
+  }
+
+  /* Kill the left-shift: rail isn't beside main anymore, so main
+     should not slide. Main also writes a transform via CSS transition,
+     but className-driven — no !important needed. */
+  .flows__main.is-notes-open {
+    transform: none;
+  }
+
+  /* Rail itself: lose rotation + drawer translate, become full-width
+     flex column. Outline only when open (zero-height outline would
+     ghost a hairline). */
+  .flows__notes-rail,
+  .flows__notes-rail.is-open {
+    max-width: none;
+    width: 100%;
+    height: auto;
+    flex-direction: column;
+    transform: none;
+    outline: none;
+  }
+
+  .flows__notes-rail.is-open {
+    outline: 1px solid var(--olive-400);
+    outline-offset: -8px;
+  }
+
+  /* Tab: vertical-lr writing-mode → horizontal, absolute-pinned →
+     static full-width button, 44px touch floor. */
+  .flows__notes-tab {
+    position: static;
+    right: auto;
+    top: auto;
+    height: auto;
+    min-height: 44px;
+    width: 100%;
+    order: 0;
+  }
+
+  .flows__notes-tab-inner {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+    padding: var(--space-12) var(--space-16);
+    justify-content: center;
+    gap: var(--space-8);
+  }
+
+  /* Arrow re-targeted for vertical accordion:
+     open → ↑ (collapse), .is-flipped (closed) → ↓ (expand). */
+  .flows__notes-arrow {
+    transform: rotate(-90deg);
+  }
+  .flows__notes-arrow.is-flipped {
+    transform: rotate(90deg);
+  }
+
+  /* Content: collapse to zero-height closed; open reveals list.
+     Same flex: 0 0 auto rationale as BIPs — parent is auto-height
+     now, so flex:1 1 0% resolves to zero. No max-height transition
+     (same first-render bug BIPs documented). */
+  .flows__notes-content {
+    flex: 0 0 auto;
+    max-height: 0;
+    overflow: hidden;
+    justify-content: flex-start;
+  }
+
+  .flows__notes-rail.is-open .flows__notes-content {
+    max-height: none;
+  }
+
+  .flows__notes-list {
+    margin-top: 0;
+    padding: var(--space-16) var(--space-16) var(--space-24);
+    gap: var(--space-16);
+  }
+
+  /* ── Demos — tabs + videos crafted-lite pass ──────────────────────────
+     Tabs: desktop is a single horizontal strip with graduated left→right
+     padding and "Evolution of the Demos" appended as a disabled tag.
+     At 375px the row would overflow. Re-stack into a two-row box:
+
+       ┌────────────────────────────────────┐
+       │      Evolution of the Demos        │  row 1 (full width)
+       ├──────────┬──────────┬──────────────┤
+       │  Figma   │   Web    │    Game      │  row 2 (equal thirds)
+       └──────────┴──────────┴──────────────┘
+
+     Row 2's top edge sits flush with row 1's bottom edge (−1px margin
+     pulls them together so borders share). Graduated padding drops to
+     a uniform value; 44px touch floor restored for row 2.
+
+     Videos: desktop uses `padding: 0 128px` on `.demos__media-row--figma`
+     and `--single` — at 375px content width goes negative and videos
+     render invisible. Replace with a 24px cushion. Figma row becomes a
+     horizontal scroll strip (Shape 11 option 3) with per-item snap and
+     authored mobile width (80vw) so the second video peeks as a scroll
+     affordance. ±1° tilts dropped — a single visible tilted item reads
+     as broken rather than composed. */
+
+  /* Label swap: mobile shows the short form */
+  .demos__tab-label-full { display: none; }
+  .demos__tab-label-short { display: inline; }
+
+  /* Tab group → two-row box */
+  .demos__tab-group {
+    flex-wrap: wrap;
+    width: 100%;
+    /* Top-align row 2 so graduated heights cascade downward as a
+       reverse ladder on the bottom edges (tops flush, bottoms
+       step). */
+    align-items: flex-start;
+  }
+
+  /* Row 1 — evolution tag full-width, top of the stack */
+  .demos__tab-disabled {
+    order: 0;
+    flex: 1 1 100%;
+    margin-left: 0;
+    padding: var(--space-12) var(--space-16);
+    justify-content: center;
+    text-align: center;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  /* Row 2 — three tabs, equal thirds, tops share evolution's bottom
+     border via margin-top: -1px. Heights are graduated (desktop
+     behavior retained) so bottom edges cascade down as a reverse
+     ladder. Horizontal padding normalized — graduated *vertical*
+     creates the height stagger; graduated *horizontal* feels
+     inconsistent at tight mobile widths.
+     `min-width: 0` + `width: 0` lets flex:1 distribute the row
+     without letting text min-content push the tabs wider than a
+     third each — without this, "Web-Based Apps" (longest label)
+     overflowed the viewport. */
+  .demos__tab-label {
+    order: 1;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    margin-top: -1px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-break: break-word;
+  }
+
+  .demos__tab-label--figma { padding: var(--space-8)  var(--space-8); }
+  .demos__tab-label--web   { padding: var(--space-12) var(--space-8); }
+  .demos__tab-label--game  { padding: var(--space-16) var(--space-8); }
+
+  /* First tab on row 2 sits flush to the evolution tag's left edge */
+  .demos__tab-label--figma {
+    margin-left: 0;
+  }
+
+  /* ── Title header + single media row: drop 128px cushion ──────────── */
+  .demos__title-header {
+    padding: var(--space-16) var(--space-24) 0;
+  }
+
+  .demos__media-row--single {
+    padding: 0 var(--space-12);
+  }
+
+  /* ── Figma row: horizontal scroll strip ──────────────────────────── */
+  /* Free-scroll (no snap) — the snap felt disruptive. */
+  .demos__media-row--figma {
+    padding: 0;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: visible;
+    gap: var(--space-16);
+    padding-inline: var(--space-24);
+    scrollbar-width: none;
+  }
+  .demos__media-row--figma::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Each video item: authored mobile width (80vw).
+     Flex-shrink:0 prevents collapse when the flex container has more
+     items than fit. */
+  .demos__media-row--figma > .demos__video-item {
+    flex: 0 0 80vw;
+  }
+
+  /* Kill the ±1° tilts — override the nth-child desktop rules */
+  .demos__media-row--figma > .demos__video-item:nth-child(1),
+  .demos__media-row--figma > .demos__video-item:nth-child(2) {
+    --tilt: 0deg;
+  }
+
+  /* Frame fills the item (desktop used width:90% for a tilted pair inset) */
+  .demos__video-frame {
+    width: 100%;
+  }
+
+  /* Caption: desktop locks width:20rem (320px) which crushes at 375px */
+  .demos__video-item .demos__caption {
+    width: auto;
+    max-width: 100%;
+  }
+
+  /* Image height fix — desktop sets `height: 70vh` on .demos__image-el
+     with `object-fit: contain`, which builds a 70vh-tall box around
+     the image. On a 375×800 phone that's a 560px box holding a
+     ~210px-tall image → ~350px of empty vertical space, which reads
+     as a huge gap between the subtitle and the image and again
+     between the image and caption. Let the image size to its natural
+     aspect ratio at 100% width on mobile. Sharp corners on mobile —
+     the desktop 12px radius feels decorative at phone widths; raw
+     edges read cleaner. */
+  .demos__image-el {
+    height: auto;
+    max-width: 100%;
+    border-radius: 0;
+  }
+
+  /* Vertical rhythm around the single media row — tightened from
+     desktop's 40/16 pair but kept enough to breathe.
+     `min-height` reserves vertical space sized for the tallest tab
+     (figma — 80vw-square video + caption + icon). Without this,
+     switching tabs collapses the container mid-transition
+     (AnimatePresence `mode="wait"` exits before entering) and
+     content below jumps. Calc scales with viewport — on a 375px
+     phone that's ~460px; on a 430px phone ~500px. */
+  .demos__media-container {
+    gap: var(--space-32);
+    min-height: calc(80vw + 10rem);
+  }
+  .demos__image-item {
+    gap: var(--space-16);
+  }
+
+  /* Figma video preview corners — desktop 24px radius feels
+     oversized on a phone-width preview. Halve it. Frame + inner
+     player must match or the inner corners expose past the outer
+     frame shadow (established demos anomaly). */
+  .demos__video-frame,
+  .demos__video-player {
+    border-radius: 12px;
+  }
+
+  /* ── Multiverse — crafted-lite pass ────────────────────────────────────
+     Composition moves:
+     - Grid unbind: 4-col grid collapses to flex column so header, poster,
+       and captions each span full width.
+     - Poster scale: desktop caps poster at `fit-content` + `max-height:80vh`,
+       which keeps it narrow on mobile. Relax both so the poster fills the
+       card-width with a narrow gutter — the image IS the artifact here
+       (problem-made-real), so under-sizing undermines the beat. */
+
+  .multiverse {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-48);
+  }
+
+  /* Header card — center, allow fit-content inside flex */
+  .multiverse__header {
+    justify-content: center;
+  }
+
+  .multiverse__card-inner {
+    padding: var(--space-32);
+    gap: var(--space-24);
+    max-width: none;
+  }
+
+  .multiverse__aside {
+    max-width: none;
+  }
+
+  /* Before/After caption rows — drop inner grid; unbind text max-widths */
+  .multiverse__before-row,
+  .multiverse__after-row {
+    display: flex;
+    justify-content: center;
+    padding-inline: var(--space-24);
+  }
+
+  .multiverse__before-text {
+    max-width: none;
+  }
+
+  .multiverse__after-text {
+    max-width: none;
+  }
+
+  /* Poster column — full width, narrow gutter */
+  .multiverse__poster-col {
+    padding-inline: var(--space-16);
+  }
+
+  .multiverse__poster {
+    max-width: 100%;
+    max-height: none;
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  .multiverse__chip-row {
+    margin-top: 0;
+  }
+
+  /* ── API — crafted-lite pass ───────────────────────────────────────────
+     Composition moves:
+     - Section-level grids unbind: `.api__two-col` (slider | side-col) and
+       `.api__twitter-row` (quote | tweet) both collapse into flex columns.
+       DOM order already produces the intended stacking:
+         Block 1 → slider (images + caption w/ arrows) → side-sheet (green)
+         Block 2 → quote-card (white)                   → tweet-col (green)
+     - Slider depth-reveal room: desktop adds `pl-128 pt-128` on the
+       slider-inner to let the 2nd and 3rd cards peek up-left of the front
+       card. At 375px this eats most of the image width. Halve it so the
+       depth read survives without crushing content.
+     - Quote-card: drop the 160px right-padding that reserved space for
+       the absolute spin badge; shrink the badge and let it sit below the
+       text in the vertical flow. */
+
+  .api {
+    padding-top: var(--space-64);
+    padding-bottom: var(--space-64);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-80);
+  }
+
+  .api__card-outer {
+    padding: var(--space-40);
+    max-width: none;
+  }
+
+  /* Block 1 — slider + side-sheet stack. Extra gap between the header
+     card and the slider: the stacked cards peek up-left of the front
+     card, so without generous room they visually collide with the
+     header above. */
+  .api__two-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-48);
+    margin-top: var(--space-32);
+  }
+
+  .api__slider {
+    margin-top: 0;
+  }
+
+  .api__slider-inner {
+    padding-left: var(--space-64);
+    padding-top: var(--space-64);
+    gap: var(--space-24);
+  }
+
+  /* Raw-variant caption constrained to 56.25% on desktop to match a
+     portrait image; at mobile widths that reads as a thin stripe.
+     Let it fill. */
+  .api__slider--raw .api__caption-row {
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  /* Caption row — align to viewport/sheet left edge, not the image's
+     left edge. The slider-inner carries a 64px depth-reveal padding
+     for the stack; pull the caption back out of that padding with a
+     matching negative margin so the text sits at the section's
+     natural left. Reserve vertical room so slide/flow switches don't
+     collapse the row mid-transition — captions vary from one line to
+     four, so ~4.5em covers most cases. */
+  .api__caption-row {
+    margin-left: calc(var(--space-64) * -1);
+    /* Default grid `align-items: stretch` was stretching the NavPill
+       to the reserved 4-line caption height. Top-align so the pill
+       sits on the caption's first line — reads as a pair at the top
+       of the row, with the caption text flowing below the pill's
+       baseline if it runs multi-line. */
+    align-items: start;
+  }
+  .api__caption {
+    min-height: calc(1.4em * 4);
+  }
+
+  /* Tweet card — desaturate the olive palette on mobile. The green
+     reads as loud against the shortened column; a low-saturation tint
+     keeps the material cue without dominating. `filter` is scoped to
+     this element, which is fine here — no descendants need crisp
+     color. */
+  .tweet-card {
+    filter: saturate(0.3);
+  }
+
+  /* Block 2 — quote-card + tweet-col stack */
+  .api__twitter-row {
+    flex-direction: column;
+    gap: var(--space-48);
+  }
+
+  .api__quote-card {
+    padding: var(--space-40);
+    padding-bottom: var(--space-96);
+    padding-right: var(--space-40);
+    max-width: none;
+  }
+
+  .api__quote-text {
+    max-width: none;
+  }
+
+  .api__spin-wrap {
+    width: 56px;
+    height: 56px;
+    bottom: var(--space-16);
+    right: var(--space-16);
+  }
+
+  .api__spin-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .api__tweet-col {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  /* Label may need to wrap at narrow widths */
+  .api__tweet-label {
+    white-space: normal;
+  }
+
+  .api__trailing {
+    padding-top: var(--space-48);
+  }
+
+  /* ── StayingAnchored — photostack breathability ────────────────────────
+     Desktop stack reserves 440×560 with image caps 400×480. At 375px that
+     overflows and reads claustrophobic. Reduce the bounding box and image
+     caps proportionally (~75%) for breathing room on both sides.
+     `transform: scale()` on the whole canvas is banned under crafted-lite
+     (docs/responsive-playbook.md → Banned hacks), so we reduce the
+     authored values directly. Rotations are seeded once on mount from the
+     bounding box, so they follow the new scale automatically. */
+  .sa__stack {
+    width: 320px;
+    height: 420px;
+  }
+  .sa__photo-img {
+    max-width: 280px;
+    max-height: 360px;
   }
 }

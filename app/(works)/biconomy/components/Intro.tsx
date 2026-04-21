@@ -12,16 +12,30 @@
 //       ├── intro__inner (content + north star footer)
 //       └── motion.button intro__toggle (docked to surface right edge)
 //
-// On toggle open: surface springs left x:'-50%', revealing memo cards that
-// were always there, tucked underneath. Toggle travels with the surface.
-// Last memo card corrects its tilt as it's revealed.
+// On toggle open: surface springs left x:'-50%' on desktop / '-60%' on mobile,
+// revealing memo cards that were always there, tucked underneath. Toggle
+// travels with the surface. Last memo card corrects its tilt as it's revealed.
+// Mobile travel is tuned so the blue surface stays adjacent to the green memo
+// cards rather than being thrown off-screen.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import IconHighlighter from './IconHighlighter'
 
 export default function Intro() {
   const [open, setOpen] = useState(false)
+  // Mobile travels slightly farther (−60%) so the surface sits adjacent to the
+  // revealed memo cards rather than fully off-screen.
+  // SSR default: false — matches the closed state's x:0 at hydration.
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+  const openX = isMobile ? '-60%' : '-50%'
 
   return (
     <section className="intro">
@@ -83,9 +97,29 @@ export default function Intro() {
       {/* Also rotates -1deg and scales to 0.95 on open                       */}
       <motion.div
         className={`intro__surface surface${open ? '' : ' surface--shadowed'}`}
-        animate={{ x: open ? '-50%' : 0, rotate: open ? -1 : 0, scale: open ? 0.95 : 1 }}
+        animate={{ x: open ? openX : 0, rotate: open ? -1 : 0, scale: open ? 0.95 : 1 }}
         transition={{ type: 'spring', duration: 0.6, bounce: 0.15 }}
       >
+        {/* Expand/collapse pill — mobile-only affordance. Ported from /rr
+            Intro's `.rr-story-card__expand`: a single-icon rounded pill
+            inset into the top-right of the card. Closed → expand_content
+            glyph; open → collapse_content. Blue tokens in place of yellow. */}
+        <button
+          type="button"
+          className="intro-expand"
+          onClick={() => setOpen(s => !s)}
+          aria-expanded={open}
+          aria-label={open ? 'Hide context' : 'Reveal context'}
+        >
+          <span
+            className="material-symbols-rounded"
+            aria-hidden="true"
+            style={{ fontSize: 18, fontVariationSettings: "'wght' 500" }}
+          >
+            {open ? 'collapse_content' : 'expand_content'}
+          </span>
+        </button>
+
         {/* Inner card */}
         <div className={`intro__inner${open ? ' is-open' : ''}`}>
 
@@ -99,7 +133,16 @@ export default function Intro() {
               <span className="t-h2">
                 my first tasks were to add new features to the{' '}
                 <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                  <span className="text-marker" style={{ color: 'var(--blue-960)' }}>dashboard</span>
+                  <button
+                    type="button"
+                    className="text-marker intro__dashboard-trigger"
+                    style={{ color: 'var(--blue-960)' }}
+                    onClick={() => setOpen(s => !s)}
+                    aria-expanded={open}
+                    aria-label="Reveal context"
+                  >
+                    dashboard
+                  </button>
                 </span>
                 {' '}and to restructure old ones.
               </span>

@@ -115,7 +115,7 @@ When refining any component during this phase, run this short loop. It makes the
 
 ### Stream 3 — responsive (crafted-lite)
 
-See "Responsive rules → Crafted-lite stance" below, plus `docs/responsive-playbook.md` for the shape-by-shape decision tree. Lite-floor passes have shipped on `/`, `/selected`, and `/rr`. `/marks` is the composition quality bar (built responsive-ready). `/biconomy` has not yet had its crafted-lite pass — the BIPs chapter is the reference application that accompanies the playbook.
+See "Responsive rules → Crafted-lite stance" below, plus `docs/responsive-playbook.md` for the shape-by-shape decision tree. Lite-floor passes have shipped on `/`, `/selected`, `/rr`, and `/biconomy`. `/marks` is the composition quality bar (built responsive-ready). The BIPs chapter on `/biconomy` is the reference application that accompanies the playbook.
 
 ## Shared design system
 
@@ -225,7 +225,7 @@ Core principles:
 * **Recompose, don't replicate.** Mobile is a purposeful different composition, not desktop scaled down.
 * **No hacks.** No `transform: scale()` on text, no `!important` chains, no hidden-but-present DOM tricks.
 * **Structural breakpoints for layout, fluid scaling for sizing** (clamp, vw). No JS media queries.
-* **Crafted-lite stance.** Two layers: content/density → lite floor (drop ornaments, reduce density, meet 375px usability minimums); composition → crafted (what remains is authored for mobile, not mechanically column-stacked). `/marks` is the composition quality bar. `/rr` is the mechanics reference (scroll unbind, React-inline-style gate) but not a composition reference — its canvas scales predate crafted-lite. `/biconomy` has not had its pass yet.
+* **Crafted-lite stance.** Two layers: content/density → lite floor (drop ornaments, reduce density, meet 375px usability minimums); composition → crafted (what remains is authored for mobile, not mechanically column-stacked). `/marks` is the composition quality bar. `/rr` is the mechanics reference (scroll unbind, React-inline-style gate) but not a composition reference — its canvas scales predate crafted-lite. `/biconomy`'s pass has shipped; see its `ANOMALIES.md` → "Responsive anomalies" and `RESPONSIVE.md` for the chapter-by-chapter record.
 * **Newly banned under crafted-lite:** `transform: scale()` on whole authored canvases; horizontal scroll strips with inner `scale()` on desktop-width content. See `docs/responsive-playbook.md` → Banned hacks.
 * Log crafted-lite decisions in each route's `ANOMALIES.md` under "Responsive anomalies".
 
