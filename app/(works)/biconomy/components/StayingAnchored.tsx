@@ -17,6 +17,7 @@
 
 import { useEffect, useState } from 'react'
 import NavPill from './NavPill'
+import { Img } from '../../../components/Img'
 
 type Photo = { src: string; alt: string }
 
@@ -70,11 +71,14 @@ export default function StayingAnchored() {
                 className="sa__photo"
                 style={{ rotate: `${rotations[i]}deg`, zIndex: z }}
               >
-                <img
+                <Img
                   src={p.src}
                   alt={p.alt}
                   className="sa__photo-img"
+                  placeholder="hash"
+                  intrinsic
                   draggable={false}
+                  sizes="400px"
                 />
               </div>
             )

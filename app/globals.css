@@ -271,6 +271,13 @@
 }
 
 html {
+  /* Matches --workbench-bg so the pre-CSS paint, the boot mark, and the
+     workbench all share one continuous tone. The font-gate below holds
+     .workbench invisible until fonts load; during that window the user
+     sees the same grey they'll keep seeing once content lands — the boot
+     mark fades out, the workbench fades in, the ground is unchanged. */
+  background: var(--workbench-bg);
+
   /* Prevent layout shift when scrollbar appears/disappears during
      page transitions (e.g. short /selected → tall project page). */
   scrollbar-gutter: stable;
@@ -402,6 +409,77 @@ p, li {
 html.fonts-ready .workbench {
   opacity: 1;
   transition: opacity var(--dur-settle) var(--ease-paper);
+}
+
+
+/* ── Page boot — patience mark ───────────────────────────────────────────── */
+/* During the font-gate hold (up to 3s while web fonts load), the workbench
+   is invisible. Instead of showing blank paper, a centered wordmark fades
+   in ~200ms after mount (so fast loads never flash it) and fades out when
+   .fonts-ready applies. System serif is intentional — no glyph swap when
+   Fraunces arrives, and the fallback feel reads as "pre-set" rather than
+   broken. Kept literally as plain text so it can be swapped to a mark or
+   quote later without touching the mechanism. */
+
+.page-boot {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  animation: page-boot-in var(--dur-slide) var(--ease-paper) 200ms forwards;
+}
+
+.page-boot__mark {
+  width: 56px;
+  height: auto;
+  display: block;
+}
+
+/* Startooth colors. Per-route overrides below via :root:has(<route-root>)
+   so the single boot-screen element can recolor for whichever route's CSS
+   is live. The defaults handle the brief first-paint window before any
+   route CSS applies. */
+.startooth__diamond {
+  stroke: var(--startooth-stroke, #31abcc);
+  fill: none;
+}
+
+.startooth__base {
+  stroke: var(--startooth-stroke, #31abcc);
+  fill: var(--startooth-fill, #d9d9d9);
+}
+
+:root:has(.route-biconomy) {
+  --startooth-stroke: var(--blue-560);
+  --startooth-fill: var(--grey-960);
+}
+:root:has(.route-rr) {
+  --startooth-stroke: var(--terra-560);
+  --startooth-fill: var(--grey-960);
+}
+:root:has(.selected-workbench) {
+  --startooth-stroke: var(--blue-800);
+  --startooth-fill: var(--blue-80);
+}
+:root:has(.landing) {
+  --startooth-stroke: #bb4311;
+  --startooth-fill: #d76a36;
+}
+
+html.fonts-ready .page-boot {
+  animation: page-boot-out var(--dur-slide) var(--ease-paper) forwards;
+}
+
+@keyframes page-boot-in {
+  to { opacity: 1; }
+}
+
+@keyframes page-boot-out {
+  to { opacity: 0; }
 }
 
 

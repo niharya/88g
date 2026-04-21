@@ -266,10 +266,27 @@ export default function Flows() {
         <div className="flows__header t-h5">
           <div className="flows__header-spacer" aria-hidden="true" />
           <motion.div className="flows__header-left" style={{ x: leftTranslateX }}>
-            <p className="flows__title">{currentFlow?.title ?? ''}</p>
+            {/* Title + toggle blur-swap on flow change. Snap curve + short
+                durations so the label lands well before the image finishes
+                materializing — the image trails the label rather than the
+                label trailing the image. */}
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.div
+                key={currentSlide}
+                className="flows__title-group"
+                initial={{ opacity: 0, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={{
+                  opacity: 0,
+                  filter: 'blur(4px)',
+                  transition: { duration: 0.3, ease: [0.5, 0, 0.2, 1] },
+                }}
+                transition={{ duration: 0.5, ease: [0.45, 0, 0.15, 1] }}
+              >
+                <p className="flows__title">{currentFlow?.title ?? ''}</p>
 
-            {/* Before / After toggle */}
-            <label htmlFor="flows-show-after" className="flows__ba-label">
+                {/* Before / After toggle */}
+                <label htmlFor="flows-show-after" className="flows__ba-label">
               <motion.span
                 layout
                 transition={{
@@ -277,7 +294,6 @@ export default function Flows() {
                   duration: showAfter ? 0.25 : 0.1,
                   bounce: 0.1,
                 }}
-                key={currentSlide}
                 className="flows__ba-pill"
               >
                 <motion.span layout="position" className="flows__ba-switch-wrap">
@@ -302,6 +318,8 @@ export default function Flows() {
                 </motion.span>
               </motion.span>
             </label>
+              </motion.div>
+            </AnimatePresence>
           </motion.div>
 
           {/* Nav counter + buttons — hidden in standby, slides in from */}

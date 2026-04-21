@@ -95,7 +95,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {/* Patience mark — centered startooth shown during font-gate hold.
+            Fades in ~200ms after mount; fades out when .fonts-ready lands
+            on <html>. Inlined so each route can recolor via CSS vars
+            (--startooth-stroke / --startooth-fill). See globals.css →
+            "Page boot". */}
+        <div className="page-boot" aria-hidden="true">
+          <svg
+            className="page-boot__mark"
+            width="83"
+            height="143"
+            viewBox="0 0 83 143"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              className="startooth__diamond"
+              d="M31.5 31.5L41.5 1.5L51.5 31.5L81.5 41.5L51.5 51.5L41.5 101.5L31.5 51.5L1.5 41.5L31.5 31.5Z"
+              strokeWidth="3"
+              strokeLinejoin="round"
+            />
+            <path
+              className="startooth__base"
+              d="M1.5 121.5L41.5 101.5L81.5 121.5L41.5 141.5L1.5 121.5Z"
+              strokeWidth="3"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        {children}
+      </body>
     </html>
   )
 }

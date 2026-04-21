@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { Img } from '../../../components/Img'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCallback, useRef } from 'react'
 import Monostamp from '../../../components/Monostamp'
@@ -178,11 +178,10 @@ export default function BeforeAfter({
     <div className={`ba${className ? ` ${className}` : ''}`}>
       {/* Before image */}
       <div className="ba__before" ref={beforeContainerRef}>
-        <Image
+        <Img
           src={beforeImage}
           alt="Before"
-          width={0}
-          height={0}
+          intrinsic
           sizes="100vw"
           className="ba__img"
           draggable={false}
@@ -220,11 +219,10 @@ export default function BeforeAfter({
       >
         <div className="ba__after-inner" ref={afterContainerRef}>
           <div className="ba__after-main">
-            <Image
+            <Img
               src={afterImage}
               alt="After"
-              width={0}
-              height={0}
+              intrinsic
               sizes="100vw"
               className="ba__img"
               draggable={false}
@@ -240,11 +238,10 @@ export default function BeforeAfter({
               animate={{ opacity: showingInternalNote ? 1 : 0 }}
               transition={{ ease: 'easeOut', duration: 0.25 }}
             >
-              <Image
+              <Img
                 src={afterNotes[internalNoteImageIndex].image!}
                 alt="After (next step)"
-                width={0}
-                height={0}
+                intrinsic
                 sizes="100vw"
                 className="ba__img"
                 draggable={false}

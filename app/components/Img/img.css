@@ -1,0 +1,94 @@
+/* Img — shared image primitive.
+ * Renders a placeholder (dominant color or ThumbHash) immediately,
+ * then materializes the real image via a blur→sharp focus pull once
+ * onLoad fires. See LIBRARY.md → "Img".
+ */
+
+/* `:where()` gives zero specificity so any consumer class (positioning,
+ * sizing, display) wins without needing !important. */
+:where(.img) {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 0;
+}
+
+/* Fill mode — wrapper covers its parent; NextImage uses `fill` internally.
+ * Consumer must size + position the parent. */
+:where(.img--fill) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Intrinsic mode — wrapper shrinks to the image's natural dimensions.
+ * Consumer applies sizing (max caps, width:100%, etc.) directly to
+ * `.<consumer-class> .img__inner` so the image scales the way a raw
+ * <img> used to — the wrapper is just a transparent shell. */
+:where(.img--intrinsic) {
+  display: inline-block;
+}
+.img--intrinsic .img__inner {
+  position: static;
+  display: block;
+  object-fit: unset;
+}
+
+.img__placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.img__placeholder--color {
+  background: var(--img-color, #f5f5f5);
+}
+
+.img__placeholder--hash {
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Base inner — hidden until phase promotes it. The 100%/100% + cover is
+ * the default for fixed-dimension wrappers (card-stack pattern); the
+ * intrinsic modifier above replaces it for aspect-preserved sizing. */
+.img__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+}
+
+/* Loaded — onLoad fired, play the materialize keyframe. Animations (not
+ * transitions) are used because transitions stall inside scroll-linked
+ * transform ancestors (see /rr ANOMALIES.md). */
+.img.is-loaded .img__inner {
+  animation: img-materialize 700ms var(--ease-paper) forwards;
+}
+
+@keyframes img-materialize {
+  from {
+    opacity: 0;
+    filter: blur(10px) saturate(1.1);
+    transform: scale(1.015);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0) saturate(1);
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img__inner {
+    opacity: 1;
+  }
+  .img.is-animating .img__inner {
+    animation: none;
+  }
+}

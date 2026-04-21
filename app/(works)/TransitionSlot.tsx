@@ -29,11 +29,20 @@ const DOCK_OFFSET = 50
 const EASE = 'cubic-bezier(0.5, 0, 0.2, 1)'
 
 // ── Ghost exit ─────────────────────────────────────────────────────────
-const GHOST_CONTENT_DUR = 200      // inner content dims
-const GHOST_CONTENT_Y   = 8        // px, subtle
-const GHOST_DUR         = 380      // ghost recedes
-const GHOST_DELAY       = 100      // after content starts dimming
-const GHOST_Y           = 24       // px, translate only
+// Values are direction-sensitive. Going deeper (selected → project), the
+// ghost exit can be subtle — the user's attention is being pulled toward
+// the emerging project mat. Going back up (project → selected), the ghost
+// has to carry the "this page is being pushed away from me" feeling on
+// its own, so it moves further and dims slower so the drop is actually
+// felt before the fade.
+const GHOST_CONTENT_DUR_DEEPER = 200
+const GHOST_CONTENT_DUR_EXIT   = 340
+const GHOST_CONTENT_Y_DEEPER   = 8
+const GHOST_CONTENT_Y_EXIT     = 28
+const GHOST_DUR                = 420       // ghost recedes
+const GHOST_DELAY              = 100       // after content starts dimming
+const GHOST_Y_DEEPER           = 24
+const GHOST_Y_EXIT             = 64
 
 // ── New content entrance ───────────────────────────────────────────────
 const ENTER_DELAY       = 460      // ghost clears + breathing room
@@ -137,6 +146,9 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     const goingDeeper = !isProject(oldSegment) && isProject(segment)
     const ghostDir = goingDeeper ? -1 : 1
     const enterDir = goingDeeper ? 1 : -1
+    const ghostContentDur = goingDeeper ? GHOST_CONTENT_DUR_DEEPER : GHOST_CONTENT_DUR_EXIT
+    const ghostContentY   = goingDeeper ? GHOST_CONTENT_Y_DEEPER   : GHOST_CONTENT_Y_EXIT
+    const ghostY          = goingDeeper ? GHOST_Y_DEEPER           : GHOST_Y_EXIT
 
     const wb = document.querySelector('.workbench')
     wb?.classList.add('transitioning')
@@ -154,9 +166,9 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     )
     animateAll(ghostContentEls, [
       { opacity: '1', transform: 'translateY(0)' },
-      { opacity: '0', transform: `translateY(${ghostDir * GHOST_CONTENT_Y}px)` },
+      { opacity: '0', transform: `translateY(${ghostDir * ghostContentY}px)` },
     ], {
-      duration: GHOST_CONTENT_DUR,
+      duration: ghostContentDur,
       easing: EASE,
       fill: 'forwards',
     })
@@ -164,7 +176,7 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     //    Phase B: ghost recedes
     const ghostExit = ghost.animate([
       { transform: 'translateY(0)', opacity: '1' },
-      { transform: `translateY(${ghostDir * GHOST_Y}px)`, opacity: '0' },
+      { transform: `translateY(${ghostDir * ghostY}px)`, opacity: '0' },
     ], {
       duration: GHOST_DUR,
       easing: EASE,

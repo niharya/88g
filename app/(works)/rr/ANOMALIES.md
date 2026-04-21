@@ -543,3 +543,17 @@ Click-to-expand is disabled on mobile (`.rr-rules-inner { pointer-events: none }
 - `StoryCard.tsx` `ResizeObserver` on the card root — re-fires `measure()` when the deck-fan image loads and shifts card height; without it, `document.fonts.ready` fires before the image and produces stale geometry
 - Interface tab accordion uses a **viewport-derived max-height** (`calc(100vh - 386px)`) with `overflow-y: auto`, not a fixed ceiling. The formula is tied to the canvas vertical centering + notes position + scale — see "Cards — interface tab stays inside the scaled canvas" above. If the notes canvas-y position (760), pill height (76 canvas-px), or canvas scale (0.5) changes, recompute.
 - `#intro .rr-story-card:has(.rr-constraints-card--expanded) .rr-north-star-card { margin-top: calc(-123px + var(--space-8)) }` — the 123px is derived from `HIDDEN_OPEN_H` in `Intro.tsx`; if hidden-row count or heights change, update both
+
+---
+
+## Img materialize animation stalls inside `.rr-canvas`
+
+Lives in `app/(works)/rr/rr.css` (right after the `.rr-canvas` block) + `app/components/Img/img.css`.
+
+- The shared `Img` primitive reveals itself with a CSS keyframe (`img-materialize`, 700ms blur→sharp) once the image decodes.
+- Inside `.rr-canvas`, that animation freezes at `t=0, playState: running` — same class of bug as the "Rails use inline transform" stall. `useMatSettle` applies scroll-linked transforms to `.rr-story-card` / `.rr-card-stack`; CSS animations on descendants of a scroll-linked transform ancestor do not advance.
+- Route-scoped override in `rr.css` disables the animation inside `.rr-canvas`:
+  ```css
+  .rr-canvas .img__inner { opacity: 1; animation: none; }
+  ```
+- The dominant-color placeholder stays underneath, so the swap reads as "paper appears on the mat" rather than a blank-to-image pop. Do not try to re-enable the materialize animation here without first resolving the scroll-linked-ancestor stall at its root.

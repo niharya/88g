@@ -168,6 +168,10 @@ Log anomalies in the route they affect. If a global change causes a side effect 
 * Shared: `app/components/`, `app/globals.css`, `app/lib/`
 * Shell: `app/(works)/{layout,ShellNav,TransitionSlot}.tsx`
 
+### Private / stashed folders
+
+Folders prefixed with `_` are ignored by Next.js for routing. Used for two things: in-route private directories (e.g. `app/marks/_source/` — SVG sources that shouldn't become pages), and **stashed dev utilities** (`app/_dev-tools/` — tools that helped build the portfolio, kept as reference code but not served). When a once-live dev route graduates to "artifact," move it under `app/_dev-tools/<name>/` rather than deleting it.
+
 ## Reference material
 
 Everything under `reference/` is read-only context. Never modify it.
@@ -301,7 +305,7 @@ To reduce token use and drift:
 
 ## Versioning and pushing
 
-Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.33.0`.
+Every push bumps the **minor** version in `package.json` by one (`0.1.0` → `0.2.0` → `0.3.0` …). Current tip: `v0.38.0`.
 
 Before pushing:
 
@@ -339,6 +343,14 @@ Before implementing anything, confirm:
 * read `app/marks/DESIGN.md` and `app/marks/ANOMALIES.md` if working on `/marks`
 * read `COLOPHON.md` only if the question is about origins, credits, or where a pattern comes from
 * read `docs/claude/memory.md` only if the question is about project identity/audience
+
+## Images
+
+**Always use the shared `<Img>` primitive** (`app/components/Img`) for content imagery — never raw `<img>` or `next/image` directly. `Img` handles LQIP (dominant color or ThumbHash placeholder), materialize reveal, and Next.js optimization in one. See `LIBRARY.md` → "Img" for sizing modes (`default` / `fill` / `intrinsic`) and placeholder variants.
+
+When you add or replace an image under `public/`, run `npm run lqip` to regenerate the manifest. `npm run build` runs the generator automatically via `prebuild`, so production is always fresh; dev falls back gracefully (raw `<img>`) with a console warning when an image isn't in the manifest yet.
+
+The only raw `<img>` exceptions are tiny decorative icons where LQIP is wasted (twitter avatar, deck-strip chip, rule-card icon).
 
 ## Not using
 

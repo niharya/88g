@@ -11,6 +11,21 @@ For project-level rules see `CLAUDE.md`.
 
 ## Known anomalies
 
+### Flows title + toggle blur-swap on flow change (v0.38.0)
+
+`components/Flows.tsx` wraps the flow title and before/after pill in a single
+`AnimatePresence mode="popLayout"` block keyed on `currentSlide`. On flow
+navigation the group blur-exits and the new group blur-enters, crossfading via
+`popLayout` so layout never goes empty. This is what makes the flow swap feel
+deliberate rather than instant.
+
+Load-bearing bits:
+
+- **`mode="popLayout"`**, not `"wait"`. `wait` runs exit-then-enter sequentially, leaving a visible empty gap. `popLayout` pops the outgoing element out of flow so incoming mounts immediately.
+- **Key is `currentSlide`, not `animationKey` or `showAfter`**. The blur must only fire on flow navigation — toggling before/after within the same flow keeps the same key so the title/toggle stay put while the image fades.
+- **Timing is one stop above snap** (`duration: 0.5` enter, `0.3` exit, snap/paper curves). Matched-ish to the 700ms img-materialize but intentionally lands slightly earlier — the label arrives, then the image resolves under it. Don't "harmonize" durations to exactly match — the stagger is what reads as intentional.
+- A `.flows__title-group` flex wrapper exists purely so the new motion.div preserves the pre-existing row layout. Removing it collapses the title and toggle onto separate lines.
+
 ### Flows switch-thumb overshoot (documented deviation)
 
 `biconomy.css:468` — the `.flows__ba-switch-thumb` transitions `transform` with

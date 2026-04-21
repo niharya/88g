@@ -384,6 +384,16 @@
   gap: 8px;
 }
 
+/* Wrapper around title + before/after toggle. Exists so the pair can
+   blur-swap together on flow change (AnimatePresence in Flows.tsx),
+   timed to match the .ba__img materialize so label and image resolve
+   on the same beat. */
+.flows__title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .flows__title {
   /* inherits t-h5 from parent */
 }
@@ -682,11 +692,16 @@
   position: relative;
 }
 
+/* .ba__img is the <Img> wrapper — make it a block that fills the
+ * container; the inner <img> inside then scales to width:100%, height:auto. */
 .ba__img {
+  display: block;
+  width: 100%;
+  user-select: none;
+}
+.ba__img .img__inner {
   width: 100%;
   height: auto;
-  display: block;
-  user-select: none;
 }
 
 .ba__after {
@@ -2384,11 +2399,13 @@
   /* No transition — swap is instantaneous. */
 }
 
+/* The <Img> wrapper in intrinsic mode is a transparent shell — caps go on
+ * the inner <img> directly, the same way they did before the migration. */
 .sa__photo-img {
   pointer-events: none;
   user-select: none;
-  display: block;
-  /* Cap the long side so prints stay consistent in scale across orientations. */
+}
+.sa__photo-img .img__inner {
   max-width: 400px;
   max-height: 480px;
   width: auto;

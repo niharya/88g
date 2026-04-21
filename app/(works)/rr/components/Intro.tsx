@@ -24,6 +24,7 @@
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useMatSettle from './useMatSettle'
+import { Img } from '../../../components/Img'
 
 // ── Shared motion constants ────────────────────────────────────────────────
 // Single easing curve + base duration — all timings are multiples of DUR
@@ -206,8 +207,7 @@ export default function Intro() {
         style={{ cursor: isExpanded ? undefined : 'pointer' }}
       >
         {([1, 2, 3, 4, 5, 6] as const).map((n, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Img
             key={n}
             src={`/images/rr/rr-sketch-${n}.jpg`}
             alt=""
@@ -216,6 +216,7 @@ export default function Intro() {
               transitionDelay: cardDelay(i),
               cursor: isExpanded ? 'pointer' : undefined,
             }}
+            sizes="400px"
             onClick={() => { if (isExpanded && !isEnlarged) setIsEnlarged(true) }}
           />
         ))}
@@ -251,13 +252,13 @@ export default function Intro() {
             ref={scrollRef}
           >
             {([1, 2, 3, 4, 5, 6] as const).map((n) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Img
                 key={n}
                 src={`/images/rr/rr-sketch-${n}.jpg`}
                 alt={`Sketch ${n}`}
                 className="rr-enlarged__image"
                 draggable={false}
+                sizes="800px"
                 style={{
                   height: ENLARGED_H,
                   width: Math.round(ENLARGED_H * (SKETCH_ASPECTS[n] ?? 1)),

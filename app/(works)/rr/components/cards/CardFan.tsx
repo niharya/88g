@@ -17,6 +17,7 @@
 //   click out   : clicking outside the fan deselects
 
 import { useEffect, useState, type CSSProperties } from 'react'
+import { Img } from '../../../../components/Img'
 
 const BASE_ROT = [-12, -6, 0, 4, 10]
 const BASE_Y   = [-4, -12, -14, -9, 2]   // stagger from Figma: v2 highest, v3/v4 near, v5 drops
@@ -112,8 +113,7 @@ export default function CardFan() {
             onClick={() => setSelectedIdx(selectedIdx === i ? -1 : i)}
           >
             <span className="rr-card-item__label">{card.v}</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={card.src} alt={`Card ${card.v}`} className="rr-card-item__img" />
+            <Img src={card.src} alt={`Card ${card.v}`} className="rr-card-item__img" sizes="300px" />
             <p className="rr-card-item__caption">{card.caption}</p>
           </div>
         )

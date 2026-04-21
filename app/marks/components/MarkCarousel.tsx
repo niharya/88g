@@ -12,7 +12,7 @@
 // a tab switch rather than a pile of stacked layers.
 
 import { AnimatePresence, motion } from 'framer-motion'
-import Image from 'next/image'
+import { Img } from '../../components/Img'
 import type { MarkEntry } from '../data/marks'
 import { marks } from './marks'
 import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../lib/motion'
@@ -56,7 +56,7 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
             />
           ) : (
             <figure className="mark-carousel__media">
-              <Image
+              <Img
                 src={slide.src}
                 alt={slide.caption}
                 fill

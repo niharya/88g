@@ -127,6 +127,18 @@
   z-index: 1; /* paint above mat::after (z-index:auto) — position+z-index creates stacking context */
 }
 
+/* Img materialize animation stalls inside .rr-canvas.
+ * useMatSettle applies scroll-linked transforms on .rr-story-card / .rr-card-stack,
+ * and CSS animations on descendants freeze at t=0 inside that context
+ * (same class of bug as the "Rails use inline transform" anomaly — see ANOMALIES.md).
+ * Skip the materialize keyframe here; the real image simply appears over the
+ * dominant-color placeholder. Placeholder coverage prevents a visible pop. */
+.rr-canvas .img.is-loaded .img__inner,
+.rr-canvas .img__inner {
+  opacity: 1;
+  animation: none;
+}
+
 
 /* ── Scroll settle — objects "placed on mat" feel ───────────────────────── */
 /* useMatSettle sets --settle-scale (1.012→1) and --settle-shadow (12px→3px)

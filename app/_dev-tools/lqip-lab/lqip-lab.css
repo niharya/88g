@@ -1,0 +1,175 @@
+.lqip-lab {
+  min-height: 100vh;
+  background: #fafafa;
+  color: #111;
+  font-family: var(--font-google-sans, system-ui, sans-serif);
+}
+
+.lqip-lab > * {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+.lqip-lab > header {
+  padding-top: 64px;
+}
+
+.lqip-lab > footer {
+  padding-bottom: 96px;
+}
+
+.lqip-lab__header {
+  margin-bottom: 32px;
+}
+
+.lqip-lab__header h1 {
+  font-family: var(--font-fraunces, Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(28px, 3vw, 40px);
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+
+.lqip-lab__header p {
+  max-width: 64ch;
+  color: #555;
+  line-height: 1.5;
+  font-size: 14px;
+  margin: 0;
+}
+
+.lqip-lab__controls {
+  margin: 24px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.lqip-lab__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+}
+
+.lqip-lab__toggle input {
+  accent-color: #111;
+}
+
+.lqip-lab__controls button {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border: 1px solid #111;
+  background: #fff;
+  color: #111;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.lqip-lab__controls button:hover {
+  background: #111;
+  color: #fff;
+}
+
+.lqip-lab__grid {
+  display: grid;
+  gap: 24px;
+}
+
+.lqip-lab__head,
+.lqip-lab__row {
+  display: grid;
+  grid-template-columns: 120px repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.lqip-lab__head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.lqip-lab__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  font-size: 12px;
+}
+
+.lqip-lab__label strong {
+  font-weight: 500;
+}
+
+.lqip-lab__label span {
+  color: #888;
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+
+.lqip-lab__cell {
+  position: relative;
+  overflow: hidden;
+  background: #f5f5f5;
+  border-radius: 2px;
+  width: 100%;
+  height: 260px;
+  aspect-ratio: auto !important;
+}
+
+.lqip-lab__placeholder {
+  position: absolute;
+  inset: 0;
+}
+
+.lqip-lab__img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 500ms cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+.lqip-lab__img.is-visible {
+  opacity: 1;
+}
+
+.lqip-lab__footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.lqip-lab__footer dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin: 0;
+}
+
+.lqip-lab__footer dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.lqip-lab__footer dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+}
