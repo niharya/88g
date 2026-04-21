@@ -545,7 +545,15 @@ html[data-marks-hidden='true'] .marks-background::after {
   margin: 0;
 }
 
-.mark-carousel__media img {
+/* <video> (motion slides) and <img> (still slides) share the same stage slot.
+   Next/Image with `fill` applies its own position:absolute + inset:0; videos
+   and any raw <img> fallbacks need the same sizing handled in CSS. */
+.mark-carousel__media img,
+.mark-carousel__media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 

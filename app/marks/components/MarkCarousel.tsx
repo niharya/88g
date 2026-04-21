@@ -54,6 +54,17 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
               aria-label={mark.name}
               style={{ transform: flipTransform(slide.flip) }}
             />
+          ) : slide.kind === 'video' ? (
+            <figure className="mark-carousel__media">
+              <video
+                src={slide.src}
+                autoPlay
+                muted
+                loop
+                playsInline
+                aria-label={slide.caption}
+              />
+            </figure>
           ) : (
             <figure className="mark-carousel__media">
               <Img
@@ -61,7 +72,6 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
                 alt={slide.caption}
                 fill
                 sizes="100vw"
-                unoptimized={slide.kind === 'gif'}
               />
             </figure>
           )}

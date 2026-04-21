@@ -492,6 +492,9 @@
    nav-marker--chapter styling so it matches the archive toggle's weight.
    The selectors below unset the nameplate's shared muted overrides and
    let nav.css's nav-marker--chapter rules apply. */
+.selected-nameplate--link .nav-marker {
+  cursor: pointer;
+}
 .selected-nameplate--link .nav-marker__content {
   color: var(--grey-480);
   opacity: 0.8;

@@ -5,7 +5,7 @@
 //   • Background (palette.stopA / .stopB / .angle)
 //
 // The first slide of every mark MUST be `{ kind: 'mark' }` — that renders the
-// hero SVG at editorial scale. Slides 2+ are JPG/GIF/PNG supporting media.
+// hero SVG at editorial scale. Slides 2+ are JPG/WEBP stills or MP4 motion.
 //
 // Fields marked `// TODO` are placeholder-scaffolded and need real values
 // before chunk 2 finalises the mark components (palettes) and chunk 4 drives
@@ -16,11 +16,11 @@ import type { MarkId } from '../components/marks/types'
 export type MarkSlide =
   // `flip` is a placeholder affordance: when set, the mark glyph renders with
   // `transform: scaleX(-1)` or `scaleY(-1)` so we can scaffold a multi-slide
-  // carousel before real supporting media (image/gif) ships. Real slides will
-  // be kind: 'image' | 'gif'.
+  // carousel before real supporting media ships. Real slides are kind:
+  // 'image' | 'video'.
   | { kind: 'mark'; flip?: 'x' | 'y' }
   | { kind: 'image'; src: string; caption: string }
-  | { kind: 'gif';   src: string; caption: string }
+  | { kind: 'video'; src: string; caption: string }
 
 export type MarkEntry = {
   id:           MarkId
@@ -50,8 +50,11 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#902F41',
     slides: [
       { kind: 'mark' },
-      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
-      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+      { kind: 'image', src: '/marks/furrmark/01.webp', caption: 'One sheet, many tries — the expression finding a face.' },
+      { kind: 'video', src: '/marks/furrmark/04.mp4', caption: 'Another pass — the face turning through its drafts.' },
+      { kind: 'image', src: '/marks/furrmark/02.webp', caption: 'Brand-book placement rules for the mark.' },
+      { kind: 'video', src: '/marks/furrmark/05.mp4', caption: 'Pages of the brandbook, turning.' },
+      { kind: 'image', src: '/marks/furrmark/03.webp', caption: '”We do it for the pet-parents.” — the tagline lockup.' },
     ],
   },
   {
@@ -63,8 +66,11 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#FF2633',
     slides: [
       { kind: 'mark' },
-      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
-      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+      { kind: 'image', src: '/marks/codezeros/01.webp', caption: 'The “Z”, drawn and redrawn until the stance held.' },
+      { kind: 'video', src: '/marks/codezeros/03.mp4', caption: 'Drafts cycling — the mark hunting for its stance.' },
+      { kind: 'video', src: '/marks/codezeros/04.mp4', caption: 'Color pairs tried — the ones that held, the ones that didn’t.' },
+      { kind: 'video', src: '/marks/codezeros/05.mp4', caption: 'The mark, built line by line.' },
+      { kind: 'image', src: '/marks/codezeros/02.webp', caption: 'Environmental signage at the studio’s front desk.' },
     ],
   },
   {
@@ -76,8 +82,10 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#00CC66',
     slides: [
       { kind: 'mark' },
-      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
-      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+      { kind: 'video', src: '/marks/slangbusters/02.mp4', caption: 'Early drafts — the wordmark hunting for its face.' },
+      { kind: 'video', src: '/marks/slangbusters/03.mp4', caption: 'Chits of paper — each stamped with a try.' },
+      { kind: 'video', src: '/marks/slangbusters/04.mp4', caption: 'Chits falling — the stamp settling underneath.' },
+      { kind: 'image', src: '/marks/slangbusters/01.webp', caption: 'A rubber stamp — the wordmark was made to be pressed into paper.' },
     ],
   },
   {
@@ -89,8 +97,10 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#EC1C24',
     slides: [
       { kind: 'mark' },
-      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
-      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+      { kind: 'image', src: '/marks/beringer/01.jpg', caption: 'Letterhead in cream, a phone carrying the wordmark pattern.' },
+      { kind: 'image', src: '/marks/beringer/02.jpg', caption: 'Two paper corners — “ffs”, the familiar abbreviation, in the quiet.' },
+      { kind: 'image', src: '/marks/beringer/03.jpg', caption: 'Business cards — phonetic reminder on the front, address on the back.' },
+      { kind: 'image', src: '/marks/beringer/04.jpg', caption: 'Letterhead caught in studio shadow.' },
     ],
   },
   {
@@ -102,8 +112,10 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#4CB400',
     slides: [
       { kind: 'mark' },
-      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
-      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+      { kind: 'image', src: '/marks/ecochain/01.webp', caption: 'Derivation — from thread spool, through sound wave, to the final glyph.' },
+      { kind: 'video', src: '/marks/ecochain/03.mp4', caption: 'The glyph, drawing itself from its parts.' },
+      { kind: 'image', src: '/marks/ecochain/02.jpg', caption: 'The mark rendered in its source material — green thread stitched into paper.' },
+      { kind: 'video', src: '/marks/ecochain/04.mp4', caption: 'Eco cards — the mark carried onto paper.' },
     ],
   },
   {
@@ -115,8 +127,7 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#9B99FF',
     slides: [
       { kind: 'mark' },
-      { kind: 'mark', flip: 'x' },   // placeholder — will be real supporting media
-      { kind: 'mark', flip: 'y' },   // placeholder — will be real supporting media
+      { kind: 'image', src: '/marks/kilti/01.jpg', caption: 'House of Kilti — the mark’s first turn on a high street.' },
     ],
   },
 ]

@@ -9,12 +9,6 @@ export type ImageManifestEntry = {
 }
 
 export const imageManifest: Record<string, ImageManifestEntry> = {
-  "/apple-touch-icon.png": {
-    "dominantColor": "rgb(88, 56, 8)",
-    "thumbHash": "TUoGFwIIx1iJd4dyjFaXiIh5iJAnCHkC",
-    "width": 180,
-    "height": 180
-  },
   "/images/biconomy/api/1.png": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "MggGBYBwh4eUiIh1d5eIhwAAAAAA",
@@ -428,6 +422,84 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "thumbHash": "tggCBABgexOzZy/Ep3TPtfZmew==",
     "width": 368,
     "height": 624
+  },
+  "/marks/beringer/01.jpg": {
+    "dominantColor": "rgb(184, 24, 24)",
+    "thumbHash": "KIkOFwqLhEtgh3dxhziIeIeHWvboZZ8O",
+    "width": 1080,
+    "height": 1080
+  },
+  "/marks/beringer/02.jpg": {
+    "dominantColor": "rgb(232, 200, 184)",
+    "thumbHash": "KnkKDwg8eqaflodxeNd4OHiKNxv2wmAP",
+    "width": 1080,
+    "height": 1080
+  },
+  "/marks/beringer/03.jpg": {
+    "dominantColor": "rgb(184, 24, 24)",
+    "thumbHash": "XskOHwwGaJh4iIiEeYh4N6iHd3/I94cM",
+    "width": 1080,
+    "height": 1080
+  },
+  "/marks/beringer/04.jpg": {
+    "dominantColor": "rgb(184, 24, 24)",
+    "thumbHash": "YqkOFwxAp3mjiHeUiGeIeIh4+Nu2v10L",
+    "width": 1080,
+    "height": 1080
+  },
+  "/marks/codezeros/01.webp": {
+    "dominantColor": "rgb(216, 216, 216)",
+    "thumbHash": "KwgKBYBwd3eId4h2iHeId793+Xl5",
+    "width": 3000,
+    "height": 2109
+  },
+  "/marks/codezeros/02.webp": {
+    "dominantColor": "rgb(56, 72, 72)",
+    "thumbHash": "2fcNDYD5mnnnmXpXeEdZd7TQch+d",
+    "width": 3000,
+    "height": 2250
+  },
+  "/marks/ecochain/01.webp": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "PQgGBICWyamId3efZnYJh4JwCA==",
+    "width": 3000,
+    "height": 1688
+  },
+  "/marks/ecochain/02.jpg": {
+    "dominantColor": "rgb(216, 216, 216)",
+    "thumbHash": "b/kJJYiPfJqUeHiZZxeIdaJ/G8z3",
+    "width": 3000,
+    "height": 2200
+  },
+  "/marks/furrmark/01.webp": {
+    "dominantColor": "rgb(200, 200, 200)",
+    "thumbHash": "7gcGDYIgm3dDqXmqidiLiZ+u9dhL",
+    "width": 3000,
+    "height": 2008
+  },
+  "/marks/furrmark/02.webp": {
+    "dominantColor": "rgb(216, 216, 216)",
+    "thumbHash": "NfgFBYBlaHmKd3eAemmIfU+Cc6wJ",
+    "width": 3000,
+    "height": 2250
+  },
+  "/marks/furrmark/03.webp": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "OPgFBYBnenmKh3dgaZh4c2+FPncI",
+    "width": 3000,
+    "height": 2250
+  },
+  "/marks/kilti/01.jpg": {
+    "dominantColor": "rgb(216, 216, 216)",
+    "thumbHash": "YAgKDQKreEq1+lvWlmepiVt0/8ZD",
+    "width": 960,
+    "height": 1280
+  },
+  "/marks/slangbusters/01.webp": {
+    "dominantColor": "rgb(120, 72, 8)",
+    "thumbHash": "3DcKZIQf00aDjZeLZniQdxjvag==",
+    "width": 3000,
+    "height": 1688
   },
   "/og-image.png": {
     "dominantColor": "rgb(248, 248, 248)",

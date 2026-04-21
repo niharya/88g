@@ -56,9 +56,14 @@ Inventory lives in `data/marks.ts`. Entry shape per mark: `id`, `name`, `year`,
 `story`, `palette` (with optional `stopMid` for gradient smoothing),
 `previewColor`, `slides[]`. The first slide MUST be `{ kind: 'mark' }` —
 that renders the hero SVG at editorial scale; later slides are supporting
-media (`kind: 'image' | 'gif'`) or flipped-mark placeholders until real
+media (`kind: 'image' | 'video'`) or flipped-mark placeholders until real
 media lands. Slide media paths follow `public/marks/<id>/NN.ext` with
 filename ordering preserved.
+
+Video slides render a plain `<video autoPlay muted loop playsInline>` in
+`MarkCarousel.tsx`. `muted` and `playsInline` are load-bearing for iOS —
+without them Safari blocks autoplay or takes the video fullscreen. Do not
+drop them. Video files live alongside stills in `public/marks/<id>/NN.mp4`.
 
 Essay reading order is encoded by array order: divider (Furrmark/Aleyr) →
 wordmarks (Codezeros, Slangbusters, Beringer) → glyphs (Ecochain, Kilti).
