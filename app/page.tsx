@@ -1,16 +1,22 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
 import SlideInOnNav from './components/SlideInOnNav'
 import CaptionTag from './components/CaptionTag'
 import { getGreeting } from './lib/greeting'
+import './components/nav/nav.css'
 import './landing.css'
 
 /* Session flag read by /selected on arrival so it can slide in from the right.
-   Paired with SlideInOnNav at the bottom of this file for the reverse trip. */
+   Paired with the inline slide-in effect inside LandingPage for the reverse
+   trip — that effect is inlined rather than using <SlideInOnNav> because the
+   landing's root className toggles on expand, and React's className
+   reconciliation strips any imperatively-added classes (like SlideInOnNav's)
+   on every re-render. Owning the class through React state keeps it stable
+   across the expand toggle, avoiding a mid-flight animation restart. */
 const markToSelected = () => {
   try { sessionStorage.setItem('nav-direction', 'to-selected') } catch { /* non-fatal */ }
 }
@@ -55,11 +61,43 @@ function CollapseIcon() {
 
 export default function LandingPage() {
   const [expanded, setExpanded] = useState(false)
+  const [slideIn, setSlideIn] = useState(false)
   const [greeting] = useState(getGreeting)
+
+  /* Slide-in entrance — reads the session flag set by NiharHomeLink on
+     /selected. Owned by React state so the class survives className
+     reconciliation when expand toggles. useLayoutEffect runs before paint
+     so the class lands before the hero-card__bg animation can start. */
+  useLayoutEffect(() => {
+    let direction: string | null = null
+    try { direction = sessionStorage.getItem('nav-direction') } catch { return }
+    if (direction !== 'to-landing') return
+    try { sessionStorage.removeItem('nav-direction') } catch { /* non-fatal */ }
+    setSlideIn(true)
+  }, [])
 
   /* ---- Spectrum state ---- */
   const [hueIdx, setHueIdx] = useState(0)
   const [specRotation, setSpecRotation] = useState(0)
+
+  /* ---- Secondary-stack random tilts ----
+     Group B (cards below the hero — currently practice, future additions)
+     reroll their random rotation every time the page expands. The reroll
+     MUST happen in the same React update as setExpanded(true) — if it
+     lagged into a useEffect([expanded]), the CSS transition would begin
+     with the stale rotation and then snap to the new one mid-flight,
+     because custom properties aren't interpolated without @property
+     registration. Filter excludes the previous value so each reroll
+     visibly shifts. To add a new Group B card: add a rot state here,
+     reroll inside rerollStackRotations(), pass via --<name>-rot style. */
+  const [practiceRot, setPracticeRot] = useState(0)
+  const rerollStackRotations = useCallback(() => {
+    const opts = [-2, -1, 1, 2]
+    setPracticeRot(prev => {
+      const choices = opts.filter(t => t !== prev)
+      return choices[Math.floor(Math.random() * choices.length)]
+    })
+  }, [])
   const palette = PALETTES[hueIdx]
 
   /* ---- Contact state ---- */
@@ -157,9 +195,13 @@ export default function LandingPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       doFormCollapse()
     } else {
+      // Reroll Group B rotations in the same React commit as setExpanded
+      // so the expand transition begins with the final rotation target
+      // (avoids a mid-transition rotation snap — the "ghost" effect).
+      rerollStackRotations()
       setExpanded(true)
     }
-  }, [expanded, doFormCollapse])
+  }, [expanded, doFormCollapse, rerollStackRotations])
 
   /* ---- Action button state machine ---- */
   const handleActionClick = useCallback(() => {
@@ -372,8 +414,13 @@ export default function LandingPage() {
   const handleSpectrumClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('a')) return
     setHueIdx(prev => (prev + 1) % PALETTES.length)
-    const tilts = [-2, -1, 1, 2]
-    setSpecRotation(tilts[Math.floor(Math.random() * tilts.length)])
+    // Reroll from the subset that excludes the current value so the frame
+    // always visibly rotates. Without this filter, two consecutive identical
+    // picks would read as no rotation change.
+    setSpecRotation(prev => {
+      const options = [-2, -1, 1, 2].filter(t => t !== prev)
+      return options[Math.floor(Math.random() * options.length)]
+    })
   }, [])
 
   /* ---- Random tag tilts ---- */
@@ -392,14 +439,9 @@ export default function LandingPage() {
 
   return (
     <>
-      <SlideInOnNav
-        flag="to-landing"
-        selector=".landing"
-        className="landing--slide-in"
-      />
       <div className="landing-pattern-bg" aria-hidden="true" />
 
-      <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}`}>
+      <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}`}>
         <div className="landing__content">
 
           {/* About Short */}
@@ -419,7 +461,7 @@ export default function LandingPage() {
                 <div className="hero-card__content">
                   <p className="hero-card__greeting t-p4">{greeting}</p>
                   <h1 className="hero-card__headline t-h2">
-                    I&rsquo;m Nihar, a designer working across product, systems, and brand.
+                    I&rsquo;m a designer working across product, systems, and brand.
                   </h1>
                   <p className="hero-card__sub t-p3">I now focus primarily on systems.</p>
                 </div>
@@ -434,22 +476,57 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Works */}
+          {/* Nav row — [Nihar] nameplate + expand trigger docked with [Works] link.
+              Mirrors the /selected nav row pattern; terra-tinted to live in
+              landing's color world. + icon rotates 45° to × on expand. */}
           <div className="landing__section--projects">
-            <Link href="/selected" className="projects-btn" onClick={markToSelected}>
-              <span className="projects-btn__label t-btn1">Works</span>
-              <svg className="projects-btn__icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
+            <div className="landing-nav-row">
+              <button
+                className="nav-marker nav-marker--project landing-nav-row__nihar"
+                type="button"
+                onClick={handlePillClick}
+                aria-expanded={expanded}
+                aria-label={expanded ? 'Collapse content' : 'Expand content'}
+              >
+                <span className="nav-marker__content">
+                  <span
+                    className={`nav-icon landing-nihar-icon${expanded ? ' landing-nihar-icon--expanded' : ''}`}
+                    aria-hidden="true"
+                  >
+                    add
+                  </span>
+                  <span className="nav-marker__name t-btn1">Nihar</span>
+                </span>
+              </button>
+              <Link
+                href="/selected"
+                className="nav-marker nav-marker--chapter landing-nav-row__works"
+                onClick={markToSelected}
+              >
+                <span className="nav-marker__content">
+                  <span className="nav-icon" aria-hidden="true">arrow_forward</span>
+                  <span className="nav-marker__title t-btn1">Works</span>
+                </span>
+              </Link>
+            </div>
           </div>
 
-          {/* About Long */}
+          {/* About Long — split part 1: framing paragraph */}
           <div className="landing__section--about-long">
             <div className="about-card about-card--long">
               <p className="about-card__text t-p2">
                 <span style={{ color: 'var(--grey-160)' }}>Now I look at the world through the lens of system design and sitting here, I could design anything (if it interests me enough). A game being the last one.</span>
-                <br /><br />
+              </p>
+            </div>
+          </div>
+
+          {/* About Practice — split part 2: practice + life, framed sheet */}
+          <div
+            className="landing__section--about-practice"
+            style={{ '--practice-rot': `${practiceRot}deg` } as React.CSSProperties}
+          >
+            <div className="about-card about-card--practice">
+              <p className="about-card__text t-p2">
                 My practice has evolved from designing symbols to designing objects, dashboards, processes that contribute to live systems. To live cultures.
               </p>
               <div className="about-card__divider about-card__divider--full" />

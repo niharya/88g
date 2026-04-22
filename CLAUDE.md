@@ -142,6 +142,7 @@ Each route has an `ANOMALIES.md` file. Its purpose is narrow: **architectural an
 
 Out of scope for ANOMALIES.md: tours of the codebase, general explanations of how the feature works, changelog entries, aspirational notes.
 
+* `app/_landing/ANOMALIES.md` — landing route (code at `app/page.tsx` + `app/landing.css`)
 * `app/(works)/biconomy/ANOMALIES.md`
 * `app/(works)/rr/ANOMALIES.md`
 * `app/(works)/selected/ANOMALIES.md`
