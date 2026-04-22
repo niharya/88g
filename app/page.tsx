@@ -5,6 +5,7 @@ import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
 import SlideInOnNav from './components/SlideInOnNav'
+import CaptionTag from './components/CaptionTag'
 import { getGreeting } from './lib/greeting'
 import './landing.css'
 
@@ -661,6 +662,13 @@ export default function LandingPage() {
           </div>
 
         </div>
+
+        <CaptionTag
+          title="Startooth Pattern"
+          year={2025}
+          description="Geometric trapezoids, sliced by stars and diamonds, inspired by the houndstooth pattern."
+          visible={!expanded}
+        />
       </div>
     </>
   )

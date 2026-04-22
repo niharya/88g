@@ -1,0 +1,178 @@
+/* ==========================================================================
+   CaptionTag — museum-label caption docked to viewport bottom.
+
+   Closed: whole card translated DOWN by --tuck (which bakes in a 6px lift
+   so the title row peeks 6px above the viewport edge at rest).
+   Open: card at translateY(0) — full sheet flush to viewport bottom (docked,
+   no float).
+   Hidden (data-visible="false"): card tucks fully below the viewport edge
+   (translateY(100%)) and fades out.
+
+   Width is set inline via JS (measured title-row width + horizontal padding)
+   so the card shrink-wraps to the title row. Description inside wraps to
+   that same column.
+
+   All movement via `transform` — GPU-cheap, doesn't affect layout.
+   ========================================================================== */
+
+/* --tuck and --tuck-hidden are registered as typed length custom properties
+   so the browser can interpolate transform values across state changes.
+   Both hidden and visible-closed express translateY in px via var(--*) —
+   transitioning between them is a well-defined length interpolation.
+   (A percentage-based hidden state like translateY(100%) cannot interpolate
+   to translateY(var(--tuck)) and the transition pins at currentTime=0.) */
+@property --tuck {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --tuck-hidden {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 200px;
+}
+
+.caption-tag {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 20;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* 4px default gap + 2px divider breathing room above the description line */
+  gap: calc(var(--space-4) + var(--space-2));
+  box-sizing: border-box;
+  max-width: calc(100vw - 32px);
+  padding: var(--space-4) var(--space-8) 10px;
+
+  background: var(--surface-bg);
+  color: #c96f42;
+
+  user-select: none;
+
+  /* Hidden by default — tucked fully below the viewport edge. --tuck-hidden
+     is set inline from JS to cardHeight px so the hidden Y lands exactly
+     below the viewport edge. Using a registered <length> custom property
+     (rather than 100%) keeps the transition between hidden and visible
+     px-to-px so the browser can interpolate cleanly.
+
+     Transitions are gated on `data-ready="true"` — the component flips this
+     the frame after it measures. Without the gate, a transition fires on
+     initial mount from the static hidden state toward the live visible
+     state, and can pin at currentTime=0 (stuck mid-flight). Waiting a frame
+     lets the element land at its real target, then enables motion for
+     subsequent state changes (hover, open, consumer toggling `visible`). */
+  transform: translateX(-50%) translateY(var(--tuck-hidden));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.caption-tag[data-ready="true"] {
+  transition:
+    transform var(--dur-slide) var(--ease-snap),
+    opacity var(--dur-fast) var(--ease-snap);
+}
+
+/* Visible + closed — title row peeks 10px above viewport edge, description below.
+   --tuck already includes the 10px lift (set in JS) so this stays `var(--tuck)`
+   without a calc() wrapper — transitions from the hidden translateY(100%) state
+   pin mid-flight if the closed-state value is expressed as calc() of a custom
+   property (unit-space mismatch). Keep direct `var(--tuck)` here. */
+.caption-tag[data-visible="true"][data-open="false"] {
+  transform: translateX(-50%) translateY(var(--tuck));
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Visible + open — full sheet docked flush at viewport bottom */
+.caption-tag[data-visible="true"][data-open="true"] {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Hover nudge — only when closed and visible, peeks up 4px from resting.
+   `data-hover-suppressed="true"` gates the rule off for the brief window
+   between a toggle-close and the mouse leaving: without it, the `:hover`
+   rule keeps the card lifted 4px so the close never lands at rest.
+   Suppression is lifted on mouseleave; re-entry re-enables hover. */
+.caption-tag[data-visible="true"][data-open="false"][data-hover-suppressed="false"]:hover {
+  transform: translateX(-50%) translateY(calc(var(--tuck) - 4px));
+}
+
+.caption-tag:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
+
+
+/* ---- Handle ----
+   Title row — plus icon + "Title, Year". At 80% opacity per Figma — quiet
+   identifier, description gets full color below. */
+.caption-tag__handle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: inherit;
+  opacity: 0.8;
+}
+
+.caption-tag__icon-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+/* Plus icon — rotates 45° to become a cross when open */
+.caption-tag__icon {
+  display: block;
+  transition: transform var(--dur-fast) var(--ease-snap);
+}
+
+.caption-tag[data-open="true"] .caption-tag__icon {
+  transform: rotate(45deg);
+}
+
+.caption-tag__title {
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* The plus icon's visible glyph sits ~3px inside its 18px bounding box,
+     so the visual gap from the card's left edge to the X is 8px padding +
+     3px icon inset. Match that on the right with a 3px title inset so the
+     composition reads balanced end-to-end. */
+  padding-right: 3px;
+}
+
+
+/* ---- Description ----
+   Full color, revealed below the title when open. Stretches to card content
+   width (which is sized to the title row) so it wraps to the same column.
+   Subtle top border acts as a divider between the quiet title row and the
+   description — low-alpha currentColor keeps it tonal rather than drawn. */
+.caption-tag__description {
+  margin: 0;
+  /* 4px default + 2px divider breathing room below the line */
+  padding-top: calc(var(--space-4) + var(--space-2));
+  width: 100%;
+  color: inherit;
+  text-wrap: pretty;
+  border-top: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+}
+
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .caption-tag,
+  .caption-tag__icon {
+    transition: none;
+  }
+}
