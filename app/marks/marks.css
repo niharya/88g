@@ -44,6 +44,14 @@
   --marks-gradient-loop:    14s;    /* per-mark palette drift */
   --marks-noise-loop:       60s;    /* noise background-position drift */
   --marks-settle-delay:     4s;     /* magnetic settle after scroll idle */
+
+  /* Outro-veil fades. Asymmetric by design: the fade-IN lands on black
+     firmly (this is a cinematic cut, not a wash), while the fade-OUT is
+     shorter because the intro hero-hold behind it does half the reveal.
+     Route-local because the veil is a /marks mechanism and the values sit
+     outside the 5-tier global duration scale. */
+  --marks-veil-in:          900ms;
+  --marks-veil-out:         700ms;
 }
 
 
@@ -260,7 +268,7 @@ html[data-marks-hidden='true'] .marks-background::after {
      with the permanent hero watermark behind the essay. Only the mark-name
      state is meaningful, so visibility is gated on data-in-mark. */
   opacity: 0;
-  transition: opacity 0.4s var(--ease-paper);
+  transition: opacity var(--dur-slide) var(--ease-paper);
 }
 
 /* In mark state the title doubles as the grid-back affordance. */
@@ -269,7 +277,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   pointer-events: auto;
   cursor: pointer;
   mix-blend-mode: overlay;
-  transition: opacity 0.4s var(--ease-paper), color 0.3s var(--ease-paper);
+  transition: opacity var(--dur-slide) var(--ease-paper), color var(--dur-slide) var(--ease-paper);
 }
 .marks-title[data-in-mark='true']:hover,
 .marks-title[data-in-mark='true']:focus-visible {
@@ -304,7 +312,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   justify-items: center;
   overflow: hidden;
   height: 1.2em;
-  transition: width 0.4s var(--ease-paper);
+  transition: width var(--dur-slide) var(--ease-paper);
 }
 
 /* Slots share `grid-area: 1 / 1` — identical position, independent transforms.
@@ -315,7 +323,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   grid-area: 1 / 1;
   line-height: 1.2;
   white-space: nowrap;
-  transition: transform 0.4s var(--ease-paper);
+  transition: transform var(--dur-slide) var(--ease-paper);
   will-change: transform;
 }
 
@@ -401,7 +409,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   display: block;
   cursor: pointer;
   color: inherit;
-  transition: color 0.4s var(--ease-paper);
+  transition: color var(--dur-slide) var(--ease-paper);
   /* Hover colorizes the SVG via currentColor (marks use fill="currentColor"). */
 }
 .marks-essay__preview-btn:hover,
@@ -418,7 +426,7 @@ html[data-marks-hidden='true'] .marks-background::after {
    Transition matches the button's `color` transition so primary + accent
    resolve together. */
 .marks-essay__preview-btn [data-depth] {
-  transition: fill 0.4s var(--ease-paper);
+  transition: fill var(--dur-slide) var(--ease-paper);
 }
 .marks-essay__preview-btn:hover [data-depth],
 .marks-essay__preview-btn:focus-visible [data-depth] {
@@ -800,14 +808,14 @@ html[data-marks-hidden='true'] .marks-background::after {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: #000;
+  background: #000;   /* pure black — no token; see :root:has(.route-marks) note */
   opacity: 0;
   pointer-events: none;
-  transition: opacity 700ms var(--ease-paper);
+  transition: opacity var(--marks-veil-out) var(--ease-paper);
 }
 .marks-outro-veil[data-opaque='true'] {
   opacity: 1;
-  transition-duration: 900ms;
+  transition-duration: var(--marks-veil-in);
 }
 
 

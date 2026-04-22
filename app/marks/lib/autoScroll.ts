@@ -55,10 +55,15 @@ const CURSOR_IDLE_MS     = 450   // ms of no mousemove before resuming full spee
 const COOLDOWN_MS        = 500   // pause after user input before auto-resumes
 const DT_CLAMP_S         = 0.1   // clamp per-frame dt (tab-switch recovery)
 const FIRST_MARK_ID      = 'furrmark'  // intro stops here — mark machinery takes over
-const VEIL_FADE_IN_MS    = 900   // outro: fade-to-black duration before teleport
-// Veil fade-out is owned by CSS on the <OutroVeil> element (marks.css). The
-// reader's hero-arrival moment overlaps with the 1500 ms intro hold, so the
-// visible "from black → hero → reel" beat is ~1.6s total wall-clock.
+// Keep VEIL_FADE_IN_MS in sync with the CSS token `--marks-veil-in` in
+// marks.css. JS drives the teleport timing; CSS drives the visible fade.
+// They must match or the teleport lands before/after the veil is fully
+// opaque. Current value: 900 ms.
+const VEIL_FADE_IN_MS    = 900
+// Veil fade-out is owned by CSS on the <OutroVeil> element (marks.css,
+// `--marks-veil-out` = 700 ms). The reader's hero-arrival moment overlaps
+// with the 1500 ms intro hold, so the visible "from black → hero → reel"
+// beat is ~1.6s total wall-clock.
 
 export type AutoScrollMode = 'intro' | 'outro'
 export type OutroVeilState = 'hidden' | 'opaque'

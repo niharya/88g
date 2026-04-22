@@ -475,7 +475,11 @@ html.fonts-ready .route-marks {
    picks up the lightest grey token so the mark reads as paper-on-void,
    matching the Hero palette. Also darken the html bg while the route is
    live so the browser's first paint doesn't flash the default light paper
-   behind the boot mark. */
+   behind the boot mark.
+   The `#fff` and `#000` literals here are deliberate: the grey palette
+   tops out at #F5F5F5 (--grey-960) and bottoms at #141414 (--grey-80),
+   and the /marks hero palette uses pure black explicitly. No token exists
+   for pure-white or pure-black — do not "fix" these to the nearest grey. */
 :root:has(.route-marks) {
   --startooth-stroke: #ffffff;
   --startooth-fill: var(--grey-960);

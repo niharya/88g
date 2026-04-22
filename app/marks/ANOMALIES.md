@@ -440,6 +440,112 @@ park the reel indefinitely.
 
 ---
 
+## Cursor-idle slowdown on the reel
+
+`autoScroll.ts` drops the cruise from `RATE_VH_PER_S` (3.5 vh/s) to
+`RATE_VH_PER_S_SLOW` (1.2 vh/s) while the reader's cursor is moving, and
+returns to full speed only after `CURSOR_IDLE_MS` (450 ms) of no mousemove.
+
+Load-bearing details:
+
+- Both directions ride `CRUISE_SPRING` (shared with /rr Outcome ticker).
+  `springUp()` animates `velocity` toward `targetRate()`; a raw `velocity.set`
+  on either transition would read as a step change, not a settle.
+- The idle timer resets on every mousemove — the reader must truly stop
+  moving for 450 ms before the reel accelerates. This matters: a reader
+  tracking the cursor along with the text should not fight with a reel that
+  keeps resuming the instant they pause between words.
+- Reduced-motion readers never enter this path — auto-scroll is off entirely.
+
+If you change the slow-rate constant, also walk the subpixel accumulator
+note below: at rates much under ~0.18 px/frame the accumulator is the only
+thing keeping the reel moving on some engines.
+
+---
+
+## Subpixel scroll accumulator
+
+`scrollAccum` in `autoScroll.ts` is load-bearing, not a micro-optimization.
+At `RATE_VH_PER_S_SLOW` (1.2 vh/s) on a 900 px viewport the per-frame delta
+is ~0.18 px at 60 fps — below the `window.scrollBy` rounding floor on some
+browser engines. Without the accumulator the reel appears to freeze
+entirely while the cursor is moving.
+
+The tick accumulates fractional pixels into `scrollAccum`, flushes
+`Math.floor(scrollAccum)` via `scrollBy`, and keeps the remainder. Do not
+"simplify" this to `scrollBy(0, dy)` — that regresses the slow-rate path.
+
+`stopAutoScroll()` resets the accumulator to 0 so a fresh intro doesn't
+inherit sub-pixel debt from the previous run.
+
+---
+
+## HeroText two-stage fade + veil-lock
+
+`HeroText` on the marks hero is a watermark that fades under the scrolling
+essay. It exposes a CSS custom property `--hero-recede` (0 → 1) that drives
+opacity between 1 and `WATERMARK_FLOOR` (0.12) — the essay reads on top, but
+the hero title is still legible behind it.
+
+Two stages, both anchored to the essay element (not the viewport):
+
+- **Stage A** runs from essay-top-enters-viewport → essay-top-at-40%-of-viewport.
+  Opacity falls from 1 to `WATERMARK_FLOOR`. This is the "drop well below
+  20% by the time essay is ~40% in" behavior the spec calls for.
+- **Stage B** runs from essay-bottom-enters-viewport → essay-bottom-leaves.
+  Opacity falls from `WATERMARK_FLOOR` to 0. Hero is gone by the time the
+  reader exits the essay.
+
+**Veil-lock** is the non-obvious bit. During the outro (veil opaque →
+teleport → intro re-arm), the essay geometry jumps. Without gating, the
+stage math produces a visible flash as the hero title snaps from 0 back to
+1 behind the black veil. `HeroText` subscribes to `subscribeOutroVeil` and
+parks `--hero-recede` at 0 (fully visible) while the veil state is
+`'opaque'` — the teleport happens while the veil hides the route, and the
+two-stage math resumes only after `'hidden'` is broadcast. Do not remove
+the veil subscription.
+
+---
+
+## Essay has no negative margin peek
+
+The essay element sits at the natural document position immediately after
+the hero — `margin-top: 0`. It scrolls *up into* the hero, not out of a
+pre-placed anchor inside the hero.
+
+Any historical notes referencing a `-13.78vh` (or `y=776` Figma) peek
+position are obsolete. The earlier design had the essay sitting partially
+inside the hero viewport at rest; the current behavior is that the essay
+enters from below when the reader scrolls, which is why the two-stage
+`HeroText` fade keys off essay-top-crosses-viewport rather than a static
+offset.
+
+---
+
+## Boot gating — `.route-marks` joins `.fonts-ready`
+
+`/marks` is the first non-workbench route to opt into the global
+`.fonts-ready` opacity gate on `<html>`. Reason: on hard reload the
+startooth (which boots before fonts) was visually competing with the
+`MarksTitle` "MARKS AND SYMBOLS" lockup painting in its fallback face.
+
+Two things had to land together for the clean boot:
+
+- `.route-marks` is included in the `.fonts-ready` opacity selector in
+  `globals.css` so marks content is hidden until fonts resolve — startooth
+  alone on the black field until ready.
+- `:root:has(.route-marks) { background: #000 }` in `globals.css` flips the
+  html background to black for the duration of the route. Without it the
+  browser's first paint flashes the default light paper behind the boot
+  mark. The `#000` literal is deliberate — see the comment block in
+  `globals.css` (there is no token for pure black; the grey scale bottoms
+  at `#141414`).
+
+If a future dark route needs the same boot hygiene, model it on the marks
+block rather than inventing a parallel pattern.
+
+---
+
 ## Responsive anomalies
 
 `/marks` is built responsive-ready (per CLAUDE.md). The mobile pass lives in
