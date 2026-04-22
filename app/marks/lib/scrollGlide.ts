@@ -23,6 +23,15 @@ const EASE_PAPER = (t: number): number => {
 let activeRaf: number | null = null
 let activeCancel: (() => void) | null = null
 
+// Peek at whether a glide is currently running. Consumed by autoScroll so the
+// continuous credits reel yields while a programmatic glide (paginator click,
+// essay preview jump, grid-back, slide-wrap advance) is writing scrollY. If
+// both wrote window.scrollY every frame, the glide's easing would be
+// corrupted by the auto-scroll's additive dy and land imprecisely.
+export function isGlideActive(): boolean {
+  return activeCancel !== null
+}
+
 export function scrollGlide(targetY: number, durationMs = 800): () => void {
   if (typeof window === 'undefined') return () => {}
 

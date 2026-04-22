@@ -82,10 +82,16 @@ Router ignores it at routing time). Temporary — removed once the route ships.
 - `<Background />` sits at the top of the route's JSX and renders a `fixed`
   layer at `z-index: 0`. Every phase should stay at `z-index: 1` so the
   background reads through but never covers content.
-- Title dock (`components/MarksTitle.tsx` + marks.css): the hero title is
-  driven by a scroll-listener-written CSS custom property `--marks-s`, not
-  framer-motion. The framer-motion path produced SSR `NaN` hydration
-  mismatches on first render. Do not port it back.
+- Title system is **two cooperating elements**, not one morphing element.
+  `HeroText.tsx` owns the big 120px hero presentation at 37vh; `MarksTitle.tsx`
+  owns the always-docked 24px pill at `--marker-top`. HeroText writes
+  `--hero-recede` (0 → 1 over the first 60vh of scroll) to the `.route-marks`
+  wrapper; both consume it via CSS (HeroText fades out + grows a text-shadow
+  halo; MarksTitle fades in). Do NOT reintroduce a single morphing element —
+  the earlier `--marks-s` interpolation conflated two responsibilities (the
+  hero visual moment and the docked nav pill) and made both harder to reason
+  about. The `--hero-recede` inverse-fade keeps the two elements from
+  competing for attention when they would otherwise overlap at y=0.
 - Per-section reveal latch: `data-settled="true"` flips at `p ≥ 0.85` and
   releases at `p ≤ 0.60`. The hysteresis gap is deliberate — narrowing it
   causes visible flicker when a section parks mid-reveal.
@@ -140,19 +146,15 @@ while the duplicate is on screen. Three components cooperate:
    pure-black palette; the clone paints `HERO_PALETTE` — the same palette
    as the real Hero at `y=0`. By the time the clone is docked, the fixed
    background already matches the destination.
-3. **MarksTitle.tsx** drives `--marks-s` from `distToNearestHero(y)`, not
-   `scrollY` directly. The function measures the nearer of two anchors —
-   the real Hero at `y=0` or the HeroClone at its page-top — so
-   `--marks-s` reads 0 (big hero state) at **both** anchors. The title
-   therefore looks identical on both sides of the teleport, leaving no
-   visual artifact to betray the jump. Graceful-degradation invariant:
-   when no `.marks-hero-clone` element exists (pre-mount, or a future
-   short-viewport opt-out) the helper returns raw `y`, so the dock math
-   still works from the real Hero alone.
+3. **OutroVeil.tsx** covers the teleport for the autonomous reel. Outro
+   no longer cruises through Blank / HeroClone — it fades a black overlay
+   to opaque, teleports, then fades back. See "Outro veil" below for the
+   full timeline. The manual path (reader coasts in under their own power)
+   still routes through HeroClone.onDocked.
 
 All three pieces are co-authored. Touch one, verify the other two. In
-particular: if the clone's CSS class changes, update both Background's
-selector list and MarksTitle's `distToNearestHero` lookup.
+particular: if the clone's CSS class changes, update Background's
+selector list to match.
 
 The reader can't scroll up from the real Hero because the browser has
 nothing above `y=0` — the reel only goes forward, and the infinity is
@@ -204,17 +206,23 @@ caption/paging, which is where lingering intent lives.
 
 ---
 
-## MarkChrome active-dot remount key
+## MarkChrome paginator — two-level key split
 
-`MarkChrome.tsx` keys the active paginator dot as `active-${index}-${active ? 'on' : 'off'}`
-while inactive dots use stable `inactive-${i}` keys. This forces React to
-remount the active dot on **both** slide change and section-becomes-dominant
-transitions, which restarts the CSS fill animation from `scaleX(0)`. The
-`active` flag in the key is load-bearing: without it, the fill animation
-completes on mount for every section and lands at `scaleX(1)` (forwards fill
-mode) before the reader arrives — making auto-advance handoffs land on a
-pre-filled pill. The animation is also CSS-gated by `[data-active-section='true']`
-for the same reason.
+`MarkChrome.tsx` uses **stable `key={i}` on each `<li>`** so the dot's
+`width` transition runs smoothly when the active dot moves (circle → pill
+and back). The fill-animation restart lives on an **inner keyed `<span
+className="mark-chrome__dot-fill" key={`${index}-${active ? 'on' : 'off'}`} />`**
+— remounting the inner span restarts the CSS fill animation from `scaleX(0)`
+without tearing down the outer dot that owns the width transition. The
+`active` flag in the inner key is load-bearing: without it, the fill would
+complete on mount for every section and land at `scaleX(1)` (forwards fill
+mode) before the reader arrives. The animation is also CSS-gated by
+`[data-active-section='true']` for the same reason.
+
+The earlier design keyed the entire `<li>` on slide change, which remounted
+both the old-active and new-active dots — the width transition never had
+matching endpoints to tween between, producing a visible snap. The
+two-level split is what fixes the snap.
 
 ---
 
@@ -291,6 +299,134 @@ passes it to `scrollGlide` — faster than the 800ms `--dur-glide` default
 used by `advanceToNextMark` and the Essay preview jumps. A paginator click
 is a direct UI response and needs to resolve inside attention; the auto-
 advance handoff is cinematic and takes the longer glide. Do not unify.
+
+---
+
+## Credits-reel auto-scroll — intro scroll + outro veil
+
+`lib/autoScroll.ts` + `components/AutoScroll.tsx` drive two cinematic
+transitions, mediated by a `mode` argument to `startAutoScroll`:
+
+- `'intro'` — Hero → Furrmark (first mark). Fires 1.5s after the route
+  mounts. Ticks scroll at `RATE_VH_PER_S` (3.5 vh/s) through a velocity
+  spring. Stops permanently when Furrmark's section top reaches the
+  viewport. Mark machinery (showcase timer + advanceToNextMark +
+  dominance snap) owns everything from there through Kilti.
+- `'outro'` — **Not a scroll cruise.** A veil-only timeline: fade a
+  black overlay to opaque (900 ms), `scrollTo(0, 0)` silently under the
+  cover, then hand off to intro (which holds 1500 ms on the Hero before
+  beginning) while the veil fades back out (700 ms). Total wall-clock
+  from Kilti's last-slide wrap to the real Hero becoming visible again:
+  ~1.6 s. Fires when Kilti's `useShowcaseTimer.onWrap` runs inside
+  `advanceToNextMark` and detects "no next mark".
+
+Why two different mechanisms: the old outro cruised scrollY through
+Blank + HeroClone at 3.5 vh/s, which read as ~28 s of dead black. Filmic
+cuts are faster — the veil gives the reel a punctuating "blackout →
+hero-reveal" beat instead of a long flat scroll. Intro stays as a
+cruise because the reader is reading while it runs (it carries them
+from the Hero into the first mark, which is an earned introduction,
+not a chapter break).
+
+Why intro and outro don't run inside mark sections: intra-mark motion
+is a composed system — slide auto-advance, dominance snap, paginator
+jumps, and paper-glided wrap-advance each want exclusive `scrollY`
+ownership for their easing to land. Outro's veil doesn't nudge scroll
+at all, so it composes cleanly with the mark machinery that was still
+paused just before Kilti wraps.
+
+Four pieces of coordination (intro mode):
+
+1. **Train-start spring on (re)start.** Velocity springs from 0 to
+   `RATE_VH_PER_S` via `CRUISE_SPRING` (shared with /rr Outcome — see
+   `app/lib/motion.ts`). Perceptible ~12% overshoot, no elastic ringing.
+   Linear ramps read mechanical; the spring reads as a reel starting.
+   Applies on every resume — mount, pause-release, glide-release, tab
+   return, and the outro → intro hand-off. This is a deliberate deviation
+   from CLAUDE.md's paper-motion `bounce: 0` rule — see `CRUISE_SPRING`
+   in `app/lib/motion.ts`.
+
+2. **Intro stop target.** Each tick queries `introStopTop()` — Furrmark's
+   document-space top. When `scrollY >= target - 2`, intro calls
+   `stopAutoScroll()`. DOM query per-frame is fine — one selector lookup,
+   sections exist for the whole route lifetime after hydration.
+
+3. **Yields during `scrollGlide`.** Programmatic glides (essay preview
+   jump, grid-back, mid-reel paginator click) need exclusive scrollY
+   ownership so ease-paper lands cleanly. `scrollGlide.isGlideActive()`
+   is polled each frame; while it's true, velocity springs back down
+   to 0 and the tick skips. On release, velocity springs back up —
+   same train-start kick.
+
+4. **User input pauses for `COOLDOWN_MS` (500ms).** `AutoScroll.tsx`
+   binds window-level wheel / touchstart / touchmove / keydown and calls
+   `pauseAutoScroll()` on any of them. After the cooldown, velocity
+   springs back up from 0 — the reel resumes from wherever the reader
+   ended up. Keys that move the document (Space, PgUp/Dn, ArrowUp/Dn,
+   Home, End) count; ArrowLeft / ArrowRight do not — those drive
+   intra-mark slide navigation and shouldn't stop the reel.
+
+Outro veil timeline (outro mode):
+
+- `startAutoScroll('outro')` — marks `running = true`, calls `notify(true)`
+  so MarkSection's showcase-timer gate stays closed for the entire
+  transition, then `notifyVeil('opaque')` to start the CSS fade-in on
+  `.marks-outro-veil`.
+- After `VEIL_FADE_IN_MS` (900 ms): `scrollTo(0, 0)` — instant teleport
+  under the opaque veil. `running` stays true across the swap so the
+  showcase timer never briefly re-arms.
+- Inline hand-off to intro: `mode = 'intro'`, reset `holdUntil` /
+  `lastTime` / `velocity`, schedule `requestAnimationFrame(tick)`. The
+  public `startAutoScroll('intro')` is NOT called here — its early-return
+  on `running === true` would no-op; we mirror its body inline instead.
+- `notifyVeil('hidden')` — CSS fade-out runs (700 ms) while intro holds
+  on the Hero for 1500 ms. The reader sees the Hero emerge from black,
+  holds the title moment, then the reel begins.
+- `stopAutoScroll()` also clears `outroTimeout` and drops the veil back
+  to hidden, so a route unmount or reduced-motion flip during the fade
+  doesn't leave the screen covered in black.
+
+BlankSection + HeroClone remain in the DOM. They are no longer part of
+the autonomous reel — they're the manual-scroll fallback path. If the
+reader scrolls past Kilti under their own power (faster than the auto-
+advance would wrap), `HeroClone.onDocked` still fires the same teleport
++ intro re-arm without the veil.
+
+Showcase-timer gate (`subscribeAutoScroll`): MarkSection subscribes to
+auto-scroll's running state and passes `active: active && !autoScrolling`
+into `useShowcaseTimer` AND into MarkChrome (for the dot fill animation
+key). Without this gate: (a) Furrmark's first slide could tick past
+before the reader arrives, landing them on slide 2 or 3; (b) the pill
+fill animation would visually empty before the timer had started,
+reading as a broken clock. The subscribe callback fires synchronously
+with current state on subscribe, so mount-order doesn't matter.
+
+Load-bearing constants in `autoScroll.ts`:
+
+- `HOLD_MS = 1500` — hero hold before the intro reel starts. Matches
+  the "the page looks like it's still loading" opening beat. The outro
+  → intro hand-off re-uses this hold so the reader gets the same beat
+  on every loop (Hero re-emerges from black, holds, then reel begins).
+- `RATE_VH_PER_S = 3.5` — snail-slow credits pace, ~31px/s at 900px
+  viewport. Intro only — outro does not cruise.
+- `COOLDOWN_MS = 500` — "few microseconds, then continues" per the spec.
+- `DT_CLAMP_S = 0.1` — bound per-frame dt so a tab-switch doesn't jolt
+  the reel forward by seconds of accumulated time on the first tick
+  after return.
+- `FIRST_MARK_ID = 'furrmark'` — intro hand-off target. If the first
+  mark is ever reordered in `data/marks.ts`, update this constant.
+- `VEIL_FADE_IN_MS = 900` — outro fade-to-opaque duration. Fade-out is
+  700 ms and lives in CSS (`.marks-outro-veil` transition-duration). The
+  asymmetry is deliberate: fade-in needs a firm landing on opaque before
+  teleport; fade-out rides over a 1500 ms hero-hold so it can breathe
+  faster without rushing the reveal.
+
+Reduced-motion contract: `startAutoScroll()` short-circuits entirely
+under `prefers-reduced-motion: reduce` regardless of mode. Readers keep
+the route fully navigable via manual scroll; the showcase timer is
+already gated by the same media query; the manual HeroClone onDocked
+fallback still runs, so the loop closes when the reader reaches the
+clone on their own.
 
 ---
 

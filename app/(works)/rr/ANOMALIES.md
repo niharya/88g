@@ -286,12 +286,15 @@ into `trackX` would snap the visible copy backward by up to `segW`.
 
 ### Intentional overshoot — deviation from `bounce: 0`
 
-The hover-out spring is tuned for **~12% overshoot** — a kick on restart
-— at the user's explicit request ("small bounce, like a train starting").
-This is a deliberate deviation from CLAUDE.md's paper-motion rule of
-`bounce: 0` / no overshoot. Do not normalize it to a critically damped
-spring or to the `duration`/`bounce` API with `bounce: 0`. If you
-retune, keep the ~10–15% overshoot envelope.
+The hover-out spring is `CRUISE_SPRING` from `app/lib/motion.ts`, tuned
+for **~12% overshoot** — a kick on restart — at the user's explicit
+request ("small bounce, like a train starting"). This is a deliberate
+deviation from CLAUDE.md's paper-motion rule of `bounce: 0` / no
+overshoot. Do not normalize it to a critically damped spring or to the
+`duration`/`bounce` API with `bounce: 0`. If you retune, keep the
+~10–15% overshoot envelope — and remember the token is shared with
+`/marks` autoScroll (same train-start semantic), so any retune affects
+both consumers.
 
 ### `overscroll-behavior-x: contain`
 

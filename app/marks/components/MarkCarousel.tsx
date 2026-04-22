@@ -10,8 +10,20 @@
 // Only the active slide is in the DOM at a time — Presence drives the
 // exit (old slide) before the enter (new slide) so the crossfade reads as
 // a tab switch rather than a pile of stacked layers.
+//
+// Media sizing: photographs and videos render at their natural aspect
+// ratio (no crop). The figure sizes to the media and is capped by CSS
+// (max-width / max-height). Each media slide gets a random ±1° tilt
+// chosen on mount — a tiny "slipped out of a folder" tell that matches
+// the editorial-credits register without being decorative.
+//
+// Preload: every non-mark slide's source is rendered into a hidden
+// preloader once the section has entered the viewport, so advancing the
+// carousel never waits on a network fetch. See `MarkSection` for the
+// `hasEnteredViewport` flag that gates this.
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { useMemo } from 'react'
 import { Img } from '../../components/Img'
 import type { MarkEntry } from '../data/marks'
 import { marks } from './marks'
@@ -20,6 +32,7 @@ import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../lib/motion'
 interface MarkCarouselProps {
   mark:  MarkEntry
   index: number  // active slide index (0-based), driven by useShowcaseTimer.
+  preload?: boolean  // once true, all media slides render into a hidden preloader.
 }
 
 function flipTransform(flip?: 'x' | 'y'): string | undefined {
@@ -28,9 +41,18 @@ function flipTransform(flip?: 'x' | 'y'): string | undefined {
   return undefined
 }
 
-export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
+export default function MarkCarousel({ mark, index, preload = false }: MarkCarouselProps) {
   const MarkGlyph = marks[mark.id]
   const slide = mark.slides[index]
+
+  // One random ±1° tilt per slide, fixed for this mount. Reroll on next
+  // visit (next /marks page load) — matches the `--place-rotate` pattern
+  // from Sheet.tsx but scoped to individual carousel slides.
+  const tilts = useMemo(
+    () => mark.slides.map(() => (Math.random() < 0.5 ? -1 : 1)),
+    [mark.id, mark.slides.length],
+  )
+  const tilt = tilts[index] ?? 0
 
   return (
     <div
@@ -55,7 +77,10 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
               style={{ transform: flipTransform(slide.flip) }}
             />
           ) : slide.kind === 'video' ? (
-            <figure className="mark-carousel__media">
+            <figure
+              className="mark-carousel__media"
+              style={{ ['--artifact-tilt' as string]: `${tilt}deg` }}
+            >
               <video
                 src={slide.src}
                 autoPlay
@@ -66,17 +91,35 @@ export default function MarkCarousel({ mark, index }: MarkCarouselProps) {
               />
             </figure>
           ) : (
-            <figure className="mark-carousel__media">
+            <figure
+              className="mark-carousel__media"
+              style={{ ['--artifact-tilt' as string]: `${tilt}deg` }}
+            >
               <Img
                 src={slide.src}
                 alt={slide.caption}
-                fill
+                intrinsic
                 sizes="100vw"
               />
             </figure>
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* Hidden preloader. Once the section has entered the viewport, every
+          non-mark slide's source is rendered here so the browser fetches
+          them in parallel — advancing the carousel never waits on network. */}
+      {preload && (
+        <div className="mark-carousel__preloader" aria-hidden="true">
+          {mark.slides.map((s, i) => {
+            if (s.kind === 'mark' || i === index) return null
+            if (s.kind === 'video') {
+              return <video key={`pre-${i}`} src={s.src} muted playsInline preload="auto" />
+            }
+            return <Img key={`pre-${i}`} src={s.src} alt="" intrinsic />
+          })}
+        </div>
+      )}
     </div>
   )
 }

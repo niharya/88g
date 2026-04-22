@@ -403,10 +403,12 @@ p, li {
 /* ── Font gate ───────────────────────────────────────────────────────────── */
 /* Route layouts add .fonts-ready to <html> once document.fonts is ready.   */
 
-.workbench {
+.workbench,
+.route-marks {
   opacity: 0;
 }
-html.fonts-ready .workbench {
+html.fonts-ready .workbench,
+html.fonts-ready .route-marks {
   opacity: 1;
   transition: opacity var(--dur-settle) var(--ease-paper);
 }
@@ -468,6 +470,16 @@ html.fonts-ready .workbench {
 :root:has(.landing) {
   --startooth-stroke: #bb4311;
   --startooth-fill: #d76a36;
+}
+/* /marks sits on a black field — startooth stroke goes white, diamond fill
+   picks up the lightest grey token so the mark reads as paper-on-void,
+   matching the Hero palette. Also darken the html bg while the route is
+   live so the browser's first paint doesn't flash the default light paper
+   behind the boot mark. */
+:root:has(.route-marks) {
+  --startooth-stroke: #ffffff;
+  --startooth-fill: var(--grey-960);
+  background: #000;
 }
 
 html.fonts-ready .page-boot {

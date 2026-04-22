@@ -1,25 +1,20 @@
 'use client'
 
-// MarksTitle — the single persistent title element for the entire /marks route.
+// MarksTitle — the persistent docked title for the entire /marks route.
 //
-// One DOM node, three states, one scroll listener. The three states are the
+// One DOM node, two states, one scroll listener. The two states are the
 // same object; there is no stacked-spans crossfade.
 //
-//   State 1 — Hero   (--marks-s = 0):   "MARKS & SYMBOLS" at 120px, 37vh
-//   State 2 — Docked (--marks-s = 1):   "MARKS & SYMBOLS" at 24px,  26px top
-//   State 3 — Mark   (in mark zone):    "<Mark name>" + grid icon, same 24px
+//   State A — Label (no mark committed):  "MARKS & SYMBOLS"
+//   State B — Mark  (a mark is dominant):  "<Mark name>" + grid-back affordance
 //
-// States 1↔2 are driven by `--marks-s` — clamped 0..1 over 50vh of scroll
-// distance from the nearest hero anchor. There are TWO hero anchors: the
-// real <Hero/> at scrollY=0 and the <HeroClone/> at the tail of the
-// document. At both anchors --marks-s = 0 (big hero state); between them
-// the title settles into the docked-pill state. This is what makes the
-// clone-and-teleport wrap invisible — the title reads "big" on both sides
-// of the teleport, so the y=clone→y=0 jump isn't betrayed by a title pop.
-// Text is identical across State 1 and State 2, so scaling happens around
-// stable content.
+// Unlike earlier versions, this element no longer morphs between a big hero
+// presentation and a small docked pill. The big hero presentation lives in
+// HeroText.tsx; this element is ALWAYS at the docked size/position and just
+// fades in as the hero recedes. The fade-in reads `--hero-recede` (0 → 1,
+// written by HeroText) via CSS — no JS needed here for it.
 //
-// States 2↔3 and mark→mark transitions are a reel-roll: two slots ping-pong
+// State A ↔ B and mark→mark transitions are a reel-roll: two slots ping-pong
 // inside a clipped cell. Roll direction follows scroll direction — scrolling
 // down rolls text upward (old up, new from below); scrolling up rolls text
 // downward (old down, new from above). The mechanism is the same whether the
@@ -38,7 +33,6 @@ import { useEffect, useRef } from 'react'
 import { MARKS } from '../data/marks'
 import { scrollGlide } from '../lib/scrollGlide'
 
-const DOCK_FRACTION    = 0.5   // dock completes at 50% of one viewport of scroll
 const DOMINANT_COMMIT  = 0.55  // overlap fraction to claim the title
 const DOMINANT_RELEASE = 0.45  // overlap fraction below which the claim releases
 const LABEL_TEXT       = 'MARKS & SYMBOLS'
@@ -122,8 +116,7 @@ export default function MarksTitle() {
 
     // Lock or release the cell width based on whether we're in mark zone.
     // In mark zone → fixed markZoneWidth. Out of mark zone → unset, so the
-    // cell follows the label's intrinsic width as font-size scales with
-    // `--marks-s`.
+    // cell follows the label's intrinsic width.
     const syncCellWidth = () => {
       cell.style.width = committedId ? markZoneWidth + 'px' : ''
     }
@@ -174,29 +167,11 @@ export default function MarksTitle() {
       if (targetText !== currentText) kickRoll()
     }
 
-    // Smoothstep — eases the linear scroll ratio so hero↔dock reads like a
-    // settle rather than a drag against raw scroll velocity.
-    const smoothstep = (t: number) => t * t * (3 - 2 * t)
-
-    // Scroll-distance to the nearest hero anchor (real Hero at y=0, or the
-    // HeroClone at its page-top). Drives --marks-s so both anchors read
-    // "big hero" and the clone-teleport wrap leaves no title artifact.
-    const distToNearestHero = (y: number): number => {
-      const clone = document.querySelector<HTMLElement>('.marks-hero-clone')
-      if (!clone) return y
-      const cloneTop = clone.getBoundingClientRect().top + y
-      return Math.min(y, Math.max(0, cloneTop - y))
-    }
-
     const update = () => {
-      const y  = window.scrollY
+      const y = window.scrollY
       if (y > lastScrollY)      scrollDir = 'down'
       else if (y < lastScrollY) scrollDir = 'up'
       lastScrollY = y
-
-      const vh = window.innerHeight || 1
-      const raw = Math.max(0, Math.min(1, distToNearestHero(y) / (vh * DOCK_FRACTION)))
-      el.style.setProperty('--marks-s', String(smoothstep(raw)))
 
       const nextCommitted = computeCommittedId()
       if (nextCommitted !== committedId) {
@@ -218,12 +193,6 @@ export default function MarksTitle() {
 
     // Initial paint — write the initial target directly to slot-a so a
     // deep-link / refresh on a mark section doesn't play a catch-up roll.
-    const initialS = Math.max(
-      0,
-      Math.min(1, distToNearestHero(window.scrollY) / ((window.innerHeight || 1) * DOCK_FRACTION)),
-    )
-    el.style.setProperty('--marks-s', String(smoothstep(initialS)))
-
     committedId = computeCommittedId()
     const initialTarget = committedId
       ? MARKS.find((m) => m.id === committedId)?.name ?? LABEL_TEXT
@@ -260,9 +229,8 @@ export default function MarksTitle() {
   }, [])
 
   const handleActivate = () => {
-    // Stub per the brief's chunk 13: in mark state the title doubles as the
-    // grid-back affordance. Jumps to the top of the document for now; the
-    // current-cycle Hero target comes in when the infinite-loop lands.
+    // In mark state the title doubles as the grid-back affordance — jump
+    // to the top of the document (the Essay grid is visible from there).
     scrollGlide(0)
   }
 

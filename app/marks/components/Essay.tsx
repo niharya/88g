@@ -22,8 +22,19 @@ import { scrollGlide } from '../lib/scrollGlide'
 import type { MarkId } from './marks/types'
 import type { CSSProperties } from 'react'
 
-const previewColorFor = (id: MarkId): string =>
-  MARKS.find((m) => m.id === id)?.previewColor ?? 'currentColor'
+// Each PreviewBtn gets two CSS custom properties inline:
+//   --preview-color   → primary ink on hover (cascades to currentColor)
+//   --preview-accent  → secondary ink, only consumed by data-depth paths
+// Duotone marks (codezeros, slangbusters, beringer) carry an accent; single-
+// tone marks (furrmark, ecochain, kilti) leave --preview-accent unset.
+const previewInkFor = (id: MarkId): CSSProperties => {
+  const m = MARKS.find((m) => m.id === id)
+  const vars: Record<string, string> = {
+    '--preview-color': m?.previewColor ?? 'currentColor',
+  }
+  if (m?.previewAccent) vars['--preview-accent'] = m.previewAccent
+  return vars as CSSProperties
+}
 
 const jumpTo = (id: MarkId) => () => {
   const section = document.querySelector<HTMLElement>(
@@ -42,7 +53,7 @@ const PreviewBtn = ({ id, style, children }: Props) => (
     data-mark-id={id}
     aria-label={MARKS.find((m) => m.id === id)?.name}
     onClick={jumpTo(id)}
-    style={{ '--preview-color': previewColorFor(id), ...style } as CSSProperties}
+    style={{ ...previewInkFor(id), ...style }}
   >
     {children}
   </button>
@@ -57,8 +68,10 @@ export default function Essay() {
         process also changed.
       </p>
 
-      <div className="marks-essay__divider" aria-hidden="true">
-        <Furrmark />
+      <div className="marks-essay__divider">
+        <PreviewBtn id="furrmark">
+          <Furrmark />
+        </PreviewBtn>
       </div>
 
       <div className="marks-essay__body marks-essay__body--p2">
@@ -78,9 +91,8 @@ export default function Essay() {
         </PreviewBtn>
       </div>
 
-      <div className="marks-essay__caption">
+      <div className="marks-essay__caption marks-essay__caption--between">
         <p>For me, marks are not decorations but transmissions: vessels built for timelessness.</p>
-        <p>Here is a selection of a few distilled ideas and emotions.</p>
       </div>
 
       <div className="marks-essay__preview marks-essay__preview--glyphs">
@@ -90,6 +102,10 @@ export default function Essay() {
         <PreviewBtn id="kilti">
           <Kilti className="marks-essay__glyph" />
         </PreviewBtn>
+      </div>
+
+      <div className="marks-essay__caption">
+        <p>Here is a selection of a few distilled ideas and emotions.</p>
       </div>
     </section>
   )

@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
+import AutoScroll from './components/AutoScroll'
 import Background from './components/Background'
 import MarksTitle from './components/MarksTitle'
+import HeroText from './components/HeroText'
 import Hero from './components/Hero'
 import Essay from './components/Essay'
 import MarkSection from './components/MarkSection'
 import BlankSection from './components/BlankSection'
 import HeroClone from './components/HeroClone'
+import OutroVeil from './components/OutroVeil'
 import { MARKS } from './data/marks'
 
 // /marks — Marks & Symbols
@@ -39,7 +42,9 @@ export const metadata: Metadata = {
 export default function MarksPage() {
   return (
     <div className="route-marks">
+      <AutoScroll />
       <Background />
+      <HeroText />
       <MarksTitle />
       <Hero />
       <Essay />
@@ -48,6 +53,7 @@ export default function MarksPage() {
       ))}
       <BlankSection />
       <HeroClone />
+      <OutroVeil />
     </div>
   )
 }

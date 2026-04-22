@@ -33,7 +33,13 @@ export type MarkEntry = {
   // large flat areas. When omitted, the gradient falls back to a pure
   // A→B two-stop via color-mix in the CSS layer.
   palette:      { stopA: string; stopB: string; stopMid?: string; angle: number }
-  previewColor: string
+  // `previewColor` is the primary ink the Essay preview reveals on hover.
+  // `previewAccent` is the secondary ink used by duotone marks whose accent
+  // paths are tagged `data-depth=""` — on hover those paths flip to the
+  // accent while primary paths flip to `previewColor`, reproducing the
+  // source mark's original two-tone identity.
+  previewColor:  string
+  previewAccent?: string
   slides:       MarkSlide[]
 }
 
@@ -64,6 +70,7 @@ export const MARKS: MarkEntry[] = [
     story:        'A wordmark for a studio that writes code others read twice.',
     palette:      { stopA: '#4D0B0F', stopMid: '#80131A', stopB: '#FF2633', angle: 45 },  // primary #FF2633 × (0.3, 0.5, 1.0)
     previewColor: '#FF2633',
+    previewAccent:'#FF9933',
     slides: [
       { kind: 'mark' },
       { kind: 'image', src: '/marks/codezeros/01.webp', caption: 'The “Z”, drawn and redrawn until the stance held.' },
@@ -79,7 +86,8 @@ export const MARKS: MarkEntry[] = [
     year:         2020,
     story:        'Built for a bureau that untangles jargon and leaves plain language standing.',
     palette:      { stopA: '#003D1F', stopMid: '#006633', stopB: '#00CC66', angle: 45 },  // primary #00CC66 × (0.3, 0.5, 1.0)
-    previewColor: '#00CC66',
+    previewColor: '#FFFFFF',
+    previewAccent:'#00CC66',
     slides: [
       { kind: 'mark' },
       { kind: 'video', src: '/marks/slangbusters/02.mp4', caption: 'Early drafts — the wordmark hunting for its face.' },
@@ -95,6 +103,7 @@ export const MARKS: MarkEntry[] = [
     story:        'A signature mark for the pianist, drawn as one fluent line.',
     palette:      { stopA: '#47080B', stopMid: '#760E12', stopB: '#EC1C24', angle: 45 },  // primary #EC1C24 × (0.3, 0.5, 1.0)
     previewColor: '#EC1C24',
+    previewAccent:'#EF5223',
     slides: [
       { kind: 'mark' },
       { kind: 'image', src: '/marks/beringer/01.jpg', caption: 'Letterhead in cream, a phone carrying the wordmark pattern.' },

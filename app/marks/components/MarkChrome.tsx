@@ -48,16 +48,26 @@ export default function MarkChrome({ mark, index, active, clickPaused, hoverPaus
       >
         {mark.slides.map((_, i) => (
           <li
-            // Keying the active dot by `active-${index}-${active ? 'on' : 'off'}` forces
-            // React to remount the dot both on slide change AND when the
-            // section becomes dominant — restarting the CSS fill animation
-            // from scaleX(0) each time. Without the active flag, the animation
-            // would already have completed (forwards fill-mode) by the time
-            // the reader arrives at this section via auto-advance.
-            key={i === index ? `active-${index}-${active ? 'on' : 'off'}` : `inactive-${i}`}
+            // Stable key per dot — the `<li>` stays mounted across slide
+            // changes so the `width` transition on `.mark-chrome__dot` runs
+            // smoothly (circle ↔ pill). The fill-animation restart now
+            // lives on the keyed child `<span>` below, which can remount
+            // without tearing down the dot that owns the width morph.
+            key={i}
             className={`mark-chrome__dot${i === index ? ' mark-chrome__dot--active' : ''}`}
             aria-current={i === index ? 'true' : undefined}
           >
+            {i === index && (
+              // Inner keyed node → remounts on slide change AND on
+              // section-becomes-dominant. That restarts the CSS fill
+              // animation from scaleX(0) each time without disturbing the
+              // outer dot's width transition.
+              <span
+                key={`${index}-${active ? 'on' : 'off'}`}
+                className="mark-chrome__dot-fill"
+                aria-hidden="true"
+              />
+            )}
             <button
               type="button"
               className="mark-chrome__dot-btn"

@@ -20,6 +20,7 @@
 
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView, useAnimationFrame, animate, type AnimationPlaybackControls } from 'framer-motion'
+import { CRUISE_SPRING } from '@/app/lib/motion'
 
 /* ── SVG icons ── */
 
@@ -160,8 +161,7 @@ export default function Outcome() {
   const getTargetVelocity = () => -segWidthRef.current / 18
 
   // Cruise settle (hover-out / scroll-end) — slight overshoot, then settle.
-  // Spring tuned for "train start": perceptible kick, no elastic ringing.
-  const CRUISE_SPRING = { type: 'spring' as const, stiffness: 110, damping: 14, mass: 1 }
+  // CRUISE_SPRING lives in app/lib/motion.ts; /marks autoScroll shares it.
   // Train brake on hover — long, gentle deceleration curve.
   const BRAKE_TWEEN   = { duration: 0.9, ease: [0.5, 0, 0.2, 1] as [number, number, number, number] }
 

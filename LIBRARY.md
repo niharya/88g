@@ -221,6 +221,22 @@ The default feel for any tabbed section where a title/subtitle morphs and a body
 
 ---
 
+## Cruise spring — "train start"
+
+An underdamped spring tuned for a perceptible kick when a motion value restarts from rest toward a cruise target — the feel of a reel (or a train) beginning to move, not a motor ramping up.
+
+**Where it lives**
+- [app/lib/motion.ts](app/lib/motion.ts) — `CRUISE_SPRING` export (`type: 'spring'`, stiffness 110, damping 14, mass 1).
+- Consumers: [app/(works)/rr/components/Outcome.tsx](app/(works)/rr/components/Outcome.tsx) (the last ticker in the Outcome section, hover-out + scroll-end resume); [app/marks/lib/autoScroll.ts](app/marks/lib/autoScroll.ts) (credits-reel resume after hold / pause / glide).
+
+**AI notes**
+- **Target envelope: ~10–15% overshoot.** Deliberate deviation from CLAUDE.md's paper-motion `bounce: 0` rule. Do not normalize to critically damped. The overshoot is the "train start" — without it, the resume reads mechanical.
+- **Drive via `animate(motionValue, target, CRUISE_SPRING)`** from Framer Motion; each frame reads `.get()` on the motion value. Not meant as a `transition` prop on `motion.div`s — it's for driving a value you consume inside an animation frame, not a layout property.
+- **Both consumers share the same tune.** If you retune, keep the overshoot envelope; both rr Outcome's ticker and /marks autoScroll rely on the same feel. Log the retune in this entry and both consumers' `ANOMALIES.md`.
+- **Not a replacement for `--ease-paper` or `--ease-snap`.** This is for motion-value-driven springs that restart from rest. Section reveals still use `--ease-paper`; tab switches still use `--ease-snap`.
+
+---
+
 ## Train Marquee
 
 A continuously scrolling horizontal marquee. Decelerates to a stop on hover, spring-starts on hover-out, and lets the user manually scroll to the true end of the track without exposing empty space past the last copy.

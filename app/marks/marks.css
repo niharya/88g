@@ -43,7 +43,6 @@
   --marks-idle-resume:      24s;    /* resume after user interaction */
   --marks-gradient-loop:    14s;    /* per-mark palette drift */
   --marks-noise-loop:       60s;    /* noise background-position drift */
-  --marks-cross-mark-dur:   0.9s;   /* cross-mark gradient crossfade */
   --marks-settle-delay:     4s;     /* magnetic settle after scroll idle */
 }
 
@@ -111,11 +110,15 @@
     ) 50%,
     var(--marks-bg-stop-b) 100%
   );
+  /* Cross-mark palette morph uses the global --dur-glide token (0.8s) —
+     the nearest match from the portfolio motion system to the original
+     hand-authored 0.9s. Keeps the gradient in sync with the rest of the
+     reel's cinematic durations. */
   transition:
-    --marks-bg-stop-a   0.9s var(--ease-paper),
-    --marks-bg-stop-mid 0.9s var(--ease-paper),
-    --marks-bg-stop-b   0.9s var(--ease-paper),
-    --marks-bg-angle    0.9s var(--ease-paper);
+    --marks-bg-stop-a   var(--dur-glide) var(--ease-paper),
+    --marks-bg-stop-mid var(--dur-glide) var(--ease-paper),
+    --marks-bg-stop-b   var(--dur-glide) var(--ease-paper),
+    --marks-bg-angle    var(--dur-glide) var(--ease-paper);
   animation: marks-bg-drift var(--marks-gradient-loop) var(--ease-paper) infinite;
 }
 
@@ -189,16 +192,48 @@ html[data-marks-hidden='true'] .marks-background::after {
 .marks-hero-clone { min-height: 100vh; }
 
 
-/* ── Marks title ─────────────────────────────────────────────────────────── */
-/* Single fixed element; three states share one DOM node.
-     --marks-s (0→1): hero 120px @ 37vh → docked 24px @ 26px (same text).
-     Text changes (label↔name, name↔name) use a reel-roll in `.marks-title__cell`
-     — two slots ping-pong inside a clipped cell, old rolls up, new rolls up
-     from below. JS writes inline transforms; CSS owns the transition. */
+/* ── Hero text (big title, scroll-receding) ──────────────────────────────── */
+/* Fixed at 37vh, Fraunces 120px. On scroll it fades + sinks via `--hero-recede`
+   (0 → 1 over 60vh, written by HeroText.tsx to the .route-marks wrapper).
+   Effect is more than opacity: a text-shadow halo grows behind the letters so
+   it reads as "the title is going behind the page", not "the title is turning
+   transparent". No z-index → sits below MarksTitle (z:3) and below Essay in
+   source order, so the Essay scrolls OVER the hero text naturally. */
+.marks-hero-text {
+  position: fixed;
+  top: 37vh;
+  left: 0;
+  right: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 120px;
+  line-height: 1;
+  letter-spacing: -3.6px;
+  color: var(--marks-title-color);
+  text-align: center;
+  white-space: nowrap;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  pointer-events: none;
+  /* Full fade — opacity goes 1 → 0 as --hero-recede rises. HeroText.tsx
+     delays the fade until after the essay finishes so the title reads as a
+     persistent presence while the essay is being read, then recedes fully
+     before the first mark. */
+  opacity: calc(1 - var(--hero-recede, 0));
+  text-shadow: 0 0 calc(20px * var(--hero-recede, 0)) rgba(0, 0, 0, 0.75);
+  z-index: 0;
+}
+
+
+/* ── Marks title (docked pill) ───────────────────────────────────────────── */
+/* Permanently at `--marker-top`, 24px. Two states — label or mark-name —
+   swap via a reel-roll in `.marks-title__cell` (two slots ping-pong inside
+   a clipped cell, JS writes inline transforms, CSS owns the transitions).
+   Fades IN as the reader scrolls past the Hero (inverse of --hero-recede)
+   so the dock pill doesn't compete with the big hero presentation when
+   they would both be visible at once. */
 
 .marks-title {
-  --marks-s: 0;
-
   /* Spans the full viewport width and centers content via text-align. This
      keeps the row on a fixed horizontal axis while the cell's width animates
      between mark-name lengths — without it, translateX(-50%) on the h1 would
@@ -207,13 +242,13 @@ html[data-marks-hidden='true'] .marks-background::after {
   position: fixed;
   left: 0;
   right: 0;
-  top: calc(37vh + (var(--marker-top) - 37vh) * var(--marks-s));
+  top: var(--marker-top);
   z-index: 3;
   margin: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(120px - 96px * var(--marks-s));
-  letter-spacing: calc(-3.6px + 2.88px * var(--marks-s));
+  font-size: 24px;
+  letter-spacing: -0.72px;
   line-height: 1;
   color: var(--marks-title-color);
   text-align: center;
@@ -221,14 +256,20 @@ html[data-marks-hidden='true'] .marks-background::after {
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   pointer-events: none;
   cursor: default;
+  /* Hidden by default — the docked label "MARKS & SYMBOLS" is redundant
+     with the permanent hero watermark behind the essay. Only the mark-name
+     state is meaningful, so visibility is gated on data-in-mark. */
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-paper);
 }
 
 /* In mark state the title doubles as the grid-back affordance. */
 .marks-title[data-in-mark='true'] {
+  opacity: 1;
   pointer-events: auto;
   cursor: pointer;
   mix-blend-mode: overlay;
-  transition: color 0.3s var(--ease-paper);
+  transition: opacity 0.4s var(--ease-paper), color 0.3s var(--ease-paper);
 }
 .marks-title[data-in-mark='true']:hover,
 .marks-title[data-in-mark='true']:focus-visible {
@@ -294,57 +335,65 @@ html[data-marks-hidden='true'] .marks-background::after {
 
 .marks-essay {
   /* position, z-index, width are set by the shared phase rule above.
-     Negative margin-top pulls the Essay up so its first paragraph peeks
-     into the Hero viewport at y≈776 (Figma: ¶1 at y=776 in a 900px Hero
-     frame). Scroll distance between the peek and the docked-title Essay
-     view = 100vh, which matches the DockedTitle interpolation range.
-     Expressed viewport-relative so the peek holds on any screen size:
-       offset = (776 − 900) / 900 × 100vh − (pad-top)
-              = −13.78vh − 129px  ≈  Essay top at page-y = 647px */
-  margin-top: calc(-13.78vh - 129px);
+     Essay starts BELOW the Hero (no negative margin) — the reader must
+     scroll past the full hero viewport for the essay to begin rising into
+     view. Previously the essay peeked into the Hero; that was retired once
+     the Hero became a watermark behind the reading field. */
+  margin-top: 0;
   min-height: 100vh;
-  padding: 129px 0 120px;   /* 129 top to match Figma ¶1-from-Essay-top */
+  padding: 144px 0 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
   color: var(--grey-720);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 20px;
-  line-height: 1.4;
-  letter-spacing: -0.6px;
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.1px;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   text-align: center;
 }
 
 .marks-essay__body {
   margin: 0;
-  max-width: 625px;
+  max-width: 360px;
 }
 .marks-essay__body p { margin: 0; }
-.marks-essay__body--p2 { max-width: 616px; }
+/* ¶2 sits after the divider as two paragraphs side-by-side — paired
+   thoughts resolving the shift ¶1 named. Each column keeps the same
+   per-line density as the single-column blocks. */
+.marks-essay__body--p2 {
+  max-width: 800px;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 80px;
+}
+.marks-essay__body--p2 > p {
+  max-width: 360px;
+  flex: 0 1 360px;
+}
 
 .marks-essay__divider {
-  margin: 78px 0 72px;
+  margin: 120px 0;
   color: var(--grey-880);
 }
 .marks-essay__divider svg {
   display: block;
-  width: 80px;
+  width: 40px;
   height: auto;
 }
 
 .marks-essay__preview {
-  width: 100%;
-  max-width: 1136px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   color: var(--grey-880);
 }
 
-.marks-essay__preview--wordmarks { margin-top: 72px; }
-.marks-essay__preview--glyphs    { margin-top: 76px; justify-content: center; gap: 435px; }
+.marks-essay__preview--wordmarks { margin-top: 120px; gap: 144px; }
+.marks-essay__preview--glyphs    { margin-top: 120px; gap: 280px; }
 
 .marks-essay__preview-btn {
   /* Button reset — the row stays a row of marks, not a row of buttons. */
@@ -361,6 +410,21 @@ html[data-marks-hidden='true'] .marks-background::after {
   outline: none;
 }
 
+/* Duotone reveal — marks with a second original ink (Codezeros, Slangbusters,
+   Beringer) tag their accent paths with `data-depth=""`. Those paths flip to
+   `--preview-accent` on hover while primary paths flip to `--preview-color`,
+   reproducing the source mark's original two-tone identity for the duration
+   of the hover. Rest state stays monotone (currentColor cascades as usual).
+   Transition matches the button's `color` transition so primary + accent
+   resolve together. */
+.marks-essay__preview-btn [data-depth] {
+  transition: fill 0.4s var(--ease-paper);
+}
+.marks-essay__preview-btn:hover [data-depth],
+.marks-essay__preview-btn:focus-visible [data-depth] {
+  fill: var(--preview-accent, currentColor);
+}
+
 .marks-essay__wordmark,
 .marks-essay__glyph {
   flex: 0 0 auto;
@@ -368,23 +432,27 @@ html[data-marks-hidden='true'] .marks-background::after {
   height: auto;
 }
 
-/* Per-item widths from Figma — applied to the button wrapper so the flex
-   row's item widths stay stable regardless of the SVG fill color on hover. */
-.marks-essay__preview--wordmarks > .marks-essay__preview-btn:nth-child(1) { width: 218px; }  /* Codezeros */
-.marks-essay__preview--wordmarks > .marks-essay__preview-btn:nth-child(2) { width: 222px; }  /* Slangbusters */
-.marks-essay__preview--wordmarks > .marks-essay__preview-btn:nth-child(3) { width: 216px; }  /* Beringer */
-
-.marks-essay__preview--glyphs > .marks-essay__preview-btn:nth-child(1) { width: 70px; }   /* Ecochain */
-.marks-essay__preview--glyphs > .marks-essay__preview-btn:nth-child(2) { width: 71px; }   /* Kilti */
+/* Credit-reel scale — shared widths across items. If one wordmark reads
+   visually denser than the others at 104 px, restore per-item deltas
+   proportional to the old 218 / 222 / 216 ratios. */
+.marks-essay__preview--wordmarks > .marks-essay__preview-btn { width: 128px; }
+.marks-essay__preview--glyphs    > .marks-essay__preview-btn { width: 56px; }
 
 .marks-essay__preview-btn .marks-essay__wordmark,
 .marks-essay__preview-btn .marks-essay__glyph { width: 100%; }
 
 .marks-essay__caption {
-  margin: 75px 0 0;
-  max-width: 1136px;
+  margin: 120px 0 0;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 .marks-essay__caption p { margin: 0; }
+/* --between variant sits between the two preview rows. Same vertical rhythm
+   (120px top margin) — the balancing 120px below is provided by the glyph
+   row's own margin-top, so the inter-row gap stays visually consistent. */
+.marks-essay__caption--between { margin: 120px 0 0; }
 
 
 /* (Hero title rule retired — the title is now a route-level, scroll-mapped
@@ -538,23 +606,55 @@ html[data-marks-hidden='true'] .marks-background::after {
    modulates perceived strength against the gradient. */
 .mark-carousel__glyph [data-depth] { fill-opacity: 0.55; }
 
+/* Media frame. Sizes to the artifact's natural aspect ratio — never crops —
+   capped by max-width / max-height so a portrait doesn't blow past the
+   viewport. The 2px soft-white border reads as a paper edge against the
+   dark gradient backdrops of every mark (all six palettes sit under
+   50% luminance). --artifact-tilt is a ±1° rotate assigned per slide in
+   MarkCarousel — a tiny editorial tell, not decoration. */
+/* Single source of truth: the figure owns the bounding box (max-width /
+   max-height), the border sits on the figure, and every inner media element
+   resolves to 100% of it. No cap is duplicated on children — that prevents
+   the subpixel mismatches that made the border look clipped on some sides.
+   `box-sizing: border-box` keeps the border inside the declared max-* so
+   extreme aspects never push the border past the stage. */
 .mark-carousel__media {
   position: relative;
-  width: min(70vw, 900px);
-  aspect-ratio: 16 / 10;
+  box-sizing: border-box;
+  display: inline-block;
+  line-height: 0;        /* kill inline-block baseline gap under the child */
+  max-width:  min(70vw, 900px);
+  max-height: 70vh;
   margin: 0;
+  padding: 0;
+  border: 2px solid rgba(245, 245, 245, 0.22);
+  transform: rotate(var(--artifact-tilt, 0deg));
 }
 
-/* <video> (motion slides) and <img> (still slides) share the same stage slot.
-   Next/Image with `fill` applies its own position:absolute + inset:0; videos
-   and any raw <img> fallbacks need the same sizing handled in CSS. */
-.mark-carousel__media img,
-.mark-carousel__media video {
+/* Child owns the size caps (same cap as the figure) so natural aspect drives
+   the layout; figure shrinks to fit the child, and the border wraps whatever
+   the child settled on. No flex, no centering, no duplicated caps to drift. */
+.mark-carousel__media > video,
+.mark-carousel__media > .img,
+.mark-carousel__media > .img > .img__inner {
+  display: block;
+  max-width:  min(70vw, 900px);
+  max-height: 70vh;
+  width:  auto;
+  height: auto;
+}
+
+/* Hidden preloader — lives in the DOM to trigger network fetches for all
+   non-mark slides once the section enters the viewport. Never visible,
+   never clickable, never announced. */
+.mark-carousel__preloader {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  pointer-events: none;
+  opacity: 0;
 }
 
 
@@ -620,13 +720,18 @@ html[data-marks-hidden='true'] .marks-background::after {
   outline-offset: 3px;
 }
 
-.mark-chrome__dot--active::before {
-  content: '';
+/* Fill is a real child element (not ::before) so it can carry its own React
+   key — remounting the fill restarts the animation without remounting the
+   dot, which lets the dot's `width` transition run smoothly (circle → pill
+   and back). Button sits above the fill so clicks still register. */
+.mark-chrome__dot-fill {
   position: absolute;
   inset: 0;
   background: var(--grey-720);
   transform-origin: left center;
   transform: scaleX(0);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 /* Fill animation runs only while the section is dominant (active). Gating on
@@ -635,7 +740,7 @@ html[data-marks-hidden='true'] .marks-background::after {
    land at scaleX(1) before the reader ever arrives, making auto-advance
    handoffs land on a pre-filled pill. */
 .mark-chrome__paginator[data-active-section='true']
-  .mark-chrome__dot--active::before {
+  .mark-chrome__dot-fill {
   animation: mark-dot-fill var(--marks-slide-dur, 8s) linear forwards;
 }
 
@@ -643,7 +748,7 @@ html[data-marks-hidden='true'] .marks-background::after {
    tick is also halted via deadline tracking (useShowcaseTimer), so when the
    cursor leaves, both CSS and JS resume from where they stopped. */
 .mark-chrome__paginator[data-hover-paused='true']
-  .mark-chrome__dot--active::before {
+  .mark-chrome__dot-fill {
   animation-play-state: paused;
 }
 
@@ -651,7 +756,7 @@ html[data-marks-hidden='true'] .marks-background::after {
    locked to full). On release, the animation re-engages from scaleX(0) and
    races the re-armed advance. */
 .mark-chrome__paginator[data-click-paused='true']
-  .mark-chrome__dot--active::before {
+  .mark-chrome__dot-fill {
   animation: none;
   transform: scaleX(1);
 }
@@ -679,6 +784,30 @@ html[data-marks-hidden='true'] .marks-background::after {
   margin: 0;
   color: var(--grey-720);
   white-space: nowrap;
+}
+
+
+/* ── Outro veil ──────────────────────────────────────────────────────────── */
+/* Fade-to-black overlay that covers the Kilti → Hero teleport. Sits above
+   every phase AND above the title/chrome so nothing peeks through the cut.
+   Fade-in (900 ms) is longer than fade-out (700 ms): we want the cut to
+   land firmly opaque before teleport, and the reveal on the real Hero can
+   breathe a touch faster because the intro hero-hold (1500 ms) keeps the
+   reel paused while it resolves. Pointer-events are off so accidental
+   clicks during the transition pass through to the (soon-to-be-hero)
+   document, not the veil. */
+.marks-outro-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 700ms var(--ease-paper);
+}
+.marks-outro-veil[data-opaque='true'] {
+  opacity: 1;
+  transition-duration: 900ms;
 }
 
 
@@ -729,11 +858,11 @@ html[data-marks-hidden='true'] .marks-background::after {
 }
 
 @media (max-width: 767px) {
-  .marks-title {
-    /* Hero 56px → docked 24px. Letter-spacing scales with font-size so the
-       same dock interpolation shape holds, just compressed. */
-    font-size: calc(56px - 32px * var(--marks-s));
-    letter-spacing: calc(-1.68px + 0.96px * var(--marks-s));
+  .marks-hero-text {
+    /* Hero scales down so the 15-char "MARKS & SYMBOLS" fits at 375px
+       without overflow. Letter-spacing reduced proportionally. */
+    font-size: 56px;
+    letter-spacing: -1.68px;
   }
 
   .marks-essay {
@@ -743,6 +872,15 @@ html[data-marks-hidden='true'] .marks-background::after {
   .marks-essay__body--p2,
   .marks-essay__caption {
     max-width: 100%;
+  }
+  /* ¶2 re-stacks at mobile — side-by-side doesn't fit 375px usefully. */
+  .marks-essay__body--p2 {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .marks-essay__body--p2 > p {
+    max-width: 100%;
+    flex: 0 1 auto;
   }
   .marks-essay__divider { margin: 56px 0 48px; }
 

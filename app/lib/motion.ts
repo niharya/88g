@@ -24,6 +24,30 @@
 
 export const TAB_EASE = [0.45, 0, 0.15, 1] as const
 
+// ──────────────────────────────────────────────────────────────────────────
+// Cruise spring — "train start"
+//
+// Underdamped spring tuned for a perceptible kick on resume, no elastic
+// ringing. Target envelope ~10–15% overshoot (see /rr ANOMALIES.md
+// "Intentional overshoot — deviation from bounce: 0"). Used when a motion
+// value restarts from rest toward a cruise target — a ticker track resuming
+// after scroll-idle, or the /marks credits reel resuming after a pause /
+// hold / glide.
+//
+// This is a deliberate deviation from CLAUDE.md's paper-motion `bounce: 0`
+// rule. Do not normalize to critically damped. If you retune, keep the
+// ~10–15% overshoot envelope.
+//
+// Consumers:
+//   - /rr Outcome.tsx (last ticker in the outcomes section)
+//   - /marks autoScroll.ts (credits-reel resume after hold/pause/glide)
+export const CRUISE_SPRING = {
+  type: 'spring' as const,
+  stiffness: 110,
+  damping:    14,
+  mass:        1,
+}
+
 export const TAB_TITLE_ENTER   = { opacity: 0, y: -6, clipPath: 'inset(0 0 100% 0)' }
 export const TAB_TITLE_VISIBLE = { opacity: 1, y: 0,  clipPath: 'inset(0 0 0% 0)' }
 export const TAB_TITLE_EXIT    = { opacity: 0, y: -6, clipPath: 'inset(0 0 100% 0)' }

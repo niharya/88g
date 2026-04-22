@@ -30,6 +30,7 @@ import MarkChrome from './MarkChrome'
 import { useShowcaseTimer } from './hooks/useShowcaseTimer'
 import { useDominanceSnap } from './hooks/useDominanceSnap'
 import { scrollGlide } from '../lib/scrollGlide'
+import { isAutoScrollActive, startAutoScroll, subscribeAutoScroll } from '../lib/autoScroll'
 
 interface MarkSectionProps {
   mark:  MarkEntry
@@ -49,18 +50,35 @@ const SETTLE_OUT = 0.60
 export default function MarkSection({ mark, index }: MarkSectionProps) {
   const ref = useRef<HTMLElement>(null)
   const [active, setActive] = useState(false)
+  const [autoScrolling, setAutoScrolling] = useState(false)
+  const [hasEnteredViewport, setHasEnteredViewport] = useState(false)
 
   // Active when ≥50% of the section is in the viewport — used only to gate
   // the showcase timer. Separate from the scroll-progress reveal below.
+  // `hasEnteredViewport` latches true the first time any part of the section
+  // is visible; drives the hidden preloader inside MarkCarousel so every
+  // non-mark slide's source is fetched in parallel before the carousel
+  // advances to it. Latch never resets — preloaded sources stay cached.
   useEffect(() => {
     const el = ref.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => setActive(entry.intersectionRatio >= 0.5),
+      ([entry]) => {
+        setActive(entry.intersectionRatio >= 0.5)
+        if (entry.intersectionRatio > 0) setHasEnteredViewport(true)
+      },
       { threshold: [0, 0.5, 1] },
     )
     observer.observe(el)
     return () => observer.disconnect()
+  }, [])
+
+  // Credits-reel transport gate: while auto-scroll is carrying the reader
+  // from Hero → first mark, the showcase timer must not tick — otherwise
+  // the first slide may advance before the reader arrives. The subscribe
+  // fires immediately with current state so mount-order doesn't matter.
+  useEffect(() => {
+    return subscribeAutoScroll(setAutoScrolling)
   }, [])
 
   // Per-frame writes for this section: --mark-p (entry progress),
@@ -90,19 +108,30 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
   useDominanceSnap(ref, { onScroll })
 
   // When the last slide wraps, paper-glide into the next mark section.
-  // After the final mark (Kilti) the next section is BlankSection, then
-  // HeroClone — which teleports back to the real Hero when it docks.
+  // After the final mark (Kilti) the wrap triggers the outro auto-scroll
+  // instead: a continuous 3.5 vh/s ride through BlankSection into the
+  // HeroClone, where the teleport fires and intro re-arms for the next
+  // loop. This is how the reel becomes genuinely autonomous — the reader
+  // never has to scroll manually to keep the loop alive.
+  //
+  // Gated on `isAutoScrollActive()`: while the intro reel is still carrying
+  // the reader toward Furrmark, scrollGlide would step on it (100vh tween
+  // fighting additive dy → jarring overshoot). We still consume the wrap
+  // (slide index cycles via modulo) so the paginator stays live.
   const advanceToNextMark = useCallback(() => {
+    if (isAutoScrollActive()) return
+
     const nextIdx = index + 1
     const nextMark = MARKS[nextIdx]
-    // Next mark exists → glide to it. If we're on the last mark (Kilti),
-    // glide to BlankSection — the reel continues into the blank → clone
-    // → teleport loop without the viewer having to scroll manually.
-    const nextSection = nextMark
-      ? document.querySelector<HTMLElement>(
-          `.marks-section[data-mark-id="${nextMark.id}"]`,
-        )
-      : document.querySelector<HTMLElement>('.marks-blank')
+    // Last mark (Kilti) → start the outro reel instead of gliding.
+    // Everything from here through the teleport is autoScroll-owned.
+    if (!nextMark) {
+      startAutoScroll('outro')
+      return
+    }
+    const nextSection = document.querySelector<HTMLElement>(
+      `.marks-section[data-mark-id="${nextMark.id}"]`,
+    )
     if (!nextSection) return
     const top = nextSection.getBoundingClientRect().top + window.scrollY
     scrollGlide(top)
@@ -110,7 +139,7 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
 
   const { index: activeSlide, setIndex, pauseForInteraction, setHoverPaused, clickPaused, hoverPaused } = useShowcaseTimer({
     total:  mark.slides.length,
-    active,
+    active: active && !autoScrolling,
     onWrap: advanceToNextMark,
   })
 
@@ -195,11 +224,16 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
       data-mark-id={mark.id}
       data-mark-index={index}
     >
-      <MarkCarousel mark={mark} index={activeSlide} />
+      <MarkCarousel mark={mark} index={activeSlide} preload={hasEnteredViewport} />
       <MarkChrome
         mark={mark}
         index={activeSlide}
-        active={active}
+        // Gated with the same condition as useShowcaseTimer's `active` so the
+        // dot fill animation starts *with* the tick — not when the section
+        // crosses 50% visibility while auto-scroll is still carrying the
+        // reader toward it. Without the gate the pill would visually empty
+        // before the timer had actually started, reading as a broken clock.
+        active={active && !autoScrolling}
         clickPaused={clickPaused}
         hoverPaused={hoverPaused}
         onJump={(i) => {
