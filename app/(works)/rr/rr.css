@@ -3539,3 +3539,30 @@
   flex-shrink: 0;
   color: var(--terra-720);
 }
+
+/* Mobile — recompose to flow layout so the card fits inside the viewport.
+   Desktop keeps the absolute-positioned painting; mobile collapses to
+   stacked children with the illus pinned to the card's top-right. */
+@media (max-width: 767px) {
+  .rr-marker-info-card {
+    width: min(408px, calc(100vw - 2 * var(--workbench-pad-x)));
+    height: auto;
+    padding: 16px;
+  }
+  .rr-marker-info-card__title,
+  .rr-marker-info-card__body,
+  .rr-marker-info-card__divider,
+  .rr-marker-info-card__footer {
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+  }
+  .rr-marker-info-card__illus {
+    top: 16px;
+    right: 16px;
+  }
+  .rr-marker-info-card__title  { margin: 0 36px 12px 0; }
+  .rr-marker-info-card__body   { margin: 0 0 16px; }
+  .rr-marker-info-card__divider{ margin: 0 0 10px; }
+}

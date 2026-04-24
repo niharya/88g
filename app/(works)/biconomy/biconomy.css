@@ -3358,3 +3358,26 @@
   flex-shrink: 0;
   color: var(--blue-800);
 }
+
+/* Mobile — recompose to flow layout so the card fits inside the viewport.
+   Desktop keeps the absolute-positioned painting; mobile collapses to
+   stacked children sized to card width. */
+@media (max-width: 767px) {
+  .bicon-marker-info-card {
+    width: min(408px, calc(100vw - 2 * var(--workbench-pad-x)));
+    height: auto;
+    padding: 16px;
+  }
+  .bicon-marker-info-card__title,
+  .bicon-marker-info-card__body,
+  .bicon-marker-info-card__divider,
+  .bicon-marker-info-card__footer {
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+  }
+  .bicon-marker-info-card__title  { margin: 0 0 12px; }
+  .bicon-marker-info-card__body   { margin: 0 0 16px; }
+  .bicon-marker-info-card__divider{ margin: 0 0 10px; }
+}

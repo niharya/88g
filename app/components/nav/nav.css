@@ -75,10 +75,20 @@ a.nav-marker {
 }
 
 /* Project marker info-open state: fill the info icon to acknowledge the
-   open card. Only the icon flips its FILL axis — the rest of the marker
-   (border, label) stays in its default visual. */
+   open card, and hold the marker in its hover shell — the click reads as
+   a switch "pressed" for as long as the card is visible, de-pressing when
+   the card closes (toggle click, scroll dismissal, or 12s auto-close). */
 .nav-marker--project.is-info-open .nav-icon {
   font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+}
+button.nav-marker--project.is-info-open {
+  background: var(--grey-960);
+}
+/* Docked pair: one step darker, matching the docked hover tier so the
+   pressed state reads against the muted mat shell. */
+.workbench:has(.chapter-nav.is-docked) .project-marker button.nav-marker--project.is-info-open,
+.workbench:has(.chapter-nav--open)     .project-marker button.nav-marker--project.is-info-open {
+  background-color: var(--grey-880);
 }
 
 /* Marker info-card anchor — absolutely positioned below the project marker.
