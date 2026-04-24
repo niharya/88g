@@ -48,11 +48,32 @@ This pattern is what gives Group B its "settle from above" read. A card that dro
 
 Group B cards transition `top`, `opacity`, and `transform` on expand. All three use `var(--dur-slide)` with `var(--ease-paper)`, delayed by `--stack-stagger-start` (+ cascade offset per card). Do not stagger these three properties against each other within a single card — they must move as one.
 
+## Form-open height bump
+
+`.landing--expanded:has(.contact-card--form-open)` adds +600px to both `.landing--expanded` and `.landing__content` heights. Without this, the open contact card overflows past the fixed `--expanded-h` (overflow is `visible`, so the form renders, but the document ends flush against the form's last pixel — no breathing gap below). The bump is wired via `:has()` so React doesn't have to thread a `--form-open` modifier up to `.landing`. If you change `--contact-top`, the contact card collapsed height, or the form's `max-height` reveal target, remeasure the +600 value at all breakpoints (target ~96px gap below the fully-open form).
+
 ## `--expanded-h` follows practice card height
 
 `--expanded-h` (page height in expanded state) was measured with the practice card at ~471px tall (padding 72 + para 84 + divider 49 + para block 266). If practice card content changes materially, remeasure and update `--expanded-h`, `--spectrum-top`, and `--contact-top` together — they are a linked set, not independent values.
 
 ---
+
+## Responsive anomalies
+
+### Mobile about-short — divider hidden, padding dropped
+
+On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop card recipe:
+
+- the bottom `.about-card__divider` is `display: none`
+- `padding-bottom` is `0`
+- `padding-top` is `var(--space-16)`
+- `--short-top` is `var(--space-24)` (vs desktop `var(--space-16)`)
+
+**Why.** Above-hero space on mobile is tight (`--hero-top: 160px`) and the about-short card is tall enough that the default desktop recipe pushes its last paragraph line + divider behind the hero. The hero's top edge already serves as the visual seam below the short card, so the decorative divider isn't load-bearing here. Don't restore it on mobile without re-measuring above-hero space.
+
+### Landing scrollbar hidden
+
+`html:has(.landing)` hides the scrollbar via `scrollbar-width: none` + `::-webkit-scrollbar { display: none }` + `-ms-overflow-style: none`. Native scroll is preserved; only the visual indicator goes away. macOS/iOS/Android already overlay-hide, so the rule is mainly for Windows/Linux. The expand-on-click affordance carries the "more content" signal that the scrollbar would otherwise telegraph — if that affordance changes, reconsider.
 
 ## Don't-touch list
 

@@ -33,7 +33,7 @@
   --hero-top: 224px;
   --hero-h: 240px;
   --projects-top: 460px;
-  --short-top: 64px;
+  --short-top: var(--space-16);
   --long-top: 431px;
   --practice-top: 688px;
 
@@ -46,9 +46,9 @@
   /* Expanded offsets for Group B. Practice card is the tallest (~470px)
      because it carries 4 paragraphs + divider, so the gap to spectrum needs
      to clear that height plus --stack-gap. */
-  --spectrum-top: 1208px;
-  --contact-top: 1568px;
-  --expanded-h: 1912px;
+  --spectrum-top: 1165px;
+  --contact-top: 1527px;
+  --expanded-h: 1872px;
 }
 
 /* ---- Viewport ---- */
@@ -77,11 +77,30 @@ html.fonts-ready .landing {
   overflow: visible;
 }
 
+/* Form-open height bump — keeps a breathing gap below the open contact card,
+   which would otherwise overflow past the fixed --expanded-h. Bump tokenised
+   as 6 × --space-96 + --space-24 (= 600px) — tuned to give ~96px gap below
+   the fully-open form at all breakpoints. */
+.landing--expanded:has(.contact-card--form-open),
+.landing--expanded:has(.contact-card--form-open) .landing__content {
+  height: calc(var(--expanded-h) + 6 * var(--space-96) + var(--space-24));
+}
+
 
 /* ---- Pattern background ---- */
 html:has(.landing), html:has(.landing) body {
   background-color: var(--surface-bg);
 }
+
+/* Hide scrollbar on the landing route — native scroll is preserved, only the
+   visual indicator goes away. macOS / iOS / Android already overlay-hide;
+   this rule covers Windows / Linux Chrome/Edge/Firefox where the gutter is
+   persistent. Scoped via :has() so other routes keep their scrollbars. */
+html:has(.landing) {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* legacy Edge / IE */
+}
+html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
 .landing-pattern-bg {
   position: fixed;
@@ -256,7 +275,7 @@ html.fonts-ready .landing-pattern-bg {
    ghost cards descending). Final translateX/rotate already match expanded. */
 .landing--default .landing__section--spectrum {
   top: var(--spectrum-top);
-  transform: translateX(calc(-50% + 2 * var(--unit))) translateY(calc(-1 * var(--stack-settle))) rotate(-1deg);
+  transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle))) rotate(-1deg);
   opacity: 0;
   pointer-events: none;
   z-index: 4;
@@ -334,19 +353,18 @@ html.fonts-ready .landing-pattern-bg {
     transform var(--dur-slide) var(--ease-paper) var(--stack-stagger-start);
 }
 
-/* Spectrum — Group B #2. Keeps its established -1deg base rotate + rightward
-   shift (aligns with its own scroll-docking behavior — see spectrum section
-   below). */
+/* Spectrum — Group B #2. Keeps its established -1deg base rotate. Sits
+   centered like the rest of Group B. */
 .landing--expanded .landing__section--spectrum {
   top: var(--spectrum-top);
-  transform: translateX(calc(-50% + 2 * var(--unit))) translateY(0) rotate(-1deg);
+  transform: translateX(-50%) translateY(0) rotate(-1deg);
   opacity: 1;
   pointer-events: auto;
   z-index: 4;
   transition:
     top var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
     opacity var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
-    transform var(--dur-settle) var(--ease-paper) calc(var(--stack-stagger-start) + 0.14s);
+    transform var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s);
 }
 
 /* Contact — Group B #3 */
@@ -619,6 +637,26 @@ html.fonts-ready .about-card {
 .spectrum {
   width: 458px;
   cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-snap);
+}
+
+/* Desktop hover affordance — paper lifts and the 4px outer frame (the
+   surface-bg ring between .spectrum__bg and .spectrum__inner) tints to
+   terra-800 to read as a "noticed" border. */
+@media (hover: hover) and (min-width: 768px) {
+  .spectrum:hover {
+    transform: translateY(calc(-1 * var(--space-2)));
+  }
+  .spectrum:hover .spectrum__bg {
+    box-shadow: var(--shadow-resting);
+    background: var(--terra-800);
+  }
+}
+
+.spectrum__bg {
+  transition:
+    box-shadow var(--dur-fast) var(--ease-snap),
+    background-color var(--dur-fast) var(--ease-snap);
 }
 
 .spectrum__frame {
@@ -1303,30 +1341,12 @@ textarea.contact-form__input {
 
 
 /* ============================================================
-   Spectrum alignment on scroll
-   ============================================================ */
-
-.landing__section--spectrum.spectrum--aligned {
-  transform: translateX(-50%) translateY(0) rotate(-1deg);
-  transition: transform var(--dur-settle) var(--ease-paper);
-}
-
-
-/* ============================================================
    Tablet — 768px to 1023px
    ============================================================ */
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .landing-pattern-bg {
     background-size: 104px 186px;
-  }
-
-  .landing--expanded .landing__section--spectrum {
-    transform: translateX(calc(-50% + var(--unit))) translateY(0) rotate(-1deg);
-    transition:
-      top var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
-      opacity var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
-      transform var(--dur-settle) var(--ease-paper) calc(var(--stack-stagger-start) + 0.14s);
   }
 }
 
@@ -1339,12 +1359,12 @@ textarea.contact-form__input {
   .landing {
     --hero-top: 160px;
     --projects-top: 396px;
-    --short-top: 40px;
+    --short-top: var(--space-24);
     --long-top: 391px;
     --practice-top: 632px;
-    --spectrum-top: 1244px;
-    --contact-top: 1576px;
-    --expanded-h: 1980px;
+    --spectrum-top: 1146px;
+    --contact-top: 1510px;
+    --expanded-h: 1920px;
     min-height: 100svh;
   }
 
@@ -1452,12 +1472,23 @@ textarea.contact-form__input {
   .hero-card__headline { max-width: none; }
   .hero-card__sub { max-width: none; }
 
-  .about-card { width: 100%; padding: 24px; }
+  .about-card { width: 100%; padding: var(--space-24); }
   /* Long card needs to clear the Nihar/Works pill row that sits on top of it */
-  .about-card--long { padding-top: 56px; }
+  .about-card--long { padding-top: var(--space-56); }
   .about-card__text { width: auto; }
   .about-card__divider { width: auto; }
-  .about-card__divider--full { width: calc(100% + 48px); margin-left: -24px; }
+  .about-card__divider--full { width: calc(100% + 2 * var(--space-24)); margin-left: calc(-1 * var(--space-24)); }
+
+  /* About-short on mobile: above-hero space is tight (--hero-top: 160), so
+     drop the decorative divider (the hero edge already serves as the seam)
+     and remove the bottom padding. Keeps the paragraph fully visible above
+     the hero rather than tucking the last line behind it. */
+  .about-card--short {
+    min-height: 0;
+    padding-top: var(--space-16);
+    padding-bottom: 0;
+  }
+  .about-card--short .about-card__divider { display: none; }
 
   .spectrum { width: 100%; }
   .spectrum__frame { width: 100%; }
@@ -1507,6 +1538,4 @@ textarea.contact-form__input {
     animation: none;
     opacity: 0.5;
   }
-
-  .landing__section--spectrum.spectrum--aligned { transition: none; }
 }

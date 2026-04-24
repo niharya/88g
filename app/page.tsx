@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react'
+import { useState, useLayoutEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
@@ -111,13 +111,13 @@ export default function LandingPage() {
   ]
 
   /* Refs */
-  const spectrumRef = useRef<HTMLDivElement>(null)
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
   const noteRef = useRef<HTMLTextAreaElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const secondaryRef = useRef<HTMLDivElement>(null)
+  const contactRef = useRef<HTMLDivElement>(null)
 
   const isDirty = actionLabel === 'Reset Form'
 
@@ -198,7 +198,10 @@ export default function LandingPage() {
       morphTo('Close Form')
       setFormOpen(true)
       startIdleTimer()
-      setTimeout(() => nameRef.current?.focus(), 500)
+      setTimeout(() => {
+        contactRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        nameRef.current?.focus({ preventScroll: true })
+      }, 500)
     }
   }, [formOpen, isDirty, morphTo, clearForm, startIdleTimer, doFormCollapse])
 
@@ -372,24 +375,6 @@ export default function LandingPage() {
       })
   }, [activeTags, submitStatus, doFormCollapse, morphTo])
 
-  /* ---- Spectrum IntersectionObserver ---- */
-  useEffect(() => {
-    if (!expanded) {
-      spectrumRef.current?.classList.remove('spectrum--aligned')
-      return
-    }
-
-    const el = spectrumRef.current
-    if (!el) return
-
-    const obs = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) el.classList.add('spectrum--aligned') },
-      { threshold: 0.1 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [expanded])
-
   /* ---- Spectrum click — cycle hue group ---- */
   const handleSpectrumClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('a')) return
@@ -516,7 +501,7 @@ export default function LandingPage() {
           </div>
 
           {/* Spectrum */}
-          <div className="landing__section--spectrum" ref={spectrumRef}>
+          <div className="landing__section--spectrum">
             <div className="spectrum" onClick={handleSpectrumClick}>
               <div className="spectrum__frame" style={{ transform: `rotate(${specRotation}deg)` }}>
                 <div className="spectrum__bg" />
@@ -544,7 +529,7 @@ export default function LandingPage() {
                   <span className="spectrum__label spectrum__label--right t-h5" style={{ color: palette.rightLabel }}>Application</span>
                   <div className="spectrum__footer">
                     <div className="spectrum__footer-line" />
-                    <Link className="spectrum__link t-btn1" href="/selected" onClick={markToSelected}>Works</Link>
+                    <Link className="spectrum__link t-btn1" href="/selected" onClick={markToSelected}>My Works</Link>
                   </div>
                 </div>
               </div>
@@ -552,7 +537,7 @@ export default function LandingPage() {
           </div>
 
           {/* Contact */}
-          <div className="landing__section--contact">
+          <div className="landing__section--contact" ref={contactRef}>
             <div className={contactClasses.join(' ')}>
               <div className="contact-card__border">
                 <p className="contact-card__intro t-h1">
