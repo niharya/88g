@@ -19,14 +19,14 @@ workbench chrome.
 Consequences:
 
 - `app/marks/layout.tsx` is standalone — no 8px viewport frame, no workbench
-  padding, no `TransitionSlot`, no `ProjectMarker`. Only the `ExitMarker` pill
+  padding, no `TransitionSlot`, no `ProjectMarker`. Only the `ExitMarker`
   is reused.
 - `app/(works)/ShellNav.tsx` and `app/(works)/TransitionSlot.tsx` have **no**
   `marks` wiring and should stay that way. If a future pass needs `/marks` to
   participate in the works transition choreography, that's a re-architecture
   (moving the route back under `(works)/`), not a one-line addition.
 - `nav.css` is imported directly from the marks layout because it used to come
-  from the works shared layout. Keep that import if EXIT pill / `.nav-icon`
+  from the works shared layout. Keep that import if EXIT marker / `.nav-icon`
   styles are touched.
 
 ---
@@ -84,12 +84,12 @@ Router ignores it at routing time). Temporary — removed once the route ships.
   background reads through but never covers content.
 - Title system is **two cooperating elements**, not one morphing element.
   `HeroText.tsx` owns the big 120px hero presentation at 37vh; `MarksTitle.tsx`
-  owns the always-docked 24px pill at `--marker-top`. HeroText writes
+  owns the always-docked 24px marker at `--marker-top`. HeroText writes
   `--hero-recede` (0 → 1 over the first 60vh of scroll) to the `.route-marks`
   wrapper; both consume it via CSS (HeroText fades out + grows a text-shadow
   halo; MarksTitle fades in). Do NOT reintroduce a single morphing element —
   the earlier `--marks-s` interpolation conflated two responsibilities (the
-  hero visual moment and the docked nav pill) and made both harder to reason
+  hero visual moment and the docked nav marker) and made both harder to reason
   about. The `--hero-recede` inverse-fade keeps the two elements from
   competing for attention when they would otherwise overlap at y=0.
 - Per-section reveal latch: `data-settled="true"` flips at `p ≥ 0.85` and
@@ -566,6 +566,6 @@ deviations / drop-outs:
   and make the wrap unreachable. Left alone deliberately.
 - **Mark carousel + chrome** already use `min(…vw, …px)` / `min(100%, …px)`;
   no mobile override needed.
-- **No tucked pill** — `/marks` does not use the `ProjectMarker` /
+- **No tucked marker** — `/marks` does not use the `ProjectMarker` /
   `ChapterMarker` shell. The `MarksTitle` itself is the nav; it already
   docks to `--marker-top` at any viewport width.

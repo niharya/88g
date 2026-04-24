@@ -30,7 +30,7 @@ export default function SelectedPage() {
         className="selected-workbench--slide-in"
       />
       <div className="selected-layout">
-        {/* Nav pills — docked together, positioned above the mat */}
+        {/* Nav markers — docked together, positioned above the mat */}
         <div className="selected-nav-row">
           <MarkerSlot position="left" measure={false}>
             <NiharHomeLink />

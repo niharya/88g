@@ -9,7 +9,7 @@
 //   State B — Mark  (a mark is dominant):  "<Mark name>" + grid-back affordance
 //
 // Unlike earlier versions, this element no longer morphs between a big hero
-// presentation and a small docked pill. The big hero presentation lives in
+// presentation and a small docked marker. The big hero presentation lives in
 // HeroText.tsx; this element is ALWAYS at the docked size/position and just
 // fades in as the hero recedes. The fade-in reads `--hero-recede` (0 → 1,
 // written by HeroText) via CSS — no JS needed here for it.

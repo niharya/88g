@@ -388,7 +388,7 @@ loop. See also the `COLOPHON.md` at the repo root.
 
 ### Nav-sled left — route-scoped override on mobile
 
-The shared formula in `nav.css` positions the sled relative to the sheet's viewport-left, which it derives as `workbench-pad-x − sheet-bleed` (i.e. the sheet bleeds out by `--sheet-bleed`). On `/rr` mobile the sheet is recomposed so its margin-left is `-workbench-pad-x` instead of `-sheet-bleed` (see `.route-rr .mat` and sheet overrides in rr.css) — this puts the sheet's viewport-left at 0. The shared formula assumes −24px, lands 10px short, and a visible gap opens between the project pill and the chapter pill when docked.
+The shared formula in `nav.css` positions the sled relative to the sheet's viewport-left, which it derives as `workbench-pad-x − sheet-bleed` (i.e. the sheet bleeds out by `--sheet-bleed`). On `/rr` mobile the sheet is recomposed so its margin-left is `-workbench-pad-x` instead of `-sheet-bleed` (see `.route-rr .mat` and sheet overrides in rr.css) — this puts the sheet's viewport-left at 0. The shared formula assumes −24px, lands 10px short, and a visible gap opens between the project marker and the chapter marker when docked.
 
 Mobile-only override:
 
@@ -398,17 +398,17 @@ Mobile-only override:
 }
 ```
 
-This sits inside the `@media (max-width: 767px)` block and gives the chapter pill's 2px border a 2px overlap onto the project pill's 2px border — matching desktop's docked-border-halving geometry. Desktop is untouched and still uses the shared formula.
+This sits inside the `@media (max-width: 767px)` block and gives the chapter marker's 2px border a 2px overlap onto the project marker's 2px border — matching desktop's docked-border-halving geometry. Desktop is untouched and still uses the shared formula.
 
 If `/rr` mobile sheet margin is ever brought back in line with `-sheet-bleed`, delete this override. If the shared formula is rewritten to read actual sheet geometry instead of token-based arithmetic, this override becomes redundant.
 
-### Nav pills — use shared defaults, no route-specific overrides
+### Nav markers — use shared defaults, no route-specific overrides
 
-`/rr` uses the shared nav pill system for content and behavior — no route-scoped pill markup, no route-scoped tray logic, no route-scoped docked detection. Project + Exit are fixed to the viewport corners via `app/components/nav/nav.css`; Chapter is sticky inside each `<Sheet>` via `.nav-sled`. Token recomposition at ≤767px happens through `:root`-scoped overrides in `globals.css` plus two workbench-scoped overrides in rr.css (`--workbench-pad-x: 12px` and `--marker-top: 8px` under `.workbench:has(.route-rr)`).
+`/rr` uses the shared nav marker system for content and behavior — no route-scoped marker markup, no route-scoped tray logic, no route-scoped docked detection. Project + Exit are fixed to the viewport corners via `app/components/nav/nav.css`; Chapter is sticky inside each `<Sheet>` via `.nav-sled`. Token recomposition at ≤767px happens through `:root`-scoped overrides in `globals.css` plus two workbench-scoped overrides in rr.css (`--workbench-pad-x: 12px` and `--marker-top: 8px` under `.workbench:has(.route-rr)`).
 
-One documented carve-out exists: **`.route-rr .nav-sled { left }`** — see the next section. It's a geometry-only override forced by `/rr`'s mobile mat recomposition, not a re-positioning of the pill itself.
+One documented carve-out exists: **`.route-rr .nav-sled { left }`** — see the next section. It's a geometry-only override forced by `/rr`'s mobile mat recomposition, not a re-positioning of the marker itself.
 
-**Do not reintroduce per-route pill positioning beyond that.** A previous pass centre-docked Project + Exit as a pair (via measured `--rr-project-pill-w` / `--rr-exit-pill-w` tokens), pulled the chapter pill into flow inside each mat, and added per-chapter absolute overrides for `#intro` and `#mechanics` — all deleted in v0.30.0. See `LIBRARY.md` → "Nav pill system" and `app/components/nav/README.md` for the full rationale and rejected approaches.
+**Do not reintroduce per-route marker positioning beyond that.** A previous pass centre-docked Project + Exit as a pair (via measured `--rr-project-marker-w` / `--rr-exit-marker-w` tokens), pulled the chapter marker into flow inside each mat, and added per-chapter absolute overrides for `#intro` and `#mechanics` — all deleted in v0.30.0. See `LIBRARY.md` → "Nav marker system" and `app/components/nav/README.md` for the full rationale and rejected approaches.
 
 ### Mechanics — rails: tab peeks past board's right edge; opens onto board
 
@@ -434,7 +434,7 @@ Instead of recomposing the cards/interface layout, the entire authored 1440×900
 
 Title and tab font-sizes are bumped (44/22/24px) inside `.rr-canvas--cards-evo` to compensate for the 0.5 down-scale and stay readable at mobile widths. Card-fan items are nudged inward 10% (`left: 403/513/650/747/843px`) so the fan reads slightly more grouped.
 
-**`-33px` mobile lift.** The canvas `transform` on mobile is `translateY(calc(-450px * var(--rr-cards-scale) - 33px))`. The −450 × scale term vertically centres the scaled canvas inside the mat; the extra −33 physical px is an eyeballed lift that nudges the whole block (header + body) upward for breathing room under the chapter pill. Scaled-px lives inside the `calc`'s first term; physical-px outside — don't merge them.
+**`-33px` mobile lift.** The canvas `transform` on mobile is `translateY(calc(-450px * var(--rr-cards-scale) - 33px))`. The −450 × scale term vertically centres the scaled canvas inside the mat; the extra −33 physical px is an eyeballed lift that nudges the whole block (header + body) upward for breathing room under the chapter marker. Scaled-px lives inside the `calc`'s first term; physical-px outside — don't merge them.
 
 `.rr-interface-notes` only gets `cursor: pointer` on mobile — no flip-out rail mechanic. Tap behavior comes for free from the desktop component.
 
@@ -504,13 +504,13 @@ Click-to-expand is disabled on mobile (`.rr-rules-inner { pointer-events: none }
 
 `.rr-story-card__deck-fan` inside `.rr-mat--secondary` uses a translate range `-220px → +80px` keyed to `--rr-mech-progress`. On mobile `--rr-mech-progress` rests at 1 so the fan lands at x = +80 — pushed inside the card's left edge so the hand reads as holding the deck against the card rather than hanging off the side. The original `-300 → 0` range had the fan anchored at the card's left edge; the +80 offset is an eyeballed-collab nudge.
 
-### Chapter pill — date subtitle hidden on rr
+### Chapter marker — date subtitle hidden on rr
 
-`.route-rr .nav-marker__year { display: none }` inside the mobile block — chapter dates (Sep 2024 etc.) are suppressed at ≤767px to keep the pill tight. Desktop still shows them. No effect on other routes since the rule is `.route-rr`-scoped.
+`.route-rr .nav-marker__year { display: none }` inside the mobile block — chapter dates (Sep 2024 etc.) are suppressed at ≤767px to keep the marker tight. Desktop still shows them. No effect on other routes since the rule is `.route-rr`-scoped.
 
 ### First sheet top-bleed
 
-`.route-rr .sheet-stack > .sheet:first-child { margin-top: calc(-1 * var(--workbench-pad-y)) }` — intro's mat extends under the top workbench padding so it reads edge-to-edge on all four sides. Pills (fixed at `--marker-top`) still land on the mat surface because they sit above it in z-order.
+`.route-rr .sheet-stack > .sheet:first-child { margin-top: calc(-1 * var(--workbench-pad-y)) }` — intro's mat extends under the top workbench padding so it reads edge-to-edge on all four sides. Markers (fixed at `--marker-top`) still land on the mat surface because they sit above it in z-order.
 
 ### Mat full-bleed pattern
 

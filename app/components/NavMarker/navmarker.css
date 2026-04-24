@@ -13,25 +13,47 @@
 
 
 /* ── Tones ───────────────────────────────────────────────────────────────── */
-/* Each tone overrides the four visual surfaces of .nav-marker:
-     background, border, content ink, hover fill.
-   Neutral is the base rule in nav.css — no tone class emits.                 */
+/* Each tone overrides four visual surfaces of .nav-marker:
+     background, border, content ink, hover fill, active fill.
+   Neutral base surface lives in nav.css; neutral hover/active bg lives below. */
+
+/* Neutral — base white with grey hover + deeper grey press fill. Clickable
+   variants only (button + a); div.nav-marker is inert so no hover/active bg. */
+button.nav-marker:hover,
+a.nav-marker:hover,
+button.nav-marker:focus-visible,
+a.nav-marker:focus-visible {
+  background: var(--grey-960);
+  outline: none;
+}
+button.nav-marker:active,
+a.nav-marker:active {
+  background: var(--grey-880);
+}
 
 .nav-marker--tone-terra {
   background:   var(--terra-320);
   border-color: var(--terra-800);
 }
-.nav-marker--tone-terra .nav-marker__content { color: var(--terra-800); opacity: 1; }
-.nav-marker--tone-terra:hover               { background: var(--terra-400); }
-.nav-marker--tone-terra:focus-visible       { background: var(--terra-400); outline: none; }
+.nav-marker--tone-terra .nav-marker__content { color: var(--terra-800); }
+button.nav-marker--tone-terra:hover,
+a.nav-marker--tone-terra:hover,
+button.nav-marker--tone-terra:focus-visible,
+a.nav-marker--tone-terra:focus-visible { background: var(--terra-400); outline: none; }
+button.nav-marker--tone-terra:active,
+a.nav-marker--tone-terra:active         { background: var(--terra-480); }
 
 .nav-marker--tone-mint {
   background:   var(--mint-80);
   border-color: var(--mint-720);
 }
-.nav-marker--tone-mint .nav-marker__content { color: var(--mint-800); opacity: 1; }
-.nav-marker--tone-mint:hover                { background: var(--mint-160); }
-.nav-marker--tone-mint:focus-visible        { background: var(--mint-160); outline: none; }
+.nav-marker--tone-mint .nav-marker__content { color: var(--mint-800); }
+button.nav-marker--tone-mint:hover,
+a.nav-marker--tone-mint:hover,
+button.nav-marker--tone-mint:focus-visible,
+a.nav-marker--tone-mint:focus-visible  { background: var(--mint-160); outline: none; }
+button.nav-marker--tone-mint:active,
+a.nav-marker--tone-mint:active          { background: var(--mint-240); }
 
 
 /* ── Background transition ───────────────────────────────────────────────── */
@@ -43,22 +65,9 @@
 }
 
 
-/* ── Parent-marker hover underline for __name ────────────────────────────
-   nav.css scopes the dotted-to-solid t-btn1 underline swap to __title on
-   hover. __name (project role) deserves the same parent-scoped trigger so
-   hovering anywhere on Nihar/Project markers lights the underline. */
-.nav-marker:hover .nav-marker__name {
-  text-decoration-color: transparent;
-}
-.nav-marker:hover .nav-marker__name::after {
-  opacity: 1;
-}
-
-
 /* ── Press state ─────────────────────────────────────────────────────────── */
-/* Paper-tag press-down: 1px translate. Applies to all clickable markers
-   (button + a). Opacity dim on anchors (currently in nav.css) is left in
-   place as an additional cue — the two are compositional, not redundant. */
+/* Paper-tag press-down: 1px translate. Applies to all clickable markers.
+   Background darken on :active is declared alongside each tone above. */
 
 button.nav-marker:active,
 a.nav-marker:active {
@@ -74,16 +83,16 @@ a.nav-marker:active {
    the marker's own press-translate still lands. */
 
 @keyframes nav-marker-arrow-shake {
-  0%   { transform: translateX(0); }
-  20%  { transform: translateX(-2px); }
-  40%  { transform: translateX( 2px); }
-  60%  { transform: translateX(-2px); }
-  80%  { transform: translateX( 1px); }
-  100% { transform: translateX(0); }
+  0%   { transform: translateX(0)      rotate(0); }
+  30%  { transform: translateX(-1px)   rotate(-3deg); }
+  60%  { transform: translateX(1px)    rotate(3deg); }
+  85%  { transform: translateX(-0.5px) rotate(-1deg); }
+  100% { transform: translateX(0)      rotate(0); }
 }
 
 .nav-marker[data-shaking] .nav-arrow {
   animation: nav-marker-arrow-shake 360ms var(--ease-snap);
+  transform-origin: center bottom;
 }
 
 
@@ -98,89 +107,58 @@ a.nav-marker:active {
 }
 
 
-/* ── Disabled state (Names W.I.P.) ───────────────────────────────────────── */
-/* aria-disabled + .is-disabled. Cursor changes to forbidden, hover fill
-   is suppressed, and when a wipHint is provided the label swaps to a
-   Monostamp on hover. No motion on the swap — instant replacement keeps
-   the "note" reading as a stamp, not a toast. */
+/* ── W.I.P. hint chip ────────────────────────────────────────────────────── */
+/* Markers with `wipHint` render a Monostamp chip inline beside the label on
+   click. The React hook mounts/unmounts on an 8s timer; CSS only styles the
+   chip slot. Inline-flex so it participates in the content row's gap. */
 
-.nav-marker.is-disabled {
-  cursor: not-allowed;
-  position: relative;  /* containing block for __wip overlay */
-}
-
-.nav-marker.is-disabled:hover,
-.nav-marker.is-disabled:focus-visible {
-  background: inherit;  /* suppress tone hover */
-}
-
-/* W.I.P. swap. The Monostamp is hidden by default and reveals on hover.
-   The rest of the content is faded out so the stamp is the primary read. */
 .nav-marker__wip {
-  display: none;
-}
-
-.nav-marker.is-disabled .nav-marker__wip {
   display: inline-flex;
-  position: absolute;
-  inset: 0;
   align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--dur-fast) var(--ease-snap);
-}
-
-.nav-marker.is-disabled:hover .nav-marker__wip,
-.nav-marker.is-disabled:focus-visible .nav-marker__wip {
-  opacity: 1;
-}
-
-.nav-marker.is-disabled:hover .nav-marker__content,
-.nav-marker.is-disabled:focus-visible .nav-marker__content {
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease-snap);
-}
-
-
-/* ── Mat-fill utility (docked chapter marker on rr + biconomy) ───────────
-   Adopts the mat's noise layer so the docked marker reads as cut from the
-   mat rather than sitting on top. Random crop + 90° rotation come from
-   --nm-noise-{x,y,rot} published by NavMarker per instance, so repeated
-   markers across a page never show the same patch.
-
-   Applied via .chapter-nav.is-docked in nav.css (scope-gated there so the
-   primitive stays clean). Only the current (non-flyout) marker picks up
-   the treatment. */
-
-.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout) {
-  position: relative;
   overflow: hidden;
-  background-color: var(--mat-bg);
-  border-color: var(--mat-line-color);
-}
-
-.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
   pointer-events: none;
-  background-image: url('/noise-bg.png');
-  background-size: 240px 240px;
-  background-position: var(--nm-noise-x, 0%) var(--nm-noise-y, 0%);
-  transform: rotate(var(--nm-noise-rot, 0deg));
-  transform-origin: center;
-  /* Rotation can expose corners — scale up slightly so the noise always
-     covers the marker's full rectangle regardless of rotation. */
-  width: 200%;
-  height: 200%;
-  top: -50%;
-  left: -50%;
-  opacity: 0.9;
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  transition:
+    max-width   var(--dur-slide) var(--ease-paper),
+    opacity     var(--dur-slide) var(--ease-paper),
+    margin-left var(--dur-slide) var(--ease-paper);
 }
 
-.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout) > .nav-marker__content {
-  position: relative;
-  z-index: 1;
+.nav-marker__wip.is-shown {
+  max-width: 160px;
+  opacity: 1;
+  margin-left: 4px;
+}
+
+
+/* ── Docked fill (chapter marker + docked project-marker on rr + biconomy) ──
+   When the chapter marker docks at MARKER_TOP, it (and the adjacent project
+   marker) switches to a muted grey surface so the pair reads as one unit
+   distinct from the floating-paper default. Inks inherit from the base
+   chapter / project rules — only the shell changes. */
+
+.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout),
+.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project,
+.workbench:has(.chapter-nav--open) .project-marker .nav-marker--project {
+  background-color: var(--mat-bg);
+  border-color: var(--mint-100);
+}
+
+/* Docked hover / active — progress one step darker than the base grey-960
+   so the state change reads against the already-muted surface. */
+.chapter-nav.is-docked > button.nav-marker:not(.nav-marker--flyout):hover,
+.chapter-nav.is-docked > a.nav-marker:not(.nav-marker--flyout):hover,
+.workbench:has(.chapter-nav.is-docked) .project-marker button.nav-marker--project:hover,
+.workbench:has(.chapter-nav--open)     .project-marker button.nav-marker--project:hover {
+  background-color: var(--grey-880);
+}
+
+.chapter-nav.is-docked > button.nav-marker:not(.nav-marker--flyout):active,
+.chapter-nav.is-docked > a.nav-marker:not(.nav-marker--flyout):active,
+.workbench:has(.chapter-nav.is-docked) .project-marker button.nav-marker--project:active,
+.workbench:has(.chapter-nav--open)     .project-marker button.nav-marker--project:active {
+  background-color: var(--grey-800);
 }

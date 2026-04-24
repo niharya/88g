@@ -521,7 +521,7 @@ mat or re-engineer the chain.
 Without the negative margin, the sticky row would stick **below** the
 workbench's top padding (the first position it could occupy in normal flow).
 The negative margin pulls its initial position up by exactly the pad-y so
-that `top: 0` sits the pill flush at the viewport edge (the black frame is desktop-only and hidden on mobile).
+that `top: 0` sits the marker flush at the viewport edge (the black frame is desktop-only and hidden on mobile).
 
 **Don't touch without reading:** the negative margin value is tied to
 `--workbench-pad-y`, not a magic number. If `--workbench-pad-y` is retuned

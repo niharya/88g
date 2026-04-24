@@ -2,7 +2,7 @@
    selected.css — /selected route-specific styles
 
    Shared layout system (workbench, mat, tokens) lives in globals.css.
-   Nav pill styles live in nav.css.
+   Nav marker styles live in nav.css.
    This file contains only /selected-specific layout and components.
    ========================================================================== */
 
@@ -71,8 +71,8 @@
 }
 
 
-/* ── Nav row — docked pills ────────────────────────────────────────────── */
-/* "Nihar" and "Works" pills sit docked together above the mat, mirroring  */
+/* ── Nav row — docked markers ──────────────────────────────────────────── */
+/* "Nihar" and "Works" markers sit docked together above the mat, mirroring  */
 /* the project-marker + chapter-marker docking on project routes.          */
 
 .selected-nav-row {
@@ -462,7 +462,7 @@
 
 
 /* ── Nameplates ─────────────────────────────────────────────────────────── */
-/* Individual positioned pills with dot clusters between them, maintaining  */
+/* Individual positioned markers with dot clusters between them, maintaining  */
 /* the same vertical rhythm as the upper timeline.                          */
 
 .selected-nameplate {
@@ -473,38 +473,6 @@
 
 .selected-nameplate--names { top: 545px; }
 .selected-nameplate--marks { top: 595px; }
-
-/* Neutralize button.nav-marker's cursor: pointer for static nameplates, but
-   don't fight NavMarker's is-disabled cursor: not-allowed — the Names W.I.P.
-   nameplate needs the forbidden cue on hover. */
-.selected-nameplate .nav-marker:not(.is-disabled) {
-  cursor: default;
-}
-
-.selected-nameplate .nav-marker__content {
-  color: var(--grey-640);
-  opacity: 0.8;
-}
-
-.selected-nameplate .nav-icon {
-  color: var(--grey-640);
-}
-
-/* Live-link nameplate — restores the active nav-marker chrome on the
-   otherwise-muted nameplate slot. Renders as a Next.js <Link> with
-   nav-marker--chapter styling so it matches the archive toggle's weight.
-   The selectors below unset the nameplate's shared muted overrides and
-   let nav.css's nav-marker--chapter rules apply. */
-.selected-nameplate--link .nav-marker {
-  cursor: pointer;
-}
-.selected-nameplate--link .nav-marker__content {
-  color: var(--grey-480);
-  opacity: 0.8;
-}
-.selected-nameplate--link .nav-icon {
-  color: inherit;
-}
 
 /* Single dots between nameplates and before archive */
 .selected-tl__dot-single {
@@ -875,9 +843,9 @@ a.ap-entry:hover .ap-entry__hint {
   }
 
   /* ── Nav row: center, tucked into the 4px black viewport frame ─────────── */
-  /* Sticky — stays in place as the page scrolls. Pill top edge sits flush   */
+  /* Sticky — stays in place as the page scrolls. Marker top edge sits flush */
   /* against the top of the viewport; the black frame (z:9999) overlaps the  */
-  /* pill's top few pixels, creating a "tucked under the frame" feel.         */
+  /* marker's top few pixels, creating a "tucked under the frame" feel.       */
 
   .selected-nav-row {
     position: sticky;

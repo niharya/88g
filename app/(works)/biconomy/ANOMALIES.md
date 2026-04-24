@@ -377,7 +377,7 @@ for clarity.
 
 **Snap-on-open (mobile only).** When `showNotes` flips to `true`,
 `Flows.tsx` scrolls so the title row sits ~72px below the viewport
-top (clear of the project/chapter pill strip + breathing space).
+top (clear of the project/chapter marker strip + breathing space).
 Implementation:
 
 - Ref on `.flows__header-left` — not on `.flows` — because the
@@ -388,8 +388,8 @@ Implementation:
 - `requestAnimationFrame` wrapper so the class toggle + layout
   reflow complete before `getBoundingClientRect()` measures.
 - `window.scrollTo({ top, behavior: 'smooth' })` — 72px offset
-  absorbs `--workbench-pad-y` + pill row + a small cushion. If the
-  shell's top pill strip changes height, revisit the offset.
+  absorbs `--workbench-pad-y` + marker row + a small cushion. If the
+  shell's top marker strip changes height, revisit the offset.
 
 **Don't touch:**
 
@@ -492,20 +492,20 @@ just bad sizing. Mobile:
   a literal 24px today. When the `--biconomy-card-inset-x` token
   lands (plan item #6), swap literals for token.
 
-### Nav pills — year hide (Shape 6 / Shape 7)
+### Nav markers — year hide (Shape 6 / Shape 7)
 
-Biconomy's project/exit/chapter pills inherit the shared mobile behavior
+Biconomy's project/exit/chapter markers inherit the shared mobile behavior
 from [`app/components/nav/nav.css`](../../components/nav/nav.css) at
-`<768px` — tightened pill padding (4/16/4/6) and the short-title swap
+`<768px` — tightened marker padding (4/16/4/6) and the short-title swap
 (unused here; "Biconomy" is already short). Route-local addition: hide
 `.nav-marker__year` on mobile so chapter date subtitles like "2022–24"
-don't widen the pill past comfortable at 375px. Mirrors the `/rr` pattern
+don't widen the marker past comfortable at 375px. Mirrors the `/rr` pattern
 at [`rr.css:2810`](../rr/rr.css:2810).
 
 **Deferred.** The nav-sled `left` override that `/rr` carries
 ([`rr.css:2819`](../rr/rr.css:2819)) is not needed yet — biconomy mats are
 not full-bleed (Shape 12 hasn't been applied), so the shared sled formula
-still aligns to the project pill. Revisit when the mat-bleed pass lands.
+still aligns to the project marker. Revisit when the mat-bleed pass lands.
 
 ### Intro — first-mat top bleed + open-travel + toggle anchor (UX Audit)
 
@@ -513,7 +513,7 @@ First chunk of the UX Audit chapter's mobile pass. Three changes:
 
 - **First mat top bleed (Shape 12 partial).** The first sheet's mat
   extends to the viewport top via `margin-top: calc(-1 * var(--workbench-pad-y))`
-  on `.route-biconomy .sheet-stack > .sheet:first-child`. Pills land on
+  on `.route-biconomy .sheet-stack > .sheet:first-child`. Markers land on
   the mat surface as the top row. Left/right mat-bleed is deferred until
   the chapter-wide mat pass.
 - **Open travel on mobile is `-60%` instead of `-50%`.** Desktop

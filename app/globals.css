@@ -311,7 +311,7 @@ p, li {
      --z-mat             0    paper sheet (mat)
      --z-surface         1    cards, proof artifacts, images
      --z-chapter-marker 20    sticky per-section chapter title
-     --z-project-marker 50    persistent project pill
+     --z-project-marker 50    persistent project marker
 
    Route CSS overrides:
      --mat-line-color    grid line color (biconomy: mint, rr: brown)

@@ -1,4 +1,4 @@
-// ExitMarker — fixed right-side exit pill. Links back to the works index.
+// ExitMarker — fixed right-side exit marker. Links back to the works index.
 
 import NavMarker from '../NavMarker'
 

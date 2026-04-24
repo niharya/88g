@@ -17,22 +17,27 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 
 ## Every marker routes through `NavMarker`
 
-Every visible marker in this cluster — `ChapterMarker` (static + dynamic current), `ProjectMarker`, `ExitMarker` — renders through the shared [`NavMarker`](../NavMarker/NavMarker.tsx) primitive. The landing's Nihar/Works pills and `/selected`'s Works nameplate + NiharHomeLink + Timeline `Names` / `Marks` buttons also route through it. See `LIBRARY.md` → "NavMarker" for the API contract.
+Every visible marker in this cluster — `ChapterMarker` (static + dynamic current), `ProjectMarker`, `ExitMarker` — renders through the shared [`NavMarker`](../NavMarker/NavMarker.tsx) primitive. The landing's Nihar/Works markers and `/selected`'s Works nameplate + NiharHomeLink + Timeline `Names` / `Marks` buttons also route through it. See `LIBRARY.md` → "NavMarker" for the API contract.
 
 **Consequences for this module:**
-- Route layouts must import `app/components/NavMarker/navmarker.css` alongside `nav.css`. `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`) and the `.nav-marker` base; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked mat-fill.
+- Route layouts must import `app/components/NavMarker/navmarker.css` alongside `nav.css`. `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`) and the `.nav-marker` base; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked fill.
 - The flyout items inside `ChapterMarker` still emit raw `.nav-marker` classes via `motion.button` — they are not migrated through the primitive because Framer Motion drives their layout animation directly. If a future change diverges their styling from the docked marker, either migrate or document the split.
 - Project + exit markers are **not** dimmed when the tray is open. Only sibling sheets and their nav-sleds get `--backseat-dim`. The project and exit markers are visually part of the tray context, so keeping them at full fidelity is deliberate — do not reintroduce a dim rule on `.project-marker` / `.exit-marker`.
 
-## Docked mat-fill uses client-only `--nm-noise-*` vars
+## Docked fill covers both markers of the pair
 
-When `.chapter-nav.is-docked` lands on the chapter marker, `navmarker.css` fills the pill with the shared `/noise-bg.png` tile (oversized 200% × 200% layer inside a `::before`, rotated in 90° steps). Each instance reads a different random patch of the tile via three CSS custom properties (`--nm-noise-x`, `--nm-noise-y`, `--nm-noise-rot`) so docked pills never show a repeated pattern across a page.
+When `.chapter-nav.is-docked` (or `.chapter-nav--open`) lands on the chapter marker, `navmarker.css` swaps the chapter marker **and** the adjacent project marker to a muted mat-coloured shell: `background-color: var(--mat-bg)`, `border-color: var(--mint-100)`. Hover steps to `--grey-880`, press to `--grey-800`. The pair reads as one unit distinct from the floating-paper default.
 
 **Load-bearing details:**
-- The three vars are set in `NavMarker` via `useState` + `useEffect` (client-only, after mount). **Do not** move this into render / `useMemo` / inline `Math.random()` — it produces an SSR/client hydration mismatch.
-- The mat-fill rule scopes to `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)`. Flyout items are excluded on purpose (they live in the tray, not against the mat).
-- The `.is-docked` class is written by `useDockedMarker`. If the dock detection changes, the mat-fill activation changes with it — no separate wiring needed.
-- Fallback values (`0%` / `0%` / `0deg`) keep the first paint sane before the `useEffect` writes; the value just won't be randomized until mount completes.
+- The project-marker rule is scoped by a `:has()` selector on the workbench — `.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project`. Both `.is-docked` (scrolled-into-dock) and `--open` (tray expanded) trigger it, so the pair stays unified through the full tray lifecycle. Removing either clause re-introduces a frame where only the chapter marker is muted while the project marker is still white.
+- Uses descendant (not child) selector between `.project-marker` and `.nav-marker--project` because `MarkerSlot` wraps the NavMarker in a positioning div — a `>` child combinator would miss the marker.
+- Flyout items (`.nav-marker--flyout`) are excluded on purpose (they live in the tray, not against the mat).
+- Inks inherit from the base role rules (project: `--grey-720`, chapter: `--grey-640`). Only the shell changes — don't override content colour in the docked rule.
+- The previous implementation painted the shell with a randomized `/noise-bg.png` crop via a `::before` layer + `--nm-noise-*` custom properties. That approach was removed when the fill was unified across the project/chapter pair; `/noise-bg.png` is no longer consumed by NavMarker (still used elsewhere — search before deleting the asset).
+
+## `ProjectMarker` scrolls to top on click
+
+`ProjectMarker` is rendered as `as="button"` through `NavMarker` and wires `onClick` to `window.scrollTo({ top: 0, behavior: 'smooth' })` — clicking the project name in the left nav returns to the project's start. This replaced the previous inert `as="div"` rendering; the wrapping `.project-marker` class (from `MarkerSlot`) is unchanged, so every existing `.project-marker`-targeted selector (nav.css halving, navmarker.css docked fill, route CSS overrides) keeps working. One visible consequence: on `/biconomy` and `/rr` the project marker now shows the primitive's default hover + :active fills, which it didn't before.
 
 ---
 
@@ -41,10 +46,10 @@ When `.chapter-nav.is-docked` lands on the chapter marker, `navmarker.css` fills
 | File | Role |
 |------|------|
 | `useDockedMarker.ts` | Hook — owns all scroll-coupled behaviors (arrow rotation, is-docked, tray open/close, tilt, outside-click, navigate). Accepts explicit `containerRef` for the sheet. Uses `.closest('.sheet-stack')` for tray operations (4 call sites). |
-| `MarkerSlot.tsx` | Positioning wrapper — fixed left/right pill container. Left slot measures right edge via ResizeObserver → `--project-marker-right`. Future persistence point for cross-route transitions. |
-| `ChapterMarker.tsx` | Two modes: **dynamic** (full docked behavior via `useDockedMarker`) and **static** (inert pill, no hooks). Dynamic requires `containerRef` prop. |
+| `MarkerSlot.tsx` | Positioning wrapper — fixed left/right marker container. Left slot measures right edge via ResizeObserver → `--project-marker-right`. Future persistence point for cross-route transitions. |
+| `ChapterMarker.tsx` | Two modes: **dynamic** (full docked behavior via `useDockedMarker`) and **static** (inert marker, no hooks). Dynamic requires `containerRef` prop. |
 | `ProjectMarker.tsx` | Content-only — renders icon + name. No positioning or measurement (handled by MarkerSlot). |
-| `ExitMarker.tsx` | Fixed right pill linking to /selected. Not wrapped in MarkerSlot (uses its own `.exit-marker` positioning). |
+| `ExitMarker.tsx` | Fixed right marker linking to /selected. Not wrapped in MarkerSlot (uses its own `.exit-marker` positioning). |
 | `Sheet.tsx` | `'use client'` — creates `useRef` for the `<section>`, passes to ChapterMarker as `containerRef`. Also calls `useReveal` for scroll-triggered section entrance. |
 | `useReveal.ts` | Hook — one-shot IntersectionObserver, adds `.revealed` to a ref'd element. Gates itself behind `.transitioning` removal to avoid fighting TransitionSlot. |
 
@@ -77,25 +82,25 @@ Now: MarkerSlot (left) uses **four** triggers to publish
 `--project-marker-right` on `<html>`, each catching a different kind of
 change:
 
-- **`ResizeObserver`** — pill content size changes (font load, text swap).
+- **`ResizeObserver`** — marker content size changes (font load, text swap).
 - **`IntersectionObserver`** — visibility transitions (shell going from
   `display: none` → visible on route change).
-- **`matchMedia` on the 767 and 1023 breakpoints** — the pill's fixed
+- **`matchMedia` on the 767 and 1023 breakpoints** — the marker's fixed
   `left` is driven by `--workbench-pad-x`, which changes at those media
-  queries. The pill moves horizontally without resizing; ResizeObserver
+  queries. The marker moves horizontally without resizing; ResizeObserver
   misses it. The matchMedia listener catches the crossing.
 - **`MutationObserver` on the `.workbench`** (attributes + childList) —
   route swaps add/remove a direct child whose class drives a `:has()`
   override on `--workbench-pad-x` (e.g. `.workbench:has(.route-rr)` uses
   `12px` instead of `24px` on mobile). Attribute/child mutations re-publish
-  on `requestAnimationFrame` so the pill's post-swap right edge lands in
+  on `requestAnimationFrame` so the marker's post-swap right edge lands in
   the CSS variable.
 
 **Don't remove any of the four** — each fixes a real failure mode that
 the others don't catch. The previous implementation only had ResizeObserver
 and IntersectionObserver, which left `--project-marker-right` stale after
 route transitions and media-query crossings (fixed April 2026 — caused a
-10px horizontal gap between project and chapter pills on `/rr` mobile).
+10px horizontal gap between project and chapter markers on `/rr` mobile).
 
 The `.project-marker` CSS class lives on MarkerSlot's wrapper div, not on
 ProjectMarker itself. All existing CSS selectors (nav.css, selected.css, rr.css)
@@ -105,13 +110,13 @@ target `.project-marker` and continue to work.
 
 ## Static mode on ChapterMarker
 
-`<ChapterMarker static chapter={...} chapters={[]} />` renders an inert pill with:
+`<ChapterMarker static chapter={...} chapters={[]} />` renders an inert marker with:
 - `position: static` (via `.chapter-nav--static`)
 - No scroll listeners, no tray, no arrow rotation
 - No hooks called at all (early return in component)
 
-Used on `/selected` for the "Works 2018-25" pill. Replaces the previous hand-coded
-fake chapter pill.
+Used on `/selected` for the "Works 2018-25" marker. Replaces the previous hand-coded
+fake chapter marker.
 
 **Border halving:** the dynamic-mode halving rule in `nav.css`
 (`.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project` +
@@ -120,7 +125,7 @@ present. Static mode is always adjacent without an `.is-docked` toggle, so two
 companion rules halve the borders unconditionally:
 `.selected-nav-row .project-marker .nav-marker--project { border-right-width: 1px }`
 and `.chapter-nav--static .nav-marker--chapter { border-left-width: 1px }`.
-Previously this was an inline `borderLeftWidth: 1` on the static pill's JSX; the
+Previously this was an inline `borderLeftWidth: 1` on the static marker's JSX; the
 CSS rule replaces that so the NavMarker primitive stays free of consumer-style
 overrides.
 
@@ -251,7 +256,7 @@ all routes.
 ## `Chapter.shortTitle` — two-span swap for mobile
 
 Chapter type has an optional `shortTitle`. When set, all four
-`ChapterMarker` render sites (static pill, dynamic pill, above-flyout,
+`ChapterMarker` render sites (static marker, dynamic marker, above-flyout,
 below-flyout) render the title as two sibling spans:
 
 ```tsx

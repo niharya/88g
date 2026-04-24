@@ -113,9 +113,9 @@ app/
     PaperFilter.tsx           Paper texture overlay (SVG displacement)
     useReveal.ts              Scroll-triggered entrance animation
     nav/                      Navigation system
-      ChapterMarker.tsx       Sticky chapter pill (dynamic + static modes)
-      ProjectMarker.tsx       Fixed project name pill
-      ExitMarker.tsx          Fixed exit pill
+      ChapterMarker.tsx       Sticky chapter marker (dynamic + static modes)
+      ProjectMarker.tsx       Fixed project name marker
+      ExitMarker.tsx          Fixed exit marker
       MarkerSlot.tsx          Positioning wrapper + CSS var measurement
       useDockedMarker.ts      Scroll-coupled nav behaviors
       nav.css                 Navigation styles
@@ -138,9 +138,9 @@ CLAUDE.md                     Working contract for Claude Code sessions
 | **Sheet Stack** | Vertical sequence of sheets. Gap triples when a tray is open. |
 | **Sheet** | A paper-like chapter unit. Contains a nav sled and section content. |
 | **Mat** | Textured surface on a sheet. Grid pattern + paper noise. |
-| **Project Marker** | Fixed left pill. Shows project name. Cross-fades on route change. |
-| **Chapter Marker** | Sticky pill per sheet. Opens the chapter tray on dock. Arrow rotates toward sheet center. |
-| **Exit Marker** | Fixed right pill. Links back to the works index. |
+| **Project Marker** | Fixed left marker. Shows project name. Cross-fades on route change. |
+| **Chapter Marker** | Sticky marker per sheet. Opens the chapter tray on dock. Arrow rotates toward sheet center. |
+| **Exit Marker** | Fixed right marker. Links back to the works index. |
 | **Nav Sled** | Absolute wrapper inside each sheet. Constrains the sticky marker's release point. |
 | **Tray** | Flyout menu from a docked Chapter Marker. Lists all chapters. |
 | **Surface** | Elevated material layer within a sheet. Blue card with paper displacement filter. |

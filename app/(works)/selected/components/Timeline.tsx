@@ -197,7 +197,6 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
         <NavMarker
           as="button"
           role="chapter"
-          state="disabled"
           icon="title"
           label="Names Coined"
           wipHint="W.I.P."

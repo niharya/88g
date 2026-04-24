@@ -14,7 +14,7 @@
 //   as                  'a' | 'button' | 'div'     — element shape
 //   role                'project' | 'chapter' | 'exit'  — slot semantics
 //   tone                'neutral' | 'terra' | 'mint'    — colour palette
-//   state               'default' | 'active' | 'disabled'
+//   state               'default' | 'active'
 //   icon                ReactNode | string (Material Symbols glyph name)
 //   label               main label (string or ReactNode for title-full/short)
 //   sublabel            secondary text (year / subtitle — chapter role)
@@ -22,16 +22,17 @@
 //     - navigate: no visual acknowledgment; route change is the feedback.
 //     - shake:    arrow shakes on click — same-page markers (Works on /selected).
 //     - morph:    icon rotates 45° while `active` — landing Nihar + → ×.
-//   wipHint             when state='disabled', hover swaps label for this
-//                       string rendered as a Monostamp (olive tone).
+//   wipHint             clicking the marker reveals a Monostamp chip beside
+//                       the label for 8s (auto-dismiss; re-click resets timer).
 //   iconRef             ref forwarded to the icon element (for arrow rotation)
 //
 // Class structure emitted (matches nav.css contract):
-//   .nav-marker.nav-marker--{role}[.nav-marker--tone-{tone}][.is-disabled]
+//   .nav-marker.nav-marker--{role}[.nav-marker--tone-{tone}][.is-active][.is-morphed]
 //     .nav-marker__content
 //       .nav-icon[.nav-arrow]
 //       .nav-marker__{name|title|exit-label}  ← role-specific label slot
 //       .nav-marker__year                     ← sublabel slot (chapter)
+//       .nav-marker__wip[.is-shown]           ← wipHint chip (click-triggered)
 
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import type { Ref } from 'react'
@@ -40,7 +41,7 @@ import Monostamp from '../Monostamp'
 
 export type NavMarkerRole = 'project' | 'chapter' | 'exit'
 export type NavMarkerTone = 'neutral' | 'terra' | 'mint'
-export type NavMarkerState = 'default' | 'active' | 'disabled'
+export type NavMarkerState = 'default' | 'active'
 export type NavMarkerAcknowledge = 'navigate' | 'shake' | 'morph'
 
 interface BaseProps {
@@ -98,25 +99,6 @@ function renderIcon(icon: React.ReactNode | string | undefined, ref?: Ref<HTMLSp
   return <span ref={ref} className={cls} aria-hidden="true">{icon}</span>
 }
 
-// Random crop of the shared noise tile. Each marker instance reads a
-// different patch of /noise-bg.png via CSS custom properties, so docked
-// markers don't show a repeated pattern across a page. Rotation is also
-// randomized in 90° steps for extra decorrelation with zero visual cost.
-//
-// Set client-side after mount so SSR hydration matches — Math.random()
-// during render would mismatch the server-rendered HTML.
-function useNoiseCrop(): React.CSSProperties | undefined {
-  const [crop, setCrop] = useState<React.CSSProperties | undefined>(undefined)
-  useEffect(() => {
-    setCrop({
-      ['--nm-noise-x' as string]: `${Math.floor(Math.random() * 100)}%`,
-      ['--nm-noise-y' as string]: `${Math.floor(Math.random() * 100)}%`,
-      ['--nm-noise-rot' as string]: `${Math.floor(Math.random() * 4) * 90}deg`,
-    })
-  }, [])
-  return crop
-}
-
 // ── Component ────────────────────────────────────────────────────────────
 
 function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
@@ -128,26 +110,25 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
   } = props
 
   const [shaking, setShaking] = useShakeState()
-  const isDisabled = state === 'disabled'
-  const isActive   = state === 'active'
-  const noiseCrop  = useNoiseCrop()
+  const [wipShown, showWip] = useWipHintState()
+  const isActive = state === 'active'
 
   const rootClass = [
     'nav-marker',
     `nav-marker--${role}`,
     tone !== 'neutral' ? `nav-marker--tone-${tone}` : '',
-    isDisabled ? 'is-disabled' : '',
     isActive   ? 'is-active'   : '',
     acknowledgeOnClick === 'morph' && isActive ? 'is-morphed' : '',
     className || '',
   ].filter(Boolean).join(' ')
 
   // Acknowledgment: shake fires on click for same-page markers.
+  // wipHint: clicking reveals a Monostamp chip beside the label for 8s.
   const onClick = useCallback((e: React.MouseEvent) => {
-    if (isDisabled) { e.preventDefault(); return }
     if (acknowledgeOnClick === 'shake') setShaking()
+    if (wipHint) showWip()
     if (props.onClick) (props.onClick as (e: React.MouseEvent) => void)(e)
-  }, [isDisabled, acknowledgeOnClick, props.onClick, setShaking])
+  }, [acknowledgeOnClick, wipHint, props.onClick, setShaking, showWip])
 
   // The arrow is the icon for chapter / exit / shake-acknowledged markers.
   const iconIsArrow = role === 'chapter' || role === 'exit' || acknowledgeOnClick === 'shake'
@@ -157,8 +138,11 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
       {renderIcon(icon, iconRef, iconIsArrow)}
       <span className={labelClassName(role)}>{label}</span>
       {sublabel && <span className="nav-marker__year t-p4">{sublabel}</span>}
-      {isDisabled && wipHint && (
-        <span className="nav-marker__wip" aria-hidden="true">
+      {wipHint && (
+        <span
+          className={`nav-marker__wip${wipShown ? ' is-shown' : ''}`}
+          aria-live="polite"
+        >
           <Monostamp tone="olive" appearance="light">{wipHint}</Monostamp>
         </span>
       )}
@@ -167,7 +151,7 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
 
   const commonProps = {
     className:  rootClass,
-    style:      noiseCrop || style ? { ...(noiseCrop || {}), ...(style || {}) } : undefined,
+    style,
     'aria-label':    props['aria-label'],
     'aria-expanded': props['aria-expanded'],
     'aria-current':  props['aria-current'],
@@ -183,7 +167,6 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
         target={props.target}
         rel={props.rel}
         onClick={onClick as React.MouseEventHandler<HTMLAnchorElement>}
-        aria-disabled={isDisabled || undefined}
         {...commonProps}
       >
         {content}
@@ -197,7 +180,6 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
         ref={ref as Ref<HTMLButtonElement>}
         type={props.type ?? 'button'}
         onClick={onClick as React.MouseEventHandler<HTMLButtonElement>}
-        disabled={isDisabled || undefined}
         {...commonProps}
       >
         {content}
@@ -239,4 +221,27 @@ function useShakeState(): [boolean, () => void] {
   }, [])
 
   return [shaking, trigger]
+}
+
+// ── W.I.P. hint hook ─────────────────────────────────────────────────────
+// Clicking a marker with `wipHint` reveals a chip beside the label for 8s.
+// Re-clicking resets the timer so the chip stays visible.
+
+const WIP_HINT_MS = 8000
+
+function useWipHintState(): [boolean, () => void] {
+  const [shown, setShown] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const trigger = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setShown(true)
+    timerRef.current = setTimeout(() => setShown(false), WIP_HINT_MS)
+  }, [])
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+  }, [])
+
+  return [shown, trigger]
 }

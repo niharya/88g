@@ -187,8 +187,8 @@ that instead. Currently used by `/rr` Mechanics. See `ANOMALIES.md` →
 ### Centered project+exit pair on mobile
 
 `/rr` previously docked the project and exit markers as a single horizontally-
-centered pair via measured-width tokens (`--rr-project-pill-w`,
-`--rr-exit-pill-w`, `--rr-pair-offset`). This fought the default system on
+centered pair via measured-width tokens (`--rr-project-marker-w`,
+`--rr-exit-marker-w`, `--rr-pair-offset`). This fought the default system on
 every dimension: it required the marker widths to be hand-measured and kept
 in sync with copy/padding changes; the chapter marker had to be ripped out of
 the sled and pinned per-mat; two chapters (`#intro`, `#mechanics`) needed

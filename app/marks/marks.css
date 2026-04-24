@@ -233,12 +233,12 @@ html[data-marks-hidden='true'] .marks-background::after {
 }
 
 
-/* ── Marks title (docked pill) ───────────────────────────────────────────── */
+/* ── Marks title (docked marker) ─────────────────────────────────────────── */
 /* Permanently at `--marker-top`, 24px. Two states — label or mark-name —
    swap via a reel-roll in `.marks-title__cell` (two slots ping-pong inside
    a clipped cell, JS writes inline transforms, CSS owns the transitions).
    Fades IN as the reader scrolls past the Hero (inverse of --hero-recede)
-   so the dock pill doesn't compete with the big hero presentation when
+   so the dock marker doesn't compete with the big hero presentation when
    they would both be visible at once. */
 
 .marks-title {
@@ -832,7 +832,7 @@ html[data-marks-hidden='true'] .marks-background::after {
      • Mark chrome: already uses min(100%, 780px) + 24px padding; no change
    No JS media queries, no transform: scale, no !important. */
 /* ── Exit marker override (route-scoped via marks.css load) ─────────────────
-   /marks strips the pill chrome off EXIT: no white container, no border —
+   /marks strips the marker chrome off EXIT: no white container, no border —
    just icon + label with `mix-blend-mode: overlay` so it reads through the
    palette. Vertically aligned to the docked title row (same --marker-top),
    with flex centering so the 12px label sits on the same visual axis as

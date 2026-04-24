@@ -3,7 +3,7 @@
 // HeroText — the big "MARKS & SYMBOLS" title that lives at the top of the reel.
 //
 // Fixed at 37vh (Figma reference), 120px. On scroll it fades + sinks into the
-// gradient rather than morphing into a small docked pill — that's an
+// gradient rather than morphing into a small docked marker — that's an
 // intentional split from the earlier single-element design (see MarksTitle).
 // The effect beyond opacity is text-shadow: a black halo that grows with
 // `--hero-recede`, selling "the title is going behind" rather than "the
@@ -12,7 +12,7 @@
 // This component writes `--hero-recede` (0 → 1 across the first 60vh of
 // scroll) to the `.route-marks` wrapper. Two consumers read it:
 //   • `.marks-hero-text` (own fade via CSS below)
-//   • `.marks-title` (inverse fade-in — the dock pill only appears once the
+//   • `.marks-title` (inverse fade-in — the dock marker only appears once the
 //     big hero has receded enough to not fight it)
 //
 // Semantically this is decorative: the h1 lives on MarksTitle (which tracks

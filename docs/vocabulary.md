@@ -72,7 +72,7 @@ content.
 
 The docked nav system. Three components, one shared slot.
 
-- **Visual role:** small pills docked to the top of the viewport.
+- **Visual role:** small markers docked to the top of the viewport.
   `ProjectMarker` is persistent across the route; `ChapterMarker` updates
   per section; `ExitMarker` is the back-to-index affordance.
 - **Code:** `app/components/nav/` — `ProjectMarker.tsx`,

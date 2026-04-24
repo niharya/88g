@@ -18,7 +18,7 @@ Breakpoints: mobile < 768px, tablet 768–1023px, desktop ≥ 1024px.
 
 ## Global mobile patterns
 
-* **Nav pills (project marker + chapter marker)**: centered horizontally, sticky at `top: 0`, tucked into the top black frame. Pulled up via negative `margin-top` equal to the workbench padding so the pill's top edge sits flush with the viewport top; the 4px black frame (z: 9999) overlaps the pill's first few pixels for the tucked feel. Stays in place on scroll.
+* **Nav markers (project + chapter)**: centered horizontally, sticky at `top: 0`, tucked into the top black frame. Pulled up via negative `margin-top` equal to the workbench padding so the marker's top edge sits flush with the viewport top; the 4px black frame (z: 9999) overlaps the marker's first few pixels for the tucked feel. Stays in place on scroll.
 * **Mat as last element**: when a `.mat` (or `.selected-mat`, etc.) is the final content block on a page, it extends full-bleed horizontally **and** fills remaining vertical viewport space via `flex: 1 0 auto` on the mat with its ancestor as a flex column. This avoids orphaning the page background below the mat. Negative `margin-bottom` equal to workbench padding lets it bleed to the bottom frame edge.
 * **Black viewport frame**: 8px on desktop, 4px on mobile (in `globals.css` `.workbench::before`).
 
@@ -44,7 +44,7 @@ Every route must clear this floor before any crafted layering.
 * No horizontal overflow at 375px.
 * Body copy readable at 375px without zoom; no `transform: scale()` fixes.
 * Touch targets ≥ 44px for anything interactive.
-* Mobile tucked pill nav present (project marker + chapter marker), per the global pattern above.
+* Mobile tucked marker nav present (project marker + chapter marker), per the global pattern above.
 * 4px viewport frame active on mobile (the halved brand detail).
 * Mat-as-last-element flex chain where the page ends on a mat.
 * Responsive copy variants via the two-span CSS visibility pattern when phrasing differs.
@@ -79,7 +79,7 @@ Strips themselves are still sanctioned when the inner content is natively author
 
 * `/marks` is the **composition quality bar** — built responsive-ready, authored gaps, breakpoint-scoped derived formulas, per-viewport asset decisions. Copy its quality, not its values.
 * `/selected` and `/` are the **retrofit-lite reference implementations** — clean passes under the old stance, broadly compliant with crafted-lite.
-* `/rr` is the **mechanics reference** — scroll unbind, `matchMedia` gate, measured-pair docked pills, React-inline-style conflict discovery. It is *not* a composition reference; its canvas scales predate crafted-lite.
+* `/rr` is the **mechanics reference** — scroll unbind, `matchMedia` gate, measured-pair docked markers, React-inline-style conflict discovery. It is *not* a composition reference; its canvas scales predate crafted-lite.
 * `/biconomy` has not had a responsive pass yet. The first crafted-lite application is the BIPs reference alongside the playbook.
 
 ### Don't-do list

@@ -1,12 +1,12 @@
 'use client'
 
-// ChapterMarker — chapter navigation pill with docked behavior.
+// ChapterMarker — chapter navigation marker with docked behavior.
 //
 // Two modes:
-//   • Dynamic (default): sticky pill with arrow rotation, docked detection,
+//   • Dynamic (default): sticky marker with arrow rotation, docked detection,
 //     tray open/close. Requires containerRef pointing to the parent <section>.
-//   • Static: inert pill rendering only the box + content. Used on /selected
-//     for the "Works" pill.
+//   • Static: inert marker rendering only the box + content. Used on /selected
+//     for the "Works" marker.
 //
 // Scroll-coupled behaviors live in useDockedMarker hook. Positioning is
 // handled by the nav-sled (inside Sheet) + nav.css. Visual chrome, tone,
@@ -48,7 +48,7 @@ function StaticChapterMarker({ chapter }: { chapter: Chapter }) {
         icon="arrow_downward"
         label={<ChapterTitle chapter={chapter} />}
         sublabel={chapter.year}
-        className="chapter-nav__static-pill"
+        className="chapter-nav__static-marker"
       />
     </div>
   )

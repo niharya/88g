@@ -18,7 +18,7 @@
 
 
 /* ── Project marker ──────────────────────────────────────────────────────── */
-/* Fixed left pill — measures own right edge for sled alignment.             */
+/* Fixed left marker — measures own right edge for sled alignment.             */
 
 .project-marker {
   position: fixed;
@@ -29,7 +29,7 @@
 
 
 /* ── Exit marker ─────────────────────────────────────────────────────────── */
-/* Fixed right pill — mirrors project-marker, links away from the page.      */
+/* Fixed right marker — mirrors project-marker, links away from the page.      */
 
 .exit-marker {
   position: fixed;
@@ -42,17 +42,6 @@
 a.nav-marker {
   cursor: pointer;
   text-decoration: none;
-  transition: opacity var(--dur-fast) var(--ease-snap);
-}
-
-/* Press acknowledgment — fires on mousedown so the click registers before
-   the route change commits. Scoped to anchor variants (NiharHomeLink,
-   ExitMarker, and the /selected → /marks nameplate) — button.nav-marker
-   (chapter tray toggle, archive toggle) already has in-route visual feedback
-   via the state it drives, and div.nav-marker is static. */
-a.nav-marker:active {
-  opacity: 0.72;
-  transition: opacity var(--dur-instant) var(--ease-snap);
 }
 
 .nav-marker--exit .nav-marker__content {
@@ -63,7 +52,7 @@ a.nav-marker:active {
 
 
 /* ── Nav icons (Material Symbols Rounded) ───────────────────────────────── */
-/* Explicit 20×20 box keeps --pill-h: 32px accurate regardless of font load. */
+/* Explicit 20×20 box keeps --marker-h: 32px accurate regardless of font load. */
 
 .nav-icon {
   font-family: var(--font-symbols);
@@ -80,7 +69,7 @@ a.nav-marker:active {
   font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
 }
 
-/* Exit pill: arrow flipped to point upward */
+/* Exit marker: arrow flipped to point upward */
 .nav-marker--exit .nav-icon {
   transform: rotate(180deg);
 }
@@ -97,18 +86,20 @@ a.nav-marker:active {
 
 
 /* ── Docked border halving ───────────────────────────────────────────────── */
-/* When the chapter pill docks, halve the touching borders (project-right +
+/* When the chapter marker docks, halve the touching borders (project-right +
    chapter-left = 2px total). CSS :has() handles this without JS.           */
 
-.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project {
+.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project,
+.workbench:has(.chapter-nav--open) .project-marker .nav-marker--project {
   border-right-width: 1px;
 }
 
-.chapter-nav.is-docked .nav-marker--chapter:not(.nav-marker--flyout) {
+.chapter-nav.is-docked .nav-marker--chapter:not(.nav-marker--flyout),
+.chapter-nav--open .nav-marker--chapter:not(.nav-marker--flyout) {
   border-left-width: 1px;
 }
 
-/* Static mode (e.g. /selected Works pill next to NiharHomeLink): the same
+/* Static mode (e.g. /selected Works marker next to NiharHomeLink): the same
    adjacency exists without the sticky/is-docked toggle, so halve the touching
    borders unconditionally. */
 .selected-nav-row .project-marker .nav-marker--project {
@@ -139,17 +130,17 @@ a.nav-marker:active {
 
 
 /* ── Chapter nav ─────────────────────────────────────────────────────────── */
-/* Sticky containing block for the pill and its flyout items.
+/* Sticky containing block for the marker and its flyout items.
    Switches to position: relative when tray opens (openTray() pre-scrolls
-   sheet top to y=0 so the pill stays visually at MARKER_TOP).              */
+   sheet top to y=0 so the marker stays visually at MARKER_TOP).              */
 
 .chapter-nav {
   position: sticky;
   top: var(--marker-top);
   display: inline-flex;
   pointer-events: auto;
-  --pill-h: 32px;  /* 2px border × 2 + 4px pad × 2 + 20px icon — keep in sync */
-  --pill-gap: 8px;
+  --marker-h: 32px;  /* 2px border × 2 + 4px pad × 2 + 20px icon — keep in sync */
+  --marker-gap: 8px;
 }
 
 .chapter-nav--open {
@@ -157,21 +148,18 @@ a.nav-marker:active {
   top: 0;
 }
 
-/* Static mode — inert pill used on /selected, no sticky/scroll behavior */
+/* Static mode — inert marker used on /selected, no sticky/scroll behavior */
 .chapter-nav--static {
   position: static;
 }
 
-/* Static pill is not a link — strip the dotted underline that t-btn1 carries. */
+/* Static marker is not a link — strip the dotted underline that t-btn1 carries. */
 .chapter-nav--static .nav-marker__title {
   text-decoration: none;
 }
-.chapter-nav--static .nav-marker__title::after {
-  content: none;
-}
 
 
-/* ── Nav pill ────────────────────────────────────────────────────────────── */
+/* ── Nav marker ──────────────────────────────────────────────────────────── */
 
 .nav-marker {
   display: inline-flex;
@@ -196,23 +184,28 @@ button.nav-marker {
 
 .nav-marker--project .nav-marker__content {
   gap: 2px;
-  color: var(--grey-640);
-  opacity: 0.8;
+  color: var(--grey-720);
 }
 
 .nav-marker--chapter .nav-marker__content {
   gap: 4px;
-  color: var(--grey-480);
-  opacity: 0.8;
+  color: var(--grey-640);
 }
 
-/* Title underline — dots from t-btn1. Hover: dots dissolve out, solid line in. */
-.nav-marker .nav-marker__title {
+/* Label underline — all three slots (__title, __name, __exit-label) share
+   the same hover treatment. t-btn1 provides the base dotted underline on
+   __title and __name; __exit-label has none by default. On hover the dots
+   dissolve out and a solid ::after bar lights up. Uniform across markers. */
+.nav-marker .nav-marker__title,
+.nav-marker .nav-marker__name,
+.nav-marker .nav-marker__exit-label {
   position: relative;
   transition: text-decoration-color 0.12s ease;
 }
 
-.nav-marker .nav-marker__title::after {
+.nav-marker .nav-marker__title::after,
+.nav-marker .nav-marker__name::after,
+.nav-marker .nav-marker__exit-label::after {
   content: '';
   position: absolute;
   bottom: -2px;
@@ -225,12 +218,21 @@ button.nav-marker {
   pointer-events: none;
 }
 
-.nav-marker:hover .nav-marker__title {
+.nav-marker:hover .nav-marker__title,
+.nav-marker:hover .nav-marker__name,
+.nav-marker:hover .nav-marker__exit-label {
   text-decoration-color: transparent;
 }
 
-.nav-marker:hover .nav-marker__title::after {
+.nav-marker:hover .nav-marker__title::after,
+.nav-marker:hover .nav-marker__name::after,
+.nav-marker:hover .nav-marker__exit-label::after {
   opacity: 1;
+}
+
+/* Static marker (Works on /selected) — shake-only ack, no hover underline. */
+.chapter-nav--static .nav-marker__title::after {
+  content: none;
 }
 
 .nav-marker__year {
@@ -266,7 +268,7 @@ button.nav-marker {
 .nav-marker--flyout {
   position: absolute;
   left: 0;
-  top: calc(var(--fi) * (var(--pill-h) + var(--pill-gap)));
+  top: calc(var(--fi) * (var(--marker-h) + var(--marker-gap)));
   white-space: nowrap;
 }
 
@@ -315,7 +317,7 @@ button.nav-marker {
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 
 @media (max-width: 767px) {
-  /* Tighten pill padding — 32px right is for desktop docking spaciousness */
+  /* Tighten marker padding — 32px right is for desktop docking spaciousness */
   .nav-marker__content {
     padding: 4px 16px 4px 6px;
   }

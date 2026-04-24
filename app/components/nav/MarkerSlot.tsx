@@ -1,6 +1,6 @@
 'use client'
 
-// MarkerSlot — persistent positioning wrapper for nav marker pills.
+// MarkerSlot — persistent positioning wrapper for nav markers.
 //
 // Handles two jobs:
 //   1. Fixed positioning (left or right edge of workbench)
@@ -10,7 +10,7 @@
 // Uses ResizeObserver (catches font loads, text changes, layout shifts),
 // IntersectionObserver (catches visibility transitions, e.g. shell going
 // from display:none → visible on route change), and matchMedia listeners
-// for each breakpoint that changes --workbench-pad-x (the fixed pill
+// for each breakpoint that changes --workbench-pad-x (the fixed marker
 // slides horizontally without resizing, so ResizeObserver misses it).
 //
 // Set measure={false} on instances that should not write to the variable
@@ -57,9 +57,9 @@ export default function MarkerSlot({ position, measure = true, children }: Marke
 
     window.addEventListener('resize', publish, { passive: true })
 
-    // Breakpoints that change --workbench-pad-x (pill's fixed `left`).
+    // Breakpoints that change --workbench-pad-x (marker's fixed `left`).
     // ResizeObserver fires on size-only changes, so a position-only shift
-    // at a media-query crossing (same pill width, new left) is missed
+    // at a media-query crossing (same marker width, new left) is missed
     // without this. Also covers routes that scope their own pad override
     // via :has() — the class/route change lands in the same frame as
     // the media condition the listener is already watching.
@@ -73,9 +73,9 @@ export default function MarkerSlot({ position, measure = true, children }: Marke
     // toggles `route-rr` etc., which drives :has()-scoped overrides).
     // Watch the workbench for route swaps: a route root is a direct child of
     // .workbench, and routes scope their own pad via `:has(.route-*)`. When
-    // the route node swaps, --workbench-pad-x can change (same pill width,
+    // the route node swaps, --workbench-pad-x can change (same marker width,
     // different `left`) — we need a re-publish on the next frame so the
-    // pill's new viewport-right lands in --project-marker-right.
+    // marker's new viewport-right lands in --project-marker-right.
     const workbench = el.closest('.workbench')
     const republish = () => requestAnimationFrame(publish)
     const mo = workbench ? new MutationObserver(republish) : null

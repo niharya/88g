@@ -26,7 +26,7 @@ built for case-study reading — viewport frame, chapter markers, transition
 choreography. `/marks` is a reel, not a case study. Inheriting the workbench
 chrome would fight the material.
 
-The only `(works)` primitive reused is the `ExitMarker` pill. Everything else is
+The only `(works)` primitive reused is the `ExitMarker`. Everything else is
 route-local.
 
 ---
@@ -46,7 +46,7 @@ Hero clone       (100vh hero palette — identical paint to the real Hero)
 
 The title (`MarksTitle`) is a persistent `h1` that spans the whole route,
 driven by scrollY. It scales from a hero moment at the top (120px, ~37vh) into
-a docked pill (24px, `top: --marker-top`) as the reader scrolls past Hero, then
+a docked marker (24px, `top: --marker-top`) as the reader scrolls past Hero, then
 re-expands inside each mark section as a per-section title (reel-roll ping-pong
 between two slots, direction following scroll).
 
@@ -218,7 +218,7 @@ under "Responsive anomalies". The short version:
 - Essay preview rows flip to `flex-direction: column` with a 48px gap.
 - Blank + Hero-clone stay at 100vh on every viewport — they are dominance
   candidates, so shrinking them would break the wrap-on-dock fire window.
-- No tucked pill — `MarksTitle` is the nav and already docks at any viewport.
+- No tucked marker — `MarksTitle` is the nav and already docks at any viewport.
 
 ---
 

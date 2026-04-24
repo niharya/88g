@@ -44,7 +44,7 @@ The site's established responsive rules:
 - Halve, don't delete, brand details (4px frame on mobile, not hidden)
 - Different copy per viewport → two sibling `<span>`s with `--desktop` / `--mobile` CSS visibility classes
 - Decorative elements (timeline bars, dot clusters) removed on mobile in favor of inline color-coding or simple dividers
-- Nav pills on mobile → centered, sticky at top, tucked into the top black frame
+- Nav markers on mobile → centered, sticky at top, tucked into the top black frame
 - Mat as last element on mobile → full-bleed horizontally + flex-grow to viewport bottom
 - No JS media queries (hydration risk)
 - No `transform: scale()` on text (readability)

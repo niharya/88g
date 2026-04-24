@@ -90,8 +90,8 @@ export default function Flows() {
     const id = requestAnimationFrame(() => {
       const el = headerLeftRef.current
       if (!el) return
-      // Offset keeps the title row clear of the top pill strip
-      // (project/chapter pills + marker-top + small breathing space).
+      // Offset keeps the title row clear of the top marker strip
+      // (project/chapter markers + marker-top + small breathing space).
       const top = el.getBoundingClientRect().top + window.scrollY - 72
       window.scrollTo({ top, behavior: 'smooth' })
     })

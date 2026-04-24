@@ -369,22 +369,22 @@ dim chains so a sticky tap doesn't leave the UI in the dimmed state.
 
 ---
 
-### Shape 6 — Nav pill pair docked to top frame
+### Shape 6 — Nav marker pair docked to top frame
 
 **What it is.** `ProjectMarker` + `ExitMarker` (works routes) need to sit
 as a pair at the viewport top, tucked under the 4px black frame. They are
 independent React components — no shared parent to flex-center.
 
-**Desktop assumption that breaks.** Desktop positions both pills absolutely
+**Desktop assumption that breaks.** Desktop positions both markers absolutely
 relative to the workbench. On mobile they need to be viewport-docked and
 visually paired.
 
-**Reduction decision.** Both pills stay — they are part of the lite floor.
+**Reduction decision.** Both markers stay — they are part of the lite floor.
 
 **Composition decision.** Two sub-patterns, pick by component wiring:
 
 - **Measured-widths center pair** — when two independent components need to
-  abut and center as a unit. Measured pill widths into CSS vars; computed
+  abut and center as a unit. Measured marker widths into CSS vars; computed
   `left` for each.
 - **Single sticky with negative margin-top** — when it's one row already
   (e.g. `/selected`'s `.selected-nav-row` wrapper exists). Sticky at
@@ -396,9 +396,9 @@ visually paired.
 ```css
 @media (max-width: 767px) {
   .workbench:has(.route-x) {
-    --route-project-pill-w: 151px; /* measured */
-    --route-exit-pill-w:    85px;
-    --route-pair-offset: calc((var(--route-project-pill-w) + var(--route-exit-pill-w)) / 2);
+    --route-project-marker-w: 151px; /* measured */
+    --route-exit-marker-w:    85px;
+    --route-pair-offset: calc((var(--route-project-marker-w) + var(--route-exit-marker-w)) / 2);
   }
   .workbench:has(.route-x) .project-marker {
     position: fixed; top: 0; z-index: 40;
@@ -406,7 +406,7 @@ visually paired.
   }
   .workbench:has(.route-x) .exit-marker {
     position: fixed; top: 0; z-index: 40;
-    left: calc(50vw - var(--route-pair-offset) + var(--route-project-pill-w));
+    left: calc(50vw - var(--route-pair-offset) + var(--route-project-marker-w));
   }
 }
 ```
@@ -424,12 +424,12 @@ visually paired.
 **Evidence.** Measured pair: [`rr.css:2759`](../app/(works)/rr/rr.css:2759).
 Sticky row: [`selected.css:875`](../app/(works)/selected/selected.css:875).
 
-**Verdict.** Sanctioned. Re-measure the pill widths if pill copy or padding
+**Verdict.** Sanctioned. Re-measure the marker widths if marker copy or padding
 changes — the computed pair drifts off-center otherwise.
 
 ---
 
-### Shape 7 — Chapter pill (nav-sled) per mat
+### Shape 7 — Chapter marker (nav-sled) per mat
 
 **What it is.** `ChapterMarker` rendered inside each `.sheet` / mat via the
 `.nav-sled` slot. On desktop it docks via `useDockedMarker` math.
@@ -437,7 +437,7 @@ changes — the computed pair drifts off-center otherwise.
 **Desktop assumption that breaks.** The sled's desktop absolute positioning
 falls outside the mat on mobile; its coordinate-system math does not hold.
 
-**Reduction decision.** Pill stays.
+**Reduction decision.** Marker stays.
 
 **Composition decision.** In-flow, centered, with a small buffer from the
 top of the mat (`margin-top: var(--space-16)`). Per-chapter exceptions
@@ -463,7 +463,7 @@ Mechanics scene) whose first visible mat isn't the chapter section itself.
 
 **Evidence.** [`rr.css:2788`](../app/(works)/rr/rr.css:2788) — in-flow
 default. Exceptions at lines 2808 (`#intro`, canvas pushed down) and 2820
-(`#mechanics`, pinned absolute so the pill lands inside the first visible
+(`#mechanics`, pinned absolute so the marker lands inside the first visible
 mat).
 
 **Verdict.** Sanctioned.
@@ -892,9 +892,9 @@ Single reference of what you can reach for in a crafted-lite pass.
 | DOM-present / display-toggle year | Semantic content that surfaces only when visual carrier is gone | `display: none` → `display: inline` at breakpoint |
 | Mat full-bleed (width + neg margin) | Edge-to-edge mats on mobile | `calc(100% + 2 * var(--workbench-pad-x))` + matching neg margins |
 | Mat-as-last flex chain | Final mat fills remaining viewport height | three `flex: 1`/`1 0 auto` links; neg `margin-bottom` |
-| Sticky nav row with neg margin-top | Single-row pill tucks under 4px frame | `position: sticky; top: 0; margin-top: calc(-1 * var(--workbench-pad-y))` |
-| Measured-widths center pair | Two independent pill components abut as one unit | `--pill-w` CSS vars + computed `left` |
-| In-flow chapter pill with per-chapter absolute exception | `.nav-sled` placement per mat | `position: relative; margin-top: var(--space-16)` default; `position: absolute` exception |
+| Sticky nav row with neg margin-top | Single-row marker tucks under 4px frame | `position: sticky; top: 0; margin-top: calc(-1 * var(--workbench-pad-y))` |
+| Measured-widths center pair | Two independent marker components abut as one unit | `--marker-w` CSS vars + computed `left` |
+| In-flow chapter marker with per-chapter absolute exception | `.nav-sled` placement per mat | `position: relative; margin-top: var(--space-16)` default; `position: absolute` exception |
 | Horizontal swipe strip (native-mobile content only) | Scanning-focused row of native-authored items | `overflow-x: auto; touch-action: pan-x; overscroll-behavior-x: contain` |
 | Scene unbind | Release scroll-pinned scenes to sibling flow | `height: auto` on scene; drop `position: sticky` on stage |
 | `matchMedia` gate in JS | Disable desktop-only JS affordances on mobile | `window.matchMedia('(max-width: 767px)').matches` at call site |
@@ -990,7 +990,7 @@ notes as each one gets its pass.
 **Mode.** Retrofit-review. The existing mobile block shipped under the old
 lite stance; classify each authored hack without fixing. `/rr` is a
 reference for *mechanics learned* (scroll unbind, matchMedia gate,
-measured-pair docked pills, React-inline-style conflict discovery) — not
+measured-pair docked markers, React-inline-style conflict discovery) — not
 for composition quality. The composition bar is `/marks`.
 
 **Flagged items.**
@@ -1013,9 +1013,9 @@ for composition quality. The composition bar is `/marks`.
 - **Pending — Manufacturing Consent font for `' lite'` badge.** Already
   documented in `rr ANOMALIES.md` as pending SVG replacement. Not a
   crafted-lite issue per se; a token-discipline issue.
-- **Sanctioned-under-playbook.** Scene unbind (Shape 2), chapter pill
+- **Sanctioned-under-playbook.** Scene unbind (Shape 2), chapter marker
   in-flow with per-chapter exceptions (Shape 7), measured-pair docked
-  pills (Shape 6), mat full-bleed (Shape 12), mat-as-last flex chain
+  markers (Shape 6), mat full-bleed (Shape 12), mat-as-last flex chain
   (Shape 13), React-inline-style gate on rails and outcome-card (Named
   patterns). No action.
 
@@ -1081,7 +1081,7 @@ formulas, per-viewport asset decisions, no retrofits.
   below `DOMINANCE_RATIO` (0.72) would make the wrap unreachable
   (`marks ANOMALIES.md` → "Responsive anomalies").
 - Mark carousel already uses `min(…vw, …px)` — no mobile override needed.
-- No tucked pill because `/marks` doesn't use the works nav shell; the
+- No tucked marker because `/marks` doesn't use the works nav shell; the
   title itself is the nav.
 
 **Do not touch.**

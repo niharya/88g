@@ -2745,7 +2745,7 @@
 @media (max-width: 767px) {
 
   /* Halve the workbench horizontal pad on mobile (24 → 12) so the docked
-     nav pills — ProjectMarker, ChapterMarker, ExitMarker — get more room
+     nav markers — ProjectMarker, ChapterMarker, ExitMarker — get more room
      at the frame edges. `.route-rr` is nested inside `.workbench`, so the
      var override has to sit on the workbench itself (targeted via :has()
      to scope it to /rr only). Other routes unaffected. */
@@ -2805,7 +2805,7 @@
   }
 
   /* First mat bleeds to the viewport top edge, same as it already bleeds on
-     left and right. Pills (project / exit / chapter) remain fixed at
+     left and right. Markers (project / exit / chapter) remain fixed at
      --marker-top and land on the mat surface as the top row. */
   .route-rr .sheet-stack > .sheet:first-child {
     margin-top: calc(-1 * var(--workbench-pad-y));
@@ -2815,10 +2815,10 @@
   .route-rr #outcome > .mat { flex: 1 0 auto; min-height: 0; }
 
 
-  /* Nav pills (project / exit / chapter) use the shared mobile behavior from
+  /* Nav markers (project / exit / chapter) use the shared mobile behavior from
      app/components/nav/nav.css + globals.css — no route-specific overrides
-     needed. See LIBRARY.md → "Nav pill system" before changing this.
-     RR-only: hide the chapter date subtitle on mobile to keep the pill tight. */
+     needed. See LIBRARY.md → "Nav marker system" before changing this.
+     RR-only: hide the chapter date subtitle on mobile to keep the marker tight. */
   .route-rr .nav-marker__year { display: none; }
 
   /* Nav-sled flush override. The shared formula in nav.css assumes the
@@ -2826,7 +2826,7 @@
      margin-left = −sheet-bleed). On /rr mobile the sheet is recomposed
      with margin-left: −workbench-pad-x (see `.route-rr .mat` above and
      the sheet width block), so the sheet's viewport-left is 0 and the
-     shared formula lands 10px short of the project pill. Scope the
+     shared formula lands 10px short of the project marker. Scope the
      override to /rr mobile only — desktop still uses the shared formula. */
   .route-rr .nav-sled {
     left: calc(var(--project-marker-right) - 2px);
@@ -2868,9 +2868,9 @@
      and become flow children, matching the biconomy blue-card pattern. */
 
   #intro.mat {
-    /* Top padding = --marker-top (16) + pill height (32, no date subtitle on
+    /* Top padding = --marker-top (16) + marker height (32, no date subtitle on
        rr) + --marker-top (16) = 64px. This makes the gap below the chapter
-       pill equal to the gap above it, so the pill sits visually centred
+       marker equal to the gap above it, so the marker sits visually centred
        between the sheet top and the card top. */
     padding: var(--space-104) var(--rr-card-inset-x);
     display: flex;

@@ -1,6 +1,6 @@
 'use client'
 
-// NiharHomeLink — the "Nihar" pill on /selected.
+// NiharHomeLink — the "Nihar" marker on /selected.
 //
 // Anchor variant of the project-role NavMarker. Sets a session flag so the
 // landing page can slide in from the left on arrival.

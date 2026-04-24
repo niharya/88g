@@ -3,7 +3,7 @@
 
 export interface Chapter {
   id:          string  // scroll target id on <section>
-  title:       string  // displayed in chapter pill + flyout
+  title:       string  // displayed in chapter marker + flyout
   year:        string  // displayed alongside title
   shortTitle?: string  // optional mobile-only label (falls back to title)
 }

@@ -2483,14 +2483,14 @@
 
 @media (max-width: 767px) {
 
-  /* ── Nav pills — shared mobile behavior + year hide ───────────────────
-     Project/Exit/Chapter pills inherit mobile padding and short-title swap
+  /* ── Nav markers — shared mobile behavior + year hide ─────────────────
+     Project/Exit/Chapter markers inherit mobile padding and short-title swap
      from app/components/nav/nav.css. Route-local additions (mirror /rr):
-     - Halve --workbench-pad-x (24→12) so project/exit pills tuck closer to
+     - Halve --workbench-pad-x (24→12) so project/exit markers tuck closer to
        the frame edges. Also tightens sheet horizontal padding on mobile.
      - Halve --marker-top (16→8) for a tighter top gutter; useDockedMarker
-       reads this token live, so docked chapter pill follows.
-     - Hide .nav-marker__year so chapter date subtitles don't widen the pill.
+       reads this token live, so docked chapter marker follows.
+     - Hide .nav-marker__year so chapter date subtitles don't widen the marker.
      Nav-sled formula override is not needed yet — biconomy mats are not
      full-bleed (Shape 12 pending). Revisit when the mat pass lands. */
   .workbench:has(.route-biconomy) { --workbench-pad-x: 12px; }
@@ -2500,7 +2500,7 @@
   /* ── First mat — top bleed (Shape 12 partial) ─────────────────────────
      First sheet's mat reaches the top frame, same pattern /rr uses. Full
      mat-bleed (left/right) is deferred for biconomy until the mat pass;
-     this is just the top edge so pills land on the mat surface. */
+     this is just the top edge so markers land on the mat surface. */
   .route-biconomy .sheet-stack > .sheet:first-child {
     margin-top: calc(-1 * var(--workbench-pad-y));
   }
