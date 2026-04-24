@@ -140,7 +140,7 @@ function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProp
                         alt=""
                         className="api__card-img"
                         draggable={false}
-                        intrinsic
+                        fill
                         placeholder="hash"
                         sizes="(max-width: 767px) 90vw, 600px"
                       />

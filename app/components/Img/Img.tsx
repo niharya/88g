@@ -52,7 +52,7 @@ function hashToDataUrl(hash: string): string {
 export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   src,
   alt,
-  placeholder = 'color',
+  placeholder,
   className,
   style,
   onClick,
@@ -69,6 +69,10 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   ...rest
 }: ImgProps, forwardedRef) {
   const entry: ImageManifestEntry | undefined = imageManifest[src]
+  // Default placeholder is "color" for opaque assets and "none" for ones with
+  // transparent pixels — a flat dominant-color tile would otherwise bleed
+  // through any alpha regions of a PNG. Consumer-passed value always wins.
+  const resolvedPlaceholder: Placeholder = placeholder ?? (entry?.hasAlpha ? 'none' : 'color')
   const [loaded, setLoaded] = useState(false)
   const wrapperRef = useRef<HTMLSpanElement | null>(null)
   useImperativeHandle(forwardedRef, () => wrapperRef.current as HTMLSpanElement)
@@ -107,9 +111,9 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   }, [src])
 
   const hashUrl = useMemo(() => {
-    if (placeholder !== 'hash' || !entry) return undefined
+    if (resolvedPlaceholder !== 'hash' || !entry) return undefined
     return hashToDataUrl(entry.thumbHash)
-  }, [placeholder, entry])
+  }, [resolvedPlaceholder, entry])
 
   // Dev-time warning: nudge contributors to regenerate the manifest.
   useEffect(() => {
@@ -150,7 +154,7 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
       ref={wrapperRef}
       className={[
         'img',
-        `img--${placeholder}`,
+        `img--${resolvedPlaceholder}`,
         fill ? 'img--fill' : '',
         intrinsic ? 'img--intrinsic' : '',
         loaded ? 'is-loaded' : '',
@@ -161,13 +165,13 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
       style={wrapperStyle}
       onClick={onClick}
     >
-      {placeholder === 'hash' && hashUrl ? (
+      {resolvedPlaceholder === 'hash' && hashUrl ? (
         <span
           className="img__placeholder img__placeholder--hash"
           style={{ backgroundImage: `url(${hashUrl})` }}
           aria-hidden
         />
-      ) : placeholder === 'color' ? (
+      ) : resolvedPlaceholder === 'color' ? (
         <span className="img__placeholder img__placeholder--color" aria-hidden />
       ) : null}
 

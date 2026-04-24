@@ -75,6 +75,14 @@ during the reveal entrance on all biconomy sections.
 **What breaks if the inline shadow is removed:** surface shadow does not respond
 to scroll position; cards feel static during reading.
 
+### API card images use `fill` mode, not `intrinsic`
+
+`.api__card-img` (the slide images inside `.api__card-frame`) is wired with `<Img fill />` so the wrapper covers the full 4:3 black monitor frame; `object-fit: contain` on `.img.api__card-img .img__inner` letterboxes the image inside it. **Do not switch back to `intrinsic`** — that mode shrinks the wrapper to the image's natural dimensions and exposes the frame's black background as a wide bezel around the screenshot. The `--raw` variant (Navigation & Signing flow) reuses the same `fill + contain` setup; the 1px grey border on `.api__stack-wrap--raw .api__card-img` outlines the wrapper rect, which is acceptable because the raw frame strips the black bg / shadow / border.
+
+The `.api__trailing-img` further down (closing zhao.eth artifact) is a *different* case — it uses `intrinsic` because the consumer wants the wrapper to size to the image's natural 200px width, and there's no surrounding letterbox to fight.
+
+See `LIBRARY.md` → "Img" → "Object-fit lives on `.img__inner`" for the cascade detail.
+
 ### Shadow token migration (v0.17.0)
 
 Four biconomy card outers (`.bips__card-outer`, `.multiverse__card-outer`,

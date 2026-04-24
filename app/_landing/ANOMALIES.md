@@ -60,6 +60,10 @@ Group B cards transition `top`, `opacity`, and `transform` on expand. All three 
 
 ## Responsive anomalies
 
+### `about-short` height docks to the hero
+
+`.about-card--short` `min-height` is `calc(var(--hero-top) - var(--short-top))` — not a hand-tuned px value. This makes the card's bottom edge meet the hero's top edge with no gap at every breakpoint, since both tokens adapt (desktop `--hero-top: 224px` / `--short-top: 16px`; mobile `160px` / `24px`). The mobile media query intentionally does **not** override `min-height` — the calc already gives the right value (160 − 24 = 136). Don't reintroduce a hardcoded `184px` or a `min-height: 0` mobile reset; both regress the docking.
+
 ### Mobile about-short — divider hidden, padding dropped
 
 On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop card recipe:

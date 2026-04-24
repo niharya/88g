@@ -2005,20 +2005,13 @@
 }
 
 .api__card-img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  display: block;
   user-select: none;
   pointer-events: none;
 }
+/* Fill the black monitor frame; image letterboxes via object-fit: contain so
+   portrait + landscape captures both render fully inside the 4:3 box. */
 .img.api__card-img .img__inner {
   object-fit: contain;
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
 }
 
 /* Caption + nav row. For the raw (portrait) variant, constrain width to

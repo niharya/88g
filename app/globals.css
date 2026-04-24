@@ -238,26 +238,8 @@
   transition: text-decoration-color var(--dur-instant) var(--ease-snap);
 }
 
-.t-btn1::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: currentColor;
-  opacity: 0;
-  transition: opacity var(--dur-instant) var(--ease-snap);
-  pointer-events: none;
-}
-
-.t-btn1:hover {
-  text-decoration-color: transparent;
-}
-
-.t-btn1:hover::after {
-  opacity: 1;
-}
+/* Hover keeps the dotted underline visible — site convention is dotted
+   links throughout. Affordance comes from the bg/color shift on the host. */
 
 
 /* ==========================================================================

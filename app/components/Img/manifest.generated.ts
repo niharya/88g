@@ -6,6 +6,7 @@ export type ImageManifestEntry = {
   thumbHash: string
   width: number
   height: number
+  hasAlpha: boolean
 }
 
 export const imageManifest: Record<string, ImageManifestEntry> = {
@@ -13,498 +14,588 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "MggGBYBwh4eUiIh1d5eIhwAAAAAA",
     "width": 2008,
-    "height": 1506
+    "height": 1506,
+    "hasAlpha": false
   },
   "/images/biconomy/api/2.png": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "NAgKBYA/PC2Xhod1eIeId2tywPFG",
     "width": 2006,
-    "height": 1504
+    "height": 1504,
+    "hasAlpha": false
   },
   "/images/biconomy/api/3.png": {
     "dominantColor": "rgb(232, 232, 232)",
     "thumbHash": "NggGBYCfmGl2iHiGh4d3dwAAAAAA",
     "width": 2006,
-    "height": 1506
+    "height": 1506,
+    "hasAlpha": false
   },
   "/images/biconomy/api/biconomyx-pp.jpg": {
     "dominantColor": "rgb(232, 232, 232)",
     "thumbHash": "NggGBwD7OYaIeId9c6pneIiHRoBHB3oF",
     "width": 400,
-    "height": 400
+    "height": 400,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-1-1.jpeg": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "MggGBYBwh4eUiIh1d5eIhwAAAAAA",
     "width": 1200,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-1-2.jpeg": {
     "dominantColor": "rgb(232, 232, 232)",
     "thumbHash": "NggGBYCfmGl2iHiGh4d3dwAAAAAA",
     "width": 1200,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-1-3.jpeg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "MQgOBYAfLlt2h3h2iIh4dwAAAAAA",
     "width": 1200,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-2-1.jpeg": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "MggGBYBQmKapiYdyeKdohwAAAAAA",
     "width": 1200,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-2-2.jpeg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "NggKBYCPiHeJeHh1iJh4hwAAAAAA",
     "width": 1200,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-2-3.jpeg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "NAgKBYA/PC2Xhod1eIeIdwAAAAAA",
     "width": 1200,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-3-1.jpeg": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "MggGBQDWZZCKaIeHiHeHiAAAAAAA",
     "width": 1200,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/api/flows/flow-4-1.jpeg": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "LggKBQAPHnd4qIeHeHiHhwAAAAAA",
     "width": 1200,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/api/send_assets.png": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "NAiCA4AeNamPdXUAAAAAACgnh4iAdBg=",
     "width": 482,
-    "height": 256
+    "height": 256,
+    "hasAlpha": true
   },
   "/images/biconomy/demos/after.png": {
     "dominantColor": "rgb(168, 136, 104)",
     "thumbHash": "XUkGDwKHh3dwiIiGh2eHeIeH1wt3v5AD",
     "width": 1040,
-    "height": 1040
+    "height": 1040,
+    "hasAlpha": false
   },
   "/images/biconomy/demos/before.png": {
     "dominantColor": "rgb(152, 120, 88)",
     "thumbHash": "nkkGDwB4d3dgiHeId3iId3h3hwi4dYAG",
     "width": 1040,
-    "height": 1040
+    "height": 1040,
+    "hasAlpha": false
   },
   "/images/biconomy/demos/game.png": {
     "dominantColor": "rgb(120, 120, 136)",
     "thumbHash": "XAeKFIIPqLdpZIBNyNgHeW9zePiIB3ePAA==",
     "width": 3444,
-    "height": 2450
+    "height": 2450,
+    "hasAlpha": true
   },
   "/images/biconomy/demos/web.png": {
     "dominantColor": "rgb(24, 24, 40)",
     "thumbHash": "h/eBA4APzXmfi4apr2qn+YeHj4dw9wg=",
     "width": 3444,
-    "height": 2153
+    "height": 2153,
+    "hasAlpha": true
   },
   "/images/biconomy/demos/web3_abstractor.png": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "81mCA4AnxYpsZX86k6AzCSZbNKawulg=",
     "width": 448,
-    "height": 248
+    "height": 248,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/gas_tank_setup_after.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hgeCA4APOfaXe4Boj53yuHd3f3eA9wg=",
     "width": 2982,
-    "height": 1693
+    "height": 1693,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/gas_tank_setup_after_2.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hweCA4APKZWIiHAqj+fo93h4f3iA9wc=",
     "width": 2982,
-    "height": 1695
+    "height": 1695,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/gas_tank_setup_before.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "xwcCDICMU2evWXZ5mkb/i7mvpw==",
     "width": 2979,
-    "height": 1692
+    "height": 1692,
+    "hasAlpha": false
   },
   "/images/biconomy/flows/network_change_prompt_after.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hweCA4APfyGcaFS/iPZud1paj4dw+Ag=",
     "width": 2981,
-    "height": 1695
+    "height": 1695,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/network_change_prompt_before.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "xwcCDICOQ3evWIZ4u2ffieePiQ==",
     "width": 2979,
-    "height": 1692
+    "height": 1692,
+    "hasAlpha": false
   },
   "/images/biconomy/flows/paymaster_card_after.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hweCA4APhFxfuIv9a/qOqkpKj4dw+Ag=",
     "width": 2981,
-    "height": 1695
+    "height": 1695,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/paymaster_card_before.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "xwcCDICleodvmneNmoj+evmeqQ==",
     "width": 2979,
-    "height": 1692
+    "height": 1692,
+    "hasAlpha": false
   },
   "/images/biconomy/flows/paymaster_empty_state_after.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "xweCA4APC1WVfIlqn8/4uoeHj4iA+Ag=",
     "width": 2982,
-    "height": 1696
+    "height": 1696,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/paymaster_empty_state_before.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "xweCC4APX1GfaFTvevi/lnh4f4eA+Ag=",
     "width": 2982,
-    "height": 1696
+    "height": 1696,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/paymaster_overview_after.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hwcCDIC/mFe7i3hiilSJj4746A==",
     "width": 2982,
-    "height": 1695
+    "height": 1695,
+    "hasAlpha": false
   },
   "/images/biconomy/flows/paymaster_overview_before.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "yPeBC4APeEWPaaH/e7mc94eHf4eA+Ag=",
     "width": 2979,
-    "height": 1691
+    "height": 1691,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/register_paymaster_dialog_after.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hweCA4APDpGeeFF/e/WaZnh4j4dw+Ag=",
     "width": 2982,
-    "height": 1696
+    "height": 1696,
+    "hasAlpha": true
   },
   "/images/biconomy/flows/register_paymaster_dialog_before.png": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "h/cBBIAbhYePdYllq3TPerdflw==",
     "width": 2979,
-    "height": 1695
+    "height": 1695,
+    "hasAlpha": false
   },
   "/images/biconomy/multiverse_poster.png": {
     "dominantColor": "rgb(40, 24, 8)",
     "thumbHash": "ziiKDAQPCFiYN4d3lhCJp3TPw/N4CIePAA==",
     "width": 1684,
-    "height": 2382
+    "height": 2382,
+    "hasAlpha": true
   },
   "/images/biconomy/sa/breakfast.jpg": {
     "dominantColor": "rgb(200, 216, 232)",
     "thumbHash": "XvcRHQJJdq+Gd3mIh3mIeFCqKDgJ",
     "width": 1200,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/building-a-bridge.jpg": {
     "dominantColor": "rgb(72, 88, 72)",
     "thumbHash": "HPgNDAJn+XeoiJhnZ3cYim/2KA==",
     "width": 900,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/design-team-bico.jpg": {
     "dominantColor": "rgb(232, 248, 248)",
     "thumbHash": "JvgVHAJ393inh3dXeIiHgHgR+A==",
     "width": 900,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/feast-in-bali.jpg": {
     "dominantColor": "rgb(120, 88, 72)",
     "thumbHash": "mhgKHQKml113B3iYeZiGhll/6/f5",
     "width": 1067,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/flor-and-me.jpg": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "UwgKJQKHim9nR4kndoZ3eIdlgFQG",
     "width": 1066,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/flor-azaan-football.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "DvkJLQJYZZB3eId5hnd4eIaAl/ZH",
     "width": 1200,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/gang.jpg": {
     "dominantColor": "rgb(8, 104, 136)",
     "thumbHash": "3gQJFQaYiH+Id2lId3Z4V2OgMgcZ",
     "width": 1066,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/georgios-and-me.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "lRgSFQKZmI+Hl3dnd4iHiLJvCft0",
     "width": 1200,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/kalyug-ka-bazaar.jpg": {
     "dominantColor": "rgb(248, 216, 200)",
     "thumbHash": "nlkOFQIKeIN6a4i3eIiIRwl3gmhQ",
     "width": 1200,
-    "height": 1600
+    "height": 1600,
+    "hasAlpha": false
   },
   "/images/biconomy/sa/scooters-in-baku.jpg": {
     "dominantColor": "rgb(152, 200, 248)",
     "thumbHash": "IecNLYhViIiPiHePd1eJdIlxgBgH",
     "width": 1600,
-    "height": 1200
+    "height": 1200,
+    "hasAlpha": false
   },
   "/images/rr/paper-texture-card.png": {
     "dominantColor": "rgb(232, 216, 200)",
     "thumbHash": "tgiCBQAHf1iHilmWaLaAJPrOT1X3qWRXOQ==",
     "width": 1024,
-    "height": 1024
+    "height": 1024,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-texture.png": {
     "dominantColor": "rgb(232, 216, 200)",
     "thumbHash": "tgiCBQAHf1iHilmWaLaAJPrOT1X3qWRXOQ==",
     "width": 1024,
-    "height": 1024
+    "height": 1024,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v1.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "8ceBAwA0x4uVCGf0izkQlyhnd4hwi4g=",
     "width": 2268,
-    "height": 4032
+    "height": 4032,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v1.png": {
     "dominantColor": "rgb(200, 232, 216)",
     "thumbHash": "8ceFDAAe9vdnuGeCXr+XJYBbUJCHN4h5Aw==",
     "width": 225,
-    "height": 309
+    "height": 309,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v2.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "sseBAwA01Yx1CZfwgz2PyChnd3hwi4g=",
     "width": 2268,
-    "height": 4032
+    "height": 4032,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v2.png": {
     "dominantColor": "rgb(184, 216, 216)",
     "thumbHash": "sseBBAAetPZ4Z3ibJz/o9YdeULB4OIh7Aw==",
     "width": 229,
-    "height": 313
+    "height": 313,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v3.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "sreBAwA193WayEj1Y0nPyCdXeYeAa3g=",
     "width": 2268,
-    "height": 4032
+    "height": 4032,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v3.png": {
     "dominantColor": "rgb(184, 216, 216)",
     "thumbHash": "sreBBAAe9XaXqEeKVT+29q1aULB4OIh7Aw==",
     "width": 226,
-    "height": 313
+    "height": 313,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v4.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "qDmCAwA0V3lGV/g0fXB/2Ch3d4hwjJg=",
     "width": 2268,
-    "height": 4032
+    "height": 4032,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v4.png": {
     "dominantColor": "rgb(232, 216, 152)",
     "thumbHash": "pzmKDAIeNrdnB4d6QdUG94dOQMCIKIh8Ag==",
     "width": 229,
-    "height": 316
+    "height": 316,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v5-art.png": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "muWFDYA2j1E7p6eFZqDVDVvtC2OBeFdaaA==",
     "width": 147,
-    "height": 133
+    "height": 133,
+    "hasAlpha": true
   },
   "/images/rr/rr-card-v5.png": {
     "dominantColor": "rgb(24, 24, 72)",
     "thumbHash": "lTeGKwoemoH4hoeXcH0HuAYGe3eDtzc=",
     "width": 214,
-    "height": 316
+    "height": 316,
+    "hasAlpha": true
   },
   "/images/rr/rr-hand-deck-fan.png": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "3yiGCwQ2a3rIBRdJYI0FtidmZpiQWac=",
     "width": 2268,
-    "height": 4032
+    "height": 4032,
+    "hasAlpha": true
   },
   "/images/rr/rr-interface-desktop.png": {
     "dominantColor": "rgb(120, 120, 136)",
     "thumbHash": "XAeKFIIPqLdpZYBNyNgHeW/z8IB3eHiIBw==",
     "width": 897,
-    "height": 638
+    "height": 638,
+    "hasAlpha": true
   },
   "/images/rr/rr-resolving-icon.png": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "JbmCDQIkiVWOglQJxzabsAZ5BolnmXGLeQ==",
     "width": 1024,
-    "height": 1024
+    "height": 1024,
+    "hasAlpha": true
   },
   "/images/rr/rr-s2-figma-ref.jpg": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "SKmBBQAB96W1GFA0iKr3hvNm9VlkRIpmxw==",
     "width": 1024,
-    "height": 1024
+    "height": 1024,
+    "hasAlpha": true
   },
   "/images/rr/rr-score.png": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "abqCAYARyVN5hlBFhl9m+Ci3h3iAevg=",
     "width": 228,
-    "height": 29
+    "height": 29,
+    "hasAlpha": true
   },
   "/images/rr/rr-sketch-1.jpg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "OigCCwT0ePhJd5m5aHKAMwc=",
     "width": 1328,
-    "height": 2704
+    "height": 2704,
+    "hasAlpha": false
   },
   "/images/rr/rr-sketch-2.jpg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "/QeCBAAOr4RoWJik+s2WwMFeUGCIOIiGAw==",
     "width": 820,
-    "height": 1176
+    "height": 1176,
+    "hasAlpha": true
   },
   "/images/rr/rr-sketch-3.jpg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "/AeCBAAOyCq1+DjNr074iM+toJB4KIeJAg==",
     "width": 820,
-    "height": 1170
+    "height": 1170,
+    "hasAlpha": true
   },
   "/images/rr/rr-sketch-4.jpg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "/AeCAwAO+mm6ZPv/y+ivfgoKiYdxmBg=",
     "width": 804,
-    "height": 1176
+    "height": 1176,
+    "hasAlpha": true
   },
   "/images/rr/rr-sketch-5.jpg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "/gcCBYA/2LNRl5eFdYZnlT9D9ejZ",
     "width": 2272,
-    "height": 1744
+    "height": 1744,
+    "hasAlpha": false
   },
   "/images/rr/rr-sketch-6.jpg": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "/gcCBoCcxFqQaZtZmLh1iXinm5Bo9oc=",
     "width": 1768,
-    "height": 1500
+    "height": 1500,
+    "hasAlpha": false
   },
   "/images/rr/rr-story-bg-texture.png": {
     "dominantColor": "rgb(232, 216, 200)",
     "thumbHash": "tgiCBQAHf1iHilmWaLaAJPrOT1X3qWRXOQ==",
     "width": 1024,
-    "height": 1024
+    "height": 1024,
+    "hasAlpha": true
   },
   "/images/rr/rug-bg.png": {
     "dominantColor": "rgb(24, 88, 24)",
     "thumbHash": "zKgBBIKRtZXAdaVsdmZuPwID3g==",
     "width": 1440,
-    "height": 900
+    "height": 900,
+    "hasAlpha": false
   },
   "/images/rr/story-terra-bg.png": {
     "dominantColor": "rgb(232, 216, 200)",
     "thumbHash": "txgCBABgehOzZz/Fp3S/lvd0WQ==",
     "width": 368,
-    "height": 624
+    "height": 624,
+    "hasAlpha": false
   },
   "/images/rr/story-yellow-bg.png": {
     "dominantColor": "rgb(232, 216, 200)",
     "thumbHash": "tggCBABgexOzZy/Ep3TPtfZmew==",
     "width": 368,
-    "height": 624
+    "height": 624,
+    "hasAlpha": false
   },
   "/marks/beringer/01.jpg": {
     "dominantColor": "rgb(184, 24, 24)",
     "thumbHash": "KIkOFwqLhEtgh3dxhziIeIeHWvboZZ8O",
     "width": 1080,
-    "height": 1080
+    "height": 1080,
+    "hasAlpha": false
   },
   "/marks/beringer/02.jpg": {
     "dominantColor": "rgb(232, 200, 184)",
     "thumbHash": "KnkKDwg8eqaflodxeNd4OHiKNxv2wmAP",
     "width": 1080,
-    "height": 1080
+    "height": 1080,
+    "hasAlpha": false
   },
   "/marks/beringer/03.jpg": {
     "dominantColor": "rgb(184, 24, 24)",
     "thumbHash": "XskOHwwGaJh4iIiEeYh4N6iHd3/I94cM",
     "width": 1080,
-    "height": 1080
+    "height": 1080,
+    "hasAlpha": false
   },
   "/marks/beringer/04.jpg": {
     "dominantColor": "rgb(184, 24, 24)",
     "thumbHash": "YqkOFwxAp3mjiHeUiGeIeIh4+Nu2v10L",
     "width": 1080,
-    "height": 1080
+    "height": 1080,
+    "hasAlpha": false
   },
   "/marks/codezeros/01.webp": {
     "dominantColor": "rgb(216, 216, 216)",
     "thumbHash": "KwgKBYBwd3eId4h2iHeId793+Xl5",
     "width": 3000,
-    "height": 2109
+    "height": 2109,
+    "hasAlpha": false
   },
   "/marks/codezeros/02.webp": {
     "dominantColor": "rgb(56, 72, 72)",
     "thumbHash": "2fcNDYD5mnnnmXpXeEdZd7TQch+d",
     "width": 3000,
-    "height": 2250
+    "height": 2250,
+    "hasAlpha": false
   },
   "/marks/ecochain/01.webp": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "PQgGBICWyamId3efZnYJh4JwCA==",
     "width": 3000,
-    "height": 1688
+    "height": 1688,
+    "hasAlpha": false
   },
   "/marks/ecochain/02.jpg": {
     "dominantColor": "rgb(216, 216, 216)",
     "thumbHash": "b/kJJYiPfJqUeHiZZxeIdaJ/G8z3",
     "width": 3000,
-    "height": 2200
+    "height": 2200,
+    "hasAlpha": false
   },
   "/marks/furrmark/01.webp": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "7gcGDYIgm3dDqXmqidiLiZ+u9dhL",
     "width": 3000,
-    "height": 2008
+    "height": 2008,
+    "hasAlpha": false
   },
   "/marks/furrmark/02.webp": {
     "dominantColor": "rgb(216, 216, 216)",
     "thumbHash": "NfgFBYBlaHmKd3eAemmIfU+Cc6wJ",
     "width": 3000,
-    "height": 2250
+    "height": 2250,
+    "hasAlpha": false
   },
   "/marks/furrmark/03.webp": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "OPgFBYBnenmKh3dgaZh4c2+FPncI",
     "width": 3000,
-    "height": 2250
+    "height": 2250,
+    "hasAlpha": false
   },
   "/marks/kilti/01.jpg": {
     "dominantColor": "rgb(216, 216, 216)",
     "thumbHash": "YAgKDQKreEq1+lvWlmepiVt0/8ZD",
     "width": 960,
-    "height": 1280
+    "height": 1280,
+    "hasAlpha": false
   },
   "/marks/slangbusters/01.webp": {
     "dominantColor": "rgb(120, 72, 8)",
     "thumbHash": "3DcKZIQf00aDjZeLZniQdxjvag==",
     "width": 3000,
-    "height": 1688
+    "height": 1688,
+    "hasAlpha": false
+  },
+  "/noise-bg.png": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "PfgBBwCadmaIh1iYmrtJRkmvWglG/2YK",
+    "width": 400,
+    "height": 400,
+    "hasAlpha": false
   },
   "/og-image.png": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "/PcBDICHl5h/dnaEiHiYf4P4Nw==",
     "width": 1200,
-    "height": 630
+    "height": 630,
+    "hasAlpha": false
   }
 }

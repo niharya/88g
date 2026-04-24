@@ -577,8 +577,10 @@ html.fonts-ready .about-card {
   animation-delay: -0.24s;
 }
 
+/* Sized to dock against the hero — bottom edge meets hero top with no gap.
+   Calc keeps mobile docked too since both --hero-top and --short-top adapt. */
 .about-card--short {
-  min-height: 184px;
+  min-height: calc(var(--hero-top) - var(--short-top));
 }
 
 /* Long card — first paragraph needs to clear the hero's nav pill row when
@@ -1484,7 +1486,6 @@ textarea.contact-form__input {
      and remove the bottom padding. Keeps the paragraph fully visible above
      the hero rather than tucking the last line behind it. */
   .about-card--short {
-    min-height: 0;
     padding-top: var(--space-16);
     padding-bottom: 0;
   }

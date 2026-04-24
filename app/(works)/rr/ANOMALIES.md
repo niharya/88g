@@ -560,3 +560,19 @@ Lives in `app/(works)/rr/rr.css` (right after the `.rr-canvas` block) + `app/com
   .rr-canvas .img__inner { opacity: 1; animation: none; }
   ```
 - The dominant-color placeholder stays underneath, so the swap reads as "paper appears on the mat" rather than a blank-to-image pop. Do not try to re-enable the materialize animation here without first resolving the scroll-linked-ancestor stall at its root.
+
+---
+
+## CardFan + interface image — `object-fit` lives on `.img__inner`
+
+Lives in `app/(works)/rr/rr.css`.
+
+The five card images in `CardFan` (`.rr-card-item__img`) and the Arena interface screenshot (`.rr-interface-desktop__img`) both used to be raw `<img>` elements with `object-fit: contain` set directly. Post-v0.48 they're `<Img>` wrappers, so the wrapper class sits on a `<span>` and `object-fit` there is a no-op. The base `.img__inner { object-fit: cover }` would crop the actual `<img>` — the cards lose their borders, the interface screenshot loses its tops/bottoms.
+
+Both consumers route the override through `.img.<class> .img__inner { object-fit: contain }`. Don't move `object-fit` back onto `.rr-card-item__img` / `.rr-interface-desktop__img` — it does nothing there. See `LIBRARY.md` → "Img" → "Object-fit lives on `.img__inner`".
+
+---
+
+## `rr-hand-deck-fan.png` placeholder is auto-resolved
+
+The deck-fan PNG (`/images/rr/rr-hand-deck-fan.png`) is transparent. The `Img` primitive's default placeholder is `hasAlpha`-aware — opaque assets get `'color'`, transparent ones get `'none'`. `StoryCard.tsx` does **not** pass an explicit `placeholder` prop and that is intentional: a `'color'` placeholder would paint a dark `rgb(8, 8, 8)` rectangle behind the fan and bleed through every transparent pixel. If you ever need to override (e.g. a debug pass), use `placeholder="none"` — never `'color'` — and remember to remove it once done so the auto-default keeps protecting future swaps.

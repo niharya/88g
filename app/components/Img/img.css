@@ -28,8 +28,11 @@
 :where(.img--intrinsic) {
   display: inline-block;
 }
+/* `position: relative` (not static) so the inner's `z-index: 1` actually
+ * applies — without it, the absolutely-positioned placeholder paints on top
+ * of the loaded image and the consumer only ever sees the blur/dominant. */
 .img--intrinsic .img__inner {
-  position: static;
+  position: relative;
   display: block;
   object-fit: unset;
 }

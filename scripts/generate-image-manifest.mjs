@@ -24,8 +24,13 @@ async function walk(dir) {
 async function processOne(abs) {
   const src = '/' + path.relative(ROOT, abs).split(path.sep).join('/')
   const img = sharp(abs)
-  const { dominant } = await img.stats()
+  const stats = await img.stats()
+  const { dominant, isOpaque } = stats
   const dominantColor = `rgb(${dominant.r}, ${dominant.g}, ${dominant.b})`
+  // hasAlpha = at least one transparent pixel exists. Used downstream so the
+  // Img primitive auto-skips the dominant-color placeholder for transparent
+  // assets — a flat colored rectangle would bleed through transparent regions.
+  const hasAlpha = !isOpaque
 
   const { data, info } = await sharp(abs)
     .resize(100, 100, { fit: 'inside' })
@@ -37,7 +42,7 @@ async function processOne(abs) {
   const thumbHash = Buffer.from(hashBytes).toString('base64')
 
   const meta = await img.metadata()
-  return [src, { dominantColor, thumbHash, width: meta.width, height: meta.height }]
+  return [src, { dominantColor, thumbHash, width: meta.width, height: meta.height, hasAlpha }]
 }
 
 const files = await walk(ROOT)
@@ -52,6 +57,7 @@ export type ImageManifestEntry = {
   thumbHash: string
   width: number
   height: number
+  hasAlpha: boolean
 }
 
 export const imageManifest: Record<string, ImageManifestEntry> = ${JSON.stringify(manifest, null, 2)}

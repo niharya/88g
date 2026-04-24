@@ -1455,11 +1455,15 @@
   display: block;
   width: 224px;
   height: 316px;
-  object-fit: contain;
   pointer-events: none;
   /* Default: card resting on surface — short, close shadow */
   filter: drop-shadow(var(--rr-card-shadow-rest));
   transition: filter var(--dur-slide) var(--ease-paper);
+}
+/* Wrapper is a fixed 224×316 box; the card art has its own aspect ratio
+   and must letterbox inside, not crop (which the base object-fit:cover would). */
+.img.rr-card-item__img .img__inner {
+  object-fit: contain;
 }
 
 /* Lifted card: higher above surface → longer, softer, darker shadow */
