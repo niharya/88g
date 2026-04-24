@@ -250,19 +250,21 @@ html.fonts-ready .landing-pattern-bg {
   z-index: 2;
 }
 
-/* Spectrum + contact: still fade since they extend past the hero's footprint
-   and would peek if left opaque. */
+/* Spectrum + contact: full Group B contract — pre-positioned at final top
+   with a small translateY(-stack-settle) offset, so they settle from ~24px
+   above in place rather than sliding ~1000px while fading in (which read as
+   ghost cards descending). Final translateX/rotate already match expanded. */
 .landing--default .landing__section--spectrum {
-  top: var(--hero-top);
-  transform: translateX(calc(-50% + 12px)) scale(0.9);
+  top: var(--spectrum-top);
+  transform: translateX(calc(-50% + 2 * var(--unit))) translateY(calc(-1 * var(--stack-settle))) rotate(-1deg);
   opacity: 0;
   pointer-events: none;
   z-index: 4;
 }
 
 .landing--default .landing__section--contact {
-  top: var(--hero-top);
-  transform: translateX(calc(-50% + var(--gutter))) scale(0.9);
+  top: var(--contact-top);
+  transform: translateX(calc(-50% + var(--gutter))) translateY(calc(-1 * var(--stack-settle)));
   opacity: 0;
   pointer-events: none;
   z-index: 4;
@@ -337,7 +339,7 @@ html.fonts-ready .landing-pattern-bg {
    below). */
 .landing--expanded .landing__section--spectrum {
   top: var(--spectrum-top);
-  transform: translateX(calc(-50% + 2 * var(--unit))) scale(1) rotate(-1deg);
+  transform: translateX(calc(-50% + 2 * var(--unit))) translateY(0) rotate(-1deg);
   opacity: 1;
   pointer-events: auto;
   z-index: 4;
@@ -350,7 +352,7 @@ html.fonts-ready .landing-pattern-bg {
 /* Contact — Group B #3 */
 .landing--expanded .landing__section--contact {
   top: var(--contact-top);
-  transform: translateX(calc(-50% + var(--gutter))) scale(1);
+  transform: translateX(calc(-50% + var(--gutter))) translateY(0);
   opacity: 1;
   pointer-events: auto;
   z-index: 4;
@@ -1305,7 +1307,7 @@ textarea.contact-form__input {
    ============================================================ */
 
 .landing__section--spectrum.spectrum--aligned {
-  transform: translateX(-50%) rotate(-1deg);
+  transform: translateX(-50%) translateY(0) rotate(-1deg);
   transition: transform var(--dur-settle) var(--ease-paper);
 }
 
@@ -1320,7 +1322,7 @@ textarea.contact-form__input {
   }
 
   .landing--expanded .landing__section--spectrum {
-    transform: translateX(calc(-50% + var(--unit))) scale(1) rotate(-1deg);
+    transform: translateX(calc(-50% + var(--unit))) translateY(0) rotate(-1deg);
     transition:
       top var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
       opacity var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
@@ -1379,11 +1381,21 @@ textarea.contact-form__input {
   }
 
   .landing--default .landing__section--about-short,
-  .landing--default .landing__section--about-long,
-  .landing--default .landing__section--spectrum,
-  .landing--default .landing__section--contact {
+  .landing--default .landing__section--about-long {
     top: var(--hero-top);
     transform: translateX(-50%) scale(0.9);
+  }
+
+  /* Spectrum + contact follow the Group B contract on mobile too —
+     pre-positioned at final top, translateY(-stack-settle) offset. */
+  .landing--default .landing__section--spectrum {
+    top: var(--spectrum-top);
+    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle))) rotate(-1deg);
+  }
+
+  .landing--default .landing__section--contact {
+    top: var(--contact-top);
+    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
   }
 
   .landing--default .landing__section--about-practice {
@@ -1418,7 +1430,7 @@ textarea.contact-form__input {
 
   .landing--expanded .landing__section--spectrum {
     top: var(--spectrum-top);
-    transform: translateX(-50%) scale(1) rotate(-1deg);
+    transform: translateX(-50%) translateY(0) rotate(-1deg);
     opacity: 1;
     pointer-events: auto;
     z-index: 4;
@@ -1430,7 +1442,7 @@ textarea.contact-form__input {
 
   .landing--expanded .landing__section--contact {
     top: var(--contact-top);
-    transform: translateX(-50%) scale(1);
+    transform: translateX(-50%) translateY(0);
     transition-delay: calc(var(--stack-stagger-start) + 0.04s);
   }
 

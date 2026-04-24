@@ -40,6 +40,10 @@ Every Group B card in `.landing--default` must:
 
 This pattern is what gives Group B its "settle from above" read. A card that drops any of these four properties will enter the stack with the wrong physics.
 
+**Historical note.** Spectrum and contact previously violated this contract — they started at `--hero-top` with `scale(0.9)` and slid ~1000–1350px down to their final positions while fading in. The long descent read as ghost cards trailing behind the settled hero. They were brought into full compliance so all three Group B cards now settle from ~24px above in place. Do not regress this by re-anchoring spectrum/contact to `--hero-top` or reintroducing `scale()` on them.
+
+**Static artistic rotation is separate from Group B 0deg rest.** Spectrum carries a fixed `rotate(-1deg)` at all breakpoints — this is an authored artistic tilt, not a rerolled rotation. The "Group B pinned to 0deg" rule above refers specifically to the removal of the random `--practice-rot` reroll system; static per-card rotations baked into the transform chain are fine and should be preserved.
+
 ## Expanded-state transition timing
 
 Group B cards transition `top`, `opacity`, and `transform` on expand. All three use `var(--dur-slide)` with `var(--ease-paper)`, delayed by `--stack-stagger-start` (+ cascade offset per card). Do not stagger these three properties against each other within a single card — they must move as one.
