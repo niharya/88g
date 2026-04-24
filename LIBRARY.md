@@ -157,7 +157,8 @@ The docked-nav system used by every works route: chapter marker, project marker,
 - **Each route defines its own `Chapter[]`** in its `nav/chapters.ts`. The nav cluster itself is content-free.
 - **Mobile pattern is in `CLAUDE.md`, not in nav.css alone.** The tucked-under-top-frame behavior is documented in CLAUDE.md's "Global mobile patterns" section and implemented through `.workbench::before` (frame) + `--marker-top` (0 on mobile). Nav.css only handles the marker side.
 - **Route-level consequences of consuming this system** live in each route's `ANOMALIES.md` (e.g. `/rr` documents the sled-in-mat absolute positioning for mobile). Nav's own `ANOMALIES.md` is for internals.
-- What's route-specific: `Chapter[]` data, and each route's `nav/chapters.ts` file.
+- **`ProjectMarker` `infoCard` prop.** When passed a ReactNode, the marker swaps from scroll-to-top to a toggle that opens an absolutely-positioned `.marker-info-anchor` companion below the marker, fills the info icon (FILL axis 0→1 via `.is-info-open`), applies `aria-expanded`, and auto-closes after 12s of inactivity. Each route owns its own info card content (route-local under `app/(works)/<route>/components/MarkerInfoCard.tsx`) — currently `/biconomy` and `/rr`.
+- What's route-specific: `Chapter[]` data, each route's `nav/chapters.ts` file, and (optionally) a route-local `MarkerInfoCard` passed to `ProjectMarker`.
 - What's library-ready: the whole cluster. Extracting means pulling the CSS file, the four components, the hook, the types, AND the matching globals.css tokens together.
 
 ---

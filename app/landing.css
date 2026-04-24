@@ -51,20 +51,6 @@
   --expanded-h: 1912px;
 }
 
-/* Register Group B rotation custom props as typed <angle>s. Without this,
-   a change to --practice-rot during the expand commit snaps rotation
-   instantly at t=0 while translateY + opacity interpolate over
-   --dur-slide — the card's new rotation appears to "ghost" ahead of its
-   position. Typed @property lets the browser interpolate rotation
-   alongside the other transform parts. Mirror the pattern in marks.css
-   and rr/game.css. */
-@property --practice-rot {
-  syntax: '<angle>';
-  inherits: true;
-  initial-value: 0deg;
-}
-
-
 /* ---- Viewport ---- */
 .landing {
   width: 100%;
@@ -159,7 +145,10 @@ html.fonts-ready .landing-pattern-bg {
 .landing__section--contact {
   position: absolute;
   left: 50%;
-  will-change: top, opacity, transform;
+  /* No will-change — these transitions are short and infrequent; promoting a
+     compositor layer up-front then demoting it on transition end caused the
+     practice card's 1px ::before border to re-rasterize at integer pixels
+     after settle, reading as a quick "ghost shift" downward. */
 }
 
 /* Hero: fixed position, never moves */
@@ -255,7 +244,7 @@ html.fonts-ready .landing-pattern-bg {
    its per-expand random rotation through both states. */
 .landing--default .landing__section--about-practice {
   top: var(--practice-top);
-  transform: translateX(calc(-50% + 12px)) translateY(calc(-1 * var(--stack-settle))) rotate(var(--practice-rot, 0deg));
+  transform: translateX(calc(-50% + 12px)) translateY(calc(-1 * var(--stack-settle)));
   opacity: 0;
   pointer-events: none;
   z-index: 2;
@@ -333,7 +322,7 @@ html.fonts-ready .landing-pattern-bg {
 /* About Practice — Group B #1 */
 .landing--expanded .landing__section--about-practice {
   top: var(--practice-top);
-  transform: translateX(calc(-50% + 12px)) translateY(0) rotate(var(--practice-rot, 0deg));
+  transform: translateX(calc(-50% + 12px)) translateY(0);
   opacity: 1;
   pointer-events: auto;
   z-index: 2;
@@ -1348,12 +1337,12 @@ textarea.contact-form__input {
   .landing {
     --hero-top: 160px;
     --projects-top: 396px;
-    --short-top: 16px;
-    --long-top: 367px;
-    --practice-top: 608px;
-    --spectrum-top: 1220px;
-    --contact-top: 1552px;
-    --expanded-h: 1956px;
+    --short-top: 40px;
+    --long-top: 391px;
+    --practice-top: 632px;
+    --spectrum-top: 1244px;
+    --contact-top: 1576px;
+    --expanded-h: 1980px;
     min-height: 100svh;
   }
 
@@ -1399,7 +1388,7 @@ textarea.contact-form__input {
 
   .landing--default .landing__section--about-practice {
     top: var(--practice-top);
-    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle))) rotate(var(--practice-rot, 0deg));
+    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
     opacity: 0;
   }
 
@@ -1422,7 +1411,7 @@ textarea.contact-form__input {
 
   .landing--expanded .landing__section--about-practice {
     top: var(--practice-top);
-    transform: translateX(-50%) translateY(0) rotate(var(--practice-rot, 0deg));
+    transform: translateX(-50%) translateY(0);
     opacity: 1;
     transition-delay: var(--stack-stagger-start);
   }
@@ -1452,6 +1441,8 @@ textarea.contact-form__input {
   .hero-card__sub { max-width: none; }
 
   .about-card { width: 100%; padding: 24px; }
+  /* Long card needs to clear the Nihar/Works pill row that sits on top of it */
+  .about-card--long { padding-top: 56px; }
   .about-card__text { width: auto; }
   .about-card__divider { width: auto; }
   .about-card__divider--full { width: calc(100% + 48px); margin-left: -24px; }

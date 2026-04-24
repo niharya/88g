@@ -25,35 +25,9 @@ Defined on `.landing` in `landing.css`:
 
 **Cascade offsets.** Spectrum and contact delay by `calc(var(--stack-stagger-start) + 0.02s)` and `+ 0.04s` respectively. This is the Group B cascade. If you add a fourth Group B card, it continues the cascade (+0.06s). Do not restart at 0.
 
-## `@property --practice-rot` — load-bearing
+## Group B card rotation — pinned to 0deg
 
-Registered at the top of `landing.css`:
-
-```css
-@property --practice-rot {
-  syntax: '<angle>';
-  inherits: true;
-  initial-value: 0deg;
-}
-```
-
-**Why it exists:** `--practice-rot` participates in a `transform: … rotate(var(--practice-rot))`. Untyped CSS custom properties **snap instantly at t=0** during transitions — they do not interpolate. Without `@property`, on expand the rotation angle changes from old to new in a single frame while `translateY` and `opacity` smoothly animate, producing a visible ghost-flicker (rotation ahead of position).
-
-Typing the property as `<angle>` lets the browser interpolate it across the transition duration in lockstep with the rest of the transform.
-
-This mirrors the same pattern used in `/marks/marks.css` and `/rr/game.css` for angle-valued custom properties. **Do not remove the registration.** If a second stack card gets its own rotation var in the future, register it the same way.
-
-## Rotation reroll must commit with `setExpanded`
-
-In `page.tsx`, `handlePillClick` calls `rerollStackRotations()` **synchronously before** `setExpanded(true)`. Both state updates must batch into the same React commit.
-
-If the rotation is rerolled in a `useEffect([expanded])` instead, it fires one render *after* the transform change, so the transition has already started with the old angle and the new angle arrives mid-flight — this produces the same ghost-flicker that `@property` fixes, and compounds with it.
-
-Keep both safety nets: the `@property` registration *and* the batched commit.
-
-## Rotation pool
-
-`about-practice` picks from `[-2, -1, +1, +2]` degrees, excluding the previous value (so consecutive expands always visibly reroll). 0deg is deliberately absent — the card must always look placed, never axis-aligned.
+`about-practice` (and any future Group B card) opens at 0deg. The earlier random-rotation system (`--practice-rot`, `rerollStackRotations()`, `@property --practice-rot` registration) was removed in favour of an axis-aligned rest. If a future Group B card needs random tilt, restore the `@property <angle>` typing AND batch the reroll with `setExpanded` in the same React commit (untyped custom properties snap mid-transition; a `useEffect([expanded])` reroll lags one render and ghost-flickers).
 
 ## Group B collapsed-state contract
 
@@ -63,7 +37,6 @@ Every Group B card in `.landing--default` must:
 - set `opacity: 0`
 - set `pointer-events: none`
 - include a `translateY(calc(-1 * var(--stack-settle)))` offset in its transform
-- keep any `rotate(var(--*-rot, 0deg))` in the same transform chain
 
 This pattern is what gives Group B its "settle from above" read. A card that drops any of these four properties will enter the stack with the wrong physics.
 
@@ -79,8 +52,7 @@ Group B cards transition `top`, `opacity`, and `transform` on expand. All three 
 
 ## Don't-touch list
 
-- `@property --practice-rot` registration
 - `--stack-stagger-start` value (0.22s is tuned against Group A's tuck-out duration)
-- Rotation reroll being synchronous with `setExpanded` in `handlePillClick`
 - The four-property collapsed-state contract for Group B cards
 - The cascade offset sequence (+0.02s, +0.04s, …) on spectrum/contact transitions
+- Group B 0deg rest pose (do not reintroduce random rotation without restoring the typed `@property` + batched reroll safety nets)

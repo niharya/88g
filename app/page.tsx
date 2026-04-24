@@ -82,24 +82,6 @@ export default function LandingPage() {
   const [hueIdx, setHueIdx] = useState(0)
   const [specRotation, setSpecRotation] = useState(0)
 
-  /* ---- Secondary-stack random tilts ----
-     Group B (cards below the hero — currently practice, future additions)
-     reroll their random rotation every time the page expands. The reroll
-     MUST happen in the same React update as setExpanded(true) — if it
-     lagged into a useEffect([expanded]), the CSS transition would begin
-     with the stale rotation and then snap to the new one mid-flight,
-     because custom properties aren't interpolated without @property
-     registration. Filter excludes the previous value so each reroll
-     visibly shifts. To add a new Group B card: add a rot state here,
-     reroll inside rerollStackRotations(), pass via --<name>-rot style. */
-  const [practiceRot, setPracticeRot] = useState(0)
-  const rerollStackRotations = useCallback(() => {
-    const opts = [-2, -1, 1, 2]
-    setPracticeRot(prev => {
-      const choices = opts.filter(t => t !== prev)
-      return choices[Math.floor(Math.random() * choices.length)]
-    })
-  }, [])
   const palette = PALETTES[hueIdx]
 
   /* ---- Contact state ---- */
@@ -197,13 +179,9 @@ export default function LandingPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' })
       doFormCollapse()
     } else {
-      // Reroll Group B rotations in the same React commit as setExpanded
-      // so the expand transition begins with the final rotation target
-      // (avoids a mid-transition rotation snap — the "ghost" effect).
-      rerollStackRotations()
       setExpanded(true)
     }
-  }, [expanded, doFormCollapse, rerollStackRotations])
+  }, [expanded, doFormCollapse])
 
   /* ---- Action button state machine ---- */
   const handleActionClick = useCallback(() => {
@@ -519,10 +497,7 @@ export default function LandingPage() {
           </div>
 
           {/* About Practice — split part 2: practice + life, framed sheet */}
-          <div
-            className="landing__section--about-practice"
-            style={{ '--practice-rot': `${practiceRot}deg` } as React.CSSProperties}
-          >
+          <div className="landing__section--about-practice">
             <div className="about-card about-card--practice">
               <p className="about-card__text t-p2">
                 My practice has evolved from designing symbols to designing objects, dashboards, processes that contribute to live systems. To live cultures.

@@ -3274,3 +3274,87 @@
     max-height: 360px;
   }
 }
+
+
+/* ── Marker info card ─────────────────────────────────────────────────────
+   Anchored beneath the project marker when its info icon is opened.
+   Visual mirrors /selected's blue ProjectCard. Route-local so copy + visual
+   can diverge from the index entry without coupling back to /selected.    */
+
+.bicon-marker-info-card {
+  position: relative;
+  width: 408px;
+  height: 176px;
+  border: 1px solid var(--blue-800);
+  background: var(--blue-80);
+  box-shadow: var(--shadow-resting);
+  overflow: hidden;
+}
+
+.bicon-marker-info-card__title {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 308px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  line-height: 1.2;
+  color: var(--blue-800);
+}
+
+.bicon-marker-info-card__body {
+  position: absolute;
+  top: 88px;
+  left: 16px;
+  width: 244px;
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.2;
+  color: var(--blue-800);
+}
+
+.bicon-marker-info-card__divider {
+  position: absolute;
+  top: 136px;
+  left: 16px;
+  width: 376px;
+  height: 1px;
+  background: var(--blue-800);
+  opacity: 0.35;
+}
+
+.bicon-marker-info-card__footer {
+  position: absolute;
+  top: 144px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.bicon-marker-info-card__role {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1.2;
+  text-transform: capitalize;
+  white-space: nowrap;
+  color: var(--blue-800);
+}
+
+.bicon-marker-info-card__arrow {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+  color: var(--blue-800);
+}
