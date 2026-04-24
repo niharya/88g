@@ -936,6 +936,7 @@
   left: -60px;
   width: 307px;
   height: auto;
+  line-height: 0;
   z-index: 10;
   pointer-events: none;
   user-select: none;
@@ -948,6 +949,11 @@
 
 .rr-story-card--structure .rr-story-card__deck-fan {
   display: none;
+}
+
+.img.rr-story-card__deck-fan .img__inner {
+  width: 100%;
+  height: auto;
 }
 
 
@@ -1526,10 +1532,14 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   border-radius: 4px;
   /* Arena image sits above the mat as an object of inspection */
   box-shadow: var(--shadow-overlay);
+}
+.img.rr-interface-desktop__img .img__inner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Annotation sticky note — sits behind the arena image */
@@ -3228,6 +3238,9 @@
   }
 
   .route-rr .rr-canvas--cards-evo[data-tab='interface'] .rr-interface-desktop__img {
+    height: auto;
+  }
+  .route-rr .rr-canvas--cards-evo[data-tab='interface'] .img.rr-interface-desktop__img .img__inner {
     height: auto;
     object-fit: contain;
   }

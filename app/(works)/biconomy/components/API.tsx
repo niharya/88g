@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import TwitterEmbed from './TwitterEmbed'
 import NavPill from './NavPill'
 import IconExternalLink from '../../../components/icons/IconExternalLink'
+import { Img } from '../../../components/Img'
 import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../../lib/motion'
 
 type Slide = { src: string; caption: string }
@@ -134,11 +135,14 @@ function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProp
                     }}
                   >
                     <div className="api__card-frame">
-                      <img
+                      <Img
                         src={slide.src}
                         alt=""
                         className="api__card-img"
                         draggable={false}
+                        intrinsic
+                        placeholder="hash"
+                        sizes="(max-width: 767px) 90vw, 600px"
                       />
                     </div>
                   </div>
@@ -312,11 +316,14 @@ export default function API() {
 
       {/* ── Trailing zhao.eth card — closing artifact, centered ─────────── */}
       <div className="api__trailing">
-        <img
+        <Img
           src="/images/biconomy/api/send_assets.png"
           alt=""
           className="api__trailing-img"
           draggable={false}
+          intrinsic
+          placeholder="hash"
+          sizes="200px"
         />
       </div>
 

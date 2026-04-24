@@ -13,9 +13,10 @@ import {
   useTransform,
 } from 'framer-motion'
 import BiconomyChip from './BiconomyChip'
+import { Img } from '../../../components/Img'
 
 export default function Multiverse() {
-  const posterRef = useRef<HTMLImageElement>(null)
+  const posterRef = useRef<HTMLSpanElement>(null)
   const { scrollYProgress } = useScroll({
     target: posterRef,
     offset: ['start center', 'center start'],
@@ -83,12 +84,15 @@ export default function Multiverse() {
 
       {/* ── Poster + after-caption underneath ───────────────────────────── */}
       <div className="multiverse__poster-col">
-        <img
+        <Img
           ref={posterRef}
           src="/images/biconomy/multiverse_poster.png"
           alt="Multiverse"
           className="multiverse__poster"
           draggable={false}
+          intrinsic
+          placeholder="hash"
+          sizes="(max-width: 767px) 100vw, 800px"
         />
         <motion.p
           style={{ opacity: afterElementsOpacity, filter }}

@@ -10,6 +10,7 @@
 // arrow flips. CSS handles the slide transitions via .rr-interface-panel--revealed.
 
 import { Fragment, useState } from 'react'
+import { Img } from '../../../../components/Img'
 
 function ArrowBackIcon({ className }: { className?: string }) {
   return (
@@ -40,11 +41,13 @@ export default function InterfacePanel() {
 
       {/* Game screenshot */}
       <div className="rr-interface-desktop">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Img
           src="/images/rr/rr-interface-desktop.png"
           alt="The Arena interface"
           className="rr-interface-desktop__img"
+          intrinsic
+          placeholder="hash"
+          sizes="(max-width: 767px) 90vw, 900px"
         />
       </div>
 

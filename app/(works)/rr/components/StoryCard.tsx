@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, animate, useMotionValue, useTransform } from 'framer-motion'
 import type { RoundOutcome } from './game/game-logic'
 import { Scorecard } from './game/Scorecard'
+import { Img } from '../../../components/Img'
 
 interface StoryCardProps {
   results: RoundOutcome[]
@@ -265,12 +266,14 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
       {/* Deck-fan overlay — sits half on / half off the bottom-left of the
           card. Transform is driven entirely by --rr-mech-progress (inherited
           from the stage), so it animates in lockstep with the mat split. */}
-      <img
+      <Img
         src="/images/rr/rr-hand-deck-fan.png"
         alt=""
         aria-hidden="true"
         className="rr-story-card__deck-fan"
         draggable={false}
+        intrinsic
+        sizes="307px"
       />
     </div>
   )

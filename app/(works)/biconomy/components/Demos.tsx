@@ -7,6 +7,7 @@
 
 import { AnimatePresence, motion, useInView } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
+import { Img } from '../../../components/Img'
 import {
   TAB_TITLE_ENTER,
   TAB_TITLE_VISIBLE,
@@ -266,11 +267,14 @@ export default function Demos() {
                 ) : (
                   <div key={`${currentDemo}-${i}`} className="demos__image-item">
                     <div className="demos__image-frame">
-                      <img
+                      <Img
                         src={item.src}
                         alt={`${currentDemo} demo ${i + 1}`}
                         className="demos__image-el"
                         draggable={false}
+                        intrinsic
+                        placeholder="hash"
+                        sizes="(max-width: 767px) 100vw, 80vh"
                       />
                     </div>
                     <div className="demos__caption-row">
@@ -311,13 +315,14 @@ export default function Demos() {
       {/* ── Web3 Abstractor ──────────────────────────────────────────────── */}
       <div className="demos__web3-row">
         <div className="demos__web3-wrap">
-          <img
+          <Img
             src="/images/biconomy/demos/web3_abstractor.png"
             alt="Web3 Abstractor"
             width={112}
             height={62}
             className="demos__web3-img"
             draggable={false}
+            intrinsic
           />
           <div className="demos__web3-tooltip t-p4">
             <p>How we aspired<br />to be known as</p>

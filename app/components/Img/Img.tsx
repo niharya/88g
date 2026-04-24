@@ -2,7 +2,7 @@
 
 import NextImage, { type ImageProps as NextImageProps } from 'next/image'
 import { thumbHashToDataURL } from 'thumbhash'
-import { useEffect, useMemo, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { imageManifest, type ImageManifestEntry } from './manifest.generated'
 import './img.css'
 
@@ -27,6 +27,13 @@ type ImgProps = Omit<NextImageProps, 'src' | 'placeholder' | 'blurDataURL' | 'wi
   unoptimized?: boolean
   /** Lazy loading mode; forwarded to <NextImage>. */
   loading?: 'eager' | 'lazy'
+  /**
+   * Distance ahead of the viewport at which the image flips from lazy to
+   * eager so the fetch begins before the section is actually reached.
+   * Set to `0` or `false` to opt out and use native browser lazy loading only.
+   * Default `'1500px'`.
+   */
+  prefetchMargin?: string | false
 }
 
 function hashToDataUrl(hash: string): string {
@@ -42,7 +49,7 @@ function hashToDataUrl(hash: string): string {
  * Animations (not transitions) are used because transitions stall inside
  * scroll-linked transform ancestors. See /rr ANOMALIES.md.
  */
-export function Img({
+export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   src,
   alt,
   placeholder = 'color',
@@ -58,14 +65,45 @@ export function Img({
   loading,
   width,
   height,
+  prefetchMargin = '1500px',
   ...rest
-}: ImgProps) {
+}: ImgProps, forwardedRef) {
   const entry: ImageManifestEntry | undefined = imageManifest[src]
   const [loaded, setLoaded] = useState(false)
+  const wrapperRef = useRef<HTMLSpanElement | null>(null)
+  useImperativeHandle(forwardedRef, () => wrapperRef.current as HTMLSpanElement)
+
+  // Prefetch — flip lazy→eager when the wrapper enters an extended rootMargin
+  // around the viewport, so the fetch starts well before the user scrolls the
+  // section into view. Skipped when the consumer has already forced eager
+  // (priority or loading="eager") or opted out via prefetchMargin={false|"0"}.
+  const consumerEager = priority === true || loading === 'eager'
+  const prefetchEnabled = !consumerEager && prefetchMargin !== false && prefetchMargin !== '0' && prefetchMargin !== '0px'
+  const [prefetched, setPrefetched] = useState(false)
+  useEffect(() => {
+    if (!prefetchEnabled || prefetched || !wrapperRef.current) return
+    if (typeof IntersectionObserver === 'undefined') {
+      setPrefetched(true)
+      return
+    }
+    const node = wrapperRef.current
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setPrefetched(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: `${prefetchMargin} 0px`, threshold: 0 },
+    )
+    io.observe(node)
+    return () => io.disconnect()
+  }, [prefetchEnabled, prefetched, prefetchMargin])
 
   // Reset on src change so a new image animates in on first paint.
   useEffect(() => {
     setLoaded(false)
+    setPrefetched(false)
   }, [src])
 
   const hashUrl = useMemo(() => {
@@ -101,8 +139,15 @@ export function Img({
         height: height ?? entry.height,
       }
 
+  const effectiveLoading: 'eager' | 'lazy' | undefined = consumerEager
+    ? 'eager'
+    : prefetched
+      ? 'eager'
+      : (loading ?? 'lazy')
+
   return (
     <span
+      ref={wrapperRef}
       className={[
         'img',
         `img--${placeholder}`,
@@ -134,11 +179,11 @@ export function Img({
         priority={priority}
         draggable={draggable}
         unoptimized={unoptimized}
-        loading={loading}
+        loading={effectiveLoading}
         onLoad={() => setLoaded(true)}
         className="img__inner"
         {...rest}
       />
     </span>
   )
-}
+})
