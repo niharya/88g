@@ -5,6 +5,7 @@
 
 import type { ReactNode } from 'react'
 import '../components/nav/nav.css'
+import '../components/NavMarker/navmarker.css'
 import PaperFilter from '../components/PaperFilter'
 import ShellNav from './ShellNav'
 import TransitionSlot from './TransitionSlot'

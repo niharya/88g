@@ -5,9 +5,11 @@ import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
 import SlideInOnNav from './components/SlideInOnNav'
+import NavMarker from './components/NavMarker'
 import CaptionTag from './components/CaptionTag'
 import { getGreeting } from './lib/greeting'
 import './components/nav/nav.css'
+import './components/NavMarker/navmarker.css'
 import './landing.css'
 
 /* Session flag read by /selected on arrival so it can slide in from the right.
@@ -481,33 +483,29 @@ export default function LandingPage() {
               landing's color world. + icon rotates 45° to × on expand. */}
           <div className="landing__section--projects">
             <div className="landing-nav-row">
-              <button
-                className="nav-marker nav-marker--project landing-nav-row__nihar"
-                type="button"
+              <NavMarker
+                as="button"
+                role="project"
+                tone="terra"
+                state={expanded ? 'active' : 'default'}
+                acknowledgeOnClick="morph"
+                icon="add"
+                label="Nihar"
                 onClick={handlePillClick}
                 aria-expanded={expanded}
                 aria-label={expanded ? 'Collapse content' : 'Expand content'}
-              >
-                <span className="nav-marker__content">
-                  <span
-                    className={`nav-icon landing-nihar-icon${expanded ? ' landing-nihar-icon--expanded' : ''}`}
-                    aria-hidden="true"
-                  >
-                    add
-                  </span>
-                  <span className="nav-marker__name t-btn1">Nihar</span>
-                </span>
-              </button>
-              <Link
+                className="landing-nav-row__nihar"
+              />
+              <NavMarker
+                as="a"
                 href="/selected"
-                className="nav-marker nav-marker--chapter landing-nav-row__works"
+                role="chapter"
+                tone="terra"
+                icon="arrow_forward"
+                label="Works"
                 onClick={markToSelected}
-              >
-                <span className="nav-marker__content">
-                  <span className="nav-icon" aria-hidden="true">arrow_forward</span>
-                  <span className="nav-marker__title t-btn1">Works</span>
-                </span>
-              </Link>
+                className="landing-nav-row__works"
+              />
             </div>
           </div>
 

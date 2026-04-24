@@ -529,31 +529,10 @@ html.fonts-ready .landing-nav-row {
   to   { transform: translateY(0); opacity: 1; }
 }
 
-/* Terra tint — override nav-marker's default white/grey to land in the
-   landing's color world. Scoped to .landing-nav-row so the shared
-   nav-marker primitive is unchanged for the (works) and /marks routes.
-   Hover drops the fill one stop darker (320 → 400); border is static. */
-.landing-nav-row .nav-marker {
-  background: var(--terra-320);
-  border-color: var(--terra-800);
-  transition: background-color var(--dur-fast) var(--ease-snap);
-}
-
-/* Content color + full opacity. Selector depth matches the base
-   .nav-marker--{project,chapter} .nav-marker__content rule (0,2,0)
-   and adds .landing-nav-row on top (0,3,0), so these overrides win
-   regardless of CSS chunk load order after a route return.
-
-   Color: terra-960 on terra-320 is already a considered pair, no muting.
-   Opacity: 1 — the base primitive mutes content to 0.8 for grey
-   neutrality, but here that would wash the pair out.
-   Padding: inherited from the primitive's 4/32/4/8 (4/16/4/6 mobile).
-   The asymmetric right-pad is the primitive's deliberate language. */
-.landing-nav-row .nav-marker--project .nav-marker__content,
-.landing-nav-row .nav-marker--chapter .nav-marker__content {
-  color: var(--terra-800);
-  opacity: 1;
-}
+/* Tone, hover, focus-visible, press, + → × morph, and __name hover-
+   underline all come from NavMarker (tone="terra" + acknowledgeOnClick="morph"
+   + base navmarker.css). Only the docked border-halving between the pair is
+   landing-specific and stays here. */
 
 /* Docked border halving — project-marker right + chapter-marker left
    share the 2px seam. Mirrors .selected-nav-row's rule. */
@@ -563,56 +542,6 @@ html.fonts-ready .landing-nav-row {
 
 .landing-nav-row .nav-marker--chapter {
   border-left-width: 1px;
-}
-
-/* Paper-tag hover — fill drops one stop darker (terra-320 → terra-400).
-   Pairs with the t-btn1 dotted-to-solid underline swap on __title/__name
-   for a two-signal hover response without any layout shift. */
-.landing-nav-row .nav-marker:hover {
-  background: var(--terra-400);
-}
-
-/* Parent-pill hover for Nihar's __name — mirrors the primitive's
-   .nav-marker:hover .nav-marker__title rule so hovering anywhere on
-   the Nihar pill triggers the same dotted-to-solid underline swap
-   that Works inherits via t-btn1 + the primitive's __title rule.
-   .nav-marker__name carries t-btn1, which already provides the
-   ::after element and dotted underline; these rules just elevate
-   the existing :hover from text-only to parent-scoped. */
-.landing-nav-row .nav-marker:hover .nav-marker__name {
-  text-decoration-color: transparent;
-}
-
-.landing-nav-row .nav-marker:hover .nav-marker__name::after {
-  opacity: 1;
-}
-
-/* + → × morph — single Material Symbols "add" glyph, rotated 45° when
-   expanded. Rotation origin stays centered; --ease-paper keeps the morph
-   in the paper-physical family. */
-.landing-nihar-icon {
-  transition: transform var(--dur-slide) var(--ease-paper);
-}
-
-.landing-nihar-icon--expanded {
-  transform: rotate(45deg);
-}
-
-/* Press acknowledgment on the Works link — paper-tag press-down via
-   translateY(1px) instead of opacity dim. Scoped to the anchor variant
-   since the Nihar button's click is acknowledged by the + → × rotation
-   itself. */
-.landing-nav-row .landing-nav-row__works:active {
-  transform: translateY(1px);
-  opacity: 1;
-  transition: transform var(--dur-instant) var(--ease-snap);
-}
-
-/* Focus — unified with the hover fill-shift language. Keyboard and
-   pointer feedback share one idiom: one-stop-darker background. */
-.landing-nav-row .nav-marker:focus-visible {
-  outline: none;
-  background: var(--terra-400);
 }
 
 

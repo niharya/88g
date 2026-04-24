@@ -11,6 +11,7 @@
 
 import type { ReactNode } from 'react'
 import '../components/nav/nav.css'
+import '../components/NavMarker/navmarker.css'
 import ExitMarker from '../components/nav/ExitMarker'
 import './marks.css'
 

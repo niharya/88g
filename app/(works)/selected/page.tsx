@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './selected.css'
 import MarkerSlot from '../../components/nav/MarkerSlot'
-import ChapterMarker from '../../components/nav/ChapterMarker'
+import NavMarker from '../../components/NavMarker'
 import AboutCard from './components/AboutCard'
 import SelectedContent from './components/SelectedContent'
 import NiharHomeLink from './components/NiharHomeLink'
@@ -35,11 +35,17 @@ export default function SelectedPage() {
           <MarkerSlot position="left" measure={false}>
             <NiharHomeLink />
           </MarkerSlot>
-          <ChapterMarker
-            static
-            chapter={{ id: 'works', title: 'Works', year: '2018-25' }}
-            chapters={[]}
-          />
+          <div className="chapter-nav chapter-nav--static">
+            <NavMarker
+              as="button"
+              role="chapter"
+              icon="arrow_downward"
+              acknowledgeOnClick="shake"
+              label="Works"
+              sublabel="2018-25"
+              aria-label="Works — you are here"
+            />
+          </div>
         </div>
 
         <AboutCard />

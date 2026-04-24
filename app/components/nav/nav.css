@@ -108,6 +108,17 @@ a.nav-marker:active {
   border-left-width: 1px;
 }
 
+/* Static mode (e.g. /selected Works pill next to NiharHomeLink): the same
+   adjacency exists without the sticky/is-docked toggle, so halve the touching
+   borders unconditionally. */
+.selected-nav-row .project-marker .nav-marker--project {
+  border-right-width: 1px;
+}
+
+.chapter-nav--static .nav-marker--chapter {
+  border-left-width: 1px;
+}
+
 
 /* ── Nav sled ────────────────────────────────────────────────────────────── */
 /* Absolute wrapper inside each Sheet. Constrains sticky release point.
@@ -291,6 +302,13 @@ button.nav-marker {
 /* Dim sibling nav-sleds; the open one is excluded */
 .sheet-stack[data-tray-open] .nav-sled:not(:has(.chapter-nav--open)) {
   filter: var(--backseat-dim);
+}
+
+/* Tray overflow escape — the sheet containing the open tray must let the
+   flyout items escape the mat's `overflow: clip`. Scoped via :has() so the
+   other sheets keep their clipping. */
+.sheet-stack[data-tray-open] .sheet:has(.chapter-nav--open) {
+  overflow: visible;
 }
 
 

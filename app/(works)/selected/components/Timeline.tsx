@@ -5,8 +5,8 @@
 // an imaginary cursor draws the timeline top-to-bottom, elements appear
 // as the cursor reaches their vertical position.
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
+import NavMarker from '../../../components/NavMarker'
 import ProjectCard from './ProjectCard'
 import { getGreeting } from '../../../lib/greeting'
 
@@ -194,12 +194,15 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...SPRING_PLACE, delay: D.names }}
       >
-        <div className="nav-marker">
-          <span className="nav-marker__content">
-            <span className="nav-icon nav-icon--muted" aria-hidden="true">title</span>
-            <span className="nav-marker__title t-btn1" style={{ color: 'var(--grey-640)' }}>Names Coined</span>
-          </span>
-        </div>
+        <NavMarker
+          as="button"
+          role="chapter"
+          state="disabled"
+          icon="title"
+          label="Names Coined"
+          wipHint="W.I.P."
+          aria-label="Names Coined — work in progress"
+        />
       </motion.div>
 
       {/* Single dot: after Names Coined */}
@@ -219,12 +222,13 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...SPRING_PLACE, delay: D.marks }}
       >
-        <Link href="/marks" className="nav-marker nav-marker--chapter">
-          <span className="nav-marker__content">
-            <span className="nav-icon" aria-hidden="true">category</span>
-            <span className="nav-marker__title t-btn1">Marks and Symbols Made</span>
-          </span>
-        </Link>
+        <NavMarker
+          as="a"
+          href="/marks"
+          role="chapter"
+          icon="category"
+          label="Marks and Symbols Made"
+        />
       </motion.div>
 
       {/* Single dot: after Marks And Symbols Made */}
@@ -242,21 +246,20 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...SPRING_PLACE, delay: D.archive }}
       >
-        <button
-          className="nav-marker nav-marker--chapter"
-          type="button"
+        <NavMarker
+          as="button"
+          role="chapter"
+          icon={isArchiveOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+          label={
+            <>
+              <span className="archive-toggle-label--desktop">Works from the previous portfolio</span>
+              <span className="archive-toggle-label--mobile">Previous portfolio</span>
+            </>
+          }
+          sublabel="2018–22"
           onClick={onArchiveToggle}
           aria-expanded={isArchiveOpen}
-        >
-          <span className="nav-marker__content">
-            <span className="nav-icon" aria-hidden="true">
-              {isArchiveOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-            </span>
-            <span className="nav-marker__title t-btn1 archive-toggle-label--desktop">Works from the previous portfolio</span>
-            <span className="nav-marker__title t-btn1 archive-toggle-label--mobile">Previous portfolio</span>
-            <span className="nav-marker__year t-p4">2018–22</span>
-          </span>
-        </button>
+        />
       </motion.div>
     </div>
   )

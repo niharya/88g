@@ -23,6 +23,38 @@ Add new entries **above the divider at the bottom**, most recent first.
 
 ---
 
+## NavMarker
+
+The single nav-marker primitive — the shared shell behind every `ChapterMarker`, `ProjectMarker`, `ExitMarker`, and the landing's Nihar / Works pills. Emits the `.nav-marker` class structure that `nav.css` already consumes, so adoption is a visual no-op; tone / state / acknowledgment modifiers layer new behavior on top. Supports three element shapes (`a` / `button` / `div`) via a discriminated `as` union, three slot roles (`project` / `chapter` / `exit`), three tones (`neutral` / `terra` / `mint`), three states (`default` / `active` / `disabled`), and three click acknowledgments (`navigate` / `shake` / `morph`). When docked (`.chapter-nav.is-docked`), the marker fills with the shared mat noise; each instance reads a different random patch of `/noise-bg.png` so docked pills don't show a repeated pattern.
+
+**Where it lives**
+- [app/components/NavMarker/NavMarker.tsx](app/components/NavMarker/NavMarker.tsx) — component, `NavMarkerProps` discriminated union, `NavMarkerRole` / `NavMarkerTone` / `NavMarkerState` / `NavMarkerAcknowledge` types, `useShakeState` + `useNoiseCrop` hooks.
+- [app/components/NavMarker/navmarker.css](app/components/NavMarker/navmarker.css) — tones, press translate, shake keyframe (`nav-marker-arrow-shake`, 360ms), morph rotation (`.is-morphed` → 45°), `.is-disabled` + `.nav-marker__wip` hover swap, and the docked mat-fill rule (`.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)` + `::before` noise layer).
+- [app/components/NavMarker/index.ts](app/components/NavMarker/index.ts) — barrel.
+- [public/noise-bg.png](public/noise-bg.png) — 400×400 noise tile consumed by the docked-marker `::before`. Source lives at `reference/noise-bg/noise-bg.png`.
+- Consumers: `app/components/nav/{ChapterMarker,ProjectMarker,ExitMarker}.tsx`, `app/page.tsx` (landing Nihar + Works pills), `app/(works)/selected/page.tsx` (Works nameplate), `app/(works)/selected/components/{NiharHomeLink,Timeline}.tsx`.
+- Route layouts must `import 'app/components/NavMarker/navmarker.css'`. Wired from `app/(works)/layout.tsx`, `app/marks/layout.tsx`, and `app/page.tsx`. Import the CSS alongside `nav.css` — the two files complement each other (`nav.css` owns positioning + the `.nav-marker` base; `navmarker.css` owns the primitive's own modifiers).
+
+**AI notes**
+- **"Marker," not "pill," inside the nav domain.** The primitive is deliberately named to match `ChapterMarker` / `ProjectMarker` / `ExitMarker`. The word "pill" was removed from the nav module on purpose — these are page-position markers. Do not rename back. Biconomy's slide prev/next component at `app/(works)/biconomy/components/NavPill.tsx` is a separate, literal pill; it is intentionally left alone.
+- **Discriminated `as` union is the public surface.** `as: 'a'` requires `href`; `as: 'button'` forbids `href` and takes an optional `type`; `as: 'div'` forbids both `href` and `onClick` (inert presence marker — ProjectMarker uses this). Don't flatten the union into one `BaseProps` with all three — TS would stop catching consumer mistakes.
+- **Random noise crop is set client-side only.** `useNoiseCrop` uses `useState` + `useEffect` to write `--nm-noise-x`, `--nm-noise-y`, `--nm-noise-rot` after mount. Rolling these during render would produce an SSR/client hydration mismatch (server HTML vs. first client render). Keep the mount-time pattern; do not move to `useMemo` or inline `Math.random()` in render.
+- **The mat-fill only activates when docked.** CSS scope is `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)`. Flyout items are excluded — they live in the tray, not against the mat. The `.is-docked` class is written by `useDockedMarker` — see `nav/ANOMALIES.md`.
+- **Acknowledgment contract.**
+  - `navigate` (default) — no visual click feedback; the route change is the feedback. Used by ExitMarker and NiharHomeLink.
+  - `shake` — arrow shakes on click for same-page markers (Works pill on `/selected`). The hook `useShakeState` flips `data-shaking` for exactly 360ms to match the CSS keyframe.
+  - `morph` — icon rotates 45° while `state === 'active'`. Used by the landing's Nihar toggle (`+` → `×`). Requires the consumer to pass `state="active"` when expanded; the component itself does not track this.
+- **`state` is stateless by design.** Consumer owns `default` / `active` / `disabled`. `disabled` additionally: suppresses onClick, sets `aria-disabled` on anchors and the native `disabled` on buttons, and renders a `wipHint` Monostamp overlay that fades in on hover (see `.nav-marker__wip`).
+- **`tone` is orthogonal to `role` and `state`.** Any role can take any tone; states layer cleanly over any tone. New tones require a matching `.nav-marker--tone-<name>` block in `navmarker.css`.
+- **Flyout items still emit raw `.nav-marker` classes** from `ChapterMarker`'s `motion.button` — they have not been migrated through the primitive because Framer Motion drives their layout animation directly. Keep an eye out: if flyout behavior diverges from docked-marker styling in a future change, either migrate them or document the split here.
+- **`iconRef` is forwarded to the icon span** so `useDockedMarker` can rotate the arrow toward the sheet center on every scroll frame. The icon is treated as an arrow when `role === 'chapter' | 'exit'` or `acknowledgeOnClick === 'shake'` — the `nav-arrow` class is added in those cases.
+- **Mobile short labels** live on the consumer via `.nav-marker__title-full` / `.nav-marker__title-short` spans, not on the primitive's `label` prop. `label` accepts `ReactNode` so the consumer can pass both spans as children; see `ChapterMarker`'s `ChapterTitle` helper. This keeps the short-label mechanic where it already lives (nav.css `:has()` rule inside `@media (max-width: 767px)`).
+- **Noise tile (`/noise-bg.png`) is load-bearing.** Referenced by URL from the `::before` rule, not bundled. If moving assets, update the CSS path. 400×400 is sized so the 200% × 200% oversized layer inside the docked marker always has room to rotate through 90° steps without edge seams.
+- What's route-specific (owned by the consumer): icon glyph/element, label text, sublabel, onClick behavior, `wipHint` copy, `state` bookkeeping.
+- What's library-ready: the full primitive. Promoted on first build — there were already four consumer routes the moment it existed.
+
+---
+
 ## Img
 
 The one image primitive the portfolio uses. Wraps `next/image` with an instant LQIP placeholder (dominant color or ThumbHash), a "materialize" reveal (blur→sharp focus pull, 700ms, `--ease-paper`), and graceful fallback for images not yet in the manifest.
@@ -60,7 +92,7 @@ Stateless shell for the tuck-push-reveal drawer pattern in `/rr` — the primiti
 - CSS lives per-consumer in [rr.css](app/(works)/rr/rr.css) under `── Rules Rail ──` and `── Note Rail ──`. No shared `.rr-rail` base class — the shared layer is the React shell, not the CSS.
 
 **AI notes**
-- **Route-local-shared, not globally shared.** Two consumers, both in `/rr`. Per CLAUDE.md's promotion rule (count is measured across routes, not call sites), stays at `app/(works)/rr/components/` until a non-rr consumer needs it. NavPill is the sibling precedent for this.
+- **Route-local-shared, not globally shared.** Two consumers, both in `/rr`. Per CLAUDE.md's promotion rule (count is measured across routes, not call sites), stays at `app/(works)/rr/components/` until a non-rr consumer needs it.
 - **Stateless by design.** Consumer owns `isOpen`, sibling-open coordination, first-visit logic. This is what lets NoteRail and RulesRail have different state models (NoteRail is a pure toggle; RulesRail has a first-visit localStorage auto-open path + external dismiss signal) without the shell growing branches.
 - **Transform values are not shared.** NoteRail and RulesRail have different open transforms (210px vs 163px) and different nudged transforms (-12px vs -50px) because they tuck under different edges of the game board. These are coordinate-system tunings, not tokens — keep them inline in each consumer.
 - **Two interaction shapes via one prop.** Passing `onToggle` makes the whole rail a button (RulesRail pattern — vertical text, click anywhere). Omitting it leaves interactions to inner children (NoteRail pattern — icon tab button, click-content-to-close). Don't add a third shape; if the third consumer needs something different, the shell can grow a variant then.
@@ -112,7 +144,7 @@ One-shot scroll-triggered entrance hook. Adds `.revealed` to a target element th
 The docked-nav system used by every works route: chapter marker, project marker, exit marker, slot primitive, and the hook that drives docking state. Works as a single unit — components are designed to be imported together from the barrel.
 
 **Where it lives**
-- [app/components/nav/](app/components/nav/) — `ChapterMarker.tsx`, `ProjectMarker.tsx`, `ExitMarker.tsx`, `MarkerSlot.tsx`, `useDockedMarker.ts`, `types.ts`, `nav.css`, `index.ts`.
+- [app/components/nav/](app/components/nav/) — `ChapterMarker.tsx`, `ProjectMarker.tsx`, `ExitMarker.tsx`, `MarkerSlot.tsx`, `useDockedMarker.ts`, `types.ts`, `nav.css`, `index.ts`. Every marker in this cluster renders through the shared [`NavMarker`](#navmarker) primitive — see its entry for the shell / class contract.
 - [app/components/nav/ANOMALIES.md](app/components/nav/ANOMALIES.md) — **load-bearing internals live here.** Docking math, viewport-frame coordination, and the reason each marker is structured the way it is.
 - [app/globals.css](app/globals.css) — `--marker-top`, `--project-marker-right`, `--z-chapter-marker`, `--z-project-marker` tokens.
 

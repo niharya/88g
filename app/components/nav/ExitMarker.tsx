@@ -1,17 +1,18 @@
-// ExitMarker — fixed right-side exit marker, mirrors ProjectMarker.
-// Links back to the works index (/selected).
+// ExitMarker — fixed right-side exit pill. Links back to the works index.
 
-import Link from 'next/link'
+import NavMarker from '../NavMarker'
 
 export default function ExitMarker() {
   return (
     <div className="exit-marker">
-      <Link href="/selected" className="nav-marker nav-marker--exit" aria-label="Back to works">
-        <span className="nav-marker__content">
-          <span className="nav-icon" aria-hidden="true">arrow_downward</span>
-          <span className="nav-marker__exit-label">EXIT</span>
-        </span>
-      </Link>
+      <NavMarker
+        as="a"
+        href="/selected"
+        role="exit"
+        icon="arrow_downward"
+        label="EXIT"
+        aria-label="Back to works"
+      />
     </div>
   )
 }

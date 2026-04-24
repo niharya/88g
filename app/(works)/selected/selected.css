@@ -474,7 +474,10 @@
 .selected-nameplate--names { top: 545px; }
 .selected-nameplate--marks { top: 595px; }
 
-.selected-nameplate .nav-marker {
+/* Neutralize button.nav-marker's cursor: pointer for static nameplates, but
+   don't fight NavMarker's is-disabled cursor: not-allowed — the Names W.I.P.
+   nameplate needs the forbidden cue on hover. */
+.selected-nameplate .nav-marker:not(.is-disabled) {
   cursor: default;
 }
 

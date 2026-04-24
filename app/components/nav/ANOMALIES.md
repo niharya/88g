@@ -15,6 +15,27 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 
 ---
 
+## Every marker routes through `NavMarker`
+
+Every visible marker in this cluster — `ChapterMarker` (static + dynamic current), `ProjectMarker`, `ExitMarker` — renders through the shared [`NavMarker`](../NavMarker/NavMarker.tsx) primitive. The landing's Nihar/Works pills and `/selected`'s Works nameplate + NiharHomeLink + Timeline `Names` / `Marks` buttons also route through it. See `LIBRARY.md` → "NavMarker" for the API contract.
+
+**Consequences for this module:**
+- Route layouts must import `app/components/NavMarker/navmarker.css` alongside `nav.css`. `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`) and the `.nav-marker` base; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked mat-fill.
+- The flyout items inside `ChapterMarker` still emit raw `.nav-marker` classes via `motion.button` — they are not migrated through the primitive because Framer Motion drives their layout animation directly. If a future change diverges their styling from the docked marker, either migrate or document the split.
+- Project + exit markers are **not** dimmed when the tray is open. Only sibling sheets and their nav-sleds get `--backseat-dim`. The project and exit markers are visually part of the tray context, so keeping them at full fidelity is deliberate — do not reintroduce a dim rule on `.project-marker` / `.exit-marker`.
+
+## Docked mat-fill uses client-only `--nm-noise-*` vars
+
+When `.chapter-nav.is-docked` lands on the chapter marker, `navmarker.css` fills the pill with the shared `/noise-bg.png` tile (oversized 200% × 200% layer inside a `::before`, rotated in 90° steps). Each instance reads a different random patch of the tile via three CSS custom properties (`--nm-noise-x`, `--nm-noise-y`, `--nm-noise-rot`) so docked pills never show a repeated pattern across a page.
+
+**Load-bearing details:**
+- The three vars are set in `NavMarker` via `useState` + `useEffect` (client-only, after mount). **Do not** move this into render / `useMemo` / inline `Math.random()` — it produces an SSR/client hydration mismatch.
+- The mat-fill rule scopes to `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)`. Flyout items are excluded on purpose (they live in the tray, not against the mat).
+- The `.is-docked` class is written by `useDockedMarker`. If the dock detection changes, the mat-fill activation changes with it — no separate wiring needed.
+- Fallback values (`0%` / `0%` / `0deg`) keep the first paint sane before the `useEffect` writes; the value just won't be randomized until mount completes.
+
+---
+
 ## Module structure (post-restructure)
 
 | File | Role |
@@ -86,12 +107,22 @@ target `.project-marker` and continue to work.
 
 `<ChapterMarker static chapter={...} chapters={[]} />` renders an inert pill with:
 - `position: static` (via `.chapter-nav--static`)
-- `borderLeftWidth: 1` for docked border halving
 - No scroll listeners, no tray, no arrow rotation
 - No hooks called at all (early return in component)
 
 Used on `/selected` for the "Works 2018-25" pill. Replaces the previous hand-coded
 fake chapter pill.
+
+**Border halving:** the dynamic-mode halving rule in `nav.css`
+(`.workbench:has(.chapter-nav.is-docked) .project-marker .nav-marker--project` +
+`.chapter-nav.is-docked .nav-marker--chapter`) only fires when `.is-docked` is
+present. Static mode is always adjacent without an `.is-docked` toggle, so two
+companion rules halve the borders unconditionally:
+`.selected-nav-row .project-marker .nav-marker--project { border-right-width: 1px }`
+and `.chapter-nav--static .nav-marker--chapter { border-left-width: 1px }`.
+Previously this was an inline `borderLeftWidth: 1` on the static pill's JSX; the
+CSS rule replaces that so the NavMarker primitive stays free of consumer-style
+overrides.
 
 ---
 
@@ -346,6 +377,8 @@ block legitimately overrides it inline (8px → 4px).
 - `.section-reveal` class on Sheet — consumed by globals.css and by TransitionSlot
 - `.transitioning` on `.workbench` — the contract between TransitionSlot and useReveal
 - The two-span title markup in `ChapterMarker` (full + optional short) and the `:has()` swap rule in `nav.css` — both required for per-chapter mobile labels
+- The `useState` + `useEffect` pattern in `NavMarker`'s `useNoiseCrop` — moving `Math.random()` into render causes SSR/client hydration mismatch
+- The `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)` scope on the mat-fill rule in `navmarker.css` — widening it to flyouts pours noise into the tray items
 
 ---
 
