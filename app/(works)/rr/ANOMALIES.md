@@ -569,6 +569,6 @@ Both consumers route the override through `.img.<class> .img__inner { object-fit
 
 ---
 
-## `rr-hand-deck-fan.png` placeholder is auto-resolved
+## `rr-hand-deck-fan.webp` placeholder is auto-resolved
 
-The deck-fan PNG (`/images/rr/rr-hand-deck-fan.png`) is transparent. The `Img` primitive's default placeholder is `hasAlpha`-aware — opaque assets get `'color'`, transparent ones get `'none'`. `StoryCard.tsx` does **not** pass an explicit `placeholder` prop and that is intentional: a `'color'` placeholder would paint a dark `rgb(8, 8, 8)` rectangle behind the fan and bleed through every transparent pixel. If you ever need to override (e.g. a debug pass), use `placeholder="none"` — never `'color'` — and remember to remove it once done so the auto-default keeps protecting future swaps.
+The deck-fan asset (`/images/rr/rr-hand-deck-fan.webp`) is transparent. The `Img` primitive's default placeholder is `hasAlpha`-aware — opaque assets get `'color'`, transparent ones get `'none'`. `StoryCard.tsx` does **not** pass an explicit `placeholder` prop and that is intentional: a `'color'` placeholder would paint a dark `rgb(8, 8, 8)` rectangle behind the fan and bleed through every transparent pixel. If you ever need to override (e.g. a debug pass), use `placeholder="none"` — never `'color'` — and remember to remove it once done so the auto-default keeps protecting future swaps.

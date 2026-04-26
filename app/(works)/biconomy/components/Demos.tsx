@@ -42,12 +42,12 @@ const DEMOS: Record<string, Demo> = {
     media: [
       {
         src: '/images/biconomy/demos/before.mp4',
-        thumbnail: '/images/biconomy/demos/before.png',
+        thumbnail: '/images/biconomy/demos/before.webp',
         caption: 'A standard game flow with four separate signing steps before the user could proceed',
       },
       {
         src: '/images/biconomy/demos/after.mp4',
-        thumbnail: '/images/biconomy/demos/after.png',
+        thumbnail: '/images/biconomy/demos/after.webp',
         caption: 'The same flow collapsed into a single signing step',
       },
     ],
@@ -57,7 +57,7 @@ const DEMOS: Record<string, Demo> = {
     type: 'image',
     media: [
       {
-        src: '/images/biconomy/demos/web.png',
+        src: '/images/biconomy/demos/web.webp',
         caption: 'The entry point to the demo: choosing a signer (wallet, social login, passkey) made real and usable rather than abstractions.',
       },
     ],
@@ -67,7 +67,7 @@ const DEMOS: Record<string, Demo> = {
     type: 'image',
     media: [
       {
-        src: '/images/biconomy/demos/game.png',
+        src: '/images/biconomy/demos/game.webp',
         caption: 'Shows the arena view of the game where the cards are drawn and the player has to make the next move.',
       },
     ],

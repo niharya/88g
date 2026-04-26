@@ -18,7 +18,7 @@ export const lqipSamples = [
   },
   {
     "label": "Photo",
-    "src": "/images/biconomy/sa/design-team-bico.jpg",
+    "src": "/images/biconomy/sa/design-team-bico.webp",
     "dominantColor": "rgb(232, 248, 248)",
     "thumbHash": "JvgVHAJ393inh3dXeIiHgHgR+A==",
     "width": 900,
@@ -26,7 +26,7 @@ export const lqipSamples = [
   },
   {
     "label": "Poster",
-    "src": "/images/biconomy/multiverse_poster.png",
+    "src": "/images/biconomy/multiverse_poster.webp",
     "dominantColor": "rgb(40, 24, 8)",
     "thumbHash": "ziiKDAQPCFiYN4d3lhCJp3TPw/N4CIePAA==",
     "width": 1684,

@@ -400,7 +400,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/images/rr/paper-texture-card.png') top left / 1024px 1024px;
+  background: url('/images/rr/paper-texture-card.webp') top left / 1024px 1024px;
   mix-blend-mode: color-burn;
   opacity: 0.4;
   pointer-events: none;

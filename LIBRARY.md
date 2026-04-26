@@ -82,6 +82,34 @@ The one image primitive the portfolio uses. Wraps `next/image` with an instant L
 - **Manifest schema.** `{ [src]: { dominantColor: 'rgb(r,g,b)', thumbHash: base64, width, height, hasAlpha } }`. Keys are absolute paths (`/images/...`, `/marks/...`). Width and height are the natural raster dimensions — NextImage uses these unless the consumer overrides. `hasAlpha = !sharp.stats().isOpaque` — true if the asset has any transparent pixel; drives the placeholder default above.
 - **What's route-specific** — consumer-owned className, sizing props, placeholder choice, onClick.
 - **What's library-ready** — the whole component. Already lives under `app/components/` and is used by all four active routes.
+- **Weight hygiene.** Every raster in `public/images/` is `.webp`. Raw assets over ~400 KB must be optimized via `npm run optimize-images` (writes a `.webp` sibling) before commit. Soft per-file budgets and the full hygiene contract live in `docs/performance.md` → "Images".
+
+---
+
+## Fonts
+
+The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Configured once in `app/layout.tsx`, exposed as CSS variables, consumed everywhere by token. Migrated off external Google Fonts in v0.55 — no external `<link>` tags, no 3-second JS font-gate.
+
+**Where it lives**
+- [app/layout.tsx](app/layout.tsx) — the five `localFont(...)` blocks and the `<html>` className wiring.
+- [app/fonts/](app/fonts/) — the `.woff2` files. `Fraunces-{normal,italic}`, `GoogleSans-{normal,italic}`, `GoogleSansCode-{normal,italic}`, `MaterialSymbolsRounded-normal`.
+- [app/globals.css](app/globals.css) — the `--font-*` token definitions (`--font-display`, `--font-body`, `--font-ui`, `--font-mono`, `--font-symbols`).
+
+**The five tokens**
+- `--font-display` (Fraunces) — display serif. Hero, section titles. Variable axes: `opsz`, `wght`, `SOFT`, `WONK`.
+- `--font-body` (Google Sans) — primary body. Long-form copy.
+- `--font-ui` (Google Sans Flex) — UI labels, controls, micro-copy. Currently uses the same files as `--font-body`; carries a separate token so future divergence is one swap.
+- `--font-mono` (Google Sans Code) — code, technical labels.
+- `--font-symbols` (Material Symbols Rounded) — icon ligatures. **Subsetted** to a fixed list of 13 icons (~1.1 MB instead of 5.1 MB). Adding a new icon requires re-subsetting — see `docs/performance.md` → "Material Symbols icons".
+
+**AI notes**
+- **`display: 'block'` on every font.** The browser's short FOIT period covers font load; we never see fallback. Do not change to `'swap'` — that introduces visible FOUT on first paint, especially on Fraunces (display serif fallback metrics are very different).
+- **`preload: true` only on landing-critical fonts** — Fraunces, Google Sans, Google Sans Flex. Code and Symbols are `preload: false` because the landing page doesn't render them. (Preload tags only appear in production builds, not dev.)
+- **Five fonts, four files for italic/roman pairs.** Each `localFont` block lists `normal` + `italic` variants. Material Symbols is the exception — single file, no italic, with `weight: '100 700'` declaring its variable weight axis.
+- **CSS variables, never font-family strings.** Anywhere you'd write `font-family: 'Fraunces'`, write `font-family: var(--font-display)`. The token layer is what lets future migrations be one-line changes.
+- **Banned patterns.** External `<link rel="stylesheet">` to `fonts.googleapis.com` (DNS hop + non-deterministic load). The 3-second JS font-gate (held the page at `opacity: 0`). Adding the full Material Symbols woff2 (5+ MB). All three were removed in v0.55 — full context in `docs/performance.md` → "Fonts".
+- **Adding a new font.** Drop `.woff2` in `app/fonts/`, mirror an existing `localFont(...)` block in `layout.tsx`, define a `--font-*` token in `globals.css`, add the className to `<html>`, update this entry. Set `preload` based on whether the landing page uses it.
+- **Adding a new Material Symbols icon.** Update the icon list in `docs/performance.md`, re-run the subsetting curl flow documented there, replace `app/fonts/MaterialSymbolsRounded-normal.woff2`. Do **not** swap in the full font.
 
 ---
 

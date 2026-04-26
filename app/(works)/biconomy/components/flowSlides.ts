@@ -40,7 +40,7 @@ export const flows: FlowSlide[] = [
     id: 2,
     title: "Paymaster Overview",
     before: {
-      image: "/images/biconomy/flows/paymaster_overview_before.png",
+      image: "/images/biconomy/flows/paymaster_overview_before.webp",
       notes: [
         { text: "The paymaster name appears without team or network context.", x: 0.260, y: 0.063 },
         { text: "The page shows paymaster details, but doesn't point to a clear next step.", x: 0.160, y: 0.322 },
@@ -113,7 +113,7 @@ export const flows: FlowSlide[] = [
     id: 5,
     title: "Register Paymaster Dialog",
     before: {
-      image: "/images/biconomy/flows/register_paymaster_dialog_before.png",
+      image: "/images/biconomy/flows/register_paymaster_dialog_before.webp",
       notes: [
         { text: "The layout is too spread out for just three inputs", x: 0.308, y: 0.156 },
         { text: "Users are asked to invent a name without any cue for what's acceptable", x: 0.357, y: 0.300 },

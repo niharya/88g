@@ -11,7 +11,7 @@
 //   class to be removed before starting to observe — so section reveals
 //   don't fight the page-level entrance animation.
 //   On hard load, `.transitioning` is never set, so observation begins
-//   immediately (gated only by fonts-ready via CSS).
+//   immediately.
 
 import { useEffect, useRef, type RefObject } from 'react'
 

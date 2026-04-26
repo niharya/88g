@@ -1,6 +1,55 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import localFont from 'next/font/local'
 import './globals.css'
+
+const fraunces = localFont({
+  src: [
+    { path: './fonts/Fraunces-normal.woff2', style: 'normal' },
+    { path: './fonts/Fraunces-italic.woff2', style: 'italic' },
+  ],
+  variable: '--font-display',
+  display: 'block',
+  preload: true,
+})
+
+const googleSans = localFont({
+  src: [
+    { path: './fonts/GoogleSans-normal.woff2', style: 'normal' },
+    { path: './fonts/GoogleSans-italic.woff2', style: 'italic' },
+  ],
+  variable: '--font-body',
+  display: 'block',
+  preload: true,
+})
+
+const googleSansFlex = localFont({
+  src: [
+    { path: './fonts/GoogleSans-normal.woff2', style: 'normal' },
+    { path: './fonts/GoogleSans-italic.woff2', style: 'italic' },
+  ],
+  variable: '--font-ui',
+  display: 'block',
+  preload: true,
+})
+
+const googleSansCode = localFont({
+  src: [
+    { path: './fonts/GoogleSansCode-normal.woff2', style: 'normal' },
+    { path: './fonts/GoogleSansCode-italic.woff2', style: 'italic' },
+  ],
+  variable: '--font-mono',
+  display: 'block',
+  preload: false,
+})
+
+const materialSymbols = localFont({
+  src: './fonts/MaterialSymbolsRounded-normal.woff2',
+  variable: '--font-symbols',
+  display: 'block',
+  weight: '100 700',
+  preload: false,
+})
 
 // Site metadata
 // ─────────────
@@ -59,18 +108,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${fraunces.variable} ${googleSans.variable} ${googleSansFlex.variable} ${googleSansCode.variable} ${materialSymbols.variable}`} suppressHydrationWarning>
       <head>
-        {/* Font gate — add .fonts-ready to <html> once web fonts load so
-            gated surfaces (.workbench, .landing) don't flash fallback glyphs.
-            3s timeout keeps pages usable if fonts stall. */}
-        <Script id="font-gate" strategy="afterInteractive">{`
-          var done = function() { document.documentElement.classList.add('fonts-ready'); };
-          var t = setTimeout(done, 3000);
-          if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(function() { clearTimeout(t); done(); });
-          }
-        `}</Script>
         {/* Favicon swap — uniform pick across six startooth variants on each
             hard reload: star or tooth, in blue/olive/terra @720. SSR ships
             star-blue as default; script may swap to any of the six. */}
@@ -82,58 +121,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           var link = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
           if (link) link.href = '/icon-' + shape + '-' + tone + '.svg';
         `}</Script>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Fraunces — display serif */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap"
-        />
-        {/* Google Sans + Google Sans Flex — body and UI */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wdth,wght,GRAD,ROND@6..144,25..151,1..1000,0..100,0..100&family=Google+Sans:ital,opsz,wght,GRAD@0,17..18,400..700,-50..200;1,17..18,400..700,-50..200&display=swap"
-        />
-        {/* Google Sans Code — site-wide monospace (Monostamp, year labels, archive meta) */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&display=swap"
-        />
-        {/* Material Symbols Rounded — nav icons */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
-        />
       </head>
       <body>
-        {/* Patience mark — centered startooth shown during font-gate hold.
-            Fades in ~200ms after mount; fades out when .fonts-ready lands
-            on <html>. Inlined so each route can recolor via CSS vars
-            (--startooth-stroke / --startooth-fill). See globals.css →
-            "Page boot". */}
-        <div className="page-boot" aria-hidden="true">
-          <svg
-            className="page-boot__mark"
-            width="83"
-            height="143"
-            viewBox="0 0 83 143"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              className="startooth__diamond"
-              d="M31.5 31.5L41.5 1.5L51.5 31.5L81.5 41.5L51.5 51.5L41.5 101.5L31.5 51.5L1.5 41.5L31.5 31.5Z"
-              strokeWidth="3"
-              strokeLinejoin="round"
-            />
-            <path
-              className="startooth__base"
-              d="M1.5 121.5L41.5 101.5L81.5 121.5L41.5 141.5L1.5 121.5Z"
-              strokeWidth="3"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
         {children}
       </body>
     </html>

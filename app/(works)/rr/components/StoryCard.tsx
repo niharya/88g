@@ -267,7 +267,7 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
           card. Transform is driven entirely by --rr-mech-progress (inherited
           from the stage), so it animates in lockstep with the mat split. */}
       <Img
-        src="/images/rr/rr-hand-deck-fan.png"
+        src="/images/rr/rr-hand-deck-fan.webp"
         alt=""
         aria-hidden="true"
         className="rr-story-card__deck-fan"
