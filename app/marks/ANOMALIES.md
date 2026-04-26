@@ -522,30 +522,6 @@ offset.
 
 ---
 
-## Boot gating — `.route-marks` joins `.fonts-ready`
-
-`/marks` is the first non-workbench route to opt into the global
-`.fonts-ready` opacity gate on `<html>`. Reason: on hard reload the
-startooth (which boots before fonts) was visually competing with the
-`MarksTitle` "MARKS AND SYMBOLS" lockup painting in its fallback face.
-
-Two things had to land together for the clean boot:
-
-- `.route-marks` is included in the `.fonts-ready` opacity selector in
-  `globals.css` so marks content is hidden until fonts resolve — startooth
-  alone on the black field until ready.
-- `:root:has(.route-marks) { background: #000 }` in `globals.css` flips the
-  html background to black for the duration of the route. Without it the
-  browser's first paint flashes the default light paper behind the boot
-  mark. The `#000` literal is deliberate — see the comment block in
-  `globals.css` (there is no token for pure black; the grey scale bottoms
-  at `#141414`).
-
-If a future dark route needs the same boot hygiene, model it on the marks
-block rather than inventing a parallel pattern.
-
----
-
 ## Responsive anomalies
 
 `/marks` is built responsive-ready (per CLAUDE.md). The mobile pass lives in
