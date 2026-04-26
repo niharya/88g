@@ -96,7 +96,9 @@ export default function HeroText() {
 
   return (
     <div className="marks-hero-text" aria-hidden="true">
-      MARKS &amp; SYMBOLS
+      <span className="marks-hero-text__line">MARKS &amp;</span>
+      <span className="marks-hero-text__break"> </span>
+      <span className="marks-hero-text__line">SYMBOLS</span>
     </div>
   )
 }

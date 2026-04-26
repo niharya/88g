@@ -230,6 +230,11 @@ export function startAutoScroll(next: AutoScrollMode = 'intro') {
 
   // Reduced-motion opt-out — never tick.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  // Coarse-pointer opt-out (touch devices). On phones the cinematic reel
+  // fights the reader's natural scroll gesture and the cursor-idle slowdown
+  // never engages (no mousemove). Manual scroll is the cleaner experience;
+  // the HeroClone teleport still closes the loop.
+  if (window.matchMedia('(pointer: coarse)').matches) return
 
   if (next === 'outro') {
     // Outro runs a veil-only timeline, no scroll ticking. The reel "cuts"

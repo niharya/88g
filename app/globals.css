@@ -235,11 +235,34 @@
   text-decoration-thickness: 2px;
   text-underline-offset: 2px;
   position: relative;
-  transition: text-decoration-color var(--dur-instant) var(--ease-snap);
+  transition: text-decoration-color var(--dur-fast) var(--ease-snap);
 }
 
-/* Hover keeps the dotted underline visible — site convention is dotted
-   links throughout. Affordance comes from the bg/color shift on the host. */
+/* Hover crossfades the dotted underline into a 1px solid bar. Two layers
+   compose: text-decoration-color fades to transparent while the ::after
+   pseudo fades in. This is the only path to a smooth dotted↔solid swap —
+   text-decoration-style and text-decoration-thickness aren't smoothly
+   interpolated by browsers, so the pseudo carries the solid state.
+   The bar's `bottom: -2px` matches the rest underline's text-underline-
+   offset so it lands at the same visual position. */
+.t-btn1::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-snap);
+  pointer-events: none;
+}
+.t-btn1:hover {
+  text-decoration-color: transparent;
+}
+.t-btn1:hover::after {
+  opacity: 1;
+}
 
 
 /* ==========================================================================

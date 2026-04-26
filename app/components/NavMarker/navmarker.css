@@ -31,6 +31,25 @@ a.nav-marker:active {
   background: var(--grey-880);
 }
 
+/* Shell-hover triggers the t-btn1 underline crossfade on the inner label.
+   Without this, the dotted→solid swap only fires when the cursor sits
+   directly on the text, which feels broken given the marker shell already
+   reads as one hit-target. Mirrors the bg-darken hover above so both
+   affordances fire together. EXIT marker uses its own __exit-label fade
+   pattern (not t-btn1), so it's unaffected. */
+button.nav-marker:hover .t-btn1,
+a.nav-marker:hover .t-btn1,
+button.nav-marker:focus-visible .t-btn1,
+a.nav-marker:focus-visible .t-btn1 {
+  text-decoration-color: transparent;
+}
+button.nav-marker:hover .t-btn1::after,
+a.nav-marker:hover .t-btn1::after,
+button.nav-marker:focus-visible .t-btn1::after,
+a.nav-marker:focus-visible .t-btn1::after {
+  opacity: 1;
+}
+
 .nav-marker--tone-terra {
   background:   var(--terra-320);
   border-color: var(--terra-800);

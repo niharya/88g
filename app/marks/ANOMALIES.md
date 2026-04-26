@@ -552,20 +552,76 @@ block rather than inventing a parallel pattern.
 one `@media (max-width: 767px)` block at the end of `marks.css`. Documented
 deviations / drop-outs:
 
-- **Title scale** uses a breakpoint-scoped linear formula
-  (`calc(56px - 32px * var(--marks-s))`) rather than `clamp()`, because the
-  dock interpolation is a derived value from `--marks-s` (scroll position)
-  × a size range. `clamp()` only handles one axis at a time; breakpoint-
-  scoped per-viewport formulas keep the dock math readable.
-- **Essay preview rows** flip to `flex-direction: column` with a 48 px gap.
-  Desktop `gap: 435px` (glyph row) does not scale — a mobile-specific layout
-  is the clean path here, not a recomposition.
-- **Blank + Hero-clone stay at 100vh** on every viewport. They are
-  dominance candidates for the wrap-on-dock teleport — shrinking them
-  would push visibility below `DOMINANCE_RATIO` (0.72) on tall viewports
-  and make the wrap unreachable. Left alone deliberately.
-- **Mark carousel + chrome** already use `min(…vw, …px)` / `min(100%, …px)`;
-  no mobile override needed.
+- **Hero title splits to two lines on mobile** (`MARKS &` / `SYMBOLS`) at
+  `clamp(48px, 16vw, 80px)` with `letter-spacing: -0.03em` and
+  `line-height: 0.95`. Implementation: `HeroText.tsx` renders three spans
+  (line / break / line); the `.marks-hero-text__break` span flips to
+  `display: block` inside the mobile media query to force the wrap, while
+  desktop ignores the break and renders the lockup on one line. Single-line
+  at 56px overflowed below ~390px viewports, and shrinking further made the
+  watermark feel decorative — the two-line stack keeps editorial scale.
+- **Essay preview rows recompose, don't column-stack.** Mobile sets
+  `flex-direction: row; flex-wrap: wrap; justify-content: center` with
+  asymmetric `gap: 64px 48px` (row > column). Wordmarks pair Codezeros +
+  Slangbusters on row 1 and Beringer wraps centered to row 2; glyphs pair
+  Ecochain + Kilti. The 64px row-gap is deliberately larger than the 48px
+  column-gap so the wrapped Beringer reads as a distinct line, not a third
+  item crammed under the pair. Caption + preview vertical rhythm uses 80px
+  (vs desktop 120px) so a 375px viewport doesn't feel cavernous between
+  blocks.
+- **Mark-section glyph sizes are standardized on mobile.** Wide marks
+  (codezeros, slangbusters, beringer) all render at width 230px (matching
+  Slangbusters' natural mobile width); squarish marks (furrmark, ecochain,
+  kilti) all render at width 120px (matching Ecochain). Both also reset
+  `height: auto` because the desktop rules pin the opposite axis. Side
+  effect: Codezeros's 7.8:1 aspect renders quite thin (~29px tall) at
+  width 230px — accepted as the cost of the standardization.
+- **Essay preview-btn at rest sits at `opacity: 0.8`** and lifts to 1.0
+  on hover/focus. Marks read a touch quieter against the dark field at
+  rest; hover/focus brings them back to full presence. The opacity
+  transition rides `--dur-slide` + `--ease-paper` alongside the existing
+  color transition. Removing the dim would re-balance the essay rhythm
+  toward "marks dominant" — not the intended editorial weight.
+- **Phase heights use `svh`, not `vh`.** `--marks-hero-h`, `--marks-section-h`,
+  `.marks-essay min-height`, `.marks-blank` / `.marks-hero-clone min-height`,
+  the hero text `top`, and the carousel `max-height` all use `svh`. Reason:
+  iOS Safari's URL bar collapse/expand resizes `vh` mid-scroll, jumping
+  every section and fighting the dominance-snap engine. `svh` is the small
+  viewport — stable across URL bar state. `dvh` would resize dynamically
+  (same problem as `vh`), so don't switch to it. The dominance ratio is
+  preserved because `useDominanceSnap` uses `window.innerHeight` at runtime,
+  which scales with the section together.
+- **Blank + Hero-clone are still full-viewport** (now `100svh`). Dominance
+  candidates for the wrap-on-dock teleport — they need to fully fill the
+  small viewport so visibility climbs past `DOMINANCE_RATIO` (0.72).
+- **Mark carousel media** caps at `min(70vw, 900px)` desktop / `min(86vw, 900px)`
+  mobile. The mobile override prevents the artifact from feeling cramped at
+  narrow widths (70vw of 375px = 262px); border + tilt unchanged.
 - **No tucked marker** — `/marks` does not use the `ProjectMarker` /
   `ChapterMarker` shell. The `MarksTitle` itself is the nav; it already
   docks to `--marker-top` at any viewport width.
+- **Auto-scroll opts out on coarse pointer.** `startAutoScroll` short-circuits
+  on both `prefers-reduced-motion: reduce` AND `pointer: coarse`. On touch
+  devices the cinematic reel fights the reader's natural scroll gesture and
+  the cursor-idle slowdown never engages (no mousemove). The HeroClone
+  teleport still closes the loop manually.
+- **iOS safe-area insets on EXIT + mark chrome (mobile only).**
+  `.exit-marker` overrides `top` / `right` to `max(<token>, env(safe-area-inset-*))`
+  and `.mark-chrome` overrides `bottom` to `max(32px, env(safe-area-inset-bottom))`.
+  `max()` falls through to the existing tokens on devices without insets, so
+  non-iOS browsers see no change. Without these, the EXIT label can sit under
+  the iPhone notch in landscape, and the paginator chrome can collide with
+  the home indicator. If a future change scopes the EXIT marker outside
+  `.exit-marker` or moves the chrome out of `.mark-chrome`, mirror the
+  insets in the new selector.
+- **JS reads `window.innerHeight` (dvh-equivalent) while CSS uses `svh`.**
+  `useDominanceSnap`, `MarksTitle`, `HeroText`, `Background`, and `autoScroll`
+  all normalize against `window.innerHeight`, which on iOS Safari tracks the
+  *large* viewport (URL bar collapsed). Sections render at `100svh` (the
+  *small* viewport). The mismatch is benign: when the URL bar is expanded,
+  the dominance ratio caps near 0.85–0.95 — still well above the 0.72
+  threshold — and scroll-progress math (`--mark-p`, `--hero-recede`)
+  normalizes both numerator and denominator against the same `vh`, so the
+  reveal still hits 1 at the right scroll position. Don't switch the JS to
+  `visualViewport.height` or any svh-equivalent without re-deriving the
+  dominance threshold.

@@ -22,9 +22,11 @@
   --marks-ink-muted:    rgba(245, 245, 245, 0.62);
   --marks-bg-rest:      #000;
 
-  /* Phase heights (spec from MARKS_BRIEF.md) */
-  --marks-hero-h:       100vh;
-  --marks-section-h:    100vh;
+  /* Phase heights (spec from MARKS_BRIEF.md). Use `svh` so the iOS URL bar
+     collapsing/expanding doesn't resize sections mid-scroll — `vh` would
+     jump every time the bar toggled and fight the dominance-snap engine. */
+  --marks-hero-h:       100svh;
+  --marks-section-h:    100svh;
 
   /* Hero (chunk 3) — values transcribed from Figma node 2466:3791.
      Title is Fraunces Regular 120px with WONK alternates, tracked -3.6px,
@@ -197,7 +199,7 @@ html[data-marks-hidden='true'] .marks-background::after {
    paints their palettes). See BlankSection.tsx / HeroClone.tsx and
    ANOMALIES → "Clone-and-teleport infinite reel". */
 .marks-blank,
-.marks-hero-clone { min-height: 100vh; }
+.marks-hero-clone { min-height: 100svh; }
 
 
 /* ── Hero text (big title, scroll-receding) ──────────────────────────────── */
@@ -209,7 +211,7 @@ html[data-marks-hidden='true'] .marks-background::after {
    source order, so the Essay scrolls OVER the hero text naturally. */
 .marks-hero-text {
   position: fixed;
-  top: 37vh;
+  top: 37svh;
   left: 0;
   right: 0;
   margin: 0;
@@ -348,7 +350,7 @@ html[data-marks-hidden='true'] .marks-background::after {
      view. Previously the essay peeked into the Hero; that was retired once
      the Hero became a watermark behind the reading field. */
   margin-top: 0;
-  min-height: 100vh;
+  min-height: 100svh;
   padding: 144px 0 180px;
   display: flex;
   flex-direction: column;
@@ -409,12 +411,15 @@ html[data-marks-hidden='true'] .marks-background::after {
   display: block;
   cursor: pointer;
   color: inherit;
-  transition: color var(--dur-slide) var(--ease-paper);
+  opacity: 0.8;
+  transition: color var(--dur-slide) var(--ease-paper),
+              opacity var(--dur-slide) var(--ease-paper);
   /* Hover colorizes the SVG via currentColor (marks use fill="currentColor"). */
 }
 .marks-essay__preview-btn:hover,
 .marks-essay__preview-btn:focus-visible {
   color: var(--preview-color, currentColor);
+  opacity: 1;
   outline: none;
 }
 
@@ -632,7 +637,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   display: inline-block;
   line-height: 0;        /* kill inline-block baseline gap under the child */
   max-width:  min(70vw, 900px);
-  max-height: 70vh;
+  max-height: 70svh;
   margin: 0;
   padding: 0;
   border: 2px solid rgba(245, 245, 245, 0.22);
@@ -647,7 +652,7 @@ html[data-marks-hidden='true'] .marks-background::after {
 .mark-carousel__media > .img > .img__inner {
   display: block;
   max-width:  min(70vw, 900px);
-  max-height: 70vh;
+  max-height: 70svh;
   width:  auto;
   height: auto;
 }
@@ -867,10 +872,21 @@ html[data-marks-hidden='true'] .marks-background::after {
 
 @media (max-width: 767px) {
   .marks-hero-text {
-    /* Hero scales down so the 15-char "MARKS & SYMBOLS" fits at 375px
-       without overflow. Letter-spacing reduced proportionally. */
-    font-size: 56px;
-    letter-spacing: -1.68px;
+    /* Hero stacks "MARKS &" / "SYMBOLS" on two lines at mobile so the
+       lockup reads at editorial scale instead of shrinking to fit one line.
+       White-space wraps; the break span flips to display:block to force the
+       split between the two lines. Line-height tightens so the two lines
+       sit as a single typographic block, not paragraph copy. */
+    font-size: clamp(48px, 16vw, 80px);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    white-space: normal;
+  }
+  .marks-hero-text__break {
+    display: block;
+    width: 0;
+    height: 0;
+    font-size: 0;
   }
 
   .marks-essay {
@@ -892,12 +908,62 @@ html[data-marks-hidden='true'] .marks-background::after {
   }
   .marks-essay__divider { margin: 56px 0 48px; }
 
+  /* Preview rows recompose: stay row, wrap to two-up. Wordmarks pair
+     Codezeros + Slangbusters on row 1, Beringer wraps centered to row 2.
+     Glyphs pair Ecochain + Kilti on a single row. Row-gap (64px) > column-
+     gap (48px) so the wrapped Beringer reads as a distinct line, not a
+     third item crammed under the pair. */
   .marks-essay__preview {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 48px;
+    justify-content: center;
+    gap: 64px 48px;
   }
-  .marks-essay__preview--wordmarks { margin-top: 56px; }
-  .marks-essay__preview--glyphs    { margin-top: 56px; gap: 48px; }
+  /* Vertical rhythm: 80px between essay-block and preview-row. The desktop
+     120px feels cavernous on a 375px viewport — at this scale 80px reads
+     as a clear section break without dropping the row off-screen. */
+  .marks-essay__preview--wordmarks { margin-top: 80px; }
+  .marks-essay__preview--glyphs    { margin-top: 80px; gap: 64px 48px; }
+  .marks-essay__caption,
+  .marks-essay__caption--between   { margin-top: 80px; }
 
+  /* Carousel media: raise the cap from 70vw → 86vw so artifact images
+     breathe at narrow widths. Border + tilt unchanged. */
+  .mark-carousel__media,
+  .mark-carousel__media > video,
+  .mark-carousel__media > .img,
+  .mark-carousel__media > .img > .img__inner {
+    max-width: min(86vw, 900px);
+  }
+
+  /* Standardize mark-section glyph sizes on mobile: wide wordmarks share
+     Slangbusters' width (230px); squarish glyphs share Ecochain's width
+     (120px). Overrides the per-mark desktop rules above. Setting both
+     width + height (auto) is required because the desktop rules pin the
+     opposite axis — leaving it pinned would compete with the new width. */
+  .marks-section[data-mark-id='codezeros']    .mark-carousel__glyph,
+  .marks-section[data-mark-id='slangbusters'] .mark-carousel__glyph,
+  .marks-section[data-mark-id='beringer']     .mark-carousel__glyph {
+    width: 230px;
+    height: auto;
+  }
+  .marks-section[data-mark-id='furrmark'] .mark-carousel__glyph,
+  .marks-section[data-mark-id='ecochain'] .mark-carousel__glyph,
+  .marks-section[data-mark-id='kilti']    .mark-carousel__glyph {
+    width: 120px;
+    height: auto;
+  }
+
+  /* iOS safe-area insets — keep the EXIT marker clear of the notch /
+     status bar in landscape, and the mark chrome clear of the home
+     indicator. `max()` falls through to the existing tokens on devices
+     without insets, so non-iOS browsers see no change. */
+  .exit-marker {
+    top: max(var(--marker-top), env(safe-area-inset-top));
+    right: max(var(--workbench-pad-x), env(safe-area-inset-right));
+  }
+  .mark-chrome {
+    bottom: max(32px, env(safe-area-inset-bottom));
+  }
 }
