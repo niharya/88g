@@ -126,6 +126,15 @@ Core principles:
 * **Newly banned under crafted-lite:** `transform: scale()` on whole authored canvases; horizontal scroll strips with inner `scale()` on desktop-width content. See `docs/responsive-playbook.md` → Banned hacks.
 * Log crafted-lite decisions in each route's `ANOMALIES.md` under "Responsive anomalies".
 
+## Performance hygiene (summary)
+
+Full reference: [`docs/performance.md`](./docs/performance.md). Read it before adding fonts, images, or icons.
+
+* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'block'`. The 3-second JS font-gate is **banned**. External `<link>` to `fonts.googleapis.com` is **banned**.
+* **Icons:** Material Symbols is subsetted to a fixed icon list (~1.1 MB, down from 5.1 MB). Adding a new icon requires re-subsetting per the doc. Don't replace the file with the full font.
+* **Images:** All content imagery uses `<Img>`. Every raster in `public/images/` is `.webp`. Raw images over ~400 KB must be optimized via `npm run optimize-images` before commit.
+* **Motion tokens:** `--dur-*` values are post-v0.55 tuned for snap. Don't drift back without intent — inline a duration in component CSS for one-off cases instead.
+
 ## Core design principle
 
 **Elements should feel docked, tucked, or suspended with intention — not placed nearby.**
@@ -241,6 +250,8 @@ Before implementing anything, confirm:
 When you add or replace an image under `public/`, run `npm run lqip` to regenerate the manifest. `npm run build` runs the generator automatically via `prebuild`, so production is always fresh; dev falls back gracefully (raw `<img>`) with a console warning when an image isn't in the manifest yet.
 
 The only raw `<img>` exceptions are tiny decorative icons where LQIP is wasted (twitter avatar, deck-strip chip, rule-card icon).
+
+For weight discipline (max sizes, `.webp` requirement, `npm run optimize-images` workflow), see `docs/performance.md` → "Images".
 
 ## Not using
 

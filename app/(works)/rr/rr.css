@@ -64,22 +64,10 @@
   /* Mat and workbench identical to biconomy — personality lives in surface colors */
   --sheet-border:   2px solid var(--rr-border);
   --surface-color:  var(--rr-memo-bg);
-  /* Gentle scroll snap — proximity so it nudges without hijacking */
-  scroll-snap-type: y mandatory;
 }
-
-.route-rr .sheet {
-  scroll-snap-align: start;
-}
-
-/* Double the vertical gap between sheets that follow the mechanics sheet —
-   gives the cards + outcome chapters more breathing room after the dense
-   mechanics scene. Sheets use vertical margins (see globals.css), so a
-   doubled top margin collapses with the previous sheet's standard bottom
-   margin to yield stack-gap * 2. */
-.route-rr #mechanics ~ .sheet {
-  margin-top: calc(var(--stack-gap) * 2);
-}
+/* CSS scroll-snap removed in favor of `useDominanceSnap` via <Sheet snap>
+   so the dock uses --ease-paper instead of the native snap curve. See
+   ANOMALIES → "Chapter dominance-snap (Mechanics excluded)". */
 
 
 /* ── Section entrance ──────────────────────────────────────────────────── */
@@ -412,7 +400,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/images/rr/paper-texture-card.png') top left / 1024px 1024px;
+  background: url('/images/rr/paper-texture-card.webp') top left / 1024px 1024px;
   mix-blend-mode: color-burn;
   opacity: 0.4;
   pointer-events: none;
@@ -2797,11 +2785,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    scroll-snap-type: none;
   }
 
   .route-rr .sheet {
-    scroll-snap-align: none;
     min-height: 0;
     justify-content: flex-start;
     gap: 48px;

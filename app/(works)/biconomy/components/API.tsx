@@ -23,15 +23,15 @@ const FLOWS: Flow[] = [
     name: 'Connecting Wallet',
     slides: [
       {
-        src: '/images/biconomy/api/flows/flow-1-1.jpeg',
+        src: '/images/biconomy/api/flows/flow-1-1.webp',
         caption: 'A standby mark, a stepper, and a receiver — each a grammar piece before connection.',
       },
       {
-        src: '/images/biconomy/api/flows/flow-1-2.jpeg',
+        src: '/images/biconomy/api/flows/flow-1-2.webp',
         caption: 'Unplugged at rest. A B-mark waits in the top-right for a hover or a click.',
       },
       {
-        src: '/images/biconomy/api/flows/flow-1-3.jpeg',
+        src: '/images/biconomy/api/flows/flow-1-3.webp',
         caption: 'Once paired, the unit settles — QR, desktop, and session hand-offs stay in the same surface.',
       },
     ],
@@ -41,15 +41,15 @@ const FLOWS: Flow[] = [
     name: 'Sending Assets',
     slides: [
       {
-        src: '/images/biconomy/api/flows/flow-2-1.jpeg',
+        src: '/images/biconomy/api/flows/flow-2-1.webp',
         caption: 'From a deployed smart wallet to a signed transaction — three steps on one continuous surface.',
       },
       {
-        src: '/images/biconomy/api/flows/flow-2-2.jpeg',
+        src: '/images/biconomy/api/flows/flow-2-2.webp',
         caption: 'Send To accepts the address; Select Asset unfolds below without changing context.',
       },
       {
-        src: '/images/biconomy/api/flows/flow-2-3.jpeg',
+        src: '/images/biconomy/api/flows/flow-2-3.webp',
         caption: 'Amount, gas, and total share the canvas. An operating-currency toggle sits a tap away.',
       },
     ],
@@ -60,11 +60,11 @@ const FLOWS: Flow[] = [
     raw: true,
     slides: [
       {
-        src: '/images/biconomy/api/flows/flow-3-1.jpeg',
+        src: '/images/biconomy/api/flows/flow-3-1.webp',
         caption: 'Navigation collapses into the address itself — menu opens down, the asset library tucks below.',
       },
       {
-        src: '/images/biconomy/api/flows/flow-4-1.jpeg',
+        src: '/images/biconomy/api/flows/flow-4-1.webp',
         caption: 'Signing stays legible — network, request type, forwarder details, keys, then sign or reject.',
       },
     ],

@@ -277,10 +277,8 @@
 
 html {
   /* Matches --workbench-bg so the pre-CSS paint, the boot mark, and the
-     workbench all share one continuous tone. The font-gate below holds
-     .workbench invisible until fonts load; during that window the user
-     sees the same grey they'll keep seeing once content lands — the boot
-     mark fades out, the workbench fades in, the ground is unchanged. */
+     workbench all share one continuous tone — the boot mark fades out, the
+     workbench fades in, the ground is unchanged. */
   background: var(--workbench-bg);
 
   /* Prevent layout shift when scrollbar appears/disappears during
@@ -393,10 +391,10 @@ p, li {
   --ease-snap:        cubic-bezier(0.45, 0, 0.15, 1);
 
   --dur-instant:      0.1s;
-  --dur-fast:         0.2s;
-  --dur-slide:        0.3s;
-  --dur-settle:       0.5s;
-  --dur-glide:        0.8s;
+  --dur-fast:         0.15s;
+  --dur-slide:        0.2s;
+  --dur-settle:       0.35s;
+  --dur-glide:        0.5s;
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);
@@ -406,105 +404,6 @@ p, li {
   --z-surface:        1;
   --z-chapter-marker: 20;
   --z-project-marker: 50;
-}
-
-
-/* ── Font gate ───────────────────────────────────────────────────────────── */
-/* Route layouts add .fonts-ready to <html> once document.fonts is ready.   */
-
-.workbench,
-.route-marks {
-  opacity: 0;
-}
-html.fonts-ready .workbench,
-html.fonts-ready .route-marks {
-  opacity: 1;
-  transition: opacity var(--dur-settle) var(--ease-paper);
-}
-
-
-/* ── Page boot — patience mark ───────────────────────────────────────────── */
-/* During the font-gate hold (up to 3s while web fonts load), the workbench
-   is invisible. Instead of showing blank paper, a centered wordmark fades
-   in ~200ms after mount (so fast loads never flash it) and fades out when
-   .fonts-ready applies. System serif is intentional — no glyph swap when
-   Fraunces arrives, and the fallback feel reads as "pre-set" rather than
-   broken. Kept literally as plain text so it can be swapped to a mark or
-   quote later without touching the mechanism. */
-
-.page-boot {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0;
-  animation: page-boot-in var(--dur-slide) var(--ease-paper) 200ms forwards;
-}
-
-.page-boot__mark {
-  width: 56px;
-  height: auto;
-  display: block;
-}
-
-/* Startooth colors. Per-route overrides below via :root:has(<route-root>)
-   so the single boot-screen element can recolor for whichever route's CSS
-   is live. The defaults handle the brief first-paint window before any
-   route CSS applies. */
-.startooth__diamond {
-  stroke: var(--startooth-stroke, #31abcc);
-  fill: none;
-}
-
-.startooth__base {
-  stroke: var(--startooth-stroke, #31abcc);
-  fill: var(--startooth-fill, #d9d9d9);
-}
-
-:root:has(.route-biconomy) {
-  --startooth-stroke: var(--blue-560);
-  --startooth-fill: var(--grey-960);
-}
-:root:has(.route-rr) {
-  --startooth-stroke: var(--terra-560);
-  --startooth-fill: var(--grey-960);
-}
-:root:has(.selected-workbench) {
-  --startooth-stroke: var(--blue-800);
-  --startooth-fill: var(--blue-80);
-}
-:root:has(.landing) {
-  --startooth-stroke: #bb4311;
-  --startooth-fill: #d76a36;
-}
-/* /marks sits on a black field — startooth stroke goes white, diamond fill
-   picks up the lightest grey token so the mark reads as paper-on-void,
-   matching the Hero palette. Also darken the html bg while the route is
-   live so the browser's first paint doesn't flash the default light paper
-   behind the boot mark.
-   The `#fff` and `#000` literals here are deliberate: the grey palette
-   tops out at #F5F5F5 (--grey-960) and bottoms at #141414 (--grey-80),
-   and the /marks hero palette uses pure black explicitly. No token exists
-   for pure-white or pure-black — do not "fix" these to the nearest grey. */
-:root:has(.route-marks) {
-  --startooth-stroke: #ffffff;
-  --startooth-fill: var(--grey-960);
-  background: #000;
-}
-
-html.fonts-ready .page-boot {
-  animation: page-boot-out var(--dur-slide) var(--ease-paper) forwards;
-}
-
-@keyframes page-boot-in {
-  to { opacity: 1; }
-}
-
-@keyframes page-boot-out {
-  to { opacity: 0; }
 }
 
 

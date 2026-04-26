@@ -82,6 +82,34 @@ The one image primitive the portfolio uses. Wraps `next/image` with an instant L
 - **Manifest schema.** `{ [src]: { dominantColor: 'rgb(r,g,b)', thumbHash: base64, width, height, hasAlpha } }`. Keys are absolute paths (`/images/...`, `/marks/...`). Width and height are the natural raster dimensions — NextImage uses these unless the consumer overrides. `hasAlpha = !sharp.stats().isOpaque` — true if the asset has any transparent pixel; drives the placeholder default above.
 - **What's route-specific** — consumer-owned className, sizing props, placeholder choice, onClick.
 - **What's library-ready** — the whole component. Already lives under `app/components/` and is used by all four active routes.
+- **Weight hygiene.** Every raster in `public/images/` is `.webp`. Raw assets over ~400 KB must be optimized via `npm run optimize-images` (writes a `.webp` sibling) before commit. Soft per-file budgets and the full hygiene contract live in `docs/performance.md` → "Images".
+
+---
+
+## Fonts
+
+The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Configured once in `app/layout.tsx`, exposed as CSS variables, consumed everywhere by token. Migrated off external Google Fonts in v0.55 — no external `<link>` tags, no 3-second JS font-gate.
+
+**Where it lives**
+- [app/layout.tsx](app/layout.tsx) — the five `localFont(...)` blocks and the `<html>` className wiring.
+- [app/fonts/](app/fonts/) — the `.woff2` files. `Fraunces-{normal,italic}`, `GoogleSans-{normal,italic}`, `GoogleSansCode-{normal,italic}`, `MaterialSymbolsRounded-normal`.
+- [app/globals.css](app/globals.css) — the `--font-*` token definitions (`--font-display`, `--font-body`, `--font-ui`, `--font-mono`, `--font-symbols`).
+
+**The five tokens**
+- `--font-display` (Fraunces) — display serif. Hero, section titles. Variable axes: `opsz`, `wght`, `SOFT`, `WONK`.
+- `--font-body` (Google Sans) — primary body. Long-form copy.
+- `--font-ui` (Google Sans Flex) — UI labels, controls, micro-copy. Currently uses the same files as `--font-body`; carries a separate token so future divergence is one swap.
+- `--font-mono` (Google Sans Code) — code, technical labels.
+- `--font-symbols` (Material Symbols Rounded) — icon ligatures. **Subsetted** to a fixed list of 13 icons (~1.1 MB instead of 5.1 MB). Adding a new icon requires re-subsetting — see `docs/performance.md` → "Material Symbols icons".
+
+**AI notes**
+- **`display: 'block'` on every font.** The browser's short FOIT period covers font load; we never see fallback. Do not change to `'swap'` — that introduces visible FOUT on first paint, especially on Fraunces (display serif fallback metrics are very different).
+- **`preload: true` only on landing-critical fonts** — Fraunces, Google Sans, Google Sans Flex. Code and Symbols are `preload: false` because the landing page doesn't render them. (Preload tags only appear in production builds, not dev.)
+- **Five fonts, four files for italic/roman pairs.** Each `localFont` block lists `normal` + `italic` variants. Material Symbols is the exception — single file, no italic, with `weight: '100 700'` declaring its variable weight axis.
+- **CSS variables, never font-family strings.** Anywhere you'd write `font-family: 'Fraunces'`, write `font-family: var(--font-display)`. The token layer is what lets future migrations be one-line changes.
+- **Banned patterns.** External `<link rel="stylesheet">` to `fonts.googleapis.com` (DNS hop + non-deterministic load). The 3-second JS font-gate (held the page at `opacity: 0`). Adding the full Material Symbols woff2 (5+ MB). All three were removed in v0.55 — full context in `docs/performance.md` → "Fonts".
+- **Adding a new font.** Drop `.woff2` in `app/fonts/`, mirror an existing `localFont(...)` block in `layout.tsx`, define a `--font-*` token in `globals.css`, add the className to `<html>`, update this entry. Set `preload` based on whether the landing page uses it.
+- **Adding a new Material Symbols icon.** Update the icon list in `docs/performance.md`, re-run the subsetting curl flow documented there, replace `app/fonts/MaterialSymbolsRounded-normal.woff2`. Do **not** swap in the full font.
 
 ---
 
@@ -108,7 +136,7 @@ Stateless shell for the tuck-push-reveal drawer pattern in `/rr` — the primiti
 
 ## Sheet
 
-The paper chapter container used by every works route. Renders a `section.sheet.mat.section-reveal`, wires up a nav-sled with `ChapterMarker`, triggers the entrance reveal via `useReveal`, and runs a scroll-linked "card placement" glide on the first `.surface` element inside.
+The paper chapter container used by every works route. Renders a `section.sheet.mat.section-reveal`, wires up a nav-sled with `ChapterMarker`, triggers the entrance reveal via `useReveal`, runs a scroll-linked "card placement" glide on the first `.surface` element inside, and (when opted in) glide-snaps to its top via `useDominanceSnap`.
 
 **Where it lives**
 - [app/components/Sheet.tsx](app/components/Sheet.tsx) — the component.
@@ -120,6 +148,7 @@ The paper chapter container used by every works route. Renders a `section.sheet.
 - **Scroll-linked card placement is inline-styled, not CSS-classed.** The first `.surface` in the sheet receives per-frame `transform` and `boxShadow` writes from `useMotionValueEvent` on `scrollYProgress`. Endpoint shadow matches `--shadow-flat` exactly so the card reads flat at rest. Do not try to move this to CSS — values are lerped.
 - **Three-phase reveal is choreography, not independent transitions.** Phase 1 (mat glide 0.8s), Phase 2 (content settle 0.7s + `--place-rotate`), Phase 3 (nav-sled dock 0.5s) are tuned as a set. Changing one phase's duration without the others breaks the cascade. The odd-valued durations (0.7, 0.9) are deliberate and sit outside the `--dur-*` tier vocabulary.
 - **`useReveal` needs a ref on the element that should receive `.revealed`.** Sheet passes its own `sectionRef`. If children need their own one-shot reveals, they import `useReveal` separately.
+- **`snap?: boolean` opts the sheet into dominance-snap.** Defaults `false`. When true, Sheet calls `useDominanceSnap(sectionRef, { topProximityPx: 80, idleMs: 2000, glideDurationMs: 800, dockOffsetPx: 2 })` so the chapter glide-docks on 2s scroll-idle when its top edge is within 80px of the viewport top. /biconomy passes `snap` for all chapters; /rr passes it for everything except Mechanics (the pinned-scroll scene must run untouched). See each route's ANOMALIES → "Chapter dominance-snap" for the calibration rationale.
 - What's route-specific: the children. Everything else (the chapter-marker wiring, the reveal, the scroll-linked glide) is identical across routes.
 - What's library-ready: the whole component.
 
@@ -234,6 +263,42 @@ Pure functions shared across routes. No UI, no state.
 **Where they live**
 - [app/lib/greeting.ts](app/lib/greeting.ts) — time-of-day greeting string ("Good morning", etc.). Consumed on landing.
 - [app/lib/titleCase.ts](app/lib/titleCase.ts) — APA title case. Used anywhere UI copy is authored in sentence case but rendered as a title. `.t-h5` assumes inputs are already APA-cased via this function.
+---
+
+## scrollGlide
+
+rAF-tween of `window.scrollY` under `--ease-paper`. The native `scrollTo({ behavior: 'smooth' })` curve doesn't match the route easing — this util is the shared path for any programmatic scroll that needs to feel like every other transition in the route.
+
+**Where it lives**
+- [app/lib/scrollGlide.ts](app/lib/scrollGlide.ts) — `scrollGlide(targetY, durationMs?)` returns a cancel fn; `isGlideActive()` is a peek for callers that need to yield while a glide is in flight.
+- Consumers: every `/marks` programmatic scroll (Essay preview jump, MarksTitle home, MarkSection paginator) and `useDominanceSnap` itself.
+
+**AI notes**
+- **Singleton.** A new call cancels any glide in flight. Two callers cannot run simultaneous glides — the second wins.
+- **Default duration is `--dur-glide` (0.8s).** Callers that want the section-reveal feel pass `--dur-settle` (0.5s) explicitly — `useDominanceSnap` does this.
+- **`isGlideActive()` is the hand-off for continuous-motion systems** (`/marks` autoScroll yields while a glide is writing scrollY, otherwise the additive dy corrupts the easing).
+- Cubic-bezier evaluated as direct `y(t)` for performance — visually indistinguishable from a proper de Casteljau solve at 60fps.
+- No SSR guard needed at call sites; the util short-circuits when `window` is undefined.
+
+---
+
+## useDominanceSnap
+
+Scroll-idle landing snap for full-viewport sections. On 150ms scroll-idle, if the section's visibility ratio is ≥ 0.72 and its top isn't already docked (within 2px), glide to its top via `scrollGlide(--dur-settle)`. Below 0.72 nothing is dominant — the scroll is in-transit and no snap fires. Replaces CSS `scroll-snap-type` for routes that need paper-easing parity.
+
+**Where it lives**
+- [app/components/hooks/useDominanceSnap.ts](app/components/hooks/useDominanceSnap.ts) — `useDominanceSnap(ref, { onScroll?, onDocked? })`.
+- Consumers: `/marks` MarkSection, BlankSection, HeroClone. Adopted by `/biconomy` Sheet and `/rr` Sheet (selected chapters) — see each route's ANOMALIES.
+
+**AI notes**
+- **Stateless.** Hook owns no state visible to consumers; the callbacks are the only escape hatch.
+- **`onScroll(el, rect, vh)`** runs on every scroll frame *before* the idle-debounce arms — consume this for scroll-linked CSS custom properties instead of spinning a second listener.
+- **`onDocked()`** fires once each time the section's top crosses into the 2px docked tolerance from outside. Useful for "I just landed" triggers (HeroClone uses it for reel-wrap).
+- **Honors `prefers-reduced-motion`** — snap is disabled, but `onScroll` and `onDocked` still fire. Consumers should not assume snap is the only path to docked.
+- **Tall sections need `topProximityPx`, `idleMs`, `glideDurationMs`, and often `dockOffsetPx`.** The dominance check uses `min(rect.height, vh)` as denominator, so a chapter much taller than the viewport stays "dominant" for ~one viewport's worth of mid-section scroll — without a proximity gate, that yanks the reader back to the chapter top mid-read. Sheet (biconomy/rr) currently sets `topProximityPx: 80`, `idleMs: 2000`, `glideDurationMs: 800` (= `--dur-glide`), and `dockOffsetPx: 2` (corrects a 2px visual gap between ChapterMarker and ProjectMarker after dock). Marks consumers leave all four undefined to keep the original 150ms / 500ms / no-proximity behavior.
+- **Tokens, not magic.** Glide duration reads from `--dur-settle` at call time; ratio (0.72) and idle (150ms) are constants in the file — change them there, not at call sites.
+- **Conflicts to watch.** Programmatic scrolls from elsewhere (TransitionSlot, anchor jumps) can land mid-section. The 150ms idle means the snap will glide-correct them; if that's unwanted, exclude that section or guard the consumer.
+
 ---
 
 ## Tab-switch motion tokens

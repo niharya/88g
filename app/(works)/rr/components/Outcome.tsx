@@ -531,7 +531,7 @@ export default function Outcome() {
                 <p className="rr-rule-resolving-intro">Card effects are resolved in the following order</p>
               </div>
               <div className="rr-rule-resolving-icon">
-                <img src="/images/rr/rr-resolving-icon.png" alt="" />
+                <img src="/images/rr/rr-resolving-icon.webp" alt="" />
               </div>
             </div>
             <div className="rr-rule-resolving-bottom">

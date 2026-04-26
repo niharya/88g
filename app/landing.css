@@ -60,16 +60,6 @@
   overflow: hidden;
   height: 900px;
   transition: height var(--dur-settle) var(--ease-paper);
-
-  /* Font gate — matches the .workbench reveal. Root layout adds
-     .fonts-ready to <html> once web fonts load. */
-  opacity: 0;
-}
-html.fonts-ready .landing {
-  opacity: 1;
-  transition:
-    opacity var(--dur-settle) var(--ease-paper),
-    height  var(--dur-settle) var(--ease-paper);
 }
 
 .landing--expanded {
@@ -122,9 +112,6 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   opacity: 0;
   -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 4%);
           mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 4%);
-}
-
-html.fonts-ready .landing-pattern-bg {
   animation: landing-pattern-reveal var(--dur-glide) var(--ease-paper) forwards;
 }
 
@@ -400,19 +387,12 @@ html.fonts-ready .landing-pattern-bg {
   flex-direction: column;
   justify-content: center;
 
-  /* Load entrance — a subtle glide-up, gated by .fonts-ready so it fires on
-     every mount (hard loads AND client-side navigations back from /selected).
-     CSS transitions wouldn't re-fire on nav since fonts-ready is already set
-     by the time the component mounts; an animation with paused→running via
-     animation-play-state plays every time. Default: glide up. When arriving
-     back from /selected (.landing--slide-in), the keyframe swaps to a
-     glide-from-left so the return reads as a directional slide. */
+  /* Load entrance — a subtle glide-up that fires on every mount (hard loads
+     AND client-side navigations back from /selected). CSS animations re-run
+     on element mount, so no gating is needed. Default: glide up. When
+     arriving back from /selected (.landing--slide-in), the keyframe swaps to
+     a glide-from-left so the return reads as a directional slide. */
   animation: hero-glide-up var(--dur-glide) var(--ease-paper) both;
-  animation-play-state: paused;
-}
-
-html.fonts-ready .hero-card__bg {
-  animation-play-state: running;
 }
 
 @keyframes hero-glide-up {
@@ -526,11 +506,6 @@ html.fonts-ready .hero-card__bg {
      (hero is z:10, landing__content z:5) and slides down into view once
      the card has landed. Plays on every mount via animation-play-state. */
   animation: works-tuck-out var(--dur-settle) var(--ease-paper) 0.45s both;
-  animation-play-state: paused;
-}
-
-html.fonts-ready .landing-nav-row {
-  animation-play-state: running;
 }
 
 @keyframes works-tuck-out {
@@ -565,11 +540,6 @@ html.fonts-ready .landing-nav-row {
      about cards travel with the hero on first mount instead of sitting still
      while the hero slides over them (which caused a hard-refresh glimpse). */
   animation: hero-glide-up var(--dur-glide) var(--ease-paper) both;
-  animation-play-state: paused;
-}
-
-html.fonts-ready .about-card {
-  animation-play-state: running;
 }
 
 .landing--slide-in .about-card {

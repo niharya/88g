@@ -1,13 +1,14 @@
 {
   "name": "portfolio",
-  "version": "0.54.0",
+  "version": "0.56.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "prebuild": "node scripts/generate-image-manifest.mjs",
     "build": "next build",
     "start": "next start",
-    "lqip": "node scripts/generate-image-manifest.mjs"
+    "lqip": "node scripts/generate-image-manifest.mjs",
+    "optimize-images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

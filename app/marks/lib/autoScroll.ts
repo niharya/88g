@@ -43,7 +43,7 @@
 
 import { animate, motionValue, type AnimationPlaybackControls } from 'framer-motion'
 import { CRUISE_SPRING } from '@/app/lib/motion'
-import { isGlideActive } from './scrollGlide'
+import { isGlideActive } from '../../lib/scrollGlide'
 
 // Tuning constants. 3.5 vh/s was chosen after 5 vh/s read as a touch fast —
 // at a 900px viewport this is ~31 px/s, roughly one line of essay per

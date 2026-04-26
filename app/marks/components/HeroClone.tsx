@@ -24,7 +24,7 @@
 // `distToNearestHero` logic.
 
 import { useCallback, useRef } from 'react'
-import { useDominanceSnap } from './hooks/useDominanceSnap'
+import { useDominanceSnap } from '../../components/hooks/useDominanceSnap'
 import { startAutoScroll } from '../lib/autoScroll'
 
 export default function HeroClone() {

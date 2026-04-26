@@ -28,7 +28,7 @@ export default function RRPage() {
       <div className="sheet-stack">
         {chapters.map(chapter => (
           <Fragment key={chapter.id}>
-            <Sheet chapter={chapter} chapters={chapters}>
+            <Sheet chapter={chapter} chapters={chapters} snap={chapter.id !== 'mechanics'}>
               {chapter.id === 'intro'      && <Intro />}
               {chapter.id === 'mechanics' && <Mechanics />}
               {chapter.id === 'cards'     && <Cards />}

@@ -27,10 +27,10 @@ const CLICK_SPREAD = 22
 const CLICK_LIFT = -36
 
 const CARDS = [
-  { v: 'v1', src: '/images/rr/rr-card-v1.png', caption: 'The very first hand-drawn concept' },
-  { v: 'v2', src: '/images/rr/rr-card-v2.png', caption: 'Added energy and name' },
-  { v: 'v3', src: '/images/rr/rr-card-v3.png', caption: 'Added conditional effects' },
-  { v: 'v4', src: '/images/rr/rr-card-v4.png', caption: 'First printed version' },
+  { v: 'v1', src: '/images/rr/rr-card-v1.webp', caption: 'The very first hand-drawn concept' },
+  { v: 'v2', src: '/images/rr/rr-card-v2.webp', caption: 'Added energy and name' },
+  { v: 'v3', src: '/images/rr/rr-card-v3.webp', caption: 'Added conditional effects' },
+  { v: 'v4', src: '/images/rr/rr-card-v4.webp', caption: 'First printed version' },
   { v: 'v5', src: '/images/rr/rr-card-v5.png', caption: 'Final digital design' },
 ] as const
 

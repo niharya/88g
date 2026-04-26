@@ -86,7 +86,7 @@ export default function Multiverse() {
       <div className="multiverse__poster-col">
         <Img
           ref={posterRef}
-          src="/images/biconomy/multiverse_poster.png"
+          src="/images/biconomy/multiverse_poster.webp"
           alt="Multiverse"
           className="multiverse__poster"
           draggable={false}

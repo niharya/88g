@@ -6,8 +6,8 @@ import path from 'node:path'
 const SAMPLES = [
   { label: 'UI mockup', src: '/images/rr/rr-card-v5.png' },
   { label: 'Sketch',    src: '/images/rr/rr-sketch-1.jpg' },
-  { label: 'Photo',     src: '/images/biconomy/sa/design-team-bico.jpg' },
-  { label: 'Poster',    src: '/images/biconomy/multiverse_poster.png' },
+  { label: 'Photo',     src: '/images/biconomy/sa/design-team-bico.webp' },
+  { label: 'Poster',    src: '/images/biconomy/multiverse_poster.webp' },
 ]
 
 const ROOT = path.resolve('public')

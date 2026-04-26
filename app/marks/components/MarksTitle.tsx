@@ -31,7 +31,7 @@
 
 import { useEffect, useRef } from 'react'
 import { MARKS } from '../data/marks'
-import { scrollGlide } from '../lib/scrollGlide'
+import { scrollGlide } from '../../lib/scrollGlide'
 
 const DOMINANT_COMMIT  = 0.55  // overlap fraction to claim the title
 const DOMINANT_RELEASE = 0.45  // overlap fraction below which the claim releases
