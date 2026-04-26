@@ -14,7 +14,7 @@
 // is here; the canvas stays empty until there's a reason.
 
 import { useRef } from 'react'
-import { useDominanceSnap } from './hooks/useDominanceSnap'
+import { useDominanceSnap } from '../../components/hooks/useDominanceSnap'
 
 export default function BlankSection() {
   const ref = useRef<HTMLElement>(null)

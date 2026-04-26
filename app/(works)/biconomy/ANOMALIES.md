@@ -75,6 +75,28 @@ during the reveal entrance on all biconomy sections.
 **What breaks if the inline shadow is removed:** surface shadow does not respond
 to scroll position; cards feel static during reading.
 
+### Chapter dominance-snap (v0.55.0)
+
+All six biconomy chapters opt in to `useDominanceSnap` via `<Sheet snap>` in [page.tsx](page.tsx). On **2 seconds** of scroll-idle, if a chapter's top edge is within **80px** of the dock position **and** ≥72% of the section is visible, the page glides to the chapter's top over **800ms** with `--ease-paper`. Mid-chapter scrolling does not snap — the tight 80px proximity gate keeps tall chapters from yanking the reader back to the top during a long read, and the 2s idle keeps brief reading pauses from triggering anything.
+
+**Why these numbers (calibrated 2026-04).** /marks defaults (150ms idle, 500ms glide, no proximity) felt aggressive on long-form chapters: snap fired during reading pauses and snapped readers back to the top after they scrolled a little past the dock. Current tuning:
+- `idleMs: 2000` — a real "I've stopped" stop, not a brief pause.
+- `topProximityPx: 80` — once you scroll ~80px past the dock, the snap zone is gone; no snap-back.
+- `glideDurationMs: 800` — `--dur-glide`. Gentler than marks' settle but still on token.
+- `dockOffsetPx: 2` — without this 2px nudge the ChapterMarker visually rests just below the ProjectMarker after dock; with it, they coincide.
+
+**Why a proximity gate, not just dominance.** /marks sections are exactly 100vh, so the dominance check alone is enough. Biconomy chapters are 1500–2200px tall in a 900px viewport — without the proximity gate, dominance stays true for ~one viewport's worth of body scroll. The gate restricts snap to chapter-boundary territory.
+
+**Why JS snap, not CSS `scroll-snap-type`.** CSS native snap fights the paper-easing motion vocabulary (Native ease ≠ `--ease-paper`). The hook-based path goes through `scrollGlide` and stays consistent with every other transition.
+
+**What breaks if `snap` is removed:** chapters no longer settle on the viewport top; readers can leave a chapter half-on-screen indefinitely.
+
+**What breaks if the proximity gate is dropped:** mid-chapter scroll-stops trigger a snap-back to the chapter top — destroys reading.
+
+**Coupling with Sheet.tsx scroll-linked surface reveal.** The first `.surface` per chapter receives a scroll-linked transform/shadow via `useMotionValueEvent` (Sheet.tsx). The dominance-snap glide writes scrollY, which fires scroll events and updates that motion value — both systems coexist because the surface reveal completes well before snap considers firing (idle = 2000ms scroll-stop).
+
+**TransitionSlot interaction.** Unlike `useReveal`, `useDominanceSnap` does not gate itself on `.workbench.transitioning`. It doesn't need to: route transitions are short relative to the 2s idle window, so snap cannot fire mid-transition. If transitions are ever lengthened past ~1.8s or the idle is shortened, gate the hook explicitly.
+
 ### API card images use `fill` mode, not `intrinsic`
 
 `.api__card-img` (the slide images inside `.api__card-frame`) is wired with `<Img fill />` so the wrapper covers the full 4:3 black monitor frame; `object-fit: contain` on `.img.api__card-img .img__inner` letterboxes the image inside it. **Do not switch back to `intrinsic`** — that mode shrinks the wrapper to the image's natural dimensions and exposes the frame's black background as a wide bezel around the screenshot. The `--raw` variant (Navigation & Signing flow) reuses the same `fill + contain` setup; the 1px grey border on `.api__stack-wrap--raw .api__card-img` outlines the wrapper rect, which is acceptable because the raw frame strips the black bg / shadow / border.
