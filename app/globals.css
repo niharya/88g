@@ -266,6 +266,123 @@
   opacity: 1;
 }
 
+/* ── Font gate ───────────────────────────────────────────────────────────
+   Top-level surfaces are held invisible until `.fonts-ready` lands on
+   <html>. The script in app/layout.tsx adds the class either when
+   document.fonts.ready resolves or when an 800 ms cap fires (whichever
+   first), so users with normal-speed connections never see fallback
+   metrics, and users on slow connections see the page within 1 second
+   even if Material Symbols hasn't finished loading. The .page-boot
+   startooth lives outside these gated surfaces, so it remains visible
+   during the hold. */
+.landing,
+.workbench,
+.route-marks {
+  opacity: 0;
+}
+html.fonts-ready .landing,
+html.fonts-ready .workbench,
+html.fonts-ready .route-marks {
+  opacity: 1;
+  transition: opacity var(--dur-settle) var(--ease-paper);
+}
+
+/* ── Page boot — patience mark ───────────────────────────────────────────
+   During the gate hold, the page surfaces above are invisible. Instead of
+   showing blank paper, a centered startooth fades in ~200 ms after mount
+   (so fast loads never flash it) and fades out when `.fonts-ready`
+   applies. The mark recolours per route via CSS vars below. */
+.page-boot {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  animation: page-boot-in var(--dur-slide) var(--ease-paper) 200ms forwards;
+}
+
+.page-boot__mark {
+  width: 56px;
+  height: auto;
+  display: block;
+}
+
+.startooth__diamond {
+  stroke: var(--startooth-stroke, #31abcc);
+  fill: none;
+}
+.startooth__base {
+  stroke: var(--startooth-stroke, #31abcc);
+  fill: var(--startooth-fill, #d9d9d9);
+}
+
+:root:has(.route-biconomy) {
+  --startooth-stroke: var(--blue-560);
+  --startooth-fill: var(--grey-960);
+}
+:root:has(.route-rr) {
+  --startooth-stroke: var(--terra-560);
+  --startooth-fill: var(--grey-960);
+}
+:root:has(.selected-workbench) {
+  --startooth-stroke: var(--blue-800);
+  --startooth-fill: var(--blue-80);
+}
+:root:has(.landing) {
+  --startooth-stroke: #bb4311;
+  --startooth-fill: #d76a36;
+}
+/* /marks sits on a black field — startooth stroke goes white, diamond
+   fill picks up the lightest grey token so the mark reads as paper-on-
+   void, matching the Hero palette. The `#fff` and `#000` literals are
+   deliberate: the grey palette tops out at #F5F5F5 (--grey-960) and
+   bottoms at #141414 (--grey-80). Pure-white/-black aren't tokens — do
+   not "fix" these to the nearest grey. */
+:root:has(.route-marks) {
+  --startooth-stroke: #ffffff;
+  --startooth-fill: var(--grey-960);
+  background: #000;
+}
+
+html.fonts-ready .page-boot {
+  animation: page-boot-out var(--dur-slide) var(--ease-paper) forwards;
+}
+
+@keyframes page-boot-in {
+  to { opacity: 1; }
+}
+
+@keyframes page-boot-out {
+  to { opacity: 0; }
+}
+
+/* Material Symbols ligature class.
+   Spans with class="material-symbols-rounded" carry an icon name as text
+   content (e.g. "arrow_forward"). The rule below maps that class onto the
+   self-hosted symbol font and switches on `liga` so the ligature replaces
+   the literal text with the glyph. Pre-v0.56 this rule was supplied by
+   the external Google Fonts <link>; when the link was removed for self-
+   hosting, the rule went with it and every icon rendered as the literal
+   word until v0.59 restored it here. */
+.material-symbols-rounded {
+  font-family: var(--font-symbols);
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'liga';
+}
+
 
 /* ==========================================================================
    Reset
@@ -393,10 +510,10 @@ p, li {
   --ease-snap:        cubic-bezier(0.45, 0, 0.15, 1);
 
   --dur-instant:      0.1s;
-  --dur-fast:         0.15s;
-  --dur-slide:        0.2s;
-  --dur-settle:       0.35s;
-  --dur-glide:        0.5s;
+  --dur-fast:         0.175s;
+  --dur-slide:        0.25s;
+  --dur-settle:       0.425s;
+  --dur-glide:        0.65s;
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);
@@ -519,8 +636,8 @@ p, li {
   opacity: 0;
   transform: translateY(var(--reveal-y, 32px));
   transition:
-    opacity   0.7s var(--ease-paper),
-    transform 0.8s var(--ease-paper);
+    opacity   var(--dur-glide) var(--ease-paper),
+    transform var(--dur-glide) var(--ease-paper);
   transition-delay: var(--reveal-delay, 0s);
 }
 
@@ -537,9 +654,9 @@ p, li {
   transform: translateY(16px) rotate(var(--place-rotate, 0deg));
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   transition:
-    opacity    0.7s var(--ease-paper),
-    transform  0.7s var(--ease-paper),
-    box-shadow 0.9s var(--ease-paper);
+    opacity    var(--dur-glide) var(--ease-paper),
+    transform  var(--dur-glide) var(--ease-paper),
+    box-shadow var(--dur-glide) var(--ease-paper);
   transition-delay: calc(var(--reveal-delay, 0s) + 0.15s);
 }
 
@@ -554,8 +671,8 @@ p, li {
   opacity: 0;
   transform: translateY(-8px);
   transition:
-    opacity   0.5s var(--ease-paper),
-    transform 0.5s var(--ease-paper);
+    opacity   var(--dur-settle) var(--ease-paper),
+    transform var(--dur-settle) var(--ease-paper);
   transition-delay: calc(var(--reveal-delay, 0s) + 0.25s);
 }
 

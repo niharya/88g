@@ -320,58 +320,58 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/rr/rr-card-v1.png": {
     "dominantColor": "rgb(200, 232, 216)",
-    "thumbHash": "8ceFDAAe9vdnuGeCXr+XJYBbUJCHN4h5Aw==",
-    "width": 225,
-    "height": 309,
+    "thumbHash": "8ceFDAAe9vdnuGeCXr+XJYBLQJCHN4h5Aw==",
+    "width": 449,
+    "height": 617,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v1.webp": {
-    "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "8ceBAwA0pouVCGf0izkEqChnd4hwi4g=",
-    "width": 2268,
-    "height": 4032,
+    "dominantColor": "rgb(184, 216, 216)",
+    "thumbHash": "8ceFDAAe5vdnqGeDXr+nRIBLQJCGJ4h5Ag==",
+    "width": 449,
+    "height": 617,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v2.png": {
     "dominantColor": "rgb(184, 216, 216)",
-    "thumbHash": "sseBBAAetPZ4Z3ibJz/o9YdeULB4OIh7Aw==",
-    "width": 229,
-    "height": 313,
+    "thumbHash": "sseBBAAepPZ4Z3ibJz/o9YdeULB4OIh7Aw==",
+    "width": 457,
+    "height": 626,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v2.webp": {
-    "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "sseBAwA0Vnx1CJjxhF2PuChnd4hwi4g=",
-    "width": 2268,
-    "height": 4032,
+    "dominantColor": "rgb(184, 216, 216)",
+    "thumbHash": "sseBBAAehPZ3V3iLNj/o9YddULCIOIh7Aw==",
+    "width": 457,
+    "height": 626,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v3.png": {
     "dominantColor": "rgb(184, 216, 216)",
     "thumbHash": "sreBBAAe9XaXqEeKVT+29q1aULB4OIh7Aw==",
-    "width": 226,
-    "height": 313,
+    "width": 452,
+    "height": 625,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v3.webp": {
-    "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "sreBAwA15HOM+Tj1ZHm/uCdYeYeAa3g=",
-    "width": 2268,
-    "height": 4032,
+    "dominantColor": "rgb(184, 216, 216)",
+    "thumbHash": "sreBDAAe83WouDeLVD/G95tbULB4OIh7Aw==",
+    "width": 452,
+    "height": 625,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v4.png": {
     "dominantColor": "rgb(232, 216, 152)",
-    "thumbHash": "pzmKDAIeNrdnB4d6QdUG94dOQMCIKIh8Ag==",
-    "width": 229,
-    "height": 316,
+    "thumbHash": "pzmKDAIeNrdnB4d6UdUG94dOQMCIKIh8Ag==",
+    "width": 458,
+    "height": 632,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v4.webp": {
-    "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "qDmCAwA0V3lGZ/g0fXBv2Ch3d4hwjJg=",
-    "width": 2268,
-    "height": 4032,
+    "dominantColor": "rgb(232, 216, 152)",
+    "thumbHash": "pzmKDAIeNrdnB4d7QdUG94deUMCIOIh7Aw==",
+    "width": 458,
+    "height": 632,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v5-art.png": {
@@ -383,23 +383,44 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/rr/rr-card-v5.png": {
     "dominantColor": "rgb(24, 24, 72)",
-    "thumbHash": "lTeGKwoemoH4hoeXcH0HuAYGe3eDtzc=",
-    "width": 214,
-    "height": 316,
+    "thumbHash": "lTeGKwoemoH4hoeXcH0HuAUFe3eDtzc=",
+    "width": 427,
+    "height": 632,
+    "hasAlpha": true
+  },
+  "/images/rr/rr-card-v5.webp": {
+    "dominantColor": "rgb(24, 24, 72)",
+    "thumbHash": "lTeGKwoeioH4hoeXcH0HuAUFfHeDtzc=",
+    "width": 427,
+    "height": 632,
+    "hasAlpha": true
+  },
+  "/images/rr/rr-hand-deck-fan.png": {
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "4BiGDYI2rKadVk8gJjVwWgSHCYeIeHJ5dw==",
+    "width": 907,
+    "height": 886,
     "hasAlpha": true
   },
   "/images/rr/rr-hand-deck-fan.webp": {
     "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "3yiGCwQ2a3rIBRdJYI0FtidmZpiQWac=",
-    "width": 2268,
-    "height": 4032,
+    "thumbHash": "4CiGDAI1i5aK9SZaZARmRmCVcKl4SJd0Bw==",
+    "width": 939,
+    "height": 1170,
     "hasAlpha": true
   },
   "/images/rr/rr-interface-desktop.png": {
     "dominantColor": "rgb(120, 120, 136)",
-    "thumbHash": "XAeKFIIPqLdpZYBNyNgHeW/z8IB3eHiIBw==",
-    "width": 897,
-    "height": 638,
+    "thumbHash": "XAeKFIIPqLh4dJBNyNgHeW/z8IB3eHiIBw==",
+    "width": 1896,
+    "height": 1348,
+    "hasAlpha": true
+  },
+  "/images/rr/rr-interface-desktop.webp": {
+    "dominantColor": "rgb(120, 120, 136)",
+    "thumbHash": "XAeKFIIPqLh4dJBNyMgHeW/y8HB4eHiHBw==",
+    "width": 1896,
+    "height": 1348,
     "hasAlpha": true
   },
   "/images/rr/rr-resolving-icon.webp": {

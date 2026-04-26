@@ -18,7 +18,7 @@
   src: url('/images/rr/GeistPixel-Grid.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 
 
@@ -206,6 +206,12 @@
   outline-offset: 2px;
 }
 
+.rr-story-card__expand-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 /* Story text */
 .rr-story-card__body {
   display: flex;
@@ -257,15 +263,15 @@
   position: absolute;
   display: block;
   object-fit: cover;
-  background: white;
+  /* No bounding-box fill — sketch art is already cropped clean. */
   transform-origin: bottom left;
   transition:
-    width      0.42s var(--ease-paper),
-    height     0.42s var(--ease-paper),
-    left       0.42s var(--ease-paper),
-    top        0.42s var(--ease-paper),
-    transform  0.42s var(--ease-paper),
-    box-shadow 0.42s var(--ease-paper);
+    width      var(--dur-settle) var(--ease-paper),
+    height     var(--dur-settle) var(--ease-paper),
+    left       var(--dur-settle) var(--ease-paper),
+    top        var(--dur-settle) var(--ease-paper),
+    transform  var(--dur-settle) var(--ease-paper),
+    box-shadow var(--dur-settle) var(--ease-paper);
 }
 
 /* Collapsed: stacked fan from pivot (sketch aspect ratios preserved) */
@@ -362,9 +368,9 @@
 
 .rr-story-card {
   transition:
-    box-shadow 0.6s var(--ease-paper),
-    filter 0.3s ease,
-    scale 0.3s ease;
+    box-shadow var(--dur-glide)  var(--ease-paper),
+    filter     var(--dur-slide)  var(--ease-paper),
+    scale      var(--dur-slide)  var(--ease-paper);
 }
 
 .rr-canvas:has([data-enlarged]) .rr-story-card {
@@ -826,11 +832,19 @@
   overflow: visible;
   /* Yellow paper background for story state */
   background: url('/images/rr/story-yellow-bg.png') center / cover no-repeat, var(--yellow-100);
+  /* Toggle settle — sheet rotates -1deg in story view, +1deg in structure
+     view, with a subtle overshoot to mirror the paper-physical settle used
+     elsewhere (train ticker, Flows nav). `rotate:` (the standalone CSS
+     property, not `transform`) is used so useMatSettle's scroll-driven
+     `transform` on the same element stays untouched. */
+  rotate: -1deg;
+  transition: rotate var(--dur-settle) cubic-bezier(0.34, 1.18, 0.64, 1);
 }
 
 /* Terra paper background for structure state */
 .rr-story-card--mechanics.rr-story-card--structure {
   background: url('/images/rr/story-terra-bg.png') center / cover no-repeat, var(--terra-100);
+  rotate: 1deg;
 }
 
 .rr-story-card--mechanics::before {
@@ -920,8 +934,12 @@
    must be re-tuned to preserve the clip. */
 .rr-story-card__deck-fan {
   position: absolute;
+  /* Live calibration (matches main @ v0.58 and earlier). The image at
+     /images/rr/rr-hand-deck-fan.webp is intentionally the same 939×1170
+     asset that ships on production, so these values render the fan as
+     it appears on the live site. Don't drift. */
   bottom: -150px;
-  left: -60px;
+  left: -100px;
   width: 307px;
   height: auto;
   line-height: 0;
@@ -929,14 +947,30 @@
   pointer-events: none;
   user-select: none;
   transform-origin: 50% 95%;
+  /* Rotation rebased +15° clockwise from the live calc. The live asset has
+     a 15° clockwise rotation baked into the pixels; the new image at
+     /images/rr/rr-hand-deck-fan.webp doesn't, so the CSS rotation has
+     to compensate. End-of-scroll = 0deg (upright), start = -8deg (gentle
+     incoming tilt). Same 8° scroll-driven nudge as live.
+     Scale settles at 1.3 (rest 1.1) so the fan reads at the larger
+     footprint older versions had. */
   transform:
-    rotate(calc(-23deg + 8deg * var(--rr-mech-progress, 0)))
-    scale(calc(0.8 + 0.2 * var(--rr-mech-progress, 0)));
-  /* Suppress in structure view — story-only overlay. */
+    rotate(calc(-8deg + 8deg * var(--rr-mech-progress, 0)))
+    scale(calc(1.1 + 0.2 * var(--rr-mech-progress, 0)));
+  /* Story → Structure: hand slides down and fades. Returning to story
+     slides it back up. `translate:` (standalone) lets the existing scroll
+     `transform` keep its rotate/scale logic intact. Bounce eases mirror
+     the card's rotate so the two motions feel like one settle. */
+  translate: 0 0;
+  transition:
+    translate var(--dur-settle) cubic-bezier(0.34, 1.18, 0.64, 1),
+    opacity   var(--dur-slide)  var(--ease-paper);
 }
 
+/* Hand slides down and away in structure view. */
 .rr-story-card--structure .rr-story-card__deck-fan {
-  display: none;
+  translate: 0 80%;
+  opacity: 0;
 }
 
 .img.rr-story-card__deck-fan .img__inner {
@@ -1067,21 +1101,77 @@
 }
 
 
-/* ── Story / Structure view swap ────────────────────────────────────────── */
+/* ── Story / Structure view swap (button-press feedback) ────────────────
+   On every toggle, the whole mechanics card briefly pushes IN on the
+   z-axis and comes BACK OUT — the same tactile cue you get from
+   pressing a physical button. The two tab views (body and structure)
+   crossfade underneath without any independent depth motion of their
+   own; the depth lives on the parent so the press reads as the user's
+   click landing on the surface itself.
+
+   How it's wired:
+     - .rr-mech-stage carries `perspective` so any translateZ on its
+       descendants (the card) resolves as actual depth.
+     - .rr-story-card--mechanics runs the `card-press` keyframe animation
+       on every toggle. The animation pushes the card to translateZ(-32)
+       at its midpoint and returns to 0 at the end. Trigger is a React-
+       driven `is-pressing` class added on isStructure changes
+       (StoryCard.tsx). The class auto-removes after the animation
+       window so the next toggle re-runs the keyframe cleanly.
+     - The body and structure views just opacity-swap. No translateZ.
+       Both stay in the DOM; pointer-events gate clicks. */
+
+/* 3D context for the button-press pulse on the mechanics story card.
+   Lives on `.rr-mat--secondary` rather than `.rr-mech-stage` because
+   each non-`preserve-3d` ancestor between perspective and the
+   transformed element flattens the 3D coordinate space. The mat is
+   the card's direct parent, so the perspective applied here actually
+   reaches the card's `translate: 0 0 -32px` keyframe. */
+.rr-mat--secondary {
+  perspective: 800px;
+}
 
 .rr-story-card__structure {
-  display: none;
-}
-.rr-story-card--structure .rr-story-card__body,
-.rr-story-card--structure .rr-north-star-card {
-  display: none;
-}
-.rr-story-card--structure .rr-story-card__structure {
   display: flex;
   flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-snap);
 }
+.rr-story-card__body {
+  opacity: 1;
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+.rr-story-card--structure .rr-story-card__structure {
+  opacity: 1;
+  pointer-events: auto;
+}
+.rr-story-card--structure .rr-story-card__body,
+.rr-story-card--structure .rr-north-star-card,
 .rr-story-card--structure .rr-story-card__dotted-path {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+.rr-north-star-card,
+.rr-story-card__dotted-path {
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+
+/* Button-press pulse — the whole card recedes briefly then comes back.
+   Animates the standalone `translate:` property so the existing
+   `transform:` (useMatSettle is on .rr-story-card via separate `scale:`
+   and `filter:`) and `rotate:` (toggle ±1deg) properties stay
+   uncontested. Animation duration straddles --dur-slide (0.25s) and
+   --dur-settle (0.425s) so the press has time to register before the
+   crossfade finishes; ease-out so it feels like a release, not a snap. */
+.rr-story-card--mechanics.is-pressing {
+  animation: rr-card-press var(--dur-settle) var(--ease-paper);
+}
+
+@keyframes rr-card-press {
+  0%   { translate: 0 0 0; }
+  45%  { translate: 0 0 -16px; }
+  100% { translate: 0 0 0; }
 }
 
 
@@ -1101,7 +1191,7 @@
   font-weight: 400;
   font-size: 24px;
   letter-spacing: 0;
-  color: var(--terra-560);
+  color: var(--terra-720);
   margin-bottom: 32px;
 }
 
@@ -1115,14 +1205,16 @@
 }
 
 .rr-mono-label {
-  font-family: 'Geist Pixel', monospace;
+  font-family: var(--font-mono);
+  /* Matches body weight (400) so the section labels read as comments
+     against the list, not as section titles. */
   font-weight: 400;
   font-size: 12px;
   letter-spacing: 0;
   margin-bottom: 6px;
 }
-.rr-mono-label--mech { color: var(--yellow-560); }
-.rr-mono-label--dyn  { color: var(--terra-560); }
+.rr-mono-label--mech { color: var(--yellow-720); }
+.rr-mono-label--dyn  { color: var(--terra-720); }
 
 .rr-mono-list {
   list-style: none;
@@ -1131,23 +1223,27 @@
 }
 
 .rr-mono-list li {
-  font-family: 'Geist Pixel', monospace;
+  font-family: var(--font-mono);
   font-weight: 400;
   font-size: 12px;
   letter-spacing: 0;
   line-height: 1.4;
   color: var(--yellow-800);
   padding: 5px 0;
-  border-top: 1px dashed var(--yellow-320);
+  border-top: 1px dashed var(--yellow-400);
 }
 
 .rr-mono-list--terra li {
   color: var(--terra-800);
-  border-top-color: var(--terra-320);
+  border-top-color: var(--terra-400);
 }
 
+/* Dynamics opening line — was italic; now upright with a heavier weight so
+   it still leads the list without leaning. Google Sans Code's wght axis
+   covers 300–800; 700 reads as a clear lead against the 400 body. */
 .rr-mono-item--bold {
-  font-style: italic;
+  font-style: normal;
+  font-weight: 700;
 }
 
 

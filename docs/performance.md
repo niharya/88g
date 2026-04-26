@@ -19,13 +19,13 @@ one was, at some point, a real regression that took a real user-visible hit.
 - `fallback: [...]` arrays carry the system fallback chain (e.g. `system-ui`, `-apple-system`) on every `localFont()` call. next/font uses these to generate a metric-adjusted fallback face, minimising layout shift on swap.
 - `preload: true` only on fonts used by the **landing page** (Fraunces, Google Sans, Google Sans Flex). Others (`code`, `symbols`) get `preload: false` so they don't bloat the landing critical path.
 - `globals.css` **must not** redeclare the `--font-*` variables in `:root`. next/font sets them on `<html>` to hashed family names that scope the generated `@font-face` rules — redeclaring with literal names (`'Fraunces'`, `'Google Sans'`, …) detaches the cascade from the loaded woff2 files. Pages then fall back to whatever's installed locally, which on mobile is nothing — system serif/sans-serif renders. This was the v0.56 → v0.58 mobile-fonts regression.
+- **Bounded font gate (v0.59).** Top-level surfaces (`.landing`, `.workbench`, `.route-marks`) carry `opacity: 0` until `<html>` gains the `.fonts-ready` class. The gate script in `app/layout.tsx` adds the class either when `document.fonts.ready` resolves or when an **800 ms cap** fires — whichever first. The startooth `.page-boot` mark is sibling to the gated surfaces and remains visible during the hold. Result: typography fonts almost always finish within 800 ms and the page reveals with real fonts (no FOUT); on slow connections, the cap releases the page within 1 second and Material Symbols continues to load in the background. The cap is also the implicit filter that stops the gate from waiting on the 1.18 MB symbol font.
 
 **Banned:**
 
-- `display: 'block'` on any primary font. It hides text for up to 3 s; on slow mobile that's a blank page. The v0.56 attempt to use `'block'` to "prevent FOUT" produced 3-second blanks and Material-Symbols ligature words flashing in as fallback text. `'swap'` is the modern best practice — accept the brief FOUT.
-- The 3-second JS font-gate that holds the page at `opacity: 0`. We removed it. Do not bring it back.
+- `display: 'block'` on any primary font. It hides text for up to 3 s; on slow mobile that's a blank page. The v0.56 attempt to use `'block'` to "prevent FOUT" produced 3-second blanks and Material-Symbols ligature words flashing in as fallback text. `'swap'` + the bounded gate is the right answer.
+- An **uncapped** JS font-gate that holds the page at `opacity: 0` until `document.fonts.ready` (the pre-v0.56 behaviour with a 3 s ceiling). The current gate is bounded at 800 ms — do not raise the cap past ~1000 ms. Past 1 s users start to wonder.
 - External `<link rel="stylesheet">` to Google Fonts for **the five primary fonts** (display, body, ui, mono, symbols). DNS lookup + two-stage waterfall + non-deterministic timing.
-- `.fonts-ready` / `.page-boot` class hooks. They were removed in the perf migration; if you find yourself wanting one, you're solving a problem the new font setup already solved.
 - Redeclaring `--font-display` / `--font-body` / `--font-ui` / `--font-mono` / `--font-symbols` in `globals.css` (see contract above).
 
 **Documented exception — `/rr` route-decorative fonts.**

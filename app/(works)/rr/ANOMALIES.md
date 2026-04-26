@@ -572,3 +572,48 @@ Both consumers route the override through `.img.<class> .img__inner { object-fit
 ## `rr-hand-deck-fan.webp` placeholder is auto-resolved
 
 The deck-fan asset (`/images/rr/rr-hand-deck-fan.webp`) is transparent. The `Img` primitive's default placeholder is `hasAlpha`-aware — opaque assets get `'color'`, transparent ones get `'none'`. `StoryCard.tsx` does **not** pass an explicit `placeholder` prop and that is intentional: a `'color'` placeholder would paint a dark `rgb(8, 8, 8)` rectangle behind the fan and bleed through every transparent pixel. If you ever need to override (e.g. a debug pass), use `placeholder="none"` — never `'color'` — and remember to remove it once done so the auto-default keeps protecting future swaps.
+
+---
+
+## Mechanics card sheet rotation uses `rotate:`, not `transform:`
+
+Lives in `app/(works)/rr/rr.css` (`.rr-story-card--mechanics` block).
+
+The mechanics story card rotates `-1deg` in the story view and `+1deg` in the structure view, with a subtle overshoot (`cubic-bezier(0.34, 1.18, 0.64, 1)` over `--dur-settle`). This is one of the documented spring deviations alongside the train-ticker and Flows-nav settle.
+
+The rotation is authored on the **standalone `rotate:` property**, not on `transform:`. `useMatSettle` writes scroll-driven transforms onto the same element through inline `transform`; if we wrote the toggle rotation to `transform` too, one or the other would win at any given frame. `rotate:`/`scale:`/`translate:` are independent transform properties that compose with `transform:`, so both motions coexist.
+
+The same pattern is used on `.rr-story-card__deck-fan`: its scroll-driven `transform` keeps the rotate/scale logic, and the toggle slide-out lives on `translate: 0 80%; opacity: 0`. Do not consolidate either back onto `transform:` without also re-pathing `useMatSettle`.
+
+---
+
+## RulesRail first-visit open is gated on `.rr-game-board` intersection
+
+Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/components/RulesRail.tsx`.
+
+The first-visit rules overlay (rules slide out, stay open, dismiss on Start Game) used to fire on a 1-second mount-time `setTimeout` — meaning rules opened before the user had even scrolled to the mechanics section. v0.59 replaced that with an `IntersectionObserver` on `.rr-game-board`:
+
+- **`threshold: 0.6`** is load-bearing. Lower thresholds fire while the gameboard is still mostly off-screen; higher ones miss on viewports where the board never crosses 80%+. 0.6 is the value that fires reliably as the user scrolls the section into the dock.
+- **Single-fire**: `io.disconnect()` after the first `isIntersecting` entry. Without this the rules would re-open every time the user scrolled the gameboard back into view, even after they'd dismissed.
+- The cue is one-way (`gameboardInView`): `RulesRail` opens on it but does **not** close on its inverse. Close still gates only on Start Game / explicit rail click.
+- Mobile is intentionally exempt — the rail is a manual flip-out there; auto-open competes with initial scroll.
+
+Don't replace the IntersectionObserver with a scroll listener or a useScroll progress threshold — both fire continuously and would re-trigger the open after dismissal.
+
+---
+
+## Mechanics card button-press pulse — perspective lives on `.rr-mat--secondary`
+
+Lives in `app/(works)/rr/rr.css` + `app/(works)/rr/components/StoryCard.tsx`.
+
+The story↔structure tab toggle on the mechanics card runs a button-press feedback pulse: the whole card briefly recedes on the z-axis and comes back. Implementation:
+
+- **`.rr-mat--secondary { perspective: 800px }`** — this is the load-bearing constraint. Perspective only resolves a child's `translateZ` as actual depth when no intermediate ancestor flattens the 3D coordinate space. Default `transform-style: flat` means each ancestor without `preserve-3d` collapses 3D back to a flat plane.
+
+  The card's chain is `.rr-mech-stage → .rr-mat--secondary → .rr-story-card--mechanics`. Putting perspective on `.rr-mech-stage` (one level too high) leaves `.rr-mat--secondary` flattening the 3D — the keyframe animates the `translate` value but the visual depth never renders. Perspective on the card's **direct parent** is the only place it actually shows. If you ever move the card under a deeper container, move perspective with it.
+
+- **`rr-card-press` keyframe** animates the standalone `translate:` property (not `transform:`) so it composes with `useMatSettle`'s scroll-driven scale and the toggle's `rotate:`. Recede peak is `translateZ(-16px)` at the 45% keyframe — visually ~2% scale (perspective math: `800/(800+16) = 0.98`). Subtle by design — a press feedback, not a shove.
+
+- **React-driven trigger**: a `useEffect` on `isStructure` adds `is-pressing` to the card and removes it after a 460ms timeout. The timeout = animation duration (`--dur-settle` 425ms) + 35ms margin. First render skips via a ref (`isFirstRenderRef`) so the card doesn't pulse on mount. Cleanup clears the timeout and removes the class so a rapid re-toggle restarts the keyframe cleanly.
+
+Do not raise the keyframe peak past ~`-32px` — past ~5% scale the press stops reading as feedback and starts reading as a depth swap. Do not lower the perspective value below ~600px — too sharp a perspective makes the recede look like a tilt instead of a press.

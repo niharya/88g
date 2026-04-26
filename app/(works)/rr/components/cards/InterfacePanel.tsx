@@ -42,7 +42,7 @@ export default function InterfacePanel() {
       {/* Game screenshot */}
       <div className="rr-interface-desktop">
         <Img
-          src="/images/rr/rr-interface-desktop.png"
+          src="/images/rr/rr-interface-desktop.webp"
           alt="The Arena interface"
           className="rr-interface-desktop__img"
           intrinsic

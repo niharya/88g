@@ -7,6 +7,7 @@ import IconArrowRight from './components/icons/IconArrowRight'
 import SlideInOnNav from './components/SlideInOnNav'
 import NavMarker from './components/NavMarker'
 import CaptionTag from './components/CaptionTag'
+import { ExpandToggle } from './components/ExpandToggle'
 import { getGreeting } from './lib/greeting'
 import './components/nav/nav.css'
 import './components/NavMarker/navmarker.css'
@@ -43,22 +44,6 @@ const PALETTES: Palette[] = [
   { cells: [null,null,null,'#d9c4b6',null,null,null,null,null,null,null,'#bfa99c','#9bb1b7',null,null,null,null,null,'#b38b71','#a58f82','#81979d','#6b9ba8','#4b9eb3','#00a1bf',null,'#a46d46','#987158','#8a7569','#687d83','#50818e','#2d849a',null,'#904f1b','#88532f','#7f573f','#715c4f','#4e646a','#356776',null,null,null,null,null,'#584338','#354b52',null,null,null,null,null,null,null,'#21343a',null,null,null], leftLabel: '#904f1b', rightLabel: '#00a1bf' },
 ]
 
-/* ---- Pill SVG icons ---- */
-function ExpandIcon() {
-  return (
-    <svg className="pill-btn__icon" viewBox="0 0 20 20" fill="none">
-      <path d="M6.77 13.23H9.25c.28 0 .52.1.72.3.2.2.3.44.3.72 0 .28-.1.52-.3.72-.2.2-.44.3-.72.3H5.75c-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72V10.75c0-.28.1-.52.3-.72.2-.2.44-.3.72-.3.28 0 .52.1.72.3.2.2.3.44.3.72v2.48zM13.23 6.77H10.75c-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72 0-.28.1-.52.3-.72.2-.2.44-.3.72-.3h3.5c.28 0 .52.1.72.3.2.2.3.44.3.72v3.5c0 .28-.1.52-.3.72-.2.2-.44.3-.72.3-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72V6.77z" fill="#895804"/>
-    </svg>
-  )
-}
-
-function CollapseIcon() {
-  return (
-    <svg className="pill-btn__icon" viewBox="0 0 20 20" fill="none">
-      <path d="M7.1 12.89H4.62c-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72 0-.28.1-.52.3-.72.2-.2.44-.3.72-.3h3.5c.28 0 .52.1.72.3.2.2.3.44.3.72v3.5c0 .28-.1.52-.3.72-.2.2-.44.3-.72.3-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72v-2.48zM12.9 7.1h2.48c.28 0 .52.1.72.3.2.2.3.44.3.72 0 .28-.1.52-.3.72-.2.2-.44.3-.72.3h-3.5c-.28 0-.52-.1-.72-.3-.2-.2-.3-.44-.3-.72v-3.5c0-.28.1-.52.3-.72.2-.2.44-.3.72-.3.28 0 .52.1.72.3.2.2.3.44.3.72V7.1z" fill="#895804"/>
-    </svg>
-  )
-}
 
 
 export default function LandingPage() {
@@ -435,7 +420,7 @@ export default function LandingPage() {
                   onClick={handlePillClick}
                   aria-label={expanded ? 'Collapse content' : 'Expand content'}
                 >
-                  {expanded ? <CollapseIcon /> : <ExpandIcon />}
+                  <ExpandToggle expanded={expanded} className="pill-btn__icon" />
                 </button>
               </div>
             </div>

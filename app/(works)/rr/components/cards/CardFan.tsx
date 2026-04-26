@@ -26,12 +26,15 @@ const HOVER_LIFT = -28
 const CLICK_SPREAD = 22
 const CLICK_LIFT = -36
 
+// All five cards consume the .webp files supplied with the v0.59 high-res
+// upgrade (~450×625 each, aspect ~0.72 — cropped to card shape). PNG
+// originals live alongside as backups but are not consumed.
 const CARDS = [
   { v: 'v1', src: '/images/rr/rr-card-v1.webp', caption: 'The very first hand-drawn concept' },
   { v: 'v2', src: '/images/rr/rr-card-v2.webp', caption: 'Added energy and name' },
   { v: 'v3', src: '/images/rr/rr-card-v3.webp', caption: 'Added conditional effects' },
   { v: 'v4', src: '/images/rr/rr-card-v4.webp', caption: 'First printed version' },
-  { v: 'v5', src: '/images/rr/rr-card-v5.png', caption: 'Final digital design' },
+  { v: 'v5', src: '/images/rr/rr-card-v5.webp', caption: 'Final digital design' },
 ] as const
 
 type CardTransform = { x: number; y: number; rotate: number; scale: number }

@@ -2337,7 +2337,7 @@
 }
 
 .tweet-card__avatar-letter {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 18px;
   line-height: 1;
@@ -2569,6 +2569,12 @@
   .intro-expand:focus-visible {
     outline: 2px solid var(--blue-800);
     outline-offset: 2px;
+  }
+
+  .intro-expand__icon {
+    width: 18px;
+    height: 18px;
+    display: block;
   }
 
   /* ── BIPs — crafted-lite pass ─────────────────────────────────────────
@@ -3262,7 +3268,13 @@
     width: 320px;
     height: 420px;
   }
-  .sa__photo-img {
+  /* Mobile cap goes on the inner <img>, not the Img wrapper. The wrapper
+     in intrinsic mode is `display: inline-block` with no sizing of its
+     own; if we cap the wrapper, the inner can still render at the
+     desktop 400×480 cap and overflow the rotated `.sa__photo` (which is
+     `width: fit-content`). Capping the inner is what actually constrains
+     the rendered photo on a 375px viewport. */
+  .sa__photo-img .img__inner {
     max-width: 280px;
     max-height: 360px;
   }

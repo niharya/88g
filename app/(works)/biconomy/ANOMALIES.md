@@ -642,6 +642,15 @@ The original grid of 7 placeholder slots was replaced with a single pile of
   inline-image baseline gap. The image itself is capped at `max-width:
   400px; max-height: 480px`. Do not add a fixed frame — portraits and
   landscapes must read at their natural shapes.
+- **Mobile size cap goes on `.img__inner`, not `.sa__photo-img`.** The
+  `<Img>` wrapper in intrinsic mode is a transparent shell — capping the
+  wrapper does nothing because the inner `<img>` carries its own
+  `max-width`/`max-height`. The desktop rule already targets the inner
+  (`.sa__photo-img .img__inner { max-width: 400px; max-height: 480px }`);
+  the mobile override mirrors that target with smaller caps. Capping the
+  wrapper alone (the v0.39 mobile pass) lets the inner render at the
+  desktop 400×480 cap and overflow the rotated `.sa__photo`, which
+  follows the inner's size via `fit-content`.
 - **Forward cycle semantics.** Clicking the stack advances; the first
   image reappears only after the last. NavPill arrows scrub both
   directions. If you unify them to forward-only, the arrow UI lies.

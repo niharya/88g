@@ -21,6 +21,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import IconHighlighter from './IconHighlighter'
+import { ExpandToggle } from '../../../components/ExpandToggle'
 
 export default function Intro() {
   const [open, setOpen] = useState(false)
@@ -102,8 +103,10 @@ export default function Intro() {
       >
         {/* Expand/collapse pill — mobile-only affordance. Ported from /rr
             Intro's `.rr-story-card__expand`: a single-icon rounded pill
-            inset into the top-right of the card. Closed → expand_content
-            glyph; open → collapse_content. Blue tokens in place of yellow. */}
+            inset into the top-right of the card. Uses the shared
+            ExpandToggle SVG (currentColor inherits `.intro-expand`'s blue
+            tint) so all three call sites — landing, rr, biconomy — show
+            the same hand-drawn-feel hooks. */}
         <button
           type="button"
           className="intro-expand"
@@ -111,13 +114,7 @@ export default function Intro() {
           aria-expanded={open}
           aria-label={open ? 'Hide context' : 'Reveal context'}
         >
-          <span
-            className="material-symbols-rounded"
-            aria-hidden="true"
-            style={{ fontSize: 18, fontVariationSettings: "'wght' 500" }}
-          >
-            {open ? 'collapse_content' : 'expand_content'}
-          </span>
+          <ExpandToggle expanded={open} className="intro-expand__icon" />
         </button>
 
         {/* Inner card */}

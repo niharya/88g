@@ -29,6 +29,14 @@ function ArrowBackIcon({ className }: { className?: string }) {
   )
 }
 
+/**
+ * Cue for first-visit auto-open. Mechanics owns an IntersectionObserver on
+ * the gameboard and flips this true once the board crosses the viewport
+ * mid-line. RulesRail then animates open. Replaces the older 1-second
+ * mount-time timer (which fired regardless of whether the user had even
+ * scrolled to the section). The rail still tucks back only on explicit
+ * dismissal — Start Game button, or a click on the rail itself.
+ */
 interface RulesRailProps {
   /** External signal to dismiss the first-visit overlay (e.g. "Start game" click). */
   dismiss?: boolean
@@ -37,11 +45,14 @@ interface RulesRailProps {
   otherOpen?: boolean
   /** Emit open-state changes so the parent can coordinate with the other rail. */
   onOpenChange?: (isOpen: boolean) => void
+  /** Cue from Mechanics: gameboard has scrolled into view. First-visit rail
+   *  opens on this signal (desktop only); subsequent visits ignore it. */
+  gameboardInView?: boolean
 }
 
-export default function RulesRail({ dismiss = false, otherOpen = false, onOpenChange }: RulesRailProps) {
-  // First visit: rules slide out after a 1s delay so the viewer notices them.
-  // After dismissal (click sheet / Start game) it tucks back and stays tucked.
+export default function RulesRail({ dismiss = false, otherOpen = false, onOpenChange, gameboardInView = false }: RulesRailProps) {
+  // First visit: rail tucks until the gameboard scrolls into view, then opens.
+  // Stays open until explicit dismissal (click rail / Start game).
   const [firstVisit, setFirstVisit] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -59,13 +70,18 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
     if (typeof window === 'undefined') return
     if (window.localStorage.getItem(RULES_SEEN_KEY) !== '1') {
       setFirstVisit(true)
-      // Auto-open first-visit reveal is a desktop affordance — on mobile the
-      // rail is a manual flip-out and auto-opening competes with initial scroll.
-      if (window.matchMedia('(max-width: 767px)').matches) return
-      const t = setTimeout(() => setIsOpen(true), 1000)
-      return () => clearTimeout(t)
     }
   }, [])
+
+  // Open the rail the moment the gameboard enters view (first visit, desktop).
+  // On mobile the rail is a manual flip-out — auto-open competes with initial
+  // scroll, so we leave it tucked.
+  useEffect(() => {
+    if (!firstVisit) return
+    if (!gameboardInView) return
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) return
+    setIsOpen(true)
+  }, [firstVisit, gameboardInView])
 
   // External dismiss (e.g. "Start game" button)
   useEffect(() => {

@@ -17,8 +17,33 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
   const [isStructure, setIsStructure] = useState(false)
   const isIdle = results.length === 0
 
-  // Card ref — used for both position measurement and scroll tracking
+  // Card ref — used for both position measurement and scroll tracking,
+  // and for triggering the button-press pulse on tab toggle.
   const cardRef = useRef<HTMLDivElement>(null)
+  const isFirstRenderRef = useRef(true)
+
+  // Button-press feedback on every tab toggle. Adds an `is-pressing` class
+  // that runs the `rr-card-press` keyframe (rr.css) — the card pushes IN
+  // on the z-axis and comes BACK OUT, the same tactile cue you'd get from
+  // a physical button. The class auto-clears so the next toggle replays.
+  // Skipped on first render so the card doesn't pulse on mount.
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false
+      return
+    }
+    const el = cardRef.current
+    if (!el) return
+    el.classList.add('is-pressing')
+    // Match the animation's --dur-settle window (425ms) plus a small
+    // margin so the class is gone by the time the next toggle queues.
+    const t = window.setTimeout(() => el.classList.remove('is-pressing'), 460)
+    return () => {
+      window.clearTimeout(t)
+      el.classList.remove('is-pressing')
+    }
+  }, [isStructure])
+
   const linkRef = useRef<HTMLSpanElement>(null)
   const northStarRef = useRef<HTMLDivElement>(null)
   const [pathPos, setPathPos] = useState({ top: 261, left: 93 })

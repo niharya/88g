@@ -25,6 +25,7 @@ import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useMatSettle from './useMatSettle'
 import { Img } from '../../../components/Img'
+import { ExpandToggle } from '../../../components/ExpandToggle'
 
 // ── Shared motion constants ────────────────────────────────────────────────
 // Single easing curve + base duration — all timings are multiples of DUR
@@ -58,6 +59,19 @@ const SKETCH_ASPECTS: Record<number, number> = {
   5: 240 / 184,
   6: 177 / 150,
 }
+
+// File extensions per sketch — the v0.56 perf pass converted only sketches
+// 2 and 3 to .webp (and removed their .jpg originals). 1, 4, 5, 6 stayed as
+// .jpg. Pointing every src at .jpg silently 404s 2 and 3.
+const SKETCH_EXT: Record<number, string> = {
+  1: 'jpg',
+  2: 'webp',
+  3: 'webp',
+  4: 'jpg',
+  5: 'jpg',
+  6: 'jpg',
+}
+const sketchSrc = (n: number) => `/images/rr/rr-sketch-${n}.${SKETCH_EXT[n] ?? 'jpg'}`
 
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -101,9 +115,7 @@ export default function Intro() {
           aria-label={isExpanded ? 'Collapse sketches' : 'Expand sketches'}
           onClick={() => setIsExpanded(s => !s)}
         >
-          <span className="material-symbols-rounded" aria-hidden="true" style={{ fontSize: 18, fontVariationSettings: "'wght' 500" }}>
-            {isExpanded ? 'collapse_content' : 'expand_content'}
-          </span>
+          <ExpandToggle expanded={isExpanded} className="rr-story-card__expand-icon" />
         </button>
 
         {/* Body text */}
@@ -160,9 +172,21 @@ export default function Intro() {
                   <motion.div
                     key={text}
                     initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: DUR * 0.8, ease: EASE, delay: i * 0.048 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      /* Enter cascade — staggered delay per row. */
+                      transition: { duration: DUR * 0.8, ease: EASE, delay: i * 0.048 },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      y: 4,
+                      /* Exit must finish before the parent height (0.30s)
+                         collapses past the row, otherwise late-fading rows
+                         peek out under the shrinking container. No
+                         per-row delay — close reads as a single recede. */
+                      transition: { duration: DUR * 0.6, ease: EASE },
+                    }}
                   >
                     <p className="rr-constraints-card__item">{text}</p>
                     <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
@@ -209,7 +233,7 @@ export default function Intro() {
         {([1, 2, 3, 4, 5, 6] as const).map((n, i) => (
           <Img
             key={n}
-            src={`/images/rr/rr-sketch-${n}.jpg`}
+            src={sketchSrc(n)}
             alt=""
             className={`rr-card-stack__page rr-card-stack__page--${n}`}
             style={{
@@ -254,7 +278,7 @@ export default function Intro() {
             {([1, 2, 3, 4, 5, 6] as const).map((n) => (
               <Img
                 key={n}
-                src={`/images/rr/rr-sketch-${n}.jpg`}
+                src={sketchSrc(n)}
                 alt={`Sketch ${n}`}
                 className="rr-enlarged__image"
                 draggable={false}

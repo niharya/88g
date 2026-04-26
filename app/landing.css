@@ -488,6 +488,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   height: 20px;
   display: block;
   flex-shrink: 0;
+  color: var(--terra-800);
 }
 
 

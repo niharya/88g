@@ -38,11 +38,37 @@ export default function Mechanics() {
   // has visually settled (with its own 500ms delay).
   const [splitSettled, setSplitSettled] = useState(false)
 
+  // Gameboard-in-view cue for the first-visit RulesRail open. IntersectionObserver
+  // below flips this true when the board crosses the viewport mid-line; RulesRail
+  // animates open in response. Replaces the 1s mount-time timer that used to fire
+  // before the user had even scrolled to this section.
+  const [gameboardInView, setGameboardInView] = useState(false)
+  const gameBoardRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (window.localStorage.getItem(NOTE_REVEALED_KEY) === '1') {
       setNoteRevealed(true)
     }
+  }, [])
+
+  useEffect(() => {
+    const node = gameBoardRef.current
+    if (!node || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setGameboardInView(true)
+            io.disconnect()
+            return
+          }
+        }
+      },
+      { threshold: 0.6 },
+    )
+    io.observe(node)
+    return () => io.disconnect()
   }, [])
 
   const handleResultsChange = useCallback((r: RoundOutcome[]) => {
@@ -145,6 +171,7 @@ export default function Mechanics() {
               dismiss={rulesDismissed}
               otherOpen={noteOpen}
               onOpenChange={setRulesOpen}
+              gameboardInView={gameboardInView}
             />
             {/* Board nudge is inline-styled (not CSS `:has()`) for the same
                 reason the rails are: CSS transitions on `transform` stall
@@ -153,6 +180,7 @@ export default function Mechanics() {
                 CLOSED_NUDGED_TRANSFORM: -12 when rules opens, -50 when note
                 opens. */}
             <div
+              ref={gameBoardRef}
               className="rr-game-board"
               style={{
                 transform: noteOpen

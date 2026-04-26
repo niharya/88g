@@ -104,6 +104,7 @@ The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Co
 
 **AI notes**
 - **`display: 'swap'` on every font, with explicit `fallback` chains.** Fallback renders immediately and swaps when the real face arrives — never a blank page on slow mobile. Do **not** change to `'block'`: the v0.56 attempt did exactly that and produced 3-second blanks plus Material-Symbols ligature words flashing in as fallback text on slow connections.
+- **Bounded font gate (v0.59).** Top-level surfaces (`.landing`, `.workbench`, `.route-marks`) carry `opacity: 0` until `<html>` gains `.fonts-ready`. The gate script in `app/layout.tsx` releases the class either when `document.fonts.ready` resolves or when an **800 ms cap** fires — whichever first. The `.page-boot` startooth lives in `<body>` outside the gated surfaces and is visible during the hold; it fades out on release. Do **not** raise the cap past ~1000 ms. The cap is also the implicit filter on Material Symbols (1.18 MB) — typography fonts almost always finish well inside 800 ms and the page reveals in real fonts; MS finishes loading after release and ligature glyphs paint in.
 - **Never redeclare `--font-*` in `globals.css :root`.** next/font sets each variable on `<html>` to a hashed family name (e.g. `'fraunces'`, `'fraunces Fallback'`) that scopes the generated `@font-face` rules. Redeclaring with literal names (`'Fraunces'`, `'Google Sans'`, …) detaches the cascade — the woff2 files are downloaded but never applied. On desktops with the family installed locally it appears to work; on mobile it falls back to system fonts. This was the v0.56 → v0.58 mobile-fonts regression.
 - **`preload: true` only on landing-critical fonts** — Fraunces, Google Sans, Google Sans Flex. Code and Symbols are `preload: false` because the landing page doesn't render them. (Preload tags only appear in production builds, not dev.)
 - **Five fonts, six files.** Italic/roman pairs for Fraunces, Google Sans, Google Sans Code. Single variable file for Google Sans Flex (covers all weights/widths from one file). Single file for Material Symbols (`weight: '100 700'`).
@@ -236,6 +237,23 @@ Three inline SVG icon components with animatable internal paths. Used for hover 
 - **Why hand-rolled, not an icon font:** consumers animate internal paths on hover (e.g. the chevron shaft translates, the external-link arrow lifts). Icon fonts render as a single glyph and cannot be animated piecewise.
 - **Stroke uses `currentColor`** so consumers style via `color`, not a prop.
 - New icons should follow the same pattern: named path elements (e.g. `.icon-chevron-shaft`) that consumer CSS can target.
+
+---
+
+## ExpandToggle
+
+The portfolio's expand/collapse glyph as an inline SVG. Hand-drawn-feel hooks pointing into opposite quadrants. Used by every expand/collapse pill in the site so the icon family is consistent across landing, /rr, and /biconomy.
+
+**Where it lives**
+- [app/components/ExpandToggle/ExpandToggle.tsx](app/components/ExpandToggle/ExpandToggle.tsx)
+- Consumers: [app/page.tsx](app/page.tsx) (landing pill-btn, terra), [app/(works)/rr/components/Intro.tsx](app/(works)/rr/components/Intro.tsx) (rr-story-card pill, yellow), [app/(works)/biconomy/components/Intro.tsx](app/(works)/biconomy/components/Intro.tsx) (intro-expand pill, blue, mobile-only).
+
+**AI notes**
+- **Promoted in v0.59.** Previously the SVG lived inline in `app/page.tsx` and the two case-study consumers used Material Symbols `expand_content`/`collapse_content` ligatures — three call sites, two visual families. Now one component, one shape.
+- **Stateless.** Consumer owns `expanded: boolean`. The component swaps between the two SVGs accordingly.
+- **`fill="currentColor"` on both paths.** The parent pill (`.pill-btn`, `.rr-story-card__expand`, `.intro-expand`) sets `color: var(--terra-800 | --yellow-720 | --blue-720)` and the SVG inherits. Do not pass colour as a prop.
+- **Sizing comes from the consumer.** Each consumer's CSS provides a sizing class (e.g. `.pill-btn__icon { width: 20px; height: 20px }`, `.rr-story-card__expand-icon { 18×18 }`, `.intro-expand__icon { 18×18 }`). The component itself is unstyled.
+- **Material Symbols `expand_content` / `collapse_content`** are no longer used anywhere in the portfolio. They can stay in the subset list (don't bother re-subsetting just to drop them) but new consumers should always use `<ExpandToggle>` instead.
 
 ---
 
