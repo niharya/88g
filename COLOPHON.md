@@ -93,7 +93,7 @@ The thinking and the building are done by different tools, and the distinction m
 
 - **[ChatGPT](https://chatgpt.com/)** — organizing thoughts. Early structural outlines, copy drafts, naming passes, thinking out loud about what a section should *do* before it had any shape. Best for the part of the work that has no file yet.
 - **[Claude Code](https://claude.com/claude-code)** — the actual development. Implementation, refactoring, hygiene passes, writing ANOMALIES.md entries as architectural anomalies are discovered, and this colophon. Working contract and agent routing live in `CLAUDE.md`.
-- **[Vercel v0](https://v0.dev/)** — helped create the Rug Rumble game. The initial playable mechanic for `/rr` was prototyped in v0 and then ported into the Next.js route. The ported source lives in `reference/v0-duel-game/` as read-only context.
+- **[Vercel v0](https://v0.dev/)** — helped create the Rug Rumble game. The initial playable mechanic for `/rr` was prototyped in v0 and then ported into the Next.js route.
 - **[Figma](https://www.figma.com/)** — layout, spacing grids, typography composition, and per-project color palettes before they're translated into CSS tokens.
 - **[Cursor](https://cursor.com/) / [VS Code](https://code.visualstudio.com/)** — editor.
 

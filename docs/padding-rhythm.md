@@ -1,6 +1,6 @@
 # Within-element padding & margin rhythm
 
-A short usage guide for the existing `--space-*` scale, derived from the audit at [padding-audit-findings.md](padding-audit-findings.md). Tightly scoped to **within-element** decisions: how to space content *inside* a card, pill, list, or rail. Cross-component spacing and section rhythm are out of scope here.
+A short usage guide for the existing `--space-*` scale. Tightly scoped to **within-element** decisions: how to space content *inside* a card, pill, list, or rail. Cross-component spacing and section rhythm are out of scope here.
 
 This doc is **descriptive of what already works** plus a **prescriptive default** for the cases the audit flagged as drift. It does not propose new tokens. The scale lives at [globals.css:117–134](app/globals.css:117).
 
@@ -165,4 +165,4 @@ Reference: `.rr-note-rail__title { margin: 0 -8px; padding: 0 8px 8px }` ([rr.cs
 
 ---
 
-*Companion to [padding-audit-findings.md](padding-audit-findings.md). No fixes have been applied — this doc captures the rhythm so the eventual fix pass has a target.*
+*Captures the within-element padding rhythm as the system canon. The audit pass that informed it shipped in `polish/padding-audit`.*

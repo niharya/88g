@@ -1,12 +1,10 @@
 # Token rhythm — the "which token when" guide
 
-Companion to `docs/token-audit-findings.md`. That file is a punch list. This
-file is the **mental model**: how to pick a token, when hand-authored is
+The **mental model** for tokens: how to pick a token, when hand-authored is
 legitimate, and how to introduce a new token without growing the system out
-from under itself.
+from under itself. Informed by the `polish/token-audit` pass (now merged).
 
-Read this before editing tokens. Re-read it if the audit output starts
-feeling dogmatic.
+Read this before editing tokens.
 
 ---
 
