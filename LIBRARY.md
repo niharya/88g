@@ -88,27 +88,28 @@ The one image primitive the portfolio uses. Wraps `next/image` with an instant L
 
 ## Fonts
 
-The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Configured once in `app/layout.tsx`, exposed as CSS variables, consumed everywhere by token. Migrated off external Google Fonts in v0.55 — no external `<link>` tags, no 3-second JS font-gate.
+The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Configured once in `app/layout.tsx`, exposed as CSS variables, consumed everywhere by token. Migrated off external Google Fonts in v0.56; mobile rendering and variation-axis support repaired in v0.58.
 
 **Where it lives**
-- [app/layout.tsx](app/layout.tsx) — the five `localFont(...)` blocks and the `<html>` className wiring.
-- [app/fonts/](app/fonts/) — the `.woff2` files. `Fraunces-{normal,italic}`, `GoogleSans-{normal,italic}`, `GoogleSansCode-{normal,italic}`, `MaterialSymbolsRounded-normal`.
-- [app/globals.css](app/globals.css) — the `--font-*` token definitions (`--font-display`, `--font-body`, `--font-ui`, `--font-mono`, `--font-symbols`).
+- [app/layout.tsx](app/layout.tsx) — the five `localFont(...)` blocks and the `<html>` className wiring. Each block sets `display: 'swap'` and an explicit `fallback` chain.
+- [app/fonts/](app/fonts/) — the `.woff2` files. `Fraunces-{normal,italic}`, `GoogleSans-{normal,italic}`, `GoogleSansFlex-variable`, `GoogleSansCode-{normal,italic}`, `MaterialSymbolsRounded-normal`.
+- [app/globals.css](app/globals.css) — the `--font-*` tokens are **commented but never redeclared**. next/font sets the variables themselves on `<html>`.
 
 **The five tokens**
 - `--font-display` (Fraunces) — display serif. Hero, section titles. Variable axes: `opsz`, `wght`, `SOFT`, `WONK`.
 - `--font-body` (Google Sans) — primary body. Long-form copy.
-- `--font-ui` (Google Sans Flex) — UI labels, controls, micro-copy. Currently uses the same files as `--font-body`; carries a separate token so future divergence is one swap.
+- `--font-ui` (Google Sans Flex) — UI labels, controls, micro-copy. **Variable file** (`GoogleSansFlex-variable.woff2`, ~628 KB) with axes `wdth`, `wght`, `GRAD`, `ROND`, `opsz`. Drives `.t-h5` and `.t-btn1` `font-variation-settings`. The `slnt` axis was pinned to 0 during subsetting (italic comes from regular Google Sans).
 - `--font-mono` (Google Sans Code) — code, technical labels.
 - `--font-symbols` (Material Symbols Rounded) — icon ligatures. **Subsetted** to a fixed list of 13 icons (~1.1 MB instead of 5.1 MB). Adding a new icon requires re-subsetting — see `docs/performance.md` → "Material Symbols icons".
 
 **AI notes**
-- **`display: 'block'` on every font.** The browser's short FOIT period covers font load; we never see fallback. Do not change to `'swap'` — that introduces visible FOUT on first paint, especially on Fraunces (display serif fallback metrics are very different).
+- **`display: 'swap'` on every font, with explicit `fallback` chains.** Fallback renders immediately and swaps when the real face arrives — never a blank page on slow mobile. Do **not** change to `'block'`: the v0.56 attempt did exactly that and produced 3-second blanks plus Material-Symbols ligature words flashing in as fallback text on slow connections.
+- **Never redeclare `--font-*` in `globals.css :root`.** next/font sets each variable on `<html>` to a hashed family name (e.g. `'fraunces'`, `'fraunces Fallback'`) that scopes the generated `@font-face` rules. Redeclaring with literal names (`'Fraunces'`, `'Google Sans'`, …) detaches the cascade — the woff2 files are downloaded but never applied. On desktops with the family installed locally it appears to work; on mobile it falls back to system fonts. This was the v0.56 → v0.58 mobile-fonts regression.
 - **`preload: true` only on landing-critical fonts** — Fraunces, Google Sans, Google Sans Flex. Code and Symbols are `preload: false` because the landing page doesn't render them. (Preload tags only appear in production builds, not dev.)
-- **Five fonts, four files for italic/roman pairs.** Each `localFont` block lists `normal` + `italic` variants. Material Symbols is the exception — single file, no italic, with `weight: '100 700'` declaring its variable weight axis.
+- **Five fonts, six files.** Italic/roman pairs for Fraunces, Google Sans, Google Sans Code. Single variable file for Google Sans Flex (covers all weights/widths from one file). Single file for Material Symbols (`weight: '100 700'`).
 - **CSS variables, never font-family strings.** Anywhere you'd write `font-family: 'Fraunces'`, write `font-family: var(--font-display)`. The token layer is what lets future migrations be one-line changes.
-- **Banned patterns.** External `<link rel="stylesheet">` to `fonts.googleapis.com` (DNS hop + non-deterministic load). The 3-second JS font-gate (held the page at `opacity: 0`). Adding the full Material Symbols woff2 (5+ MB). All three were removed in v0.55 — full context in `docs/performance.md` → "Fonts".
-- **Adding a new font.** Drop `.woff2` in `app/fonts/`, mirror an existing `localFont(...)` block in `layout.tsx`, define a `--font-*` token in `globals.css`, add the className to `<html>`, update this entry. Set `preload` based on whether the landing page uses it.
+- **Banned patterns.** `display: 'block'` on primary fonts. Redeclaring `--font-*` in `globals.css :root`. The 3-second JS font-gate. External `<link rel="stylesheet">` to `fonts.googleapis.com` for the five primary fonts. Adding the full Material Symbols woff2 (5+ MB). Full context in `docs/performance.md` → "Fonts".
+- **Adding a new font.** Drop `.woff2` in `app/fonts/`. Add a `localFont(...)` block in `layout.tsx` with `display: 'swap'`, an explicit `fallback` chain, and `preload` based on landing usage. Add the className to `<html>`. Update this entry. Do **not** add a `--font-*` declaration in `globals.css :root` — next/font handles it.
 - **Adding a new Material Symbols icon.** Update the icon list in `docs/performance.md`, re-run the subsetting curl flow documented there, replace `app/fonts/MaterialSymbolsRounded-normal.woff2`. Do **not** swap in the full font.
 
 ---

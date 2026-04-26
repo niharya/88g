@@ -102,12 +102,14 @@
   /* ---- Fonts ───────────────────────────────────────────────────────────
      Semantic tokens are the single consumption surface for font-family.
      Route CSS should reference these tokens, not the raw family names.
-     Families are loaded in app/layout.tsx (currently via Google Fonts CDN). */
-  --font-display: 'Fraunces', serif;
-  --font-body:    'Google Sans', sans-serif;
-  --font-ui:      'Google Sans Flex', sans-serif;
-  --font-mono:    'Google Sans Code', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
-  --font-symbols: 'Material Symbols Rounded';
+     The variables themselves are set on <html> by next/font/local in
+     app/layout.tsx — they resolve to hashed family names that scope the
+     @font-face rules next/font generates. DO NOT redeclare them here with
+     literal names (`'Fraunces'`, `'Google Sans'`, …) — that detaches the
+     cascade from the loaded woff2 files and the page falls back to system
+     fonts on any device that doesn't have the family installed locally
+     (i.e. all mobile devices). Fallback chains live in the `fallback`
+     option of each localFont() call. */
 
   /* ---- Spacing scale (8/4/2 rhythm) ----
      micro:     2px

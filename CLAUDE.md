@@ -130,7 +130,7 @@ Core principles:
 
 Full reference: [`docs/performance.md`](./docs/performance.md). Read it before adding fonts, images, or icons.
 
-* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'block'`. The 3-second JS font-gate is **banned**. External `<link>` to `fonts.googleapis.com` is **banned**.
+* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'swap'` with an explicit `fallback` chain. Do **not** redeclare `--font-*` in `globals.css :root` — next/font sets the variables on `<html>` to hashed family names. The 3-second JS font-gate is **banned**. `display: 'block'` is **banned**. External `<link>` to `fonts.googleapis.com` is **banned**.
 * **Icons:** Material Symbols is subsetted to a fixed icon list (~1.1 MB, down from 5.1 MB). Adding a new icon requires re-subsetting per the doc. Don't replace the file with the full font.
 * **Images:** All content imagery uses `<Img>`. Every raster in `public/images/` is `.webp`. Raw images over ~400 KB must be optimized via `npm run optimize-images` before commit.
 * **Motion tokens:** `--dur-*` values are post-v0.55 tuned for snap. Don't drift back without intent — inline a duration in component CSS for one-off cases instead.

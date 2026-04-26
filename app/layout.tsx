@@ -3,13 +3,26 @@ import Script from 'next/script'
 import localFont from 'next/font/local'
 import './globals.css'
 
+// Font loading strategy
+// ─────────────────────
+// `display: 'swap'` everywhere — show fallback immediately, swap to the real
+// face when it arrives. Never `'block'` (3s of invisible text on slow mobile)
+// and never a JS font-gate (held the whole surface at opacity 0; banned in
+// docs/performance.md).
+//
+// `fallback` arrays preserve the system fallback chain that previously lived
+// in globals.css `:root`. globals.css must NOT redeclare these variables —
+// next/font sets them on <html> with a hashed family name; redeclaring with
+// a literal name (e.g. `'Fraunces'`) detaches CSS from the @font-face rules
+// next/font generates, and the woff2 files silently never apply.
 const fraunces = localFont({
   src: [
     { path: './fonts/Fraunces-normal.woff2', style: 'normal' },
     { path: './fonts/Fraunces-italic.woff2', style: 'italic' },
   ],
   variable: '--font-display',
-  display: 'block',
+  display: 'swap',
+  fallback: ['serif'],
   preload: true,
 })
 
@@ -19,17 +32,21 @@ const googleSans = localFont({
     { path: './fonts/GoogleSans-italic.woff2', style: 'italic' },
   ],
   variable: '--font-body',
-  display: 'block',
+  display: 'swap',
+  fallback: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
   preload: true,
 })
 
+// Google Sans Flex — variable font with wdth/wght/GRAD/ROND/opsz axes.
+// Required by .t-h5 (wght 640, wdth 120, GRAD 64, ROND 0, opsz 18) and
+// .t-btn1 (wght 720, …) — those font-variation-settings only resolve
+// against this file. Source: Google Fonts, slnt axis pinned to 0,
+// Latin subset, ~628 KB.
 const googleSansFlex = localFont({
-  src: [
-    { path: './fonts/GoogleSans-normal.woff2', style: 'normal' },
-    { path: './fonts/GoogleSans-italic.woff2', style: 'italic' },
-  ],
+  src: './fonts/GoogleSansFlex-variable.woff2',
   variable: '--font-ui',
-  display: 'block',
+  display: 'swap',
+  fallback: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
   preload: true,
 })
 
@@ -39,14 +56,19 @@ const googleSansCode = localFont({
     { path: './fonts/GoogleSansCode-italic.woff2', style: 'italic' },
   ],
   variable: '--font-mono',
-  display: 'block',
+  display: 'swap',
+  fallback: ['ui-monospace', 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
   preload: false,
 })
 
+// Material Symbols: 1.18 MB even subsetted. `swap` so icons briefly show as
+// ligature text on slow mobile rather than blank space — visually noisier
+// for ~1s but never invisible. Long-term plan: migrate to inline SVG icons
+// to remove the icon-font failure mode entirely.
 const materialSymbols = localFont({
   src: './fonts/MaterialSymbolsRounded-normal.woff2',
   variable: '--font-symbols',
-  display: 'block',
+  display: 'swap',
   weight: '100 700',
   preload: false,
 })

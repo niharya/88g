@@ -15,14 +15,18 @@ one was, at some point, a real regression that took a real user-visible hit.
 
 - All fonts ship from `app/fonts/` as `.woff2` files. No external `<link>` to `fonts.googleapis.com`. No CDN-hosted font files.
 - Wired through [`next/font/local`](https://nextjs.org/docs/app/api-reference/components/font#localfont) in [app/layout.tsx](../app/layout.tsx). Each font produces a `--font-*` CSS variable consumed by `globals.css` and route CSS.
-- `display: 'block'` on every font. The browser's own short FOIT prevents FOUT — text appears already-styled, never in fallback.
+- `display: 'swap'` on every font. Fallback renders immediately and swaps to the real face when it arrives — never invisible text on slow mobile.
+- `fallback: [...]` arrays carry the system fallback chain (e.g. `system-ui`, `-apple-system`) on every `localFont()` call. next/font uses these to generate a metric-adjusted fallback face, minimising layout shift on swap.
 - `preload: true` only on fonts used by the **landing page** (Fraunces, Google Sans, Google Sans Flex). Others (`code`, `symbols`) get `preload: false` so they don't bloat the landing critical path.
+- `globals.css` **must not** redeclare the `--font-*` variables in `:root`. next/font sets them on `<html>` to hashed family names that scope the generated `@font-face` rules — redeclaring with literal names (`'Fraunces'`, `'Google Sans'`, …) detaches the cascade from the loaded woff2 files. Pages then fall back to whatever's installed locally, which on mobile is nothing — system serif/sans-serif renders. This was the v0.56 → v0.58 mobile-fonts regression.
 
 **Banned:**
 
-- The 3-second JS font-gate that holds the page at `opacity: 0`. We removed it. Do not bring it back. If you need to gate a reveal on font load, use CSS `font-display` (already `block`) — the browser handles it.
+- `display: 'block'` on any primary font. It hides text for up to 3 s; on slow mobile that's a blank page. The v0.56 attempt to use `'block'` to "prevent FOUT" produced 3-second blanks and Material-Symbols ligature words flashing in as fallback text. `'swap'` is the modern best practice — accept the brief FOUT.
+- The 3-second JS font-gate that holds the page at `opacity: 0`. We removed it. Do not bring it back.
 - External `<link rel="stylesheet">` to Google Fonts for **the five primary fonts** (display, body, ui, mono, symbols). DNS lookup + two-stage waterfall + non-deterministic timing.
 - `.fonts-ready` / `.page-boot` class hooks. They were removed in the perf migration; if you find yourself wanting one, you're solving a problem the new font setup already solved.
+- Redeclaring `--font-display` / `--font-body` / `--font-ui` / `--font-mono` / `--font-symbols` in `globals.css` (see contract above).
 
 **Documented exception — `/rr` route-decorative fonts.**
 [app/(works)/rr/layout.tsx](../app/(works)/rr/layout.tsx) loads three external Google Fonts (`Playpen Sans`, `Londrina Solid`, `Gluten`) for the Rug Rumble case-study editorial. They're route-scoped, decorative, and only render after a user navigates to `/rr` (not on the landing critical path). Migrating them to `next/font/local` is a future cleanup, not a blocker. If you add another *decorative case-study* font, the same pattern is acceptable — but document it here. **Do not** use this exception for primary site typography.
@@ -31,8 +35,8 @@ one was, at some point, a real regression that took a real user-visible hit.
 
 1. Get the `.woff2` file (Google Fonts download, foundry, etc.). Convert from `.ttf` if needed (use `wawoff2` or any CLI converter).
 2. Drop it into `app/fonts/`.
-3. Add a `localFont(...)` block in `app/layout.tsx` mirroring the existing five. Set `display: 'block'`. Set `preload` based on whether the landing page uses it.
-4. Define a `--font-<name>` token in `globals.css`.
+3. Add a `localFont(...)` block in `app/layout.tsx` mirroring the existing five. Set `display: 'swap'`, supply a `fallback` chain, set `preload` based on whether the landing page uses it.
+4. Define a `--font-<name>` token in `globals.css` **only as a comment** (the variable itself is set by next/font on `<html>`; never redeclare it in `:root`).
 5. Add the className to the `<html>` element in `layout.tsx`.
 6. Add a Fonts entry update to `LIBRARY.md`.
 
@@ -60,7 +64,7 @@ title
 2. Compute the unique character set from all icon names: `echo "<icons>" | tr ' ' '\n' | fold -w1 | sort -u | tr -d '\n'`.
 3. Fetch the subset CSS from Google Fonts:
    ```
-   https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght,FILL@100..700,0..1&text=<chars>&display=block
+   https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght,FILL@100..700,0..1&text=<chars>&display=swap
    ```
 4. Extract the `https://fonts.gstatic.com/...` font URL from the CSS.
 5. Download with the right headers (Google Fonts rejects bare curl):
@@ -128,7 +132,7 @@ These were tuned **down** during the v0.55 perf pass for snappier perceived perf
 
 ## What hygiene looks like in practice
 
-- **Adding a font.** New `.woff2` in `app/fonts/`, `localFont(...)` in `layout.tsx`, `--font-*` in `globals.css`, LIBRARY.md entry. No external link. `display: 'block'`. Preload only if landing uses it.
+- **Adding a font.** New `.woff2` in `app/fonts/`, `localFont(...)` in `layout.tsx` with `display: 'swap'` + `fallback`, LIBRARY.md entry. Do **not** redeclare `--font-*` in `globals.css`. No external link. Preload only if landing uses it.
 - **Adding an image.** Drop a `.webp` (or convert immediately) in `public/images/<route>/`. Use `<Img>`. Run `npm run lqip`. If the source was huge, run `npm run optimize-images` first.
 - **Adding an icon.** Add to the icons list above. Re-subset. Replace `MaterialSymbolsRounded-normal.woff2`. Verify size.
 - **Touching motion tokens.** Don't, unless you've discussed why with the user. Inline durations in component CSS are fine for one-off cases.
