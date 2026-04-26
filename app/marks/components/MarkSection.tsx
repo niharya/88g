@@ -28,8 +28,8 @@ import { MARKS } from '../data/marks'
 import MarkCarousel from './MarkCarousel'
 import MarkChrome from './MarkChrome'
 import { useShowcaseTimer } from './hooks/useShowcaseTimer'
-import { useDominanceSnap } from './hooks/useDominanceSnap'
-import { scrollGlide } from '../lib/scrollGlide'
+import { useDominanceSnap } from '../../components/hooks/useDominanceSnap'
+import { scrollGlide } from '../../lib/scrollGlide'
 import { isAutoScrollActive, startAutoScroll, subscribeAutoScroll } from '../lib/autoScroll'
 
 interface MarkSectionProps {

@@ -18,7 +18,7 @@
 
 import { Beringer, Codezeros, Ecochain, Furrmark, Kilti, Slangbusters } from './marks'
 import { MARKS } from '../data/marks'
-import { scrollGlide } from '../lib/scrollGlide'
+import { scrollGlide } from '../../lib/scrollGlide'
 import type { MarkId } from './marks/types'
 import type { CSSProperties } from 'react'
 

@@ -31,15 +31,40 @@ const SNAPPED_TOL_PX  = 2
 export interface DominanceSnapOptions {
   onScroll?: (el: HTMLElement, rect: DOMRect, vh: number) => void
   onDocked?: () => void
+  // Gate so consumers (e.g. shared Sheet) can opt in per route or per
+  // chapter without conditionally calling the hook. Defaults true to
+  // preserve every existing /marks call site.
+  enabled?: boolean
+  // Boundary-only snap. When set, snap fires only while the section's top
+  // edge is within this many pixels of the dock position — which keeps
+  // tall sections (chapters > 100vh) from snapping the reader back to the
+  // top once they're scrolled in mid-read. Leave undefined for the marks
+  // behavior (snap fires on any dominance, regardless of top distance).
+  topProximityPx?: number
+  // Override the scroll-idle window. Default 150ms (marks: section is full
+  // viewport, snap fires almost immediately on stop). Long-form chapters
+  // pass a multi-second value so snap only fires after the reader has
+  // genuinely stopped, not during a brief pause.
+  idleMs?: number
+  // Override the glide duration in ms. Default reads `--dur-settle` (500ms).
+  // Pass a larger value (700–1200ms) for a softer, longer-decay landing.
+  glideDurationMs?: number
+  // Pixel correction added to the dock target. Use this when the section's
+  // top edge does not visually align with the docked nav marker — e.g.
+  // when there's a sub-pixel gap between ChapterMarker and ProjectMarker
+  // after snap. Positive values scroll further down (section top rises
+  // above the viewport top by this many px). Default 0.
+  dockOffsetPx?: number
 }
 
 export function useDominanceSnap(
   ref: RefObject<HTMLElement | null>,
   opts: DominanceSnapOptions = {},
 ) {
-  const { onScroll, onDocked } = opts
+  const { onScroll, onDocked, enabled = true, topProximityPx, idleMs, glideDurationMs, dockOffsetPx = 0 } = opts
 
   useEffect(() => {
+    if (!enabled) return
     const el = ref.current
     if (!el) return
 
@@ -60,13 +85,22 @@ export function useDominanceSnap(
       const ratio      = visible / Math.min(rect.height, vh)
       if (ratio < DOMINANCE_RATIO) return
 
+      // Boundary-only snap: when the section is taller than the viewport,
+      // dominance alone stays true for ~one viewport's worth of mid-section
+      // scroll, which would yank the reader back to the top mid-read. Limit
+      // snap to when the section's top edge is within `topProximityPx` of
+      // the dock position. Marks sections (100vh) leave this undefined and
+      // get the original behavior.
+      if (topProximityPx !== undefined && Math.abs(rect.top) > topProximityPx) return
+
       if (Math.abs(rect.top) <= SNAPPED_TOL_PX) return
 
-      const top = rect.top + window.scrollY
+      const top = rect.top + window.scrollY + dockOffsetPx
       const dur =
-        parseFloat(
+        glideDurationMs ??
+        (parseFloat(
           getComputedStyle(document.documentElement).getPropertyValue('--dur-settle'),
-        ) * 1000 || 500
+        ) * 1000 || 500)
       gliding = true
       glideUntil = performance.now() + dur + 80
       scrollGlide(top, dur)
@@ -91,7 +125,7 @@ export function useDominanceSnap(
       idleTimer = window.setTimeout(() => {
         idleTimer = null
         maybeSnap()
-      }, IDLE_MS)
+      }, idleMs ?? IDLE_MS)
     }
 
     update()
@@ -102,5 +136,5 @@ export function useDominanceSnap(
       window.removeEventListener('resize', update)
       if (idleTimer !== null) window.clearTimeout(idleTimer)
     }
-  }, [ref, onScroll, onDocked])
+  }, [ref, onScroll, onDocked, enabled, topProximityPx, idleMs, glideDurationMs, dockOffsetPx])
 }

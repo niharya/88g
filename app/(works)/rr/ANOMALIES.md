@@ -48,20 +48,15 @@ Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (Ph
 
 ---
 
-## Post-mechanics sheet gap doubled
+## Chapter dominance-snap (Mechanics excluded)
 
-```css
-.route-rr #mechanics ~ .sheet { margin-top: calc(var(--stack-gap) * 2); }
-```
+Intro, Cards, and Outcome opt in to `useDominanceSnap` via `<Sheet snap>` in [page.tsx](page.tsx); **Mechanics is excluded** (`snap={chapter.id !== 'mechanics'}`). On 2s scroll-idle, if the chapter's top is within 80px of the dock and ≥72% is visible, the page glides to its top over 800ms with `--ease-paper` and a 2px dock offset. Same tuning as biconomy — see Sheet.tsx and biconomy/ANOMALIES "Chapter dominance-snap" for rationale.
 
-The mechanics sheet is dense (board + rails + post-game storycard). Every
-sheet that follows it (Cards, Outcome) gets a doubled top margin so the
-stack breathes after the density. Uses the general sibling combinator
-(`~`) so it applies to every following sheet, not just the immediate one.
+**Why Mechanics is excluded.** Mechanics is a sticky-pinned scroll-driven scene: the chapter is much taller than the viewport and its `--rr-mech-progress` advances as the reader scrolls through it. Letting dominance-snap target Mechanics' top would either fight the pinned sequence or yank the reader back to the top mid-progress. The pinned sequence handles its own narrative — snap is unnecessary for it.
 
-Shared across desktop and mobile — the rule sits above the media query.
-If the sheet ordering ever changes so that mechanics is not followed by
-further sheets, this rule becomes inert (no-op) rather than wrong.
+**Mechanics exclusion is structural.** Do not "uniformize" the `snap` prop across all chapters. On mobile the scene unbinds to a flowed (auto-height) layout — the chapter is still tall, and an unbidden snap-back would still fight reading. The exclusion holds at every breakpoint.
+
+**CSS `scroll-snap-type` removed.** Earlier the route used `scroll-snap-type: y mandatory` + `scroll-snap-align: start`. Removed when migrating to JS dominance-snap so the dock uses `--ease-paper` instead of the native snap curve. The mobile-only override (`scroll-snap-type: none` at <768px) and `.workbench.transitioning` global override become dead but harmless without CSS snap. The `globals.css` rule is left in place as a no-op for now — **safe to delete in a follow-up sweep**; flag it here so the next reader doesn't assume it's load-bearing.
 
 ---
 
@@ -521,6 +516,7 @@ Click-to-expand is disabled on mobile (`.rr-rules-inner { pointer-events: none }
 ## Don't-touch list (without reading why first)
 
 - `--rr-mech-progress` cascade location — must be on the stage, not a mat
+- `snap={chapter.id !== 'mechanics'}` in `page.tsx` — Mechanics opt-out is structural (pinned scene), not a tuning flag. Do not uniformize the `snap` prop across chapters.
 - `.is-split` visibility gate on the secondary mat
 - The fixed 678px width of both mats (this is what makes the desktop choreography feel natural)
 - `#mechanics::after { display: none }`
