@@ -79,7 +79,7 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
 
       {/* Greeting */}
       <motion.span
-        className="selected-tl__greeting"
+        className="selected-tl__greeting t-h5"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.25, delay: D.dot }}

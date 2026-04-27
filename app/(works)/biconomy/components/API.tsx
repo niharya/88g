@@ -322,7 +322,7 @@ export default function API() {
           className="api__trailing-img"
           draggable={false}
           intrinsic
-          placeholder="hash"
+          placeholder="none"
           sizes="200px"
         />
       </div>

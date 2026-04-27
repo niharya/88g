@@ -88,6 +88,36 @@ currently implemented behind a `StoryCard.tsx` component.
 
 ---
 
+## Typography rule — GoogleSansFlex 12px → `t-h5` / `t-btn1`
+
+The full typography ladder lives in `globals.css:172-241` (seven tiers: `t-h1`, `t-h2`, `t-h5`, `t-p2`, `t-p3`, `t-p4`, `t-btn1`). Two of those — `t-h5` and `t-btn1` — sit on **GoogleSansFlex** at **12px**, with the same `wdth 120 / opsz 18 / GRAD 64 / ROND 0` axes; they differ only in `wght` (640 vs 720) and the link affordances (`t-btn1` adds `text-transform: capitalize` and a dotted underline that crossfades to a solid bar on hover).
+
+**The rule.** Any element whose intent is GoogleSansFlex at 12px must use one of these two classes. Choice is by *role*, not by current weight:
+
+- **Non-link** (label, role text, caption, heading, info, meta) → `.t-h5`.
+- **Link / button affordance** (the element itself is `<a>` / `<button>` / `role="button"`, OR its parent's primary clickability radiates from this label) → `.t-btn1`.
+
+Apply via JSX class, not by duplicating typography in per-class CSS — that way `globals.css` stays the single source of truth for the spec, and per-class rules carry only instance properties (color, padding, position, etc.). The `t-` class composes alongside the BEM class:
+
+```tsx
+<h4 className="rr-constraints-card__title t-h5">Constraints</h4>
+```
+
+```css
+.rr-constraints-card__title {
+  /* Typography from .t-h5 — applied via JSX. */
+  color: var(--olive-800);
+  text-align: center;
+  padding: 6px 0;
+}
+```
+
+**Cascade gotcha.** `globals.css` loads before route CSS. If a parent BEM class (in route CSS) declares `font-family` / `font-size` / `font-weight`, it will beat `t-h5` / `t-btn1` at equal specificity. Either drop the parent class from that JSX (preferred — see `.rr-story-card__text--bold` for the precedent), or move the conflicting declarations out of the parent rule.
+
+**Documented exception**: `.nav-marker__exit-label`. Its spec is deliberately heavier (`wght 880`), wider (`wdth 130`), with larger optical size (`opsz 24`), zero GRAD, and looser tracking (`-0.36px`) than `t-btn1`. The "EXIT" label is the only place this tier is used. Comment in `app/components/nav/nav.css` flags it as off-rule by design.
+
+---
+
 ## Quick mapping table
 
 | Design language | Code identifier |

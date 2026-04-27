@@ -279,11 +279,16 @@
 .workbench,
 .route-marks {
   opacity: 0;
+  /* Defensive: even if the gate ever fails to release, gated surfaces
+     can't receive clicks while invisible. opacity:0 alone does not
+     block events; this does. */
+  pointer-events: none;
 }
 html.fonts-ready .landing,
 html.fonts-ready .workbench,
 html.fonts-ready .route-marks {
   opacity: 1;
+  pointer-events: auto;
   transition: opacity var(--dur-settle) var(--ease-paper);
 }
 
@@ -357,6 +362,15 @@ html.fonts-ready .page-boot {
 
 @keyframes page-boot-out {
   to { opacity: 0; }
+}
+
+/* Shared tactile-press keyframe (consumers in landing.css, rr.css,
+   biconomy.css). Scale-based so it composes cleanly with any existing
+   transform/rotate/translate on the pressed element. */
+@keyframes card-press {
+  0%   { scale: 1; }
+  45%  { scale: 0.98; }
+  100% { scale: 1; }
 }
 
 /* Material Symbols ligature class.
@@ -517,6 +531,12 @@ p, li {
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);
+
+  /* Tactile press pulse — shared keyframe for click feedback on cards.
+     Used by landing spectrum, RR mechanics card, biconomy SA stack.
+     Animates the standalone `scale:` property so it composes with any
+     existing `transform:` / `rotate:` / `translate:` on the consumer
+     without contention. Snap tier — brief and decisive. */
 
   /* Z-index */
   --z-mat:            0;

@@ -130,7 +130,7 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
     >
       {/* Vertical tab — visual only, click is on the whole rail */}
       <div className="rr-rules-rail__tab">
-        <span className="rr-rules-rail__tab-inner">
+        <span className="rr-rules-rail__tab-inner t-btn1">
           <ArrowBackIcon className={`rr-rules-rail__arrow${isOpen ? '' : ' is-flipped'}`} />
           Rules
         </span>

@@ -132,38 +132,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${fraunces.variable} ${googleSans.variable} ${googleSansFlex.variable} ${googleSansCode.variable} ${materialSymbols.variable}`} suppressHydrationWarning>
       <head>
-        {/* Bounded font gate — restored in v0.59 after v0.58's pure `swap`
-            strategy was deemed too generous to FOUT. Holds top-level page
-            surfaces (.landing, .workbench, .route-marks) at opacity 0
-            until either `document.fonts.ready` resolves OR an 800 ms cap
-            fires — whichever first. The .page-boot startooth below is
-            sibling to those surfaces so it remains visible during the
-            hold. The cap is the filter that lets us skip waiting on the
+        {/* Bounded font gate. Holds top-level page surfaces (.landing,
+            .workbench, .route-marks) at opacity 0 until either
+            `document.fonts.ready` resolves OR a 1000 ms cap fires —
+            whichever first. The .page-boot startooth below is sibling
+            to those surfaces so it remains visible during the hold.
+            The cap is the filter that lets us skip waiting on the
             1.18 MB Material Symbols on slow connections — typography
-            fonts almost always finish within 800 ms; MS keeps loading
+            fonts almost always finish within ~1 s; MS keeps loading
             after release and ligature glyphs swap in when ready.
-            Banned predecessor: the 3-second uncapped gate. Do not raise
-            the cap past ~1000 ms — past 1 s users start to wonder. */}
-        <Script id="font-gate" strategy="beforeInteractive">{`
-          (function () {
-            var done = false;
-            var release = function () {
-              if (done) return;
-              done = true;
-              document.documentElement.classList.add('fonts-ready');
-            };
-            var cap = setTimeout(release, 800);
-            if (document.fonts && document.fonts.ready) {
-              document.fonts.ready.then(function () {
-                clearTimeout(cap);
-                release();
-              });
-            } else {
-              clearTimeout(cap);
-              release();
-            }
-          })();
-        `}</Script>
+
+            Why a vanilla <script dangerouslySetInnerHTML> and NOT
+            <Script strategy="beforeInteractive">: in App Router,
+            beforeInteractive Script with inline content does not get
+            inlined as a real <script> tag — it gets queued through
+            self.__next_s.push([...]) and only executes after the async
+            framework scripts (main-app.js, app-pages-internals.js,
+            etc.) finish loading and process the queue. On slow
+            connections or under CPU pressure that delay is several
+            seconds, during which the gate script never runs,
+            `.fonts-ready` is never set, surfaces stay at opacity 0,
+            and the diamond appears stuck. A vanilla inline <script>
+            executes synchronously during HTML parse — before any
+            async framework script — which is what this gate needs.
+
+            Do not raise the cap past 1000 ms — past 1 s users start
+            to wonder. Banned predecessor: the 3-second uncapped gate. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var d=false;var r=function(){if(d)return;d=true;document.documentElement.classList.add('fonts-ready');};var c=setTimeout(r,1000);if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){clearTimeout(c);r();});}else{clearTimeout(c);r();}})();`,
+          }}
+        />
         {/* Favicon swap — uniform pick across six startooth variants on each
             hard reload: star or tooth, in blue/olive/terra @720. SSR ships
             star-blue as default; script may swap to any of the six. */}

@@ -40,6 +40,7 @@ export default function StayingAnchored() {
   // Rotations stay put through the whole session — only a page reload
   // reshuffles them. Cycling through the pile should not jostle the tilts.
   const [rotations, setRotations] = useState<number[]>(() => PHOTOS.map(() => 0))
+  const [pressing, setPressing] = useState(false)
 
   useEffect(() => {
     setRotations(PHOTOS.map(() => Math.random() * 8 - 4))
@@ -47,6 +48,18 @@ export default function StayingAnchored() {
 
   const next = () => setTopIdx((i) => (i + 1) % PHOTOS.length)
   const prev = () => setTopIdx((i) => (i - 1 + PHOTOS.length) % PHOTOS.length)
+
+  // Tactile press on stack click — shared `card-press` keyframe (globals.css).
+  // State-driven so React's re-render after `next()` doesn't wipe the class
+  // back off. Photos themselves still snap-swap with no transition; the
+  // press is on the button (the parent), preserving the documented
+  // "tak-tak" interaction on the photos.
+  const handleStackClick = () => {
+    next()
+    setPressing(false)
+    requestAnimationFrame(() => setPressing(true))
+    window.setTimeout(() => setPressing(false), 220)
+  }
 
   return (
     <div className="sa">
@@ -57,8 +70,8 @@ export default function StayingAnchored() {
       <div className="sa__stack-area">
         <button
           type="button"
-          className="sa__stack"
-          onClick={next}
+          className={`sa__stack${pressing ? ' is-pressing' : ''}`}
+          onClick={handleStackClick}
           aria-label="Advance photo stack"
         >
           {PHOTOS.map((p, i) => {

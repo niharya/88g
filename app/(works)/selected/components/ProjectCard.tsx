@@ -28,7 +28,7 @@ export default function ProjectCard({ variant, title, body, role, href }: Projec
       <p className="project-card__body">{body}</p>
       <div className="project-card__divider" />
       <div className="project-card__footer">
-        <span className="project-card__role">{role}</span>
+        <span className="project-card__role t-h5">{role}</span>
         <IconChevronRight size={20} className="project-card__arrow" />
       </div>
     </Link>

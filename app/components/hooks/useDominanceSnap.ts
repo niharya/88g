@@ -76,6 +76,10 @@ export function useDominanceSnap(
 
     const maybeSnap = () => {
       if (gliding || reduced) return
+      // Pause snap while an overlay is open. The reader is inspecting
+      // content inside the chapter, not navigating between chapters —
+      // see useExpand, which sets/clears this class.
+      if (document.body.classList.contains('is-overlay-open')) return
       const rect = el.getBoundingClientRect()
       const vh   = window.innerHeight || 1
 

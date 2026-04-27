@@ -248,6 +248,46 @@ The story card uses Framer Motion inline `transform` (spring-animated `x`, `rota
 
 ---
 
+## Overlay primitive — `useExpand` (in-flow, not `<dialog>`)
+
+`app/lib/useExpand.ts` is the shared expand/collapse primitive used by Intro `.rr-enlarged` and Outcome `.rr-rules-group`. **It does not use HTML `<dialog>` / `showModal()`** — that path was tried and reverted. The reasons matter:
+
+- The enlarged scans must clip to `#intro.mat` so the page keeps scrolling while open. `showModal()` promotes to the top layer, where the dialog's containing block is the viewport regardless of DOM parent — `inset: 0` fills the document, not the canvas. Working around this required JS-measured `position: fixed` + `documentElement.overflow: hidden`, which kills page scroll and broke the in-flow feel.
+- The Outcome rules group has a scroll-linked entrance that must be visible before expansion. `<dialog>` is `display: none` until opened, which breaks that.
+- Chrome silently drops the `close` event for programmatic `dialog.close()` calls in the version Claude Preview ships — so even the React-state sync had to be patched with a `MutationObserver`.
+
+The "modal feel" both consumers want isn't actually about top-layer paint. It's about **everything else receding**, which we get from two coordinated layers:
+
+1. **Visual** — `#mat:has([data-enlarged])` and `#mat:has([data-rules-expanded])` swap mat bg → `--blue-960`, plus `filter: var(--backseat-dim)` + `scale: 0.9` + `pointer-events: none` on the receded content (story card, outcome card). This is the existing backseat choreography described above.
+2. **Semantic** — `useExpand` walks the expanded element's parent on expand and sets `inert` on every non-self child. Outside content stays visible (so the dim still reads), but it can't be tabbed, clicked, or activated. Restored on collapse, only for the children the hook itself toggled.
+
+The hook also owns:
+
+- **Escape dismiss** (document `keydown`).
+- **Click-outside dismiss** — capture-phase document `pointerdown`, rAF-deferred. The deferral is load-bearing: without it, the click that triggered expand is still propagating when the listener attaches, and the overlay would immediately collapse.
+- **Focus save/restore** — captures `document.activeElement` on expand, auto-focuses the first focusable inside the overlay one frame later (so React has committed the children), and on collapse returns focus to the trigger only if focus is still inside the overlay (otherwise the user moved focus deliberately).
+
+If you ever revisit `<dialog>` for this: the deal-breakers are scroll-with-canvas, the route header staying reachable, and the Outcome scroll-linked entrance. Top-layer fights all three.
+
+### `is-overlay-open` body class — cross-file coupling
+
+`useExpand` adds `document.body.classList.add('is-overlay-open')` on expand and removes it on collapse-end. `useDominanceSnap.maybeSnap()` (in `app/components/hooks/useDominanceSnap.ts`) early-returns when that class is present. Result: while a reader has the enlarged scans or the rules card open on /rr, the chapter dominance-snap is paused — no yank to the next chapter on idle.
+
+Two files share this signal:
+
+- **Setter**: `useExpand`'s expanded-effect.
+- **Reader**: `useDominanceSnap.maybeSnap()`.
+
+If you change the class name on one side, change it on the other. If you delete one side, delete both — a stale setter that no reader checks is silent rot.
+
+Why a body class and not a context/store? The hook needs to gate code that runs outside React's render path (`window` scroll listener), and `useExpand` is a generic primitive that shouldn't know about /rr's snap config. A DOM signal at the document level is the cheapest plumbing.
+
+### Close-cascade timing — JS setTimeout matches CSS animation sum
+
+`Intro.tsx`'s `setTimeout(markEnlargedClosed, 550)` mirrors the longest-finishing image's CSS animation: `5 × 60ms stagger + 250ms duration = 550ms`. If you change either side (the `--idx`-based `animation-delay` in `rr.css` or the timeout in `Intro.tsx`), update both. There's a comment on each side flagging the dependency.
+
+---
+
 ## Outcome ticker — unified translate + scrollLeft
 
 Lives in `app/(works)/rr/components/Outcome.tsx` (motion-state block) +

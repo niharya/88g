@@ -21,9 +21,10 @@
 //   constraintsOpen: hidden constraint rows reveal (Framer Motion height + AnimatePresence)
 //   isEnlarged: card stack hides (CSS), enlarged strip mounts; mat dims via :has()
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useMatSettle from './useMatSettle'
+import { useExpand } from '../../../lib/useExpand'
 import { Img } from '../../../components/Img'
 import { ExpandToggle } from '../../../components/ExpandToggle'
 
@@ -49,8 +50,11 @@ const HIDDEN_ROWS = [
 ]
 
 // ── Enlarged strip dimensions ──────────────────────────────────────────────
-// 760px uniform height. Width follows each sketch's natural aspect ratio.
-const ENLARGED_H = 760
+// Image height is responsive: 760px ceiling, shrinks on shorter viewports
+// so the full strip is visible without page-scroll. Driven by --strip-h in
+// rr.css; each image's width is calc(--strip-h * --rr-aspect). The aspect
+// ratios are passed via inline CSS custom property so the JSX stays content
+// (no width math) and the layout follows viewport at runtime.
 const SKETCH_ASPECTS: Record<number, number> = {
   1: 172 / 350,
   2: 210 / 301,
@@ -76,7 +80,27 @@ const sketchSrc = (n: number) => `/images/rr/rr-sketch-${n}.${SKETCH_EXT[n] ?? '
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [constraintsOpen, setConstraintsOpen] = useState(false)
-  const [isEnlarged, setIsEnlarged] = useState(false)
+  // Enlarged sketches strip — state + dismiss handled by useExpand.
+  // The strip lives inside the canvas as a normal <div>; that's
+  // load-bearing because (a) it clips to the mat so the user can
+  // still scroll the page while open, and (b) it scrolls with the
+  // canvas. useExpand owns ESC, click-outside, inert siblings, and
+  // focus save/restore — all without going to the top layer.
+  // The strip stays mounted while expanded OR closing so the per-image
+  // CSS cascade-out has time to play before unmount.
+  const { expanded: isEnlarged, isClosing: isEnlargedClosing, expand: enlarge, collapse: closeEnlarged, ref: enlargedRef, markClosingDone: markEnlargedClosed } =
+    useExpand<HTMLDivElement>()
+  // Close-cascade timeout. The cascade-out CSS animation runs 0.25s on
+  // each image with a 60ms L→R stagger. The last image to finish
+  // (idx=5) starts at 5 × 60 = 300ms and ends at 300 + 250 = 550ms;
+  // we mark closed when it lands so the element unmounts cleanly.
+  // Keep this synced with rr-enlarged-cascade-out duration + delay
+  // in rr.css.
+  useEffect(() => {
+    if (!isEnlargedClosing) return
+    const t = setTimeout(markEnlargedClosed, 550)
+    return () => clearTimeout(t)
+  }, [isEnlargedClosing, markEnlargedClosed])
   const scrollRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   useMatSettle(canvasRef)
@@ -89,16 +113,7 @@ export default function Intro() {
       : `${(i * 0.035).toFixed(3)}s`
 
   return (
-    <div
-      ref={canvasRef}
-      className="rr-canvas"
-      onClick={(e) => {
-        if (!isEnlarged) return
-        const target = e.target as HTMLElement
-        if (target.closest('.rr-enlarged__strip') || target.closest('.rr-enlarged__close')) return
-        setIsEnlarged(false)
-      }}
-    >
+    <div ref={canvasRef} className="rr-canvas">
 
       {/* ── Story Card ──────────────────────────────────────────────────── */}
       {/* Tween on the paper curve — matches card-stack CSS, no spring overshoot */}
@@ -127,7 +142,7 @@ export default function Intro() {
           </p>
           <div className="rr-story-card__callout">
             <p className="rr-story-card__text">I gathered the constraints and</p>
-            <p className="rr-story-card__text rr-story-card__text--bold">Sketched An Initial Game Mechanic.</p>
+            <p className="rr-story-card__text--bold t-h5">Sketched An Initial Game Mechanic.</p>
           </div>
         </div>
 
@@ -151,7 +166,7 @@ export default function Intro() {
           <div className="rr-constraints-card__dot" aria-hidden="true" />
           <div className="rr-constraints-card__inner">
             <div className="rr-constraints-card__border rr-constraints-card__border--top" />
-            <h4 className="rr-constraints-card__title">Constraints</h4>
+            <h4 className="rr-constraints-card__title t-h5">Constraints</h4>
             <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
             <p className="rr-constraints-card__item">A strategy or puzzle-based PvP game</p>
             <div className="rr-constraints-card__border rr-constraints-card__border--mid" />
@@ -199,7 +214,7 @@ export default function Intro() {
               className="rr-constraints-card__toggle"
               aria-hidden="true"
             >
-              <span className="rr-constraints-card__toggle-label">+3</span>
+              <span className="rr-constraints-card__toggle-label t-btn1">+3</span>
               <span className="rr-constraints-card__toggle-icon material-symbols-rounded" aria-hidden="true">
                 arrow_drop_down
               </span>
@@ -241,29 +256,34 @@ export default function Intro() {
               cursor: isExpanded ? 'pointer' : undefined,
             }}
             sizes="400px"
-            onClick={() => { if (isExpanded && !isEnlarged) setIsEnlarged(true) }}
+            onClick={() => { if (isExpanded && !isEnlarged) enlarge() }}
           />
         ))}
       </div>
 
       {/* ── Enlarged strip ────────────────────────────────────────────────── */}
-      {/* Snappy swap — no layout morph. Wheel scrolls horizontally.          */}
-      {/* Mat dims via :has([data-enlarged]) — no overlay element.             */}
-      {isEnlarged && (
+      {/* In-flow div, not <dialog>: clips to mat so the user can keep        */}
+      {/* scrolling, scrolls with canvas, route header stays reachable.      */}
+      {/* Mat dims via :has([data-enlarged]); story card / card-stack inert  */}
+      {/* via useExpand so they recede semantically as well as visually.     */}
+      {/* Mount stays alive while expanded OR closing so the close-fade has  */}
+      {/* time to play before unmount. data-enlarged is gated on isEnlarged  */}
+      {/* (not isClosing) so the mat dim un-dims at the same time the strip  */}
+      {/* starts fading out.                                                  */}
+      {(isEnlarged || isEnlargedClosing) && (
         <div
-          className="rr-enlarged"
-          data-enlarged
-          onClick={(e) => {
-            const target = e.target as HTMLElement
-            if (target.closest('.rr-enlarged__scroll') || target.closest('.rr-enlarged__close')) return
-            setIsEnlarged(false)
-          }}
+          ref={enlargedRef}
+          className={`rr-enlarged${isEnlargedClosing ? ' rr-enlarged--closing' : ''}`}
+          data-enlarged={isEnlarged || undefined}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Sketches, enlarged"
         >
           <button
             className="rr-enlarged__close"
             type="button"
             aria-label="Close enlarged view"
-            onClick={() => setIsEnlarged(false)}
+            onClick={closeEnlarged}
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -275,7 +295,7 @@ export default function Intro() {
             className="rr-enlarged__scroll"
             ref={scrollRef}
           >
-            {([1, 2, 3, 4, 5, 6] as const).map((n) => (
+            {([1, 2, 3, 4, 5, 6] as const).map((n, i) => (
               <Img
                 key={n}
                 src={sketchSrc(n)}
@@ -283,10 +303,7 @@ export default function Intro() {
                 className="rr-enlarged__image"
                 draggable={false}
                 sizes="800px"
-                style={{
-                  height: ENLARGED_H,
-                  width: Math.round(ENLARGED_H * (SKETCH_ASPECTS[n] ?? 1)),
-                }}
+                style={{ '--rr-aspect': SKETCH_ASPECTS[n] ?? 1, '--idx': i } as CSSProperties}
               />
             ))}
           </div>

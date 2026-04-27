@@ -114,6 +114,11 @@ button.nav-marker--project.is-info-open {
 }
 
 .nav-marker__exit-label {
+  /* Custom spec — deliberately heavier (wght 880), wider (wdth 130),
+     larger optical size (opsz 24), zero GRAD, looser tracking
+     (-0.36) than .t-btn1. The EXIT marker is the only label that
+     uses this tier; it does NOT follow the "GoogleSansFlex 12px link
+     → t-btn1" rule. */
   font-family: var(--font-ui);
   font-size: 12px;
   font-optical-sizing: none;

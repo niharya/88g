@@ -71,7 +71,7 @@ export default function NoteRail({ playReveal = false, otherOpen = false, onOpen
         className="rr-note-rail__content"
         onClick={() => { if (isOpen) setIsOpen(false) }}
       >
-        <p className="rr-note-rail__title">This Is Not The Main Game</p>
+        <p className="rr-note-rail__title t-h5">This Is Not The Main Game</p>
         <p className="rr-note-rail__text">This is the rudimentary game mechanic that evolved into the main gameplay later</p>
       </div>
     </Rail>

@@ -20,7 +20,7 @@ export default function MarkerInfoCard() {
       </p>
       <div className="rr-marker-info-card__divider" />
       <div className="rr-marker-info-card__footer">
-        <span className="rr-marker-info-card__role">Game Designer • Rug Rumble</span>
+        <span className="rr-marker-info-card__role t-h5">Game Designer • Rug Rumble</span>
         <IconChevronRight size={20} className="rr-marker-info-card__arrow" />
       </div>
     </div>

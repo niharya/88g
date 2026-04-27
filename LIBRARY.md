@@ -284,6 +284,26 @@ Pure functions shared across routes. No UI, no state.
 - [app/lib/titleCase.ts](app/lib/titleCase.ts) — APA title case. Used anywhere UI copy is authored in sentence case but rendered as a title. `.t-h5` assumes inputs are already APA-cased via this function.
 ---
 
+## useExpand
+
+Expand/collapse primitive for in-place overlays that live inside their parent's flow (no `<dialog>`, no top layer). Owns five pieces that together give a non-modal overlay the *feel* of a modal without paying platform-modal costs: Escape dismiss, click-outside dismiss, `inert` on siblings, focus save/restore, and the `is-overlay-open` body class (which `useDominanceSnap` reads to pause section-snap while the user is inspecting). Adds an `isClosing` state that batches with `setExpanded(false)` in the same React update so consumers can run an exit animation before unmount without a render gap.
+
+**Where it lives**
+- [app/lib/useExpand.ts](app/lib/useExpand.ts) — `useExpand<T>()` returns `{ expanded, isClosing, expand, collapse, toggle, ref, markClosingDone }`.
+- Consumers: `/rr` Intro (`.rr-enlarged` sketches strip) and `/rr` Outcome (`.rr-rules-group` rules panel).
+
+**AI notes**
+- **Why not `<dialog>.showModal()`.** Both consumers want the overlay clipped to its mat (so the page keeps scrolling), scrolling with the canvas, and the route header reachable. `showModal()` promotes to the top layer with a viewport-fixed containing block — fundamentally fights all three. The "modal feel" here comes from receding surroundings (existing `:has()` mat dim + `inert` on siblings), not from the platform's modal pseudo-classes.
+- **`inert` on siblings is the semantic half of the mat dim.** When expanded, the hook walks the parent and sets `inert` on every non-self child, recording what it toggled so collapse only restores those. Pairs with `:has([data-enlarged])` / `:has([data-rules-expanded])` — visual receding + interaction blocking come from the same idea, applied in two layers.
+- **Click-outside is rAF-deferred.** Without the deferral, the `pointerdown` that triggered expand would still be propagating when the listener attaches and would immediately re-collapse. Capture phase + rAF is the canonical fix; don't remove the rAF.
+- **Focus save/restore mirrors `showModal()`'s native behaviour.** The activeElement at expand-time is captured, the first focusable inside the overlay auto-focuses one frame later (so React has committed the children), and on collapse focus returns to the trigger — but only if it's still inside the overlay (otherwise the user moved focus deliberately and we shouldn't fight them).
+- **`is-overlay-open` body class pauses section-snap.** Set on expand, cleared on collapse-end. `useDominanceSnap.maybeSnap()` early-returns when present, so a reader inspecting an overlay isn't yanked to the next chapter on idle. Cross-file coupling — log it in `rr/ANOMALIES.md` if you change either side.
+- **`isClosing` + `markClosingDone` decouple unmount from collapse.** When the user dismisses, the hook flips `expanded → false` AND `isClosing → true` in the same React batch (via a setExpanded updater). Consumers gate their JSX mount on `expanded || isClosing` so an exit animation has time to play; when the animation lands they call `markClosingDone()` to flip `isClosing` back off and let React unmount. Without this, FM's `style` motion values would override the close `animate` target and the overlay would snap to rest instead of springing out.
+- **Consumer owns motion.** The hook only owns state + dismiss + a11y + snap-pause wiring. Intro uses CSS animations with per-image L→R cascade (open and close); Outcome uses imperative `animate(motionValue, target, spring)` calls gated by `isClosing` so scroll-sync doesn't fight the close spring.
+- What's library-ready: the whole hook.
+
+---
+
 ## scrollGlide
 
 rAF-tween of `window.scrollY` under `--ease-paper`. The native `scrollTo({ behavior: 'smooth' })` curve doesn't match the route easing — this util is the shared path for any programmatic scroll that needs to feel like every other transition in the route.
@@ -317,6 +337,7 @@ Scroll-idle landing snap for full-viewport sections. On 150ms scroll-idle, if th
 - **Tall sections need `topProximityPx`, `idleMs`, `glideDurationMs`, and often `dockOffsetPx`.** The dominance check uses `min(rect.height, vh)` as denominator, so a chapter much taller than the viewport stays "dominant" for ~one viewport's worth of mid-section scroll — without a proximity gate, that yanks the reader back to the chapter top mid-read. Sheet (biconomy/rr) currently sets `topProximityPx: 80`, `idleMs: 2000`, `glideDurationMs: 800` (= `--dur-glide`), and `dockOffsetPx: 2` (corrects a 2px visual gap between ChapterMarker and ProjectMarker after dock). Marks consumers leave all four undefined to keep the original 150ms / 500ms / no-proximity behavior.
 - **Tokens, not magic.** Glide duration reads from `--dur-settle` at call time; ratio (0.72) and idle (150ms) are constants in the file — change them there, not at call sites.
 - **Conflicts to watch.** Programmatic scrolls from elsewhere (TransitionSlot, anchor jumps) can land mid-section. The 150ms idle means the snap will glide-correct them; if that's unwanted, exclude that section or guard the consumer.
+- **Pauses while an overlay is open.** `maybeSnap()` early-returns when `document.body` carries the `is-overlay-open` class — set/cleared by `useExpand`. Reader inspecting an enlarged scan or rules card on /rr won't get yanked to the next chapter on idle. Cross-file coupling; both sides logged in `rr/ANOMALIES.md`.
 
 ---
 

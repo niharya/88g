@@ -92,7 +92,7 @@ export default function Cards() {
             {tab === 'cards' && (
               <motion.p
                 key="subtitle"
-                className="rr-cards-subtitle"
+                className="rr-cards-subtitle t-h5"
                 initial={hasSwitched.current ? TAB_TITLE_ENTER : false}
                 animate={TAB_TITLE_VISIBLE}
                 exit={TAB_TITLE_EXIT}
@@ -106,7 +106,7 @@ export default function Cards() {
 
         <div className="rr-cards-tabs">
           <button
-            className={`rr-cards-tab${tab === 'cards' ? ' rr-cards-tab--active' : ''}`}
+            className={`rr-cards-tab t-btn1${tab === 'cards' ? ' rr-cards-tab--active' : ''}`}
             type="button"
             onClick={() => handleTab('cards')}
           >
@@ -123,7 +123,7 @@ export default function Cards() {
             </svg>
           </button>
           <button
-            className={`rr-cards-tab${tab === 'interface' ? ' rr-cards-tab--active' : ''}`}
+            className={`rr-cards-tab t-btn1${tab === 'interface' ? ' rr-cards-tab--active' : ''}`}
             type="button"
             onClick={() => handleTab('interface')}
           >

@@ -33,7 +33,7 @@
   --hero-top: 224px;
   --hero-h: 240px;
   --projects-top: 460px;
-  --short-top: var(--space-16);
+  --short-top: var(--space-56);
   --long-top: 431px;
   --practice-top: 688px;
 
@@ -552,6 +552,15 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    Calc keeps mobile docked too since both --hero-top and --short-top adapt. */
 .about-card--short {
   min-height: calc(var(--hero-top) - var(--short-top));
+  /* Tighter bottom so the divider's gap-below balances its gap-above.
+     Pairs with the .about-card__divider override below (no margin-bottom),
+     so the divider sits with 24px above (margin-top) and 24px below
+     (padding-bottom). The whole card protrudes less. */
+  padding-bottom: var(--space-24);
+}
+
+.about-card--short .about-card__divider {
+  margin-bottom: 0;
 }
 
 /* Long card — first paragraph needs to clear the hero's nav pill row when
@@ -613,23 +622,38 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   transition: transform var(--dur-fast) var(--ease-snap);
 }
 
-/* Desktop hover affordance — paper lifts and the 4px outer frame (the
-   surface-bg ring between .spectrum__bg and .spectrum__inner) tints to
-   terra-800 to read as a "noticed" border. */
+/* Tactile press on click — uses the shared `card-press` keyframe from
+   globals.css (also consumed by the RR mechanics card and biconomy SA
+   stack). React adds `is-pressing` on click and clears it after the
+   animation window. */
+.spectrum.is-pressing {
+  animation: card-press var(--dur-fast) var(--ease-snap);
+}
+
+/* Desktop hover affordance — paper lifts and an inset shadow lands on
+   the inner surface, reading as the card pressing down into the mat
+   while the whole card lifts a hair. No bg-color shift; the inset alone
+   is the "noticed" reaction.
+
+   :active mimics the nav-button paper-tag press: the whole card drops
+   1px (mirrors translateY(1px) on .nav-marker:active) and the inset
+   shadow deepens. Combined with the click scale-press keyframe, the
+   layered feedback reads as: lift on hover → drop + scale-pulse on
+   click → return on release. */
 @media (hover: hover) and (min-width: 768px) {
   .spectrum:hover {
     transform: translateY(calc(-1 * var(--space-2)));
   }
-  .spectrum:hover .spectrum__bg {
-    box-shadow: var(--shadow-resting);
-    background: var(--terra-800);
+  .spectrum:hover .spectrum__inner {
+    box-shadow: inset 0 3px 14px rgba(0, 0, 0, 0.18);
   }
-}
-
-.spectrum__bg {
-  transition:
-    box-shadow var(--dur-fast) var(--ease-snap),
-    background-color var(--dur-fast) var(--ease-snap);
+  .spectrum:active {
+    transform: translateY(1px);
+    transition: transform var(--dur-instant) var(--ease-snap);
+  }
+  .spectrum:active .spectrum__inner {
+    box-shadow: inset 0 4px 18px rgba(0, 0, 0, 0.26);
+  }
 }
 
 .spectrum__frame {
@@ -653,6 +677,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   right: 4px;
   bottom: 4px;
   background: var(--terra-160);
+  transition: box-shadow var(--dur-fast) var(--ease-snap);
 }
 
 .spectrum__gradient {
@@ -696,7 +721,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
 .spectrum__label--right {
   right: 22px;
-  top: 108px;
+  top: 103px;
 }
 
 .spectrum__footer {

@@ -782,6 +782,10 @@
   pointer-events: auto;
   cursor: default;
   transition: transform 0.14s cubic-bezier(0.3, 1.3, 0.5, 1);
+  /* Resting elevation above the after-image's `.img__inner` (z-index: 1
+     from the shared Img primitive). Without this, pointers sit beneath
+     the image and only become visible on hover (which bumps z to 5). */
+  z-index: 2;
 }
 
 .ba__note-pointer.is-hovered,
@@ -1136,6 +1140,7 @@
 
 /* Reveal overlay button */
 .bips__reveal-btn {
+  /* Typography from .t-btn1 (applied via JSX). */
   position: absolute;
   inset: 0;
   z-index: 10;
@@ -1147,8 +1152,6 @@
   justify-content: center;
   color: white;
   border: none;
-  font-family: var(--font-ui);
-  font-size: 12px;
   transition: opacity 1s ease-out; /* duration-1000 */
 }
 
@@ -1170,7 +1173,11 @@
   display: flex;
   max-width: var(--rail-width);
   gap: 2px; /* gap-0.5 */
-  align-items: flex-start; /* items-start */
+  /* align-items defaults to `stretch` so .bips__notes-content fills the
+     rail's full height. Was `flex-start` previously, which left content
+     at its natural height and produced an extra ~23 px gap at the rail's
+     bottom (top docked, bottom unfilled — visible asymmetry vs the tab
+     which spans full height). */
   background: var(--olive-80);
   color: var(--olive-800);
   position: absolute;
@@ -1527,12 +1534,13 @@
   margin-left: -1px; /* -ml-px — overlap for connected border feel */
   max-height: fit-content;
   border: 1px solid var(--orange-400);
+  background-color: var(--orange-100);
   color: var(--orange-400);
   transition: background-color var(--dur-settle) var(--ease-paper), color var(--dur-settle) var(--ease-paper), border-color var(--dur-settle) var(--ease-paper);
 }
 
 .demos__tab-label:not(.demos__tab-label--active):hover {
-  background-color: var(--orange-100);
+  background-color: var(--orange-160);
 }
 
 .demos__tab-label--active {
@@ -1993,7 +2001,20 @@
 
 /* Raw variant — no black monitor frame, image sits directly on the mat
    but keeps the same 1px border as landscape frames. Used by nav-signing
-   where portrait sketches read better without a letterboxed box. */
+   where portrait sketches read better without a letterboxed box.
+
+   Wrapper takes a 3/4 aspect (matching the portrait sketches' native
+   ratio) and shrinks to ~56.25% width — the image-area width that the
+   landscape 4:3 wrapper used to letterbox to. Visible image dimensions
+   are preserved; the previously-empty L/R bands inside the wrapper move
+   out into the parent's flow, leaving the wrapper sized exactly to the
+   image. The caption row already uses the same 56.25% so they align. */
+.api__stack-wrap--raw {
+  aspect-ratio: 3 / 4;
+  width: 56.25%;
+  margin-inline: auto;
+}
+
 .api__stack-wrap--raw .api__card-frame {
   border: none;
   background: transparent;
@@ -2422,6 +2443,14 @@
   border: 0;
   padding: 0;
   cursor: pointer;
+}
+
+/* Tactile press on click — uses the shared `card-press` keyframe from
+   globals.css (also consumed by landing spectrum and RR mechanics card).
+   The press lives on the button wrapper; the photos themselves still
+   snap-swap instantly per the documented "tak-tak" interaction. */
+.sa__stack.is-pressing {
+  animation: card-press var(--dur-fast) var(--ease-snap);
 }
 
 /* Each print sizes to its image's natural aspect — no letterboxing, no
@@ -3176,9 +3205,13 @@
     gap: var(--space-24);
   }
 
-  /* Raw-variant caption constrained to 56.25% on desktop to match a
-     portrait image; at mobile widths that reads as a thin stripe.
-     Let it fill. */
+  /* Raw-variant constrained to 56.25% on desktop to match a portrait
+     image; at mobile widths that reads as a thin stripe. Let both the
+     wrapper and the caption row fill. */
+  .api__stack-wrap--raw {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+  }
   .api__slider--raw .api__caption-row {
     width: 100%;
     margin-inline: 0;
@@ -3345,13 +3378,7 @@
 }
 
 .bicon-marker-info-card__role {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 720;
-  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
-  line-height: 1.2;
-  text-transform: capitalize;
+  /* Typography from .t-h5 (applied via JSX). */
   white-space: nowrap;
   color: var(--blue-800);
 }

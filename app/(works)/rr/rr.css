@@ -229,11 +229,13 @@
 }
 
 .rr-story-card__text--bold {
-  font-family: var(--font-ui);
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
-  text-transform: capitalize;
+  /* Typography from .t-h5 (applied via JSX). The sibling
+     .rr-story-card__text class is intentionally NOT applied to the
+     bold callout — its body-font typography would override .t-h5
+     because rr.css loads after globals.css at equal specificity.
+     Color carried locally so the callout still reads as part of the
+     story-card prose tone. */
+  color: var(--terra-960);
 }
 
 .rr-story-card__callout {
@@ -252,7 +254,15 @@
   width: 0;
   height: 0;
   z-index: 1;
-  transition: transform 0.55s var(--ease-paper); /* rr card physics — intentional */
+  /* `transform` keeps the rr card-physics curve for the fan↔grid morph.
+     `scale` and `opacity` carry the reveal/hide transition from the
+     enlarged strip — when the strip closes, scale lifts 0.92 → 1 while
+     opacity goes 0 → 1, giving the smaller cards a subtle "pop back
+     in" as they re-appear. */
+  transition:
+    transform 0.55s var(--ease-paper),
+    scale     0.4s  var(--ease-paper),
+    opacity   0.4s  var(--ease-paper);
 }
 
 .rr-card-stack--expanded {
@@ -291,17 +301,25 @@
 .rr-card-stack--expanded .rr-card-stack__page--5 { width: 240px; height: 184px; left: 668px; top: -242px; transform: rotate(-1deg); }
 .rr-card-stack--expanded .rr-card-stack__page--6 { width: 177px; height: 150px; left: 440px; top: -200px; transform: rotate(1deg);  }
 
-/* Card stack hidden when enlarged strip is active */
+/* Card stack hidden when enlarged strip is active. The slight scale-
+   down here is what produces the scale-up on close: when the
+   --hidden class is removed, scale transitions from 0.92 back to its
+   default (var(--settle-scale, 1) from the rule above) over 0.4s,
+   so the smaller cards feel like they "pop back in" alongside the
+   strip's L→R cascade-out. */
 .rr-card-stack--hidden {
   opacity: 0;
+  scale: 0.92;
   pointer-events: none;
 }
 
 
 /* ── Enlarged strip ────────────────────────────────────────────────────── */
-/* Full-height drag-scroll carousel. Layout:                                */
-/*   32px → close button (44px) → 32px → images (760px) → 32px = 900px     */
-/* Mat dims via :has([data-enlarged]) — no overlay, same as rules panel.     */
+/* In-canvas overlay — NOT a <dialog>. Clips to the mat so the user can     */
+/* keep scrolling the page while open, and scrolls with the canvas itself. */
+/* Layout: 32px → close button (44px) → 24px gap → image strip (760px).    */
+/* Mat dim via :has([data-enlarged]); useExpand inert-marks siblings so the */
+/* receded surroundings can't be tabbed/clicked through.                    */
 
 .rr-enlarged {
   position: absolute;
@@ -310,7 +328,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 32px;
+  /* 16px breathing room above the close button — keeps it visually
+     separate from the canvas top edge without re-introducing the full
+     32px stack the original layout had. We don't translateY the
+     .rr-enlarged because `.rr-canvas` has `overflow: hidden`; any
+     negative-Y translate clips the button against canvas top. Pulling
+     content up via layout (not transform) keeps everything inside the
+     canvas's clip rect. */
+  padding-top: 16px;
 }
 
 .rr-enlarged__close {
@@ -326,7 +351,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--dur-fast) var(--ease-snap), border-color var(--dur-fast) var(--ease-snap);
+  transition:
+    background     var(--dur-fast) var(--ease-snap),
+    border-color   var(--dur-fast) var(--ease-snap),
+    box-shadow     var(--dur-fast) var(--ease-snap);
 }
 
 .rr-enlarged__close:hover {
@@ -334,10 +362,16 @@
   border-color: rgba(255, 255, 255, 0.30);
 }
 
+.rr-enlarged__close:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+}
+
 .rr-enlarged__scroll {
   width: 1440px;
   flex: 1;
-  margin-top: 32px;
+  margin-top: 16px;
   display: flex;
   gap: 16px;
   padding: 0 32px;
@@ -351,13 +385,60 @@
   display: none;                  /* Chrome / Safari */
 }
 
+/* Image height is responsive — caps at the original 760 on tall viewports
+   but shrinks on short ones so the full strip is visible without page-scroll
+   on open. The 224px subtrahend covers canvas top in viewport (~164) +
+   close button (44) + flex margin (16), measured against 100vh. Width
+   follows the per-image aspect ratio set inline as --rr-aspect on each
+   image element.
+
+   Cascade-in: each image carries a `--idx` (0..5) inline. The strip
+   mounts only when expanded, so the CSS animation runs fresh every
+   open — `from` reveals invisible-and-shifted-left, `to` lands at rest;
+   `animation-delay: calc(var(--idx) * 60ms)` cascades them L→R. The
+   parent .rr-enlarged's FM opacity fade still plays in parallel; the
+   two compose cleanly because they target different opacity sources
+   (parent style.opacity vs child CSS animation). */
 .rr-enlarged__image {
+  --strip-h: clamp(540px, calc(100vh - 224px), 760px);
   display: block;
+  height: var(--strip-h);
+  width: calc(var(--strip-h) * var(--rr-aspect, 1));
   object-fit: cover;
   border-radius: 4px;
   flex-shrink: 0;
   user-select: none;
   -webkit-user-drag: none;
+  /* 0.6s + 110ms stagger is a tuned one-off cascade pace — between
+     --dur-settle (0.5s) and --dur-glide (0.8s) — and 110ms doesn't
+     correspond to any duration token because it's a stagger, not a
+     transition. Easing snaps to --ease-snap exactly. */
+  animation: rr-enlarged-cascade 0.6s var(--ease-snap) both;
+  animation-delay: calc(var(--idx, 0) * 110ms);
+}
+
+/* Close cascade: same L→R direction as open — img 0 leaves first, img 5
+   last. Duration (0.25s) and stagger (60ms) are tighter than open
+   (0.6s / 110ms) so the close feels distinctly brisker. setTimeout in
+   Intro.tsx matches the longest-finishing image (5 * 60 + 250 = 550ms)
+   and fires markEnlargedClosed → strip unmounts. Keep CSS + JS values
+   in sync. */
+.rr-enlarged--closing .rr-enlarged__image {
+  /* 0.25s + 60ms stagger — also a tuned one-off, brisker than the
+     entrance. Sits between --dur-fast (0.2) and --dur-slide (0.3);
+     keep inline rather than snap to a tier. */
+  animation: rr-enlarged-cascade-out 0.25s var(--ease-snap) both;
+  animation-delay: calc(var(--idx, 0) * 60ms);
+}
+
+@keyframes rr-enlarged-cascade {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rr-enlarged-cascade-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(12px); }
 }
 
 /* ── Overlay backseat choreography — intro enlarged ────────────────────── */
@@ -375,7 +456,7 @@
 
 .rr-canvas:has([data-enlarged]) .rr-story-card {
   filter: var(--backseat-dim);
-  scale: 0.9;
+  scale: 0.96;
   pointer-events: none;
 }
 
@@ -501,13 +582,8 @@
 
 /* Title */
 .rr-constraints-card__title {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
+  /* Typography from .t-h5 (applied via JSX). */
   color: var(--olive-800);
-  text-transform: capitalize;
   text-align: center;
   padding: 6px 0;
 }
@@ -545,34 +621,11 @@
 }
 
 .rr-constraints-card__toggle-label {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
+  /* Typography + dotted-underline + ::after solid-bar hover come from
+     .t-btn1 (applied via JSX). We only carry the route color and the
+     entrance/exit opacity transition here. */
   color: var(--olive-800);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
-  position: relative;
-  transition:
-    opacity 0.135s var(--ease-paper),
-    text-decoration-color 0.12s ease;
-}
-
-/* btn1-style hover: dotted underline swaps to a solid bar via ::after fade */
-.rr-constraints-card__toggle-label::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: currentColor;
-  opacity: 0;
-  transition: opacity var(--dur-instant) var(--ease-snap);
-  pointer-events: none;
+  transition: opacity 0.135s var(--ease-paper);
 }
 
 /* Hover target is the whole card, not just the toggle — the full sheet is
@@ -673,17 +726,14 @@
 }
 
 .rr-rules-rail__tab-inner {
+  /* Typography from .t-btn1 (applied via JSX). Per the rule: link/
+     button-affordance GoogleSansFlex 12px elements use t-btn1. */
   padding: 4px 8px;
   display: flex;
   align-items: center;
   gap: 4px;
   writing-mode: vertical-lr;
   text-orientation: sideways;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
   color: var(--yellow-560);
 }
 
@@ -796,14 +846,10 @@
 }
 
 .rr-note-rail__title {
+  /* Typography from .t-h5 (applied via JSX). */
   margin: 0 -8px;
   padding: 0 8px 8px;
   border-bottom: 1px solid var(--yellow-320);
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
   color: var(--yellow-480);
 }
 
@@ -1102,34 +1148,23 @@
 
 
 /* ── Story / Structure view swap (button-press feedback) ────────────────
-   On every toggle, the whole mechanics card briefly pushes IN on the
-   z-axis and comes BACK OUT — the same tactile cue you get from
-   pressing a physical button. The two tab views (body and structure)
-   crossfade underneath without any independent depth motion of their
-   own; the depth lives on the parent so the press reads as the user's
-   click landing on the surface itself.
+   On every toggle, the whole mechanics card briefly scales down and
+   springs back — the same tactile cue you get from pressing a physical
+   button. The two tab views (body and structure) crossfade underneath
+   without any independent motion; the press lives on the parent so it
+   reads as the user's click landing on the surface itself.
 
    How it's wired:
-     - .rr-mech-stage carries `perspective` so any translateZ on its
-       descendants (the card) resolves as actual depth.
-     - .rr-story-card--mechanics runs the `card-press` keyframe animation
-       on every toggle. The animation pushes the card to translateZ(-32)
-       at its midpoint and returns to 0 at the end. Trigger is a React-
-       driven `is-pressing` class added on isStructure changes
-       (StoryCard.tsx). The class auto-removes after the animation
-       window so the next toggle re-runs the keyframe cleanly.
-     - The body and structure views just opacity-swap. No translateZ.
-       Both stay in the DOM; pointer-events gate clicks. */
+     - .rr-story-card--mechanics runs the shared `card-press` keyframe
+       (defined in globals.css; also consumed by landing spectrum and
+       biconomy SA stack) on every toggle. The keyframe scales 1 →
+       0.98 → 1 over --dur-fast.
+     - Trigger is a React-driven `is-pressing` class added on isStructure
+       changes (StoryCard.tsx). The class auto-removes after the
+       animation window so the next toggle re-runs the keyframe cleanly.
+     - The body and structure views just opacity-swap. Both stay in the
+       DOM; pointer-events gate clicks. */
 
-/* 3D context for the button-press pulse on the mechanics story card.
-   Lives on `.rr-mat--secondary` rather than `.rr-mech-stage` because
-   each non-`preserve-3d` ancestor between perspective and the
-   transformed element flattens the 3D coordinate space. The mat is
-   the card's direct parent, so the perspective applied here actually
-   reaches the card's `translate: 0 0 -32px` keyframe. */
-.rr-mat--secondary {
-  perspective: 800px;
-}
 
 .rr-story-card__structure {
   display: flex;
@@ -1157,21 +1192,12 @@
   transition: opacity var(--dur-fast) var(--ease-snap);
 }
 
-/* Button-press pulse — the whole card recedes briefly then comes back.
-   Animates the standalone `translate:` property so the existing
-   `transform:` (useMatSettle is on .rr-story-card via separate `scale:`
-   and `filter:`) and `rotate:` (toggle ±1deg) properties stay
-   uncontested. Animation duration straddles --dur-slide (0.25s) and
-   --dur-settle (0.425s) so the press has time to register before the
-   crossfade finishes; ease-out so it feels like a release, not a snap. */
+/* Button-press pulse — uses the shared `card-press` keyframe defined in
+   globals.css (also consumed by landing spectrum and biconomy SA stack).
+   Snap tier (--dur-fast / --ease-snap) — tactile and quick, the right
+   register for a tab-switch micro-interaction. */
 .rr-story-card--mechanics.is-pressing {
-  animation: rr-card-press var(--dur-settle) var(--ease-paper);
-}
-
-@keyframes rr-card-press {
-  0%   { translate: 0 0 0; }
-  45%  { translate: 0 0 -16px; }
-  100% { translate: 0 0 0; }
+  animation: card-press var(--dur-fast) var(--ease-snap);
 }
 
 
@@ -1360,12 +1386,7 @@
 }
 
 .rr-cards-subtitle {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
-  /* No text-transform — authored in APA title case */
+  /* Typography from .t-h5 (applied via JSX). */
   color: var(--mint-100);
   text-align: center;
   margin: 4px 0 24px;
@@ -1388,25 +1409,17 @@
 }
 
 .rr-cards-tab {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
+  /* Typography + dotted-underline + ::after solid-bar from .t-btn1
+     (applied via JSX). Local rules below tune color/transition timing
+     and re-position the ::after for tab geometry. */
   color: var(--mint-160);
-  text-transform: capitalize;
+  text-decoration-color: var(--mint-160);
   background: none;
   border: none;
   cursor: pointer;
   padding: 8px 12px;
   margin: -8px -12px;
   position: relative;
-  /* btn1 affordance — dotted underline at rest */
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
-  text-decoration-color: var(--mint-160);
   transition:
     color 0.32s var(--ease-paper),
     transform 0.32s var(--ease-paper),
@@ -1521,14 +1534,9 @@
 }
 
 .rr-card-item__label {
+  /* Typography from .t-h5 (applied via JSX). */
   position: absolute;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
   color: var(--mint-80);
-  text-transform: capitalize;
   top: -16px;
   left: 6px;
   white-space: nowrap;
@@ -1566,18 +1574,13 @@
 }
 
 .rr-card-item__caption {
+  /* Typography from .t-h5 (applied via JSX). */
   position: absolute;
   top: calc(100% - 1px);
   left: 10px;
   width: 224px;
   margin: 0;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 800;
-  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
   color: var(--mint-80);
-  text-transform: capitalize;
   text-align: left;
   white-space: normal;
   word-wrap: break-word;
@@ -1628,6 +1631,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+/* Interface image — restore a one-shot materialize for THIS image inside
+   .rr-canvas. The blanket `.rr-canvas .img__inner { opacity: 1; animation:
+   none }` workaround above kills the materialize keyframe (animations stall
+   inside scroll-linked transforms — see ANOMALIES.md). CSS transitions, by
+   contrast, run on property changes and survive that context, so we drive
+   the reveal with `opacity: 0 → 1` on `.is-loaded` instead of a keyframe.
+   The image is invisible until fully decoded; on load it materializes as
+   one block rather than painting top-to-bottom from the network. */
+.rr-canvas .img.rr-interface-desktop__img .img__inner {
+  opacity: 0;
+  transition: opacity var(--dur-settle) var(--ease-paper);
+}
+.rr-canvas .img.rr-interface-desktop__img.is-loaded .img__inner {
+  opacity: 1;
 }
 
 /* Annotation sticky note — sits behind the arena image */
@@ -1899,10 +1918,10 @@
 
 
 /* ── Expand/collapse dim transition (card) ── */
-
-.rr-outcome-card {
-  transition: filter var(--dur-slide) var(--ease-snap), scale var(--dur-slide) var(--ease-snap);
-}
+/* Transition removed during debug — FM writes opacity inline every spring
+   frame which appears to perpetually restart these CSS transitions in
+   Chrome, leaving filter/scale stuck at the start values. With the
+   transition off, the dim/scale snap to target. */
 
 
 /* ── Outcome card (left column) ── */
@@ -2074,7 +2093,7 @@
 
 .rr-canvas--outcome[data-rules-expanded] .rr-outcome-card {
   filter: var(--backseat-dim);
-  scale: 0.9;
+  scale: 0.96;
   pointer-events: none;
 }
 
@@ -2166,11 +2185,21 @@
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: background var(--dur-fast) var(--ease-snap);
+  transition:
+    background     var(--dur-fast) var(--ease-snap),
+    border-color   var(--dur-fast) var(--ease-snap),
+    box-shadow     var(--dur-fast) var(--ease-snap);
 }
 
 .rr-rules-close:hover {
   background: rgba(255,236,178,0.22);
+  border-color: rgba(255,236,178,0.5);
+}
+
+.rr-rules-close:focus-visible {
+  outline: none;
+  border-color: rgba(255,236,178,0.7);
+  box-shadow: 0 0 0 3px rgba(255,236,178,0.22);
 }
 
 
@@ -3607,13 +3636,7 @@
 }
 
 .rr-marker-info-card__role {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 720;
-  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
-  line-height: 1.2;
-  text-transform: capitalize;
+  /* Typography from .t-h5 (applied via JSX). */
   white-space: nowrap;
   color: var(--terra-720);
 }

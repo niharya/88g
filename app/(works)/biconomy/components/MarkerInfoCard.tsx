@@ -15,7 +15,7 @@ export default function MarkerInfoCard() {
       </p>
       <div className="bicon-marker-info-card__divider" />
       <div className="bicon-marker-info-card__footer">
-        <span className="bicon-marker-info-card__role">Product Designer • Biconomy</span>
+        <span className="bicon-marker-info-card__role t-h5">Product Designer • Biconomy</span>
         <IconChevronRight size={20} className="bicon-marker-info-card__arrow" />
       </div>
     </div>

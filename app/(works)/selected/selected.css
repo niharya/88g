@@ -225,18 +225,12 @@
 }
 
 .selected-tl__greeting {
+  /* Typography from .t-h5 (applied via JSX). */
   position: absolute;
   left: 163px;
   top: 64px;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 720;
-  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
   color: var(--yellow-720);
-  text-transform: capitalize;
   white-space: nowrap;
-  line-height: 1.33;
 }
 
 /* Dot clusters */
@@ -401,13 +395,7 @@
 }
 
 .project-card__role {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 720;
-  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'opsz' 18;
-  letter-spacing: -0.24px;
-  line-height: 1.2;
-  text-transform: capitalize;
+  /* Typography from .t-h5 (applied via JSX). */
   white-space: nowrap;
 }
 .project-card--terra .project-card__role { color: var(--terra-720); }
@@ -628,14 +616,9 @@
 }
 
 .ap-entry__meta {
+  /* Typography from .t-h5 (applied via JSX). */
   display: flex;
   align-items: center;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 640;
-  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
-  letter-spacing: -0.24px;
-  line-height: 1.2;
   white-space: nowrap;
 }
 

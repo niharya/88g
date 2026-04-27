@@ -115,9 +115,9 @@ export default function CardFan() {
             onMouseLeave={() => setHoveredIdx(-1)}
             onClick={() => setSelectedIdx(selectedIdx === i ? -1 : i)}
           >
-            <span className="rr-card-item__label">{card.v}</span>
+            <span className="rr-card-item__label t-h5">{card.v}</span>
             <Img src={card.src} alt={`Card ${card.v}`} className="rr-card-item__img" sizes="300px" />
-            <p className="rr-card-item__caption">{card.caption}</p>
+            <p className="rr-card-item__caption t-h5">{card.caption}</p>
           </div>
         )
       })}

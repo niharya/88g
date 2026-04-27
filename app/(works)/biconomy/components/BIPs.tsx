@@ -85,7 +85,7 @@ export default function BIPs() {
             <button
               type="button"
               onClick={() => setIframeActive(a => !a)}
-              className={`bips__reveal-btn${iframeActive ? ' is-active' : ''}`}
+              className={`bips__reveal-btn t-btn1${iframeActive ? ' is-active' : ''}`}
               aria-label="View Notion embed"
             >
               Reveal

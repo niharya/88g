@@ -121,7 +121,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
               transition={{ ...SPRING_ENTRY, delay: D.connektion }}
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[0].title}</p>
-              <div className="ap-entry__meta">
+              <div className="ap-entry__meta t-h5">
                 <span>{ARCHIVE_ENTRIES[0].role} &bull; {ARCHIVE_ENTRIES[0].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[0].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
@@ -163,7 +163,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
               transition={{ ...SPRING_ENTRY, delay: D.aleyr }}
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[1].title}</p>
-              <div className="ap-entry__meta">
+              <div className="ap-entry__meta t-h5">
                 <span>{ARCHIVE_ENTRIES[1].role} &bull; {ARCHIVE_ENTRIES[1].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[1].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
@@ -195,7 +195,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
               transition={{ ...SPRING_ENTRY, delay: D.ecochain }}
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[2].title}</p>
-              <div className="ap-entry__meta">
+              <div className="ap-entry__meta t-h5">
                 <span>{ARCHIVE_ENTRIES[2].role} &bull; {ARCHIVE_ENTRIES[2].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[2].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
@@ -227,7 +227,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
               transition={{ ...SPRING_ENTRY, delay: D.codezeros }}
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[3].title}</p>
-              <div className="ap-entry__meta">
+              <div className="ap-entry__meta t-h5">
                 <span>{ARCHIVE_ENTRIES[3].role} &bull; {ARCHIVE_ENTRIES[3].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[3].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>
@@ -259,7 +259,7 @@ export default function ArchivePanel({ isOpen }: ArchivePanelProps) {
               transition={{ ...SPRING_ENTRY, delay: D.slangbusters }}
             >
               <p className="ap-entry__title">{ARCHIVE_ENTRIES[4].title}</p>
-              <div className="ap-entry__meta">
+              <div className="ap-entry__meta t-h5">
                 <span>{ARCHIVE_ENTRIES[4].role} &bull; {ARCHIVE_ENTRIES[4].company}<span className="ap-entry__year"> &bull; {ARCHIVE_ENTRIES[4].year}</span></span>
                 <IconExternalLink size={14} className="icon-ext" />
               </div>

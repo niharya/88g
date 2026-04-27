@@ -18,9 +18,10 @@
 //         Mat bg dims via CSS :has([data-rules-expanded]).
 // Collapse: close button, click anywhere outside group, or Escape.
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView, useAnimationFrame, animate, type AnimationPlaybackControls } from 'framer-motion'
 import { CRUISE_SPRING } from '@/app/lib/motion'
+import { useExpand } from '@/app/lib/useExpand'
 
 /* ── SVG icons ── */
 
@@ -65,8 +66,20 @@ const PANEL_EXPANDED  = { scale: 0.8 }
 /* ── Component ── */
 
 export default function Outcome() {
-  const [expanded, setExpanded] = useState(false)
-  const groupRef = useRef<HTMLDivElement>(null)
+  // Rules panel expand/collapse — state + dismiss via shared useExpand.
+  // The hook owns: Escape, click-outside (one pointerdown listener,
+  // deferred a frame so the click that *triggered* expand doesn't
+  // immediately collapse), and the ref to attach to .rr-rules-group.
+  // `isClosing` is true from the moment the user starts closing until
+  // our exit spring lands (markClosingDone in onAnimationComplete). The
+  // hook batches isClosing=true with expanded=false in the same React
+  // update — no render gap where FM could snap the scroll-linked style
+  // over a half-finished spring. While true we suppress the scroll-
+  // linked style so animate={GROUP_COLLAPSED} actually drives the
+  // motion values back from EXPANDED to (0,0) instead of being
+  // overridden by `style.x = rulesX`.
+  const { expanded, isClosing, expand, collapse, ref: groupRef, markClosingDone } =
+    useExpand<HTMLDivElement>()
   const sectionRef = useRef<HTMLElement | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
 
@@ -105,41 +118,24 @@ export default function Outcome() {
   const cardOpacity = useSpring(cardOpacityRaw, scrollSpring)
 
   // ── Rules group (right): mirror of card — sweep in from right with rotation ──
+  // The group has TWO competing motion sources: scroll-linked entrance (right→
+  // rest pose) and expand/collapse springs (rest→canvas-centre and back). We
+  // own one motion value per axis and drive it from whichever source is
+  // active, so FM never has to reconcile a `style` motion value with an
+  // `animate` literal target — the source of truth is unambiguous.
+  // While `expanded || isClosing` is true, scroll-sync is gated off and an
+  // imperative `animate(...)` call drives the value; otherwise scroll-sync
+  // continuously updates the value from the smoothed scroll springs.
   const rulesXRaw       = useTransform(scrollYProgress, [0.4, 0.85], [120, 0])
   const rulesRotateRaw  = useTransform(scrollYProgress, [0.4, 0.85], [1.5, 0])
   const rulesOpacityRaw = useTransform(scrollYProgress, [0.4, 0.8], [0, 1])
-  const rulesX       = useSpring(rulesXRaw, scrollSpring)
-  const rulesRotate  = useSpring(rulesRotateRaw, scrollSpring)
-  const rulesOpacity = useSpring(rulesOpacityRaw, scrollSpring)
-
-  const collapse = useCallback(() => setExpanded(false), [])
-
-  // Escape key
-  useEffect(() => {
-    if (!expanded) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') collapse() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [expanded, collapse])
-
-  // Click outside group → collapse
-  useEffect(() => {
-    if (!expanded) return
-    const onClickOutside = (e: MouseEvent) => {
-      if (groupRef.current && !groupRef.current.contains(e.target as Node)) {
-        collapse()
-      }
-    }
-    const id = requestAnimationFrame(() => {
-      document.addEventListener('mousedown', onClickOutside, true)
-      document.addEventListener('click', onClickOutside, true)
-    })
-    return () => {
-      cancelAnimationFrame(id)
-      document.removeEventListener('mousedown', onClickOutside, true)
-      document.removeEventListener('click', onClickOutside, true)
-    }
-  }, [expanded, collapse])
+  const rulesXScroll       = useSpring(rulesXRaw, scrollSpring)
+  const rulesRotateScroll  = useSpring(rulesRotateRaw, scrollSpring)
+  const rulesOpacityScroll = useSpring(rulesOpacityRaw, scrollSpring)
+  const rulesX       = useMotionValue(120)
+  const rulesY       = useMotionValue(0)
+  const rulesRotate  = useMotionValue(1.5)
+  const rulesOpacity = useMotionValue(0)
 
   const TICKER_TEXT = 'What started as a laugh in Baku became a live product with thousands of players, a proof that a simple, well-balanced mechanic can travel far'
 
@@ -304,6 +300,63 @@ export default function Outcome() {
     }
   }, [])
 
+  // ── Rules group motion — single source of truth ──────────────────────────
+  // Two effects co-own the four motion values. They never run at the
+  // same time: scroll-sync is gated off during expanded||isClosing,
+  // and the imperative animate is gated off otherwise.
+  //
+  // 1) Scroll-sync. Subscribe to the three smoothed scroll springs and
+  //    forward their values into our motion values whenever the group
+  //    is at rest.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (expanded || isClosing) return
+    const sync = () => {
+      rulesX.set(rulesXScroll.get())
+      rulesRotate.set(rulesRotateScroll.get())
+      rulesOpacity.set(rulesOpacityScroll.get())
+    }
+    sync()
+    const unsubs = [
+      rulesXScroll.on('change', sync),
+      rulesRotateScroll.on('change', sync),
+      rulesOpacityScroll.on('change', sync),
+    ]
+    return () => { for (const u of unsubs) u() }
+  }, [expanded, isClosing])
+
+  // 2) Imperative animate. On expand, spring to the expanded pose. On
+  //    close, spring back to the current scroll-linked rest pose
+  //    (NOT to 0 — the group should land wherever scroll says it
+  //    belongs at that moment). markClosingDone flips isClosing off
+  //    once the close spring lands; effect 1 resumes scroll-sync.
+  // Deps intentionally limited to the two state values. The motion
+  // values and useSpring outputs are stable references; including
+  // them in deps caused the effect to re-run on every render in
+  // dev/strict-mode, which restarted the animations before they
+  // could progress.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (expanded) {
+      const a = [
+        animate(rulesX, GROUP_EXPANDED.x, spring),
+        animate(rulesY, GROUP_EXPANDED.y, spring),
+        animate(rulesOpacity, 1, spring),
+        animate(rulesRotate, 0, spring),
+      ]
+      return () => { for (const x of a) x.stop() }
+    }
+    if (isClosing) {
+      const a = [
+        animate(rulesX, rulesXScroll.get(), { ...spring, onComplete: markClosingDone }),
+        animate(rulesY, 0, spring),
+        animate(rulesOpacity, rulesOpacityScroll.get(), spring),
+        animate(rulesRotate, rulesRotateScroll.get(), spring),
+      ]
+      return () => { for (const x of a) x.stop() }
+    }
+  }, [expanded, isClosing])
+
   return (
     <Fragment>
     <div
@@ -342,16 +395,13 @@ export default function Outcome() {
       {/* Quote removed — now rendered as bottom-edge ticker outside the canvas */}
 
       {/* ── Rules group (label + panel) ── */}
+      {/* All motion is driven by the four motion values above —
+          scroll-sync when at rest, imperative `animate(...)` when
+          expanding or closing. No `animate` prop to fight `style`. */}
       <motion.div
         className="rr-rules-group"
         ref={groupRef}
-        style={
-          expanded
-            ? undefined
-            : { x: rulesX, rotate: rulesRotate, opacity: rulesOpacity }
-        }
-        animate={expanded ? GROUP_EXPANDED : GROUP_COLLAPSED}
-        transition={spring}
+        style={{ x: rulesX, y: rulesY, rotate: rulesRotate, opacity: rulesOpacity }}
       >
 
         {/* Label — docked above panel */}
@@ -370,8 +420,8 @@ export default function Outcome() {
           role="button"
           tabIndex={0}
           aria-label="View rules full screen"
-          onClick={() => { if (!expanded) setExpanded(true) }}
-          onKeyDown={(e) => { if (!expanded && (e.key === 'Enter' || e.key === ' ')) setExpanded(true) }}
+          onClick={() => { if (!expanded) expand() }}
+          onKeyDown={(e) => { if (!expanded && (e.key === 'Enter' || e.key === ' ')) expand() }}
         >
 
           {/* 1. Basics */}
