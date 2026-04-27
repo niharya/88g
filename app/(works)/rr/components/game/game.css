@@ -198,7 +198,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-8);
   height: var(--card-h-sm);
   margin-bottom: var(--panel-pad);
 }
@@ -464,7 +464,7 @@
 .rr-deck-strip__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   width: 100%;
 }
 
@@ -714,7 +714,7 @@
 .rr-deck-strip__chips {
   display: grid;
   grid-template-columns: repeat(3, var(--chip-w));
-  gap: 4px;
+  gap: var(--space-4);
   justify-content: center;
 }
 

@@ -140,9 +140,12 @@ html[data-marks-hidden='true'] .marks-background::after {
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .marks-background,
-  .marks-background::after {
-    animation: none;
+  .route-marks,
+  .route-marks *,
+  .route-marks *::before,
+  .route-marks *::after {
+    transition: none !important;
+    animation: none !important;
   }
 }
 
@@ -284,7 +287,11 @@ html[data-marks-hidden='true'] .marks-background::after {
 .marks-title[data-in-mark='true']:hover,
 .marks-title[data-in-mark='true']:focus-visible {
   color: var(--marks-ink);
-  outline: none;
+}
+
+.marks-title[data-in-mark='true']:focus-visible {
+  outline: 2px solid var(--marks-ink);
+  outline-offset: 2px;
 }
 
 /* Row holds only the cell in flow; the icon-slot is absolutely positioned off
@@ -378,7 +385,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 80px;
+  gap: var(--space-80);
 }
 .marks-essay__body--p2 > p {
   max-width: 360px;
@@ -420,7 +427,11 @@ html[data-marks-hidden='true'] .marks-background::after {
 .marks-essay__preview-btn:focus-visible {
   color: var(--preview-color, currentColor);
   opacity: 1;
-  outline: none;
+}
+
+.marks-essay__preview-btn:focus-visible {
+  outline: 2px solid var(--preview-color, currentColor);
+  outline-offset: 2px;
 }
 
 /* Duotone reveal — marks with a second original ink (Codezeros, Slangbusters,
@@ -459,7 +470,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-24);
 }
 .marks-essay__caption p { margin: 0; }
 /* --between variant sits between the two preview rows. Same vertical rhythm
@@ -699,7 +710,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   margin: 0 0 24px;
   padding: 0;
   display: inline-flex;
-  gap: 4px;
+  gap: var(--space-4);
   mix-blend-mode: color-dodge;
 }
 
@@ -783,7 +794,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   width: min(100%, 702px);
   height: 1px;
   background: rgba(245, 245, 245, 0.18);
-  margin-bottom: 12px;
+  margin-bottom: var(--space-12);
 }
 
 .mark-chrome__caption {
@@ -900,7 +911,7 @@ html[data-marks-hidden='true'] .marks-background::after {
   /* ¶2 re-stacks at mobile — side-by-side doesn't fit 375px usefully. */
   .marks-essay__body--p2 {
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-24);
   }
   .marks-essay__body--p2 > p {
     max-width: 100%;

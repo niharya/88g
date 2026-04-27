@@ -30,6 +30,8 @@ This is Nihar Bhagat's portfolio site — built for studio heads, creative direc
 
 The portfolio contains long-form editorial project routes built as sheet-stack reading environments.
 
+**Stage: finishing (90–100%).** Designs are final. Work is polish only — no new sections, no re-authoring, no speculative refactors. Default to the smallest correct change. If a task implies net-new structure or design, flag it before touching code.
+
 Tone: precise, calm, human. Avoid hype and abstraction.
 
 Protect: evidence, docking relationships, material coherence.

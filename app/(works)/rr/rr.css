@@ -216,7 +216,7 @@
 .rr-story-card__body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-16);
 }
 
 .rr-story-card__text {
@@ -239,7 +239,7 @@
 }
 
 .rr-story-card__callout {
-  margin-top: 8px;
+  margin-top: var(--space-8);
 }
 
 
@@ -335,7 +335,7 @@
      negative-Y translate clips the button against canvas top. Pulling
      content up via layout (not transform) keeps everything inside the
      canvas's clip rect. */
-  padding-top: 16px;
+  padding-top: var(--space-16);
 }
 
 .rr-enlarged__close {
@@ -371,9 +371,9 @@
 .rr-enlarged__scroll {
   width: 1440px;
   flex: 1;
-  margin-top: 16px;
+  margin-top: var(--space-16);
   display: flex;
-  gap: 16px;
+  gap: var(--space-16);
   padding: 0 32px;
   overflow-x: auto;
   overflow-y: hidden;
@@ -521,7 +521,7 @@
   left: 18px;
   z-index: var(--rr-z-ui);
   transform: rotate(-1deg);
-  padding-top: 8px;
+  padding-top: var(--space-8);
 }
 
 .rr-constraints-card__dot {
@@ -541,7 +541,7 @@
   width: 256px;
   background: var(--olive-80);
   box-shadow: var(--shadow-flat);
-  padding: 4px;
+  padding: var(--space-4);
   overflow: hidden;
 }
 
@@ -611,7 +611,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--space-2);
   width: 100%;
   padding: 4px 0;
   background: none;
@@ -625,7 +625,7 @@
      .t-btn1 (applied via JSX). We only carry the route color and the
      entrance/exit opacity transition here. */
   color: var(--olive-800);
-  transition: opacity 0.135s var(--ease-paper);
+  transition: opacity var(--dur-fast) var(--ease-paper);
 }
 
 /* Hover target is the whole card, not just the toggle — the full sheet is
@@ -682,7 +682,7 @@
 }
 
 .rr-interstitial-text p + p {
-  margin-top: 24px;
+  margin-top: var(--space-24);
 }
 
 
@@ -702,7 +702,7 @@
   width: 175px;
   display: flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: var(--space-2);
   outline: 1px solid var(--yellow-400);
   outline-offset: -8px;
   background: var(--yellow-80);
@@ -731,7 +731,7 @@
   padding: 4px 8px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   writing-mode: vertical-lr;
   text-orientation: sideways;
   color: var(--yellow-560);
@@ -757,7 +757,7 @@
   display: flex;
   flex-direction: column;
   list-style: none;
-  padding: 16px;
+  padding: var(--space-16);
   margin: 0;
   gap: 0;
 }
@@ -793,7 +793,7 @@
      otherwise the rotation bleeds ~1px past each side of the board and peeks
      out. 256px + rotation → ~258px bbox, comfortably inside. */
   width: 256px;
-  padding: 8px;
+  padding: var(--space-8);
   background: var(--yellow-960);
   color: var(--yellow-480);
   z-index: var(--rr-z-story);
@@ -839,7 +839,7 @@
 .rr-note-rail__content {
   background: var(--yellow-960);
   border: 1px solid var(--yellow-320);
-  padding: 8px;
+  padding: var(--space-8);
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -855,7 +855,7 @@
 
 .rr-note-rail__text {
   margin: 0;
-  padding-top: 8px;
+  padding-top: var(--space-8);
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
@@ -1063,7 +1063,7 @@
   box-shadow: inset 0px 0.5px 2px 0px var(--yellow-560);
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1218,7 +1218,7 @@
   font-size: 24px;
   letter-spacing: 0;
   color: var(--terra-720);
-  margin-bottom: 32px;
+  margin-bottom: var(--space-32);
 }
 
 /* Wrapper that holds the three mono sections — pushed to card bottom */
@@ -1403,9 +1403,9 @@
 .rr-cards-tabs {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 8px;
-  margin-left: 8px;
+  gap: var(--space-16);
+  margin-top: var(--space-8);
+  margin-left: var(--space-8);
 }
 
 .rr-cards-tab {
@@ -1933,7 +1933,7 @@
   width: 288px;
   height: 330px;
   background: var(--terra-960);
-  padding: 8px;
+  padding: var(--space-8);
   /* Outcome card sits above the outcome scene — overlay tier */
   box-shadow: var(--shadow-overlay);
 }
@@ -1969,7 +1969,7 @@
 }
 
 .rr-outcome-card__divider + .rr-outcome-stats {
-  margin-top: 24px;
+  margin-top: var(--space-24);
 }
 
 .rr-outcome-stats + .rr-outcome-card__divider {
@@ -1977,12 +1977,12 @@
 }
 
 .rr-outcome-card__divider + .rr-outcome-card__text {
-  margin-top: 24px;
+  margin-top: var(--space-24);
 }
 
 .rr-outcome-stats {
   display: flex;
-  gap: 32px;
+  gap: var(--space-32);
   flex-shrink: 0;
 }
 
@@ -2113,7 +2113,7 @@
      both labels; baseline left the divider floating above the text line. */
   align-items: center;
   /* 8px + 1px divider (border-left on __note) + 8px padding-left on __note */
-  gap: 8px;
+  gap: var(--space-8);
   margin-bottom: 14px;
 }
 
@@ -2146,7 +2146,7 @@
   width: 1px;
   height: 10px;
   background: var(--grey-720);
-  margin-right: 8px;
+  margin-right: var(--space-8);
 }
 
 
@@ -2274,7 +2274,7 @@
   align-items: stretch;
   background: #000d26;
   border-radius: 17px;
-  padding: 12px;
+  padding: var(--space-12);
   margin-bottom: 11px;
 }
 
@@ -2286,7 +2286,7 @@
   color: #ccc;
   line-height: 1.4;
   margin: 0;
-  padding-right: 12px;
+  padding-right: var(--space-12);
 }
 
 .rr-rule-basics-desc strong {
@@ -2314,7 +2314,7 @@
   justify-content: space-between;
   padding: 4px 16px;
   border-right: 1px solid #707070;
-  gap: 4px;
+  gap: var(--space-4);
   height: 72px;
 }
 .rr-rule-stat:last-child { border-right: none; }
@@ -2348,7 +2348,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-12);
   border: 2.85px solid #ebbb4c;
   border-radius: 17px;
   padding: 21px;
@@ -2410,7 +2410,7 @@
   align-items: center;
   gap: 13px;
   border-radius: 17px;
-  padding: 12px;
+  padding: var(--space-12);
   flex: 1;
 }
 
@@ -2468,7 +2468,7 @@
 
 .rr-rule-gameplay-steps {
   display: flex;
-  gap: 12px;
+  gap: var(--space-12);
   height: calc(100% - 56px);
 }
 
@@ -2478,15 +2478,15 @@
   border: 1px solid #333350;
   border-radius: 17px;
   display: flex;
-  gap: 8px;
-  padding: 4px;
+  gap: var(--space-8);
+  padding: var(--space-4);
   overflow: hidden;
 }
 
 .rr-rule-step__content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-8);
   flex: 1;
   padding: 9px 9px 12px;
   justify-content: flex-end;
@@ -2583,7 +2583,7 @@
 
 .rr-rule-types-grid {
   display: flex;
-  gap: 12px;
+  gap: var(--space-12);
   align-items: flex-start;
 }
 
@@ -2631,7 +2631,7 @@
 .rr-rule-type-row {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--space-8);
   min-height: 20px;
 }
 
@@ -2669,7 +2669,7 @@
 
 .rr-rule-resolving-top {
   display: flex;
-  gap: 24px;
+  gap: var(--space-24);
   align-items: center;
 }
 
@@ -2705,13 +2705,13 @@
 .rr-rule-resolving-bottom {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-12);
 }
 
 .rr-rule-order {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-2);
   flex-wrap: wrap;
   justify-content: space-between;
 }
@@ -2719,7 +2719,7 @@
 .rr-rule-order-item {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-2);
 }
 
 .rr-order-label {
@@ -2782,7 +2782,7 @@
 
 .rr-rule-winning-scenarios {
   display: flex;
-  gap: 12px;
+  gap: var(--space-12);
   flex: 1;
 }
 
@@ -2794,7 +2794,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-12);
   padding: 21px;
   overflow: hidden;
 }
@@ -2841,7 +2841,7 @@
 
 .rr-rule-hp-row {
   display: flex;
-  gap: 12px;
+  gap: var(--space-12);
 }
 
 .rr-rule-hp-num {
@@ -2915,7 +2915,7 @@
   .route-rr .sheet {
     min-height: 0;
     justify-content: flex-start;
-    gap: 48px;
+    gap: var(--space-48);
     padding-left: var(--workbench-pad-x);
     padding-right: var(--workbench-pad-x);
   }
@@ -3027,7 +3027,7 @@
     animation: none;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: var(--space-32);
   }
 
   /* Internal artifacts unpinned — flow in card order: body → constraints → north star.
@@ -3090,7 +3090,7 @@
     height: auto;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: var(--space-32);
     overflow: visible;
   }
 
@@ -3301,7 +3301,7 @@
   .route-rr .rr-canvas--cards-evo .rr-cards-subtitle {
     font-size: 22px;
     letter-spacing: -0.4px;
-    margin-bottom: 32px;
+    margin-bottom: var(--space-32);
   }
   .route-rr .rr-canvas--cards-evo .rr-cards-subtitle-slot {
     height: 64px;
@@ -3440,7 +3440,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 28px;
-    gap: 16px;
+    gap: var(--space-16);
     border-bottom: 1px solid var(--yellow-320);
   }
 
@@ -3475,7 +3475,7 @@
   .rr-canvas--outcome {
     gap: var(--space-56);
     align-items: stretch;
-    padding-bottom: 64px; /* ticker rides at the bottom */
+    padding-bottom: var(--space-64); /* ticker rides at the bottom */
   }
 
   /* Outcome card: keep the authored desktop composition (288×330, 8px outer
@@ -3656,7 +3656,7 @@
   .rr-marker-info-card {
     width: min(408px, calc(100vw - 2 * var(--workbench-pad-x)));
     height: auto;
-    padding: 16px;
+    padding: var(--space-16);
   }
   .rr-marker-info-card__title,
   .rr-marker-info-card__body,
@@ -3674,4 +3674,16 @@
   .rr-marker-info-card__title  { margin: 0 36px 12px 0; }
   .rr-marker-info-card__body   { margin: 0 0 16px; }
   .rr-marker-info-card__divider{ margin: 0 0 10px; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .route-rr,
+  .route-rr *,
+  .route-rr *::before,
+  .route-rr *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

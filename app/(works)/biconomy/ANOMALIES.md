@@ -229,6 +229,17 @@ before doing it.
 
 ---
 
+## Documented motion deviations (off-token easings)
+
+CLAUDE.md motion vocabulary mandates `--ease-paper` everywhere except the tab/micro tier (`--ease-snap`). Two route-local exceptions are intentional and live here so a future polish pass doesn't "fix" them:
+
+- **`.flows__ba-switch-thumb` thumb transform** ([biconomy.css:507](biconomy.css)) — `0.2s cubic-bezier(0, 1, 0.31, 1.05)` with mild overshoot (y=1.05). Ported from the original vanilla reference so the toggle thumb lands with a perceptible but restrained snap. Mirrors the "documented deviation" precedent set by the train ticker overshoot. Justified inline at [biconomy.css:478–480](biconomy.css).
+- **`.ba__note-pointer:hover` lift transform** ([biconomy.css:784](biconomy.css)) — `0.14s cubic-bezier(0.3, 1.3, 0.5, 1)` with stronger overshoot (y=1.3). The note pointers (the orange stamps on the before/after evidence images) want a tactile hover lift rather than a paper-tier settle — they're ornamental UI, not paper. Kept intentionally; do not snap to `--ease-paper` / `--ease-snap`.
+
+If a third overshoot lands in this route, consider whether it's still genuinely route-local or whether the pattern wants a `--ease-bounce-*` token.
+
+---
+
 ## Responsive anomalies (mobile ≤767px)
 
 `/biconomy` has completed its first crafted-lite pass across every

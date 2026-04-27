@@ -2,6 +2,10 @@
 
 This file holds durable project memory for Claude sessions.
 
+## Stage
+
+Finishing (90–100%). All designs final. Sessions are polish-only: token discipline, motion tuning, responsive lite-stance verification, copy/typography fixes, perf hygiene. No new sections, no re-authoring.
+
 ## What this portfolio is
 
 Nihar Bhagat is a multidisciplinary designer working across product, systems, games, branding, naming, and writing.

@@ -13,6 +13,7 @@
 
 .workbench:has(.route-biconomy) {
   --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
+  --biconomy-card-inset-x: 128px;
 }
 
 
@@ -92,7 +93,7 @@
 /* Inner card: border frame + content */
 .intro__inner {
   border: 1px solid var(--blue-560);
-  padding: 48px; /* p-12 base */
+  padding: var(--space-48);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -106,7 +107,7 @@
 
 @media (min-width: 768px) {
   .intro__inner {
-    padding: 64px; /* md:p-16 */
+    padding: var(--space-64); /* md:p-16 */
   }
 }
 
@@ -121,7 +122,7 @@
 .intro__copy {
   display: flex;
   flex-direction: column;
-  gap: 16px; /* 2×8 */
+  gap: var(--space-16);
 }
 
 /* Dashed rule between copy and context */
@@ -163,7 +164,7 @@
 .intro__context {
   display: flex;
   flex-direction: column;
-  gap: 24px; /* 3×8 */
+  gap: var(--space-24);
   max-width: 20rem;
   color: var(--grey-320);
 }
@@ -173,14 +174,14 @@
 .intro__north-star {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* gap-1 */
+  gap: var(--space-4);
   color: var(--grey-480);
   margin: 32px -24px -32px -32px;
 }
 
 .intro__north-star-label {
   display: flex;
-  gap: 4px; /* 1×4 */
+  gap: var(--space-4);
   align-items: center;
 }
 
@@ -200,9 +201,9 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 16px; /* 2×8 */
-  width: 112px; /* w-28 */
-  padding: 8px;  /* p-2 */
+  gap: var(--space-16);
+  width: 112px;
+  padding: var(--space-8);
   background: color-mix(in srgb, var(--olive-80) 60%, transparent);
   cursor: pointer;
   border: none;
@@ -223,7 +224,7 @@
 .intro__toggle-dots {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* 1×4 */
+  gap: var(--space-4);
 }
 
 .intro__dot {
@@ -271,19 +272,19 @@
   max-width: 232px;
   display: flex;
   flex-direction: column;
-  gap: 12px;    /* gap-3 — spread in closed state */
+  gap: var(--space-12);    /* spread in closed state */
   transition: gap var(--dur-fast) var(--ease-snap);
 }
 
 .intro__memo-cards.is-open {
-  gap: 8px; /* gap-2 — settle closer on reveal */
+  gap: var(--space-8); /* settle closer on reveal */
   pointer-events: auto;
 }
 
 /* Individual memo card */
 .intro__memo-card {
   background: var(--olive-80);
-  padding: var(--surface-padding); /* p-2 = 8px */
+  padding: var(--surface-padding);
 }
 
 /* First card — z:2 within container, sits on top of toggle */
@@ -334,7 +335,7 @@
   display: flex;
   justify-content: center;
   gap: var(--space-12);
-  margin-top: 10px; /* gap-2.5 from Intro */
+  margin-top: 10px;
   /* --active-t: 0 = standby (centered, switch hidden, text desat) */
   /*           1 = default (left-aligned, switch + nav visible)    */
   --active-t: 0;
@@ -396,7 +397,7 @@
 .flows__header {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   min-height: var(--flows-header-h); /* match switch + navpill so layout is stable */
 }
 
@@ -410,7 +411,7 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
 }
 
 /* Wrapper around title + before/after toggle. Exists so the pair can
@@ -420,7 +421,7 @@
 .flows__title-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
 }
 
 .flows__title {
@@ -432,7 +433,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--space-4);
   cursor: pointer;
   max-height: fit-content;
 }
@@ -447,9 +448,9 @@
   max-width: fit-content;
   max-height: fit-content;
   align-items: center;
-  gap: 8px; /* gap-2 */
+  gap: var(--space-8);
   padding: var(--space-4) var(--space-8);
-  border-radius: 8px; /* rounded-lg */
+  border-radius: 8px;
   transition: background var(--dur-fast) var(--ease-snap);
 }
 
@@ -466,9 +467,9 @@
   opacity: var(--active-t, 1);
   margin-right: calc(-8px * (1 - var(--active-t, 1))); /* eat the gap when collapsed */
   transition:
-    max-width 0.15s ease-out,
-    opacity 0.15s ease-out,
-    margin-right 0.15s ease-out;
+    max-width var(--dur-fast) var(--ease-snap),
+    opacity var(--dur-fast) var(--ease-snap),
+    margin-right var(--dur-fast) var(--ease-snap);
 }
 
 /* Custom toggle switch — Figma spec 2463-3758. */
@@ -547,7 +548,7 @@
 .flows__nav {
   display: flex;
   align-items: center;
-  gap: 8px; /* gap-2 */
+  gap: var(--space-8);
   flex-grow: 1;
   flex-basis: 0;
   justify-content: flex-end;
@@ -560,7 +561,7 @@
 .flows:not(.is-active) .flows__ba-switch { pointer-events: none; }
 
 .flows__nav-counter {
-  color: var(--grey-400); /* text-gray-160 ≈ muted */
+  color: var(--grey-400); /* muted */
 }
 
 /* Image carousel frame */
@@ -578,7 +579,7 @@
 .flows__slide--hidden {
   position: absolute;
   inset: 0;
-  padding: 8px;
+  padding: var(--space-8);
   visibility: hidden;
 }
 
@@ -607,7 +608,7 @@
 .flows__notes-rail {
   max-width: var(--rail-width);
   display: flex;
-  gap: 2px; /* gap-0.5 */
+  gap: var(--space-2);
   outline: 1px solid var(--olive-400);
   outline-offset: -8px;
   background: var(--olive-80);
@@ -637,10 +638,10 @@
 }
 
 .flows__notes-tab-inner {
-  padding: 4px 8px; /* py-1 px-2 */
+  padding: 4px 8px;
   display: flex;
   align-items: center;
-  gap: 4px; /* gap-1 */
+  gap: var(--space-4);
   writing-mode: vertical-lr;
   text-orientation: sideways;
 }
@@ -667,10 +668,10 @@
 .flows__notes-list {
   display: flex;
   flex-direction: column;
-  gap: 24px; /* gap-6 */
-  margin-top: 16px; /* mt-4 */
+  gap: var(--space-24);
+  margin-top: var(--space-16);
   list-style: none;
-  padding: 24px; /* p-6 — from original's ul */
+  padding: var(--space-24); /* from original's ul */
 }
 
 .flows__note-item {
@@ -704,7 +705,7 @@
   display: inline-flex;
   color: var(--mint-560);
   border-bottom: 2px dashed currentColor;
-  padding-top: 8px; /* pt-2 */
+  padding-top: var(--space-8);
   width: fit-content;
   font: inherit;
 }
@@ -829,9 +830,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding-bottom: 8px;
+  padding-bottom: var(--space-8);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-8);
   cursor: grab;
   user-select: none;
   touch-action: none;
@@ -894,13 +895,13 @@
   margin: 0 0 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-2);
 }
 
 .hud-panel__item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
 }
 
 .hud-panel__num {
@@ -958,7 +959,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: auto auto;
-  gap: 96px; /* gap-24 */
+  gap: var(--space-96);
 }
 
 /* ── Header card ── */
@@ -980,25 +981,25 @@
 .bips__card-inner {
   color: var(--blue-960);
   border: 2px solid var(--blue-560);
-  padding: 48px; /* p-12 */
+  padding: var(--space-48);
   display: flex;
   flex-direction: column;
-  max-width: 448px; /* max-w-md */
-  gap: 40px; /* gap-10 */
+  max-width: 448px;
+  gap: var(--space-40);
   position: relative;
 }
 
 @media (min-width: 768px) {
   .bips__card-inner {
-    padding-top: 48px;
-    padding: 64px; /* md:p-16 */
+    padding-top: var(--space-48);
+    padding: var(--space-64); /* md:p-16 */
   }
 }
 
 .bips__card-text {
   display: flex;
   flex-direction: column;
-  gap: 16px; /* gap-4 */
+  gap: var(--space-16);
 }
 
 .bips__h2 {
@@ -1017,8 +1018,8 @@
 
 .bips__aside {
   display: flex;
-  gap: 16px; /* gap-4 */
-  max-width: 320px; /* max-w-xs */
+  gap: var(--space-16);
+  max-width: 320px;
 }
 
 .bips__aside-text {
@@ -1029,18 +1030,18 @@
 /* Footer strip — pulled into the card bleed */
 .bips__card-footer {
   color: var(--grey-480);
-  margin: 32px -32px -32px -32px; /* mt-8 -ml-8 -mr-6 -mb-8 (approx) */
+  margin: 32px -32px -32px -32px;
 }
 
 .bips__footer-text {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* gap-1 */
+  gap: var(--space-4);
 }
 
 .bips__footer-row1 {
   display: flex;
-  gap: 4px; /* gap-1 */
+  gap: var(--space-4);
   align-items: center;
 }
 
@@ -1074,7 +1075,7 @@
   color: var(--blue-960);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  padding: 40px 0; /* py-10 */
+  padding: 40px 0;
 }
 
 .bips__stats-left {
@@ -1106,12 +1107,12 @@
   grid-row: 2;
   display: flex;
   flex-direction: column;
-  gap: 8px; /* gap-2 */
+  gap: var(--space-8);
   justify-content: center;
   align-items: center;
-  padding-bottom: 64px; /* pb-16 */
-  padding-left: 128px;  /* px-32 */
-  padding-right: 128px;
+  padding-bottom: var(--space-64);
+  padding-left: var(--biconomy-card-inset-x);
+  padding-right: var(--biconomy-card-inset-x);
 }
 
 .bips__notion-label {
@@ -1135,7 +1136,7 @@
 }
 
 .bips__iframe-col.is-open {
-  transform: translateX(-128px); /* -translate-x-32 */
+  transform: translateX(-128px);
 }
 
 /* Reveal overlay button */
@@ -1144,15 +1145,15 @@
   position: absolute;
   inset: 0;
   z-index: 10;
-  cursor: zoom-in;
-  border-radius: 8px; /* rounded-lg */
+  cursor: pointer;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   border: none;
-  transition: opacity 1s ease-out; /* duration-1000 */
+  transition: opacity var(--dur-glide) var(--ease-paper);
 }
 
 .bips__reveal-btn.is-active {
@@ -1172,7 +1173,7 @@
 .bips__notes-rail {
   display: flex;
   max-width: var(--rail-width);
-  gap: 2px; /* gap-0.5 */
+  gap: var(--space-2);
   /* align-items defaults to `stretch` so .bips__notes-content fills the
      rail's full height. Was `flex-start` previously, which left content
      at its natural height and produced an extra ~23 px gap at the rail's
@@ -1211,7 +1212,7 @@
   align-items: center;
   writing-mode: vertical-lr;
   text-orientation: sideways;
-  gap: 4px;
+  gap: var(--space-4);
 }
 
 .bips__notes-arrow {
@@ -1224,7 +1225,7 @@
 }
 
 .bips__notes-content {
-  padding: 24px; /* p-6 */
+  padding: var(--space-24);
   outline: 1px solid var(--olive-400);
   outline-offset: -8px;
   display: flex;
@@ -1237,8 +1238,8 @@
 .bips__notes-list {
   display: flex;
   flex-direction: column;
-  gap: 24px; /* gap-6 */
-  margin-top: 16px; /* mt-4 */
+  gap: var(--space-24);
+  margin-top: var(--space-16);
   list-style: none;
   padding: 0;
 }
@@ -1246,11 +1247,11 @@
 .bips__notes-divider {
   border: none;
   border-top: 1px solid var(--olive-400);
-  margin: 16px 0; /* my-4 */
+  margin: 16px 0;
 }
 
 .bips__footnote {
-  padding-top: 8px; /* py-2 */
+  padding-top: var(--space-8);
   text-align: center;
   color: var(--grey-400);
 }
@@ -1267,7 +1268,7 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 96px; /* gap-24 */
+  gap: var(--space-96);
 }
 
 /* ── Header card — full-width centered ── */
@@ -1286,11 +1287,11 @@
 .multiverse__card-inner {
   color: var(--blue-960);
   border: 2px solid var(--blue-560);
-  padding: 48px;
+  padding: var(--space-48);
   display: flex;
   flex-direction: column;
-  max-width: 448px; /* max-w-md */
-  gap: 40px; /* gap-10 */
+  max-width: 448px;
+  gap: var(--space-40);
   position: relative;
 }
 
@@ -1301,7 +1302,7 @@
 .multiverse__card-text {
   display: flex;
   flex-direction: column;
-  gap: 32px; /* gap-8 */
+  gap: var(--space-32);
 }
 
 .multiverse__h2 {
@@ -1320,8 +1321,8 @@
 
 .multiverse__aside {
   display: flex;
-  gap: 16px;
-  max-width: 320px; /* max-w-xs */
+  gap: var(--space-16);
+  max-width: 320px;
 }
 
 .multiverse__aside-text {
@@ -1355,7 +1356,7 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  gap: 8px; /* gap-2 */
+  gap: var(--space-8);
 }
 
 .multiverse__poster {
@@ -1365,7 +1366,7 @@
   z-index: 1;
   user-select: none;
   width: 100%;
-  border-radius: 24px; /* rounded-3xl */
+  border-radius: 24px;
   display: block;
 }
 .img.multiverse__poster .img__inner {
@@ -1405,17 +1406,17 @@
   grid-column: 1 / -1;
   display: flex;
   justify-content: center;
-  margin-top: 32px; /* mt-8 */
+  margin-top: var(--space-32);
 }
 
 .biconomy-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px; /* gap-2 */
-  border-radius: 16px; /* rounded-2xl */
+  gap: var(--space-8);
+  border-radius: 16px;
   border: 1px solid var(--grey-800);
   background: white;
-  padding: 16px; /* px-4 py-4 */
+  padding: var(--space-16);
 }
 
 .biconomy-chip__slot {
@@ -1427,7 +1428,7 @@
 }
 
 .biconomy-chip__divider {
-  height: 16px; /* h-4 */
+  height: 16px;
   width: 1px;
   flex-shrink: 0;
   background: var(--grey-800);
@@ -1446,7 +1447,7 @@
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 96px; /* gap-24 */
+  gap: var(--space-96);
 }
 
 /* ── Header ── */
@@ -1464,8 +1465,8 @@
   color: var(--blue-960);
   display: flex;
   flex-direction: column;
-  max-width: 512px; /* max-w-lg */
-  gap: 40px; /* gap-10 */
+  max-width: 512px;
+  gap: var(--space-40);
   align-items: center;
   text-align: center;
 }
@@ -1473,15 +1474,15 @@
 .demos__header-inner {
   display: flex;
   flex-direction: column;
-  gap: 40px; /* gap-10 */
+  gap: var(--space-40);
   align-items: center;
-  padding: 48px 0; /* py-12 */
+  padding: 48px 0;
 }
 
 .demos__header-text {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* gap-2 */
+  gap: var(--space-8);
   align-items: center;
 }
 
@@ -1491,7 +1492,7 @@
 }
 
 .demos__header-sub {
-  max-width: 320px; /* max-w-xs */
+  max-width: 320px;
   text-align: center;
 }
 
@@ -1501,7 +1502,7 @@
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  gap: 16px; /* gap-4 */
+  gap: var(--space-16);
   width: 100%;
 }
 
@@ -1555,9 +1556,9 @@
 }
 
 /* Graduated padding — tab weight increases left to right */
-.demos__tab-label--figma { padding: 8px 12px; }  /* py-2 px-3 */
-.demos__tab-label--web   { padding: 10px 14px; } /* py-2.5 px-3.5 */
-.demos__tab-label--game  { padding: 12px 16px; } /* py-3 px-4 */
+.demos__tab-label--figma { padding: 8px 12px; }
+.demos__tab-label--web   { padding: 10px 14px; }
+.demos__tab-label--game  { padding: 12px 16px; }
 
 /* Label-swap pair — desktop shows the full label; mobile block
    overrides visibility so a shorter "Prototypes" takes its place. */
@@ -1568,7 +1569,7 @@
   display: flex;
   margin-left: -1px;
   max-height: fit-content;
-  padding: 14px 16px; /* py-3.5 px-4 */
+  padding: 14px 16px;
   border: 1px solid var(--grey-800);
   background-color: var(--grey-960);
   color: var(--grey-560);
@@ -1582,14 +1583,14 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 40px; /* gap-10 */
+  gap: var(--space-40);
 }
 
 .demos__title-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px 128px 0;
+  padding: 20px var(--biconomy-card-inset-x) 0;
   overflow: hidden; /* clips title reveal */
 }
 
@@ -1603,9 +1604,9 @@
   display: flex;
   flex-direction: row;
   width: 100%;
-  padding: 0 128px; /* px-32 */
+  padding: 0 var(--biconomy-card-inset-x);
   max-height: 100dvh;
-  gap: 16px; /* gap-4 */
+  gap: var(--space-16);
 }
 
 /* Web / Game: single column */
@@ -1613,8 +1614,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 0 128px; /* px-32 */
-  gap: 16px; /* gap-4 */
+  padding: 0 var(--biconomy-card-inset-x);
+  gap: var(--space-16);
 }
 
 /* Video item: unified button — video + caption + play icon stack as one unit */
@@ -1624,7 +1625,7 @@
   width: 100%;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-16);
   background: none;
   border: none;
   padding: 0;
@@ -1666,7 +1667,7 @@
 .demos__image-item {
   display: flex;
   flex-direction: column;
-  gap: 16px; /* gap-4 */
+  gap: var(--space-16);
 }
 
 /* Video frame: square, max 100dvh */
@@ -1723,7 +1724,7 @@
 
 .demos__image-el {
   width: 100%;
-  border-radius: 12px; /* rounded-xl */
+  border-radius: 12px;
   max-width: fit-content;
   height: 70vh;
   pointer-events: none;
@@ -1738,12 +1739,12 @@
 /* ── Caption row ── */
 
 .demos__caption-row {
-  padding-top: 8px; /* pt-2 */
+  padding-top: var(--space-8);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 4px; /* gap-1 */
+  gap: var(--space-4);
 }
 
 /* Figma caption — fixed textbox inside the unified unit */
@@ -1806,16 +1807,16 @@
   flex-direction: column;
   background: white;
   border: 2px solid var(--mint-100);
-  gap: 8px; /* gap-2 */
-  padding: 32px 80px 36px; /* px-20 py-8 pb-9 */
+  gap: var(--space-8);
+  padding: 32px 80px 36px;
 }
 
 .demos__quote-text {
   display: flex;
   color: var(--grey-400);
   flex-direction: column;
-  max-width: 24rem; /* max-w-sm */
-  gap: 8px;
+  max-width: 24rem;
+  gap: var(--space-8);
 }
 
 /* ── Web3 Abstractor ── */
@@ -1823,7 +1824,7 @@
 .demos__web3-row {
   grid-column: 1 / -1;
   display: flex;
-  padding-bottom: 56px; /* pb-14 */
+  padding-bottom: var(--space-56);
   width: 100%;
   justify-content: center;
 }
@@ -1853,7 +1854,7 @@
   flex-direction: column;
   height: fit-content;
   width: fit-content;
-  padding: 4px 8px; /* py-1 px-2 */
+  padding: 4px 8px;
   border: 2px solid var(--mint-100);
   transition: opacity var(--dur-settle) var(--ease-paper), transform var(--dur-settle) var(--ease-paper);
   pointer-events: none;
@@ -1874,9 +1875,9 @@
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  row-gap: 80px;       /* gap-y-20 = 5rem */
-  padding-top: 96px;   /* py-24 = 6rem */
-  padding-bottom: 96px;
+  row-gap: 80px;
+  padding-top: var(--space-96);
+  padding-bottom: var(--space-96);
 }
 
 /* ── Header card ── */
@@ -1890,12 +1891,12 @@
 .api__card-outer {
   /* surface class provides paper feel */
   z-index: 10;
-  padding: 48px;           /* p-12 */
+  padding: var(--space-48);
   box-shadow: var(--shadow-flat);
   display: flex;
   flex-direction: column;
-  max-width: 512px;        /* max-w-lg */
-  gap: 40px;               /* gap-10 */
+  max-width: 512px;
+  gap: var(--space-40);
   align-items: center;
   text-align: center;
   color: var(--blue-960);
@@ -1904,14 +1905,14 @@
 .api__card-inner {
   display: flex;
   flex-direction: column;
-  gap: 32px;               /* gap-8 */
+  gap: var(--space-32);
   align-items: center;
 }
 
 .api__card-text {
   display: flex;
   flex-direction: column;
-  gap: 32px;               /* gap-8 */
+  gap: var(--space-32);
   align-items: center;
 }
 
@@ -1931,7 +1932,7 @@
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 48px;               /* gap-12 = 3rem */
+  gap: var(--space-48);
   width: 100%;
 }
 
@@ -1944,7 +1945,7 @@
   align-items: stretch;
   width: 100%;
   min-width: 0;
-  margin-top: 32px;        /* mt-8 */
+  margin-top: var(--space-32);
 }
 
 .api__slider-col {
@@ -1957,8 +1958,8 @@
   gap: 0;
   width: 100%;
   min-width: 0;
-  padding-left: 128px;     /* pl-[128px] — creates depth reveal room */
-  padding-top: 128px;      /* pt-[128px] */
+  padding-left: 128px; /* creates depth reveal room */
+  padding-top: 128px;
 }
 
 /* Stack container — overflow: visible so offset cards show behind.
@@ -2046,9 +2047,9 @@
 .api__caption-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 8px;                /* gap-2 */
-  padding-top: 8px;        /* py-2 */
-  padding-bottom: 8px;
+  gap: var(--space-8);
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
 }
 
 .api__caption {
@@ -2120,7 +2121,11 @@
 .api__flow-item:hover,
 .api__flow-item:focus-visible {
   color: var(--olive-720);
-  outline: none;
+}
+
+.api__flow-item:focus-visible {
+  outline: 2px solid var(--olive-720);
+  outline-offset: 2px;
 }
 
 .api__flow-item.is-active {
@@ -2185,7 +2190,7 @@
 .api__twitter-row {
   grid-column: 1 / -1;
   display: flex;
-  gap: 48px;               /* gap-12 */
+  gap: var(--space-48);
   width: 100%;
 }
 
@@ -2195,9 +2200,9 @@
   background: white;
   max-height: fit-content;
   max-width: fit-content;
-  padding: 48px;           /* p-12 */
-  padding-bottom: 80px;    /* pb-20 */
-  padding-right: 160px;    /* pr-40 */
+  padding: var(--space-48);
+  padding-bottom: var(--space-80);
+  padding-right: 160px;
   border: 2px solid var(--mint-100);
 }
 
@@ -2238,7 +2243,7 @@
 /* Tweet column */
 .api__tweet-col {
   width: 384px;            /* snapped: 8-grid multiple, ~2/3 of prior 550px */
-  margin-top: 112px;       /* mt-28 = 7rem */
+  margin-top: var(--space-112);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -2411,16 +2416,16 @@
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 16px;             /* gap-4 */
+  gap: var(--space-16);
   justify-content: center;
   align-items: center;
 }
 
 .sa__lead {
-  max-width: 384px;      /* max-w-sm */
+  max-width: 384px;
   text-align: center;
-  padding-top: 40px;     /* py-10 */
-  padding-bottom: 40px;
+  padding-top: var(--space-40);
+  padding-bottom: var(--space-40);
   color: var(--blue-800);
 }
 
@@ -2502,13 +2507,11 @@
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {
-  .intro__inner,
-  .intro__surface,
-  .intro__memo-cards,
-  .intro__memo-card--mid,
-  .intro__dot,
-  .intro__toggle {
+  .route-biconomy *,
+  .route-biconomy *::before,
+  .route-biconomy *::after {
     transition: none !important;
+    animation: none !important;
   }
 }
 
@@ -2571,7 +2574,7 @@
     z-index: 2;
     width: 36px;
     height: 40px;
-    border-radius: 18px;
+    border-radius: 20px;
     background: var(--blue-100);
     border: none;
     cursor: pointer;
@@ -2628,7 +2631,7 @@
   }
 
   .bips__card-inner {
-    padding: 32px;
+    padding: var(--space-32);
     gap: var(--space-32);
   }
 
@@ -2755,8 +2758,8 @@
 
   .bips__notes-rail.is-open .bips__notes-content {
     max-height: none;
-    padding-top: 24px;
-    padding-bottom: 24px;
+    padding-top: var(--space-24);
+    padding-bottom: var(--space-24);
     outline: 1px solid var(--olive-400);
     outline-offset: -8px;
   }
@@ -3398,7 +3401,7 @@
   .bicon-marker-info-card {
     width: min(408px, calc(100vw - 2 * var(--workbench-pad-x)));
     height: auto;
-    padding: 16px;
+    padding: var(--space-16);
   }
   .bicon-marker-info-card__title,
   .bicon-marker-info-card__body,
