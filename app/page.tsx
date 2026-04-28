@@ -411,9 +411,9 @@ export default function LandingPage() {
                 <div className="hero-card__content">
                   <p className="hero-card__greeting t-p4">{greeting}</p>
                   <h1 className="hero-card__headline t-h2">
-                    I&rsquo;m a designer working across product, systems, and brand.
+                    I&rsquo;m Nihar. I&rsquo;ve designed brands, cultures, and products.
                   </h1>
-                  <p className="hero-card__sub t-p3">I now focus primarily on systems.</p>
+                  <p className="hero-card__sub t-p3">What I was really doing was designing systems</p>
                 </div>
                 <button
                   className="pill-btn"
