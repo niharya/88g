@@ -160,6 +160,14 @@
   --shadow-inset: inset 1px 1px 4.8px 0px rgba(0, 0, 0, 0.36);
   --shadow-dot:   0.5px 0.5px 1px rgba(0, 0, 0, 0.48);
 
+  /* ---- Filter-shadow companions ---------------------------------------
+     drop-shadow() doesn't accept spread, so the box-shadow tokens above
+     can't drop in directly. Use these when shadowing alpha-shaped art
+     (PNG with custom silhouette) where filter: drop-shadow follows the
+     mask instead of the rectangular box.
+     -------------------------------------------------------------------- */
+  --filter-shadow-resting: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.24));
+
   /* ---- Borders ---- */
   --border-frame: 4px solid var(--grey-80);
 

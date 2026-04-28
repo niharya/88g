@@ -476,8 +476,6 @@
   top: 542px;
   left: 266px;
   width: 148px;
-  background: var(--rr-memo-bg);
-  box-shadow: var(--shadow-flat);
   transform: rotate(1deg);
   padding: 12px 4px 8px;
   z-index: var(--rr-z-game);
@@ -487,9 +485,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/images/rr/paper-texture-card.webp') top left / 1024px 1024px;
-  mix-blend-mode: color-burn;
-  opacity: 0.4;
+  z-index: -1;
+  background: url('/images/rr/north-star-bg.webp') center / 100% 100% no-repeat;
+  filter: var(--filter-shadow-resting);
   pointer-events: none;
 }
 

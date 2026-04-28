@@ -394,9 +394,9 @@ The RR card tokens carry:
   raking-light vibe; globals ladder casts straight-down
 - **Larger blur radii** — cards feel suspended on a soft surface, not planted
 
-Used by `.rr-story-card` (resting), `.rr-north-star-card` (flat),
-`.rr-constraints-card__inner` (flat), `.rr-interface-desktop__img` (lifted),
-`.rr-interface-notes` (rest), `.rr-outcome-card` (lifted).
+Used by `.rr-story-card` (resting), `.rr-constraints-card__inner` (flat),
+`.rr-interface-desktop__img` (lifted), `.rr-interface-notes` (rest),
+`.rr-outcome-card` (lifted).
 
 **Do not migrate these to the global ladder.** The separation is intentional:
 the global ladder is paper-on-cream, the RR tokens are paper-on-rug.
@@ -589,6 +589,7 @@ Click-to-expand is disabled on mobile (`.rr-rules-inner { pointer-events: none }
 - `StoryCard.tsx` `ResizeObserver` on the card root — re-fires `measure()` when the deck-fan image loads and shifts card height; without it, `document.fonts.ready` fires before the image and produces stale geometry
 - Interface tab accordion uses a **viewport-derived max-height** (`calc(100vh - 386px)`) with `overflow-y: auto`, not a fixed ceiling. The formula is tied to the canvas vertical centering + notes position + scale — see "Cards — interface tab stays inside the scaled canvas" above. If the notes canvas-y position (760), pill height (76 canvas-px), or canvas scale (0.5) changes, recompute.
 - `#intro .rr-story-card:has(.rr-constraints-card--expanded) .rr-north-star-card { margin-top: calc(-123px + var(--space-8)) }` — the 123px is derived from `HIDDEN_OPEN_H` in `Intro.tsx`; if hidden-row count or heights change, update both
+- `.rr-north-star-card::before` paints the alpha-shaped paper bg with `filter: var(--filter-shadow-resting)` and `z-index: -1`. This sits behind the card's text *inside* the card's stacking context — which exists only because the card carries `z-index: var(--rr-z-game)`. If that z-index is ever dropped, the `::before` escapes and renders behind the parent storycard instead.
 
 ---
 

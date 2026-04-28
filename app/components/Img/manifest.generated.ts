@@ -304,6 +304,13 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1200,
     "hasAlpha": false
   },
+  "/images/rr/north-star-bg.webp": {
+    "dominantColor": "rgb(232, 232, 216)",
+    "thumbHash": "tgiCAoAeR2hYlnCKn/P5fklJi4dwuAg=",
+    "width": 152,
+    "height": 68,
+    "hasAlpha": true
+  },
   "/images/rr/paper-texture-card.webp": {
     "dominantColor": "rgb(232, 216, 200)",
     "thumbHash": "tgiCBQAHV8aYp2V1CLJVD3i4T1X3qWRXOQ==",
