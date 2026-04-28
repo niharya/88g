@@ -42,13 +42,22 @@ function hashToDataUrl(hash: string): string {
 }
 
 /**
- * Single load state: once the real image has fired onLoad, `.is-loaded` is
- * applied and the materialize keyframe plays. Resetting on src change means
- * a flow switch replays the animation — acceptable because consumers sync
- * their own label/toggle transitions to the same timing.
- * Animations (not transitions) are used because transitions stall inside
- * scroll-linked transform ancestors. See /rr ANOMALIES.md.
+ * Load state and cache.
+ *
+ * Once the real image has fired onLoad, `.is-loaded` is applied and the
+ * materialize keyframe plays. Animations (not transitions) are used
+ * because transitions stall inside scroll-linked transform ancestors.
+ * See /rr ANOMALIES.md.
+ *
+ * `loadedSrcs` is a module-level set of srcs that have completed at
+ * least one load this session. On re-mount of a cached src, `.is-cached`
+ * is applied alongside `.is-loaded` — the CSS pins the inner to the
+ * keyframe's end-state directly (no animation), so a slide-in or
+ * re-render of an already-cached image doesn't replay the 700ms reveal
+ * over bytes the browser is serving instantly. First-mount of a fresh
+ * src behaves exactly as before.
  */
+const loadedSrcs = new Set<string>()
 export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   src,
   alt,
@@ -73,7 +82,12 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   // transparent pixels — a flat dominant-color tile would otherwise bleed
   // through any alpha regions of a PNG. Consumer-passed value always wins.
   const resolvedPlaceholder: Placeholder = placeholder ?? (entry?.hasAlpha ? 'none' : 'color')
-  const [loaded, setLoaded] = useState(false)
+  // wasInitiallyCached: was this src already loaded by another Img mount
+  // this session? If yes, skip the materialize keyframe (bytes are instant
+  // from the browser cache, replaying the reveal would jerk a fully-painted
+  // image). The ref is updated on src change in the effect below.
+  const wasInitiallyCachedRef = useRef(loadedSrcs.has(src))
+  const [loaded, setLoaded] = useState(wasInitiallyCachedRef.current)
   const wrapperRef = useRef<HTMLSpanElement | null>(null)
   useImperativeHandle(forwardedRef, () => wrapperRef.current as HTMLSpanElement)
 
@@ -104,9 +118,16 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
     return () => io.disconnect()
   }, [prefetchEnabled, prefetched, prefetchMargin])
 
-  // Reset on src change so a new image animates in on first paint.
+  // Reset on src change. Cached srcs land already-loaded (no materialize);
+  // fresh srcs go through the placeholder → load → materialize cycle.
   useEffect(() => {
-    setLoaded(false)
+    if (loadedSrcs.has(src)) {
+      wasInitiallyCachedRef.current = true
+      setLoaded(true)
+    } else {
+      wasInitiallyCachedRef.current = false
+      setLoaded(false)
+    }
     setPrefetched(false)
   }, [src])
 
@@ -158,6 +179,7 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
         fill ? 'img--fill' : '',
         intrinsic ? 'img--intrinsic' : '',
         loaded ? 'is-loaded' : '',
+        wasInitiallyCachedRef.current ? 'is-cached' : '',
         className,
       ]
         .filter(Boolean)
@@ -184,7 +206,10 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
         draggable={draggable}
         unoptimized={unoptimized}
         loading={effectiveLoading}
-        onLoad={() => setLoaded(true)}
+        onLoad={() => {
+          loadedSrcs.add(src)
+          setLoaded(true)
+        }}
         className="img__inner"
         {...rest}
       />

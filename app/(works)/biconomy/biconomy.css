@@ -14,6 +14,7 @@
 .workbench:has(.route-biconomy) {
   --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
   --biconomy-card-inset-x: 128px;
+  --biconomy-orange: #F2561D;  /* brand orange — Biconomy mark fill */
 }
 
 
@@ -196,23 +197,33 @@
 .intro__toggle {
   position: absolute;
   right: 0;    /* right edge aligns with memo container right */
-  top: 6px;    /* top-1.5 = 6px */
-  z-index: 1;
+  /* Top edge aligns with the 2nd memo card's top (the rotated --mid
+     card). With card-1 height ≈ 104px and the closed-state gap of 12px,
+     the second card's top sits at ~116px from .intro__memo-cards. The
+     1px nudge to 115 lands optically on the rotated card's top edge. */
+  top: 115px;
+  /* z-index intentionally omitted: toggle paints behind all memo cards
+     (cards 2/3 are static so DOM order puts them above; card 1 has
+     z:2 explicitly). */
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-16);
   width: 112px;
   padding: var(--space-8);
-  background: color-mix(in srgb, var(--olive-80) 60%, transparent);
+  background: color-mix(in srgb, var(--olive-80) 80%, transparent);
   cursor: pointer;
   border: none;
-  transition: background var(--dur-instant) var(--ease-snap), transform var(--dur-instant) var(--ease-snap);
+  /* Transform is owned by Framer Motion (entrance + whileHover squish in
+     Intro.tsx). Keeping a CSS `transition: transform` here would fire
+     on every per-frame inline-style write during the entrance and
+     produce a ~100ms easing tail at the end of the spring. So the CSS
+     transition only covers background. */
+  transition: background var(--dur-instant) var(--ease-snap);
 }
 
 .intro__toggle:hover {
   background: var(--olive-160);
-  transform: scaleY(0.95) scaleX(1.05);
 }
 
 .intro__toggle:focus-visible {
@@ -742,6 +753,23 @@
   height: 100%;
 }
 
+/* Inside the audits frame, replace the global Img materialize keyframe
+   (700ms blur + scale + opacity) with a plain opacity fade for every
+   uncached image — before, after, and the hidden-slide preload. The
+   blur+scale would race the slide-in popLayout transition or the
+   parent .ba__after toggle reveal and produce a perceptible scale-shift.
+   A simple opacity tween composes cleanly with both. Cached re-mounts
+   (the next-flow before that becomes current) use the global
+   .img.is-loaded.is-cached rule and paint instantly. */
+.flows__frame .img.is-loaded:not(.is-cached) .img__inner {
+  animation: flows-img-fade 250ms var(--ease-paper) forwards;
+}
+
+@keyframes flows-img-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .ba__after-inner {
   position: relative;
   width: 100%;
@@ -1174,22 +1202,22 @@
   display: flex;
   max-width: var(--rail-width);
   gap: var(--space-2);
-  /* align-items defaults to `stretch` so .bips__notes-content fills the
-     rail's full height. Was `flex-start` previously, which left content
-     at its natural height and produced an extra ~23 px gap at the rail's
-     bottom (top docked, bottom unfilled — visible asymmetry vs the tab
-     which spans full height). */
   background: var(--olive-80);
   color: var(--olive-800);
   position: absolute;
   right: 0;
-  height: 100%;
+  /* Rail sizes to its notes content (.bips__notes-content has no
+     height cap on desktop). Centered vertically against the taller
+     Notion iframe via top: 50% + translateY(-50%) — keeps the rail's
+     middle aligned to the iframe's middle without empty space below
+     the last note. */
+  top: 50%;
   transition: transform var(--dur-slide) var(--ease-paper);
-  transform: translateX(0) rotate(1deg);
+  transform: translate(0, -50%) rotate(1deg);
 }
 
 .bips__notes-rail.is-open {
-  transform: translateX(var(--space-112)) rotate(0deg);
+  transform: translate(var(--space-112), -50%) rotate(0deg);
 }
 
 .bips__notes-tab {
@@ -1230,9 +1258,9 @@
   outline-offset: -8px;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  overflow-y: auto;
-  max-height: 600px; /* match iframe height */
+  /* No max-height on desktop — content sizes to its natural height and
+     the rail vertically centers against the iframe via the rail's
+     top: 50% / translateY(-50%). Mobile rule below caps via accordion. */
 }
 
 .bips__notes-list {
@@ -1250,11 +1278,9 @@
   margin: 16px 0;
 }
 
-.bips__footnote {
-  padding-top: var(--space-8);
-  text-align: center;
-  color: var(--grey-400);
-}
+/* Caption treatment now lives in .t-caption (globals.css) — applied via
+   className. Wrapper provides the 8px gap via .bips__notion-section's
+   flex-column gap; no extra rule needed here. */
 
 /* ── Multiverse section ──────────────────────────────────────────────────── */
 /*                                                                           */
@@ -1376,10 +1402,9 @@
   max-height: 80vh;
 }
 
+/* Caption typography lives in .t-caption (globals.css). */
 .multiverse__after-sub {
-  text-align: center;
   width: 100%;
-  color: var(--grey-480);
 }
 
 /* ── After-caption — centered, full-width ── */
@@ -1412,11 +1437,21 @@
 .biconomy-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-16);
   border-radius: 16px;
   border: 1px solid var(--grey-800);
   background: white;
-  padding: var(--space-16);
+  padding: var(--space-24);
+  box-shadow: var(--shadow-flat);
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-snap),
+              box-shadow var(--dur-fast) var(--ease-snap);
+}
+
+.biconomy-chip.is-pressed {
+  transform: scale(0.96);
+  box-shadow: none;
 }
 
 .biconomy-chip__slot {
@@ -1424,6 +1459,8 @@
 }
 
 .biconomy-chip__mark {
+  display: inline-flex;
+  color: var(--biconomy-orange);
   transition: transform var(--dur-settle) var(--ease-paper);
 }
 
@@ -1667,7 +1704,10 @@
 .demos__image-item {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  /* 8px gap matches the standardized image+caption spacing
+     (.t-caption — globals.css). The caption-row's own padding-top is
+     dropped so this is the only spacer between image and caption. */
+  gap: var(--space-8);
 }
 
 /* Video frame: square, max 100dvh */
@@ -1724,7 +1764,6 @@
 
 .demos__image-el {
   width: 100%;
-  border-radius: 12px;
   max-width: fit-content;
   height: 70vh;
   pointer-events: none;
@@ -1739,7 +1778,6 @@
 /* ── Caption row ── */
 
 .demos__caption-row {
-  padding-top: var(--space-8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1747,11 +1785,11 @@
   gap: var(--space-4);
 }
 
-/* Figma caption — fixed textbox inside the unified unit */
+/* Figma caption — fixed textbox inside the unified unit. Typography
+   from .t-caption (globals.css); only width and the playing-state
+   color transition are local. */
 .demos__video-item .demos__caption {
   width: 20rem;
-  text-align: center;
-  color: var(--grey-480);
   transition: color var(--dur-slide) var(--ease-paper);
 }
 
@@ -1780,10 +1818,9 @@
   color: var(--grey-160);
 }
 
-/* Image-tab caption stays non-tilted, text-only, not interactive */
+/* Image-tab caption stays non-tilted, text-only, not interactive.
+   Typography from .t-caption (globals.css). */
 .demos__image-item .demos__caption {
-  text-align: center;
-  color: var(--grey-560);
   height: fit-content;
   width: 100%;
 }
@@ -2052,8 +2089,10 @@
   padding-bottom: var(--space-8);
 }
 
+/* Caption typography lives in .t-caption (globals.css). API overrides
+   text-align to `start` because the caption shares its row with the
+   prev/next NavPill. */
 .api__caption {
-  color: var(--grey-480);
   text-wrap: balance;
   text-align: start;
 }
@@ -3085,7 +3124,7 @@
     min-height: calc(80vw + 10rem);
   }
   .demos__image-item {
-    gap: var(--space-16);
+    gap: var(--space-8);
   }
 
   /* Figma video preview corners — desktop 24px radius feels

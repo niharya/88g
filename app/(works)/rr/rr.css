@@ -543,6 +543,11 @@
   box-shadow: var(--shadow-flat);
   padding: var(--space-4);
   overflow: hidden;
+  transition: box-shadow var(--dur-slide) var(--ease-paper);
+}
+
+.rr-constraints-card--expanded .rr-constraints-card__inner {
+  box-shadow: var(--shadow-resting);
 }
 
 /* Ruled horizontal lines */
@@ -582,10 +587,18 @@
 
 /* Title */
 .rr-constraints-card__title {
-  /* Typography from .t-h5 (applied via JSX). */
+  /* Typography from .t-h5 (applied via JSX). t-h5 uses line-height: 1, which
+     leaves no room above/below the glyph cap. We bump line-height to 1.3 to
+     match the item rows' rhythm, then nudge the title down with asymmetric
+     padding (8 top / 4 bottom) so the cap sits at the row's visual center.
+     Google Sans Flex caps sit high in the line-box, so a tighter bottom and
+     looser top compensates and reads as centered. */
   color: var(--olive-800);
-  text-align: center;
-  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0 4px;
+  line-height: 1.3;
 }
 
 /* Constraint rows */
@@ -727,7 +740,10 @@
 
 .rr-rules-rail__tab-inner {
   /* Typography from .t-btn1 (applied via JSX). Per the rule: link/
-     button-affordance GoogleSansFlex 12px elements use t-btn1. */
+     button-affordance GoogleSansFlex 12px elements use t-btn1.
+     Underline is suppressed here — the t-btn1 dotted underline and
+     ::after solid bar both render along the rotated right edge under
+     `writing-mode: vertical-lr`, reading as a stray line in the corner. */
   padding: 4px 8px;
   display: flex;
   align-items: center;
@@ -735,7 +751,9 @@
   writing-mode: vertical-lr;
   text-orientation: sideways;
   color: var(--yellow-560);
+  text-decoration: none;
 }
+.rr-rules-rail__tab-inner::after { display: none; }
 
 .rr-rules-rail__arrow {
   flex-shrink: 0;
@@ -948,9 +966,9 @@
 .rr-story-card__text--ind2 { padding-left: 48px; }
 
 .rr-story-card__text--link {
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 2px;
+  /* The dotted underline IS the dotted SVG path that travels to North Star
+     (StoryCard.tsx). Suppressing text-decoration here so we don't render a
+     second, slightly-misaligned dotted line on top. */
 }
 
 
@@ -1409,17 +1427,31 @@
 }
 
 .rr-cards-tab {
-  /* Typography + dotted-underline + ::after solid-bar from .t-btn1
-     (applied via JSX). Local rules below tune color/transition timing
-     and re-position the ::after for tab geometry. */
+  /* Typography is INLINED here intentionally — these tabs do NOT use the
+     shared .t-btn1 utility. .t-btn1 sets `wght: 720`, which leaves enough
+     side-bearing in the inline box that Chrome's dotted underline reads
+     visibly narrower than the active solid one. At `wght: 800` the heavier
+     glyphs collapse the side-bearing and the two underlines align. See
+     /rr/ANOMALIES.md → "Tab typography is inlined, not `.t-btn1`". */
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18;
+  letter-spacing: -0.24px;
   color: var(--mint-160);
-  text-decoration-color: var(--mint-160);
+  text-transform: capitalize;
   background: none;
   border: none;
   cursor: pointer;
   padding: 8px 12px;
   margin: -8px -12px;
   position: relative;
+  /* btn1 affordance — dotted underline at rest */
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--mint-160);
   transition:
     color 0.32s var(--ease-paper),
     transform 0.32s var(--ease-paper),
@@ -1914,7 +1946,10 @@
    Section 4 — Outcome
    ========================================================================== */
 
-.rr-canvas--outcome { background: transparent; }
+.rr-canvas--outcome {
+  background: transparent;
+  height: 860px;
+}
 
 
 /* ── Expand/collapse dim transition (card) ── */

@@ -97,6 +97,8 @@ All six biconomy chapters opt in to `useDominanceSnap` via `<Sheet snap>` in [pa
 
 **TransitionSlot interaction.** Unlike `useReveal`, `useDominanceSnap` does not gate itself on `.workbench.transitioning`. It doesn't need to: route transitions are short relative to the 2s idle window, so snap cannot fire mid-transition. If transitions are ever lengthened past ~1.8s or the idle is shortened, gate the hook explicitly.
 
+**First-chapter idleMs override (v0.62.0).** The first chapter (`ux-audit`) passes `snapIdleMs={100}` from [page.tsx](page.tsx); all other chapters keep the 2000ms default. Reason: on direct load and on transition-in, the route lands at `scrollY = 50` (DOCK_OFFSET) but the section's top edge is ~50px below the dock — with a 2s idle, the reader sat in a half-docked state for two full seconds before the snap landed it flush. The 100ms override fires the snap almost immediately on entry so the page reads as docked from frame zero. The mid-chapter snap-back protection (`topProximityPx: 80` + `is-overlay-open` gate) still applies, so a fast idle does not yank the reader back to the top once they've scrolled past the boundary. **Do not extend the 100ms idle to interior chapters** — they're entered by scrolling, and a near-zero idle would feel snappy/aggressive against a reading pause.
+
 ### API card images use `fill` mode, not `intrinsic`
 
 `.api__card-img` (the slide images inside `.api__card-frame`) is wired with `<Img fill />` so the wrapper covers the full 4:3 black monitor frame; `object-fit: contain` on `.img.api__card-img .img__inner` letterboxes the image inside it. **Do not switch back to `intrinsic`** — that mode shrinks the wrapper to the image's natural dimensions and exposes the frame's black background as a wide bezel around the screenshot. The `--raw` variant (Navigation & Signing flow) reuses the same `fill + contain` setup; the 1px grey border on `.api__stack-wrap--raw .api__card-img` outlines the wrapper rect, which is acceptable because the raw frame strips the black bg / shadow / border.
@@ -294,10 +296,19 @@ that cushion. The mobile block zeroes both padding values.
 
 This is the main composition decision. On desktop the notes rail is an
 **absolute-positioned rotated drawer** — `position: absolute; right: 0;
-max-width: 240px; transform: translateX(0) rotate(1deg)` at rest,
-`translateX(112px) rotate(0deg)` when open; the iframe column simultaneously
-shifts `translateX(-128px)` so the rail emerges into negative space. The
-rail tab is a `writing-mode: vertical-lr` button pinned at `right: -32px`.
+max-width: 240px; top: 50%; transform: translate(0, -50%) rotate(1deg)` at rest,
+`translate(var(--space-112), -50%) rotate(0deg)` when open; the iframe column
+simultaneously shifts `translateX(-128px)` so the rail emerges into negative
+space. The Y component (`-50%`) keeps the rail vertically centered against
+the taller Notion iframe — rail height is content-driven (no `max-height` cap
+on `.bips__notes-content`), so the centering preserves rhythm regardless of
+the rail's natural height. The rail tab is a `writing-mode: vertical-lr` button
+pinned at `right: -32px`.
+
+**Don't restore `height: 100%` on the rail or `max-height: 600px` on the
+content.** The previous combination produced a ~190px empty stripe at the
+bottom of the rail — content was top-docked, but the rail was iframe-tall.
+Vertical centering against the iframe is the correct read.
 
 None of those coordinates translate to 375px. Under crafted-lite, the rail
 is **re-anchored**, not scaled:
@@ -666,19 +677,35 @@ The original grid of 7 placeholder slots was replaced with a single pile of
   image reappears only after the last. NavPill arrows scrub both
   directions. If you unify them to forward-only, the arrow UI lies.
 
-## BiconomyChip hover roll (v0.35.0)
+## BiconomyChip dice-shake (v0.62.0 rebuild)
 
-The header note used to say "source-locked: exact transforms from original
-BiconomyChip.js." That is no longer true. The component now:
+Replaces the v0.35 hover-roll. The chip is now a `<button>` and the
+interaction is a click, not a hover.
 
-- Keeps the three base rotations (`2.3`, `-1.7`, `3.9`) as rest state.
-- On hover per mark, rolls a fresh `±2°` offset via `Math.random()` and
-  settles via paper easing.
+- Click depresses the chip (`.is-pressed { transform: scale(0.96); box-shadow: none }`).
+- The three marks run a **two-step pose interpolation**: a jitter pose
+  (`JITTER_MS = 120ms` on `--ease-snap`) then a settle pose
+  (`SETTLE_MS = 400ms` on `--ease-paper`). Each mark draws independent
+  `{rotate ±15°, x ±8px, y ±12px}` random poses for both phases. Reads
+  as three dice tumbling and landing.
+- **No re-trigger cap.** Re-clicking mid-shake clears the timer and
+  restarts from the current pose — that is the correct dice behavior.
+  Don't add a debounce; the user-tested feel relies on free re-rolls.
+- **Color rolls too.** Every shake re-picks one of six 560-tier hues
+  per mark (`var(--orange-560|terra-560|yellow-560|mint-560|olive-560|blue-560)`).
+  Same value tier so the rhythm of the page doesn't shift; brand orange
+  (`--biconomy-orange: #F2561D`, declared at the route token block in
+  `biconomy.css`) is the rest color.
+- **`overflow: visible` on the chip is intentional.** The translate
+  ranges send marks slightly past the chip border during the tumble —
+  that's the dice-mid-roll read.
+- Marks use `currentColor` for fill (SVG path) so the inline `color` style
+  swap actually changes hue. Don't hard-code `fill="#F2561D"` on the path.
 
-If you grep for "source-locked" and find it in the old comment, it's gone
-on purpose — the rest state is preserved, the hover is the net-new gesture.
-Vertical offsets (`y: -10.5`, etc.) were dropped — marks now sit on the
-chip midline, aligned with the dividers.
+The Multiverse consumer wraps the chip-row in a `motion.div` whose `filter`
+participates in the section's scroll-driven blur. The chip stays in the
+focal-plane group with the captions; that wrapper is required for the blur
+to extend over the chip and is documented in [Multiverse.tsx](components/Multiverse.tsx).
 
 ## Tweet-card hover chain via `:has()` (v0.35.0)
 

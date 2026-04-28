@@ -23,6 +23,24 @@ Add new entries **above the divider at the bottom**, most recent first.
 
 ---
 
+## Caption (`.t-caption`)
+
+The standardized treatment for short text that sits below (or above) an image, video, or other media surface. Carries the full caption spec — `t-p4` typography baseline, `--grey-480` color, `text-align: center` default. One class on the `<p>` is the entire treatment; the 8px gap from media is composed by the consumer's wrapper layout.
+
+**Where it lives**
+- [app/globals.css](app/globals.css) — the `.t-caption` rule, alongside the other `.t-*` typography utilities.
+- Consumers in [/biconomy](app/(works)/biconomy/biconomy.css) — `.multiverse__after-sub`, `.bips__footnote`, `.api__caption`, `.demos__caption`. Each consumer's CSS holds only layout-specific bits (width, text-align overrides, hover-state color shifts), never the typography or default color.
+
+**AI notes**
+- **One class is the whole treatment.** `<p className="t-caption">…</p>` — don't apply both `t-p4` and `t-caption`; t-caption already includes the t-p4 typography.
+- **Color and centering are defaults, both overridable.** Consumers can write `.x { text-align: start; }` on the same element to override (e.g. `/biconomy` API caption sits in a 2-col row with the NavPill, so it left-aligns). They can also override color for state — `/biconomy` Demos video caption keeps a `transition: color` for the playing-state shift to `--grey-240`.
+- **Gap from media is consumer-owned.** Default pattern: parent flex-column with `gap: var(--space-8)`. Demos uses 8px between image-frame and caption-row (was 16px before standardization). API uses `padding-top: var(--space-8)` because the parent grid handles columns. Never bake the gap into `.t-caption` itself — different consumers compose it differently (e.g. caption-plus-nav rows, or captions paired with a play icon below).
+- **What's route-specific** — wrapper layout (flex/grid, gap value), per-consumer width caps, state-driven color shifts.
+- **What's library-ready** — the `.t-caption` class itself. Already in `globals.css`; the four /biconomy consumers all use it.
+- **Promotion history.** Multiverse `.multiverse__after-sub` was the original benchmark; BIPs / API / Demos were aligned in two passes (color match, then full token promotion).
+
+---
+
 ## NavMarker
 
 The single nav-marker primitive — the shared shell behind every `ChapterMarker`, `ProjectMarker`, `ExitMarker`, and the landing's Nihar / Works markers. Emits the `.nav-marker` class structure that `nav.css` already consumes, so adoption is a visual no-op; tone / state / acknowledgment modifiers layer new behavior on top. Supports three element shapes (`a` / `button` / `div`) via a discriminated `as` union, three slot roles (`project` / `chapter` / `exit`), three tones (`neutral` / `terra` / `mint`), two states (`default` / `active`), and three click acknowledgments (`navigate` / `shake` / `morph`). Optional `wipHint` reveals a Monostamp chip beside the label on click (auto-dismiss after 8s). When the chapter marker docks, it + the adjacent project marker share a muted mat-coloured shell (`--mat-bg` + `--mint-100` border) so the pair reads as one unit.
@@ -76,6 +94,7 @@ The one image primitive the portfolio uses. Wraps `next/image` with an instant L
 - **Graceful fallback.** If an image isn't in the manifest, `Img` renders a raw `<img>` and in dev logs a console warning pointing at `npm run lqip`. So new images work immediately but without LQIP until the manifest is regenerated.
 - **`prebuild` hook.** `package.json` runs `node scripts/generate-image-manifest.mjs` before every `next build` — production never ships a stale manifest. Contributors can also run `npm run lqip` manually during dev.
 - **Scroll-linked-transform ancestor stall.** CSS animations on descendants of `useMatSettle` / other scroll-linked-transform ancestors freeze at `t=0`. The materialize keyframe is disabled inside `.rr-canvas` via a route-scoped override (see `app/(works)/rr/ANOMALIES.md` → "Img materialize animation stalls"). If a future route uses a scroll-linked transform ancestor, it will need the same override.
+- **Cross-mount cache (`is-cached`).** A module-level `loadedSrcs` Set tracks every `src` that has fired `onLoad` in the current page session. When `Img` mounts, it consults that Set: if the src already loaded once, the component starts in `loaded: true` and adds the `is-cached` class, which the CSS uses to skip the materialize keyframe entirely (`.img.is-loaded.is-cached .img__inner { animation: none; opacity: 1 }`). Without this, every re-mount of the same image (e.g. /biconomy `BeforeAfter` swapping between `before.webp` ↔ `after.webp`, or `Flows` advancing through a 4-slide sequence with a hidden preload) replayed the 700ms blur-and-scale reveal on a frame already cached by the browser — read as a flash. The cache lives for the page's lifetime; navigating away and back resets it (intended).
 - **Props forwarded to NextImage.** `sizes`, `priority`, `draggable`, `unoptimized`, `loading`, `prefetchMargin`. Anything else spread via `...rest`.
 - **Prefetch ahead of viewport.** An `IntersectionObserver` on the wrapper flips `loading="lazy"` → `"eager"` when the image enters an extended `rootMargin` (default `'1500px'`) — the fetch begins ~1.5 screens before the section is scrolled into view, so artifacts are already painted when the user arrives. Opt out per-consumer with `prefetchMargin={false}` or `'0'`. Skipped automatically when `priority` or `loading="eager"` is already set.
 - **Accepts a ref.** `Img` is a `forwardRef<HTMLSpanElement>` — the ref points at the wrapper `<span>`, not the inner `<img>`. Needed by scroll-linked consumers like `Multiverse`'s `posterRef` (feeds `useScroll({ target })`).
@@ -150,7 +169,8 @@ The paper chapter container used by every works route. Renders a `section.sheet.
 - **Scroll-linked card placement is inline-styled, not CSS-classed.** The first `.surface` in the sheet receives per-frame `transform` and `boxShadow` writes from `useMotionValueEvent` on `scrollYProgress`. Endpoint shadow matches `--shadow-flat` exactly so the card reads flat at rest. Do not try to move this to CSS — values are lerped.
 - **Three-phase reveal is choreography, not independent transitions.** Phase 1 (mat glide 0.8s), Phase 2 (content settle 0.7s + `--place-rotate`), Phase 3 (nav-sled dock 0.5s) are tuned as a set. Changing one phase's duration without the others breaks the cascade. The odd-valued durations (0.7, 0.9) are deliberate and sit outside the `--dur-*` tier vocabulary.
 - **`useReveal` needs a ref on the element that should receive `.revealed`.** Sheet passes its own `sectionRef`. If children need their own one-shot reveals, they import `useReveal` separately.
-- **`snap?: boolean` opts the sheet into dominance-snap.** Defaults `false`. When true, Sheet calls `useDominanceSnap(sectionRef, { topProximityPx: 80, idleMs: 2000, glideDurationMs: 800, dockOffsetPx: 2 })` so the chapter glide-docks on 2s scroll-idle when its top edge is within 80px of the viewport top. /biconomy passes `snap` for all chapters; /rr passes it for everything except Mechanics (the pinned-scroll scene must run untouched). See each route's ANOMALIES → "Chapter dominance-snap" for the calibration rationale.
+- **`snap?: boolean` opts the sheet into dominance-snap.** Defaults `false`. When true, Sheet calls `useDominanceSnap(sectionRef, { topProximityPx: 80, idleMs: snapIdleMs, glideDurationMs: 800, dockOffsetPx: 2 })` so the chapter glide-docks on scroll-idle when its top edge is within 80px of the viewport top. /biconomy passes `snap` for all chapters; /rr passes it for everything except Mechanics (the pinned-scroll scene must run untouched). See each route's ANOMALIES → "Chapter dominance-snap" for the calibration rationale.
+- **`snapIdleMs?: number` overrides the scroll-idle window.** Defaults `2000` so brief reading pauses do not trigger a snap. Both /biconomy and /rr pass `100` for the FIRST chapter only (`i === 0` in page.tsx) so the route lands docked from frame zero rather than two seconds in. Interior chapters keep the 2s default — a short idle there would yank readers during reading pauses. See each route's ANOMALIES → "First-chapter idleMs override".
 - What's route-specific: the children. Everything else (the chapter-marker wiring, the reveal, the scroll-linked glide) is identical across routes.
 - What's library-ready: the whole component.
 

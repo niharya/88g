@@ -149,7 +149,7 @@ export default function BIPs() {
 
         </div>
 
-        <p className="bips__footnote t-p4">
+        <p className="bips__footnote t-caption">
           I had great support from the then PM (Nikola ♡) who introduced it to his devs. Then growth and marketing teams gave it a shot.
         </p>
       </div>

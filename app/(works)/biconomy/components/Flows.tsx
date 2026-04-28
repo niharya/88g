@@ -12,6 +12,7 @@ import {
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { flows, type FlowNote } from './flowSlides'
 import BeforeAfter from './BeforeAfter'
+import { Img } from '../../../components/Img'
 import NavPill from './NavPill'
 
 // ── ArrowBack SVG (for notes tab) ─────────────────────────────────────────────
@@ -393,18 +394,26 @@ export default function Flows() {
                 )
               }
 
+              // Adjacent slides — preload only the before-image so the
+              // popLayout slide-in lands on a fully painted frame. The
+              // after-image is intentionally not loaded here; it loads
+              // when the user actually reaches that slide and toggles.
               return (
                 <div
                   key={`slide-${index}`}
                   className="flows__slide flows__slide--hidden"
                   aria-hidden="true"
                 >
-                  <BeforeAfter
-                    beforeImage={before.image}
-                    afterImage={after.image}
-                    beforeNotes={[]}
-                    afterNotes={[]}
-                    showAfter={slideShowAfter}
+                  <Img
+                    src={before.image}
+                    alt=""
+                    intrinsic
+                    sizes="100vw"
+                    className="ba__img"
+                    draggable={false}
+                    unoptimized
+                    loading="eager"
+                    placeholder="hash"
                   />
                 </div>
               )

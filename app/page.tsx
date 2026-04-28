@@ -66,7 +66,6 @@ export default function LandingPage() {
   /* ---- Spectrum state ---- */
   const [hueIdx, setHueIdx] = useState(0)
   const [specRotation, setSpecRotation] = useState(0)
-  const [spectrumPressing, setSpectrumPressing] = useState(false)
 
   const palette = PALETTES[hueIdx]
 
@@ -361,7 +360,7 @@ export default function LandingPage() {
       })
   }, [activeTags, submitStatus, doFormCollapse, morphTo])
 
-  /* ---- Spectrum click — cycle hue group + tactile press ---- */
+  /* ---- Spectrum click — cycle hue group + reroll rotation ---- */
   const handleSpectrumClick = useCallback((e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('a')) return
     setHueIdx(prev => (prev + 1) % PALETTES.length)
@@ -372,13 +371,6 @@ export default function LandingPage() {
       const options = [-2, -1, 1, 2].filter(t => t !== prev)
       return options[Math.floor(Math.random() * options.length)]
     })
-    // Press pulse — shared `card-press` keyframe (globals.css). Driven
-    // by state (not classList) so React's re-render after the hue/rotation
-    // setState calls doesn't wipe the class off the JSX-controlled className.
-    setSpectrumPressing(false)
-    // Defer the true flip so the keyframe restarts cleanly on consecutive clicks.
-    requestAnimationFrame(() => setSpectrumPressing(true))
-    window.setTimeout(() => setSpectrumPressing(false), 220)
   }, [])
 
   /* ---- Random tag tilts ---- */
@@ -495,7 +487,7 @@ export default function LandingPage() {
 
           {/* Spectrum */}
           <div className="landing__section--spectrum">
-            <div className={`spectrum${spectrumPressing ? ' is-pressing' : ''}`} onClick={handleSpectrumClick}>
+            <div className="spectrum" onClick={handleSpectrumClick}>
               <div className="spectrum__frame" style={{ transform: `rotate(${specRotation}deg)` }}>
                 <div className="spectrum__bg" />
                 <div className="spectrum__inner">

@@ -573,4 +573,14 @@ don't have persistent hover. The hover highlights (`:has(:hover)` rules) are
 explicitly reverted via `filter: none` / `background: revert`. Don't assume
 these work on touch; they're desktop-only embellishments.
 
+## Stale-hover gate — `data-armed` on ProjectCard
+
+[ProjectCard.tsx](components/ProjectCard.tsx) sets `data-armed="true"` on its `<Link>` only after the first real cursor `mousemove` (with a position-change check that ignores synthetic moves emitted by layout/transform settles). Both the card-level `:hover` rules **and** the `.selected-tl:has(.project-card[data-armed="true"]:hover)` timeline cascade in [selected.css](selected.css) — five selectors total: dim-all, terra highlight, terra bar, blue highlight, blue bar — are gated on this attribute.
+
+**Why:** without the gate, arriving on `/selected` with the cursor parked over a card on first paint triggers the `:has(:hover)` cascade on mount, dimming the timeline and highlighting one card before the user has moved the mouse. The `data-armed` mousemove latch defers all hover-driven state to a real cursor input, which is the actual signal of intent.
+
+**Don't drop the gate from any of the five cascade rules.** They're a unit. Removing it from one breaks the others' parity (e.g. dim fires but highlight doesn't, or vice versa). The mobile override under `:has(...:hover)` to undo the desktop dim on touch also uses the same `[data-armed="true"]` gate so synthesized touch hover doesn't bypass it.
+
+**Why on the Link, not the outer motion.div:** the cascade selectors are `.selected-tl:has(.project-card[data-armed="true"]:hover)`. Putting `data-armed` on the inner Link is what makes the `:has()` query match. Earlier attempts (timer-based gates, gate on the outer motion.div) all failed because the `:has()` query was operating on the inner element. The `:has()` cascade was the actual hover trigger — root-cause fix lives where the selector looks.
+
 *Last updated: 15 April 2026.*

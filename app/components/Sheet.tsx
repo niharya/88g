@@ -26,9 +26,14 @@ interface SheetProps {
   // Opt in to dominance-snap (paper-eased glide to chapter top on scroll-idle).
   // Defaults false — biconomy passes true; rr is being migrated chapter-by-chapter.
   snap?: boolean
+  // Override the scroll-idle window before snap fires. Default 2000ms (long
+  // pauses while reading don't trigger). The first chapter on each project
+  // passes a near-zero value so the route lands docked immediately rather
+  // than 2 seconds in.
+  snapIdleMs?: number
 }
 
-export default function Sheet({ chapter, chapters, children, snap = false }: SheetProps) {
+export default function Sheet({ chapter, chapters, children, snap = false, snapIdleMs = 2000 }: SheetProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const surfaceRef = useRef<HTMLElement | null>(null)
   const rotationRef = useRef((Math.random() - 0.5) * 3) // ±1.5°, stable per mount
@@ -48,7 +53,7 @@ export default function Sheet({ chapter, chapters, children, snap = false }: She
   useDominanceSnap(sectionRef, {
     enabled: snap,
     topProximityPx: 80,
-    idleMs: 2000,
+    idleMs: snapIdleMs,
     glideDurationMs: 800,
     dockOffsetPx: 2,
   })

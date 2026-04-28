@@ -37,8 +37,14 @@ export default function BiconomyPage() {
   return (
     <div className="route-biconomy">
       <div className="sheet-stack">
-        {chapters.map(chapter => (
-          <Sheet key={chapter.id} chapter={chapter} chapters={chapters} snap>
+        {chapters.map((chapter, i) => (
+          <Sheet
+            key={chapter.id}
+            chapter={chapter}
+            chapters={chapters}
+            snap
+            snapIdleMs={i === 0 ? 100 : 2000}
+          >
             {sheetContent[chapter.id]}
           </Sheet>
         ))}

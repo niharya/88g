@@ -49,6 +49,9 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
   const [pathPos, setPathPos] = useState({ top: 261, left: 93 })
   // dx/dy: offset from SVG origin (link bottom-center) to North Star top-center
   const [dotEnd, setDotEnd] = useState({ dx: 185, dy: 281 })
+  // Width of "only test" — used so the same dotted run that travels to
+  // North Star also acts as the underline of "only test". One unified line.
+  const [linkWidth, setLinkWidth] = useState(48)
 
   // Measure after fonts are settled — avoids font-swap reflow misreads
   useEffect(() => {
@@ -64,13 +67,22 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
       // top/left and SVG coords are in the card's local (pre-transform) space.
       const scaleX = card.offsetWidth > 0 ? cr.width / card.offsetWidth : 1
       const scaleY = card.offsetHeight > 0 ? cr.height / card.offsetHeight : 1
-      const originX = Math.round((lr.left + lr.width / 2 - cr.left) / scaleX - 1)
-      const originY = Math.round((lr.bottom - cr.top) / scaleY - 3)
+      // Origin sits a touch inside the LEFT edge of "only test" — under the
+      // "o" of "only" rather than dead-flush with the text edge — so the
+      // underline reads as anchored to the letterform, not to a margin. The
+      // INSET pulls in equally on both ends; the descent then continues from
+      // the right end of the underline ("t" of "test") down to North Star.
+      const INSET = 6
+      const originX = Math.round((lr.left - cr.left) / scaleX) + INSET
+      // ~2px below the link's baseline so the dotted underline has breathing
+      // room from the glyph descenders instead of overlapping them.
+      const originY = Math.round((lr.bottom - cr.top) / scaleY + 2)
       setPathPos({ top: originY, left: originX })
       setDotEnd({
         dx: Math.round((nr.left + nr.width / 2 - cr.left) / scaleX - originX),
         dy: Math.round((nr.top - cr.top) / scaleY - originY),
       })
+      setLinkWidth(Math.max(0, Math.round(lr.width / scaleX) - INSET * 2))
     }
     document.fonts.ready.then(measure)
     // Re-measure when card resizes (deck-fan img load shifts card height)
@@ -79,7 +91,7 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
     return () => ro.disconnect()
   }, [])
 
-  // One-shot path draw — fires 3s after the mat split has settled.
+  // One-shot path draw — fires shortly after the mat split has settled.
   // Uses a clipPath rect that grows from height 0 → 340 to reveal the dotted
   // path top-to-bottom, rather than scrolling the dot pattern (old dashoffset
   // approach). The path itself is always fully drawn; the clip controls visibility.
@@ -100,11 +112,11 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
     let controls: ReturnType<typeof animate> | null = null
     const t = setTimeout(() => {
       controls = animate(pathProgress, 1, {
-        duration: 1.5,
+        duration: 0.8,
         ease: 'easeOut',
         onComplete: () => { hasDrawn.current = true },
       })
-    }, 1000)
+    }, 200)
     return () => {
       clearTimeout(t)
       controls?.stop()
@@ -211,61 +223,118 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
       >
         {(() => {
           const { dx, dy } = dotEnd
-          // S-curve control points: perpendicular offsets give two bends.
-          // Amplitude scales off dy so the curve stays gentle at any card scale.
-          const amp = Math.max(22, Math.min(36, dy * 0.09))
-          const cp1x = dx * 0.25 + amp, cp1y = dy * 0.33
-          const cp2x = dx * 0.75 - amp, cp2y = dy * 0.67
-          const bezier = (t: number) => {
+          const W = linkWidth
+          const TOTAL_DOTS = 32
+
+          // Build arc-length samples for any parametric path. Returns the
+          // raw samples plus total length — caller decides how many dots to
+          // pull out, which lets us divide a fixed budget across segments
+          // proportionally instead of letting each segment self-size.
+          const sampleArc = (
+            fn: (t: number) => { x: number; y: number },
+            subdiv: number,
+          ) => {
+            const samples: { x: number; y: number; d: number }[] = []
+            let total = 0
+            let prev = fn(0)
+            samples.push({ ...prev, d: 0 })
+            for (let i = 1; i <= subdiv; i++) {
+              const p = fn(i / subdiv)
+              total += Math.hypot(p.x - prev.x, p.y - prev.y)
+              samples.push({ x: p.x, y: p.y, d: total })
+              prev = p
+            }
+            return { samples, total }
+          }
+          const dotsAlong = (
+            samples: { x: number; y: number; d: number }[],
+            total: number,
+            count: number,
+          ) => {
+            const step = total / (count - 1)
+            const out: { x: number; y: number }[] = []
+            let si = 0
+            for (let i = 0; i < count; i++) {
+              const target = i * step
+              while (si < samples.length - 1 && samples[si + 1].d < target) si++
+              const a = samples[si]
+              const b = samples[Math.min(si + 1, samples.length - 1)]
+              const span = b.d - a.d || 1
+              const f = (target - a.d) / span
+              out.push({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f })
+            }
+            return out
+          }
+
+          // Underline — runs from under "o" of "only" through "t" of "test".
+          // Slight sine wave so it reads as the same hand-drawn trail that
+          // becomes the descent. Single oscillation across the link width.
+          const underline = sampleArc(
+            (t) => ({
+              x: t * W,
+              y: Math.sin(t * Math.PI) * 1.6,
+            }),
+            60,
+          )
+
+          // Descent — high-amplitude S-curve from the right end of the
+          // underline to North Star. Bigger amp than the previous gentle
+          // bend so it reads as a real squiggle.
+          const ddx = dx - W
+          const ddy = dy
+          const amp = Math.max(80, Math.min(140, ddy * 0.32))
+          const cp1x = W + ddx * 0.25 + amp
+          const cp1y = ddy * 0.33
+          const cp2x = W + ddx * 0.75 - amp
+          const cp2y = ddy * 0.67
+          const descent = sampleArc((t) => {
             const mt = 1 - t
             return {
-              x: 3*mt*mt*t*cp1x + 3*mt*t*t*cp2x + t*t*t*dx,
-              y: 3*mt*mt*t*cp1y + 3*mt*t*t*cp2y + t*t*t*dy,
+              x: 3 * mt * mt * t * cp1x + 3 * mt * t * t * cp2x + t * t * t * dx + mt * mt * mt * W,
+              y: 3 * mt * mt * t * cp1y + 3 * mt * t * t * cp2y + t * t * t * ddy,
             }
+          }, 140)
+
+          // Concatenate underline + descent into one arc-length parameterized
+          // path (descent's distances offset by the underline's total length),
+          // then sample TOTAL_DOTS evenly along it. This gives uniform spacing
+          // across the whole trail — the underline gets whatever count its
+          // length fairly earns, and there is no seam discontinuity.
+          const combined: { x: number; y: number; d: number }[] = [
+            ...underline.samples,
+          ]
+          for (let i = 1; i < descent.samples.length; i++) {
+            const s = descent.samples[i]
+            combined.push({ x: s.x, y: s.y, d: s.d + underline.total })
           }
-          // Arc-length sampling: subdivide finely, accumulate length, then
-          // space dots evenly along the curve (~13px apart).
-          const SUBDIV = 120
-          const samples: { x: number; y: number; d: number }[] = []
-          let total = 0
-          let prev = bezier(0)
-          samples.push({ ...prev, d: 0 })
-          for (let i = 1; i <= SUBDIV; i++) {
-            const p = bezier(i / SUBDIV)
-            total += Math.hypot(p.x - prev.x, p.y - prev.y)
-            samples.push({ x: p.x, y: p.y, d: total })
-            prev = p
-          }
-          const spacing = 13
-          const count = Math.max(2, Math.round(total / spacing))
-          const step = total / (count - 1)
-          const dots: { x: number; y: number }[] = []
-          let si = 0
-          for (let i = 0; i < count; i++) {
-            const target = i * step
-            while (si < samples.length - 1 && samples[si + 1].d < target) si++
-            const a = samples[si], b = samples[Math.min(si + 1, samples.length - 1)]
-            const span = b.d - a.d || 1
-            const f = (target - a.d) / span
-            dots.push({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f })
-          }
+          const totalLen = underline.total + descent.total
+          const allDots = dotsAlong(combined, totalLen, TOTAL_DOTS)
+
           const pad = 40
-          const vbW = dx + pad
-          const vbH = dy + pad
+          const vbX = -pad
+          const vbY = -pad
+          const vbW = dx + pad * 2
+          const vbH = dy + pad * 2
           return (
             <motion.svg
-              viewBox={`0 0 ${vbW} ${vbH}`}
+              viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
               width={vbW}
               height={vbH}
               fill="none"
               overflow="visible"
+              style={{ marginLeft: vbX, marginTop: vbY }}
             >
               <defs>
                 <clipPath id="rr-dot-path-clip">
-                  <motion.rect x="-20" y="0" width={vbW + 40} style={{ height: clipHeight }} />
+                  <motion.rect
+                    x={vbX - 20}
+                    y={vbY}
+                    width={vbW + 40}
+                    style={{ height: clipHeight }}
+                  />
                 </clipPath>
               </defs>
-              {dots.map((pt, i) => (
+              {allDots.map((pt, i) => (
                 <circle
                   key={i}
                   cx={pt.x}

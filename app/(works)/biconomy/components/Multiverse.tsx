@@ -96,7 +96,7 @@ export default function Multiverse() {
         />
         <motion.p
           style={{ opacity: afterElementsOpacity, filter }}
-          className="multiverse__after-sub t-p4"
+          className="multiverse__after-sub t-caption"
         >
           Orange, the fruit, was part of our brand's secondary identity
         </motion.p>
@@ -116,9 +116,9 @@ export default function Multiverse() {
       </div>
 
       {/* ── BiconomyChip — three marks, punctuation only ─────────────────── */}
-      <div className="multiverse__chip-row">
+      <motion.div className="multiverse__chip-row" style={{ filter }}>
         <BiconomyChip />
-      </div>
+      </motion.div>
 
     </section>
   )

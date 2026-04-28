@@ -148,16 +148,16 @@ export default function BeforeAfter({
   hudMode?: boolean
   onHudDragEnd?: (state: 'before' | 'after', index: number, x: number, y: number) => void
 }) {
-  const hasShownAfterRef = useRef(false)
   const beforeContainerRef = useRef<HTMLDivElement>(null)
   const afterContainerRef = useRef<HTMLDivElement>(null)
 
-  const isFirstAfter = showAfter && !hasShownAfterRef.current
-  // First reveal uses a slow spring; subsequent toggles use a quick tween.
-  // (`easeOut` is an ease curve, not a `type` — framer-motion v12 enforces this.)
-  const transition = isFirstAfter
-    ? { type: 'spring' as const, bounce: 0, duration: 1.35 }
-    : { type: 'tween' as const, ease: 'easeOut' as const, duration: 0.25 }
+  // Near-instant layer swap on toggle. The parent's opacity fades over
+  // --dur-instant (0.1s) — fast enough to read as immediate, slow enough
+  // to register as a crossfade between two layers. The thumbhash
+  // placeholder inside is visible the moment the layer becomes opaque,
+  // and the sharp image reveals over it via the .flows opacity-fade
+  // rule in biconomy.css when bytes arrive.
+  const transition = { type: 'tween' as const, ease: 'easeOut' as const, duration: 0.1 }
 
   const showingInternalNote =
     showAfter &&
@@ -187,6 +187,7 @@ export default function BeforeAfter({
           draggable={false}
           unoptimized
           loading="lazy"
+          placeholder="hash"
         />
         <NotesOverlay
           notes={beforeNotes}
@@ -210,15 +211,18 @@ export default function BeforeAfter({
           pointerEvents: showAfter ? 'auto' : 'none',
         }}
         transition={transition}
-        onAnimationComplete={() => {
-          if (showAfter && !hasShownAfterRef.current) {
-            hasShownAfterRef.current = true
-          }
-        }}
         className="ba__after"
       >
         <div className="ba__after-inner" ref={afterContainerRef}>
           <div className="ba__after-main">
+            {/* loading="eager": the after-image must be fully loaded
+                (and materialized) before the user clicks toggle, so the
+                opacity reveal between before and after is a clean fade
+                rather than a fade racing the materialize keyframe.
+                placeholder="hash": ThumbHash blurry preview shows during
+                any load gap (e.g. fast toggle on cold cache) so the
+                area is never empty — fades to sharp via the .ba__after
+                250ms opacity keyframe in biconomy.css. */}
             <Img
               src={afterImage}
               alt="After"
@@ -227,7 +231,8 @@ export default function BeforeAfter({
               className="ba__img"
               draggable={false}
               unoptimized
-              loading="lazy"
+              loading="eager"
+              placeholder="hash"
             />
           </div>
           {/* Internal note image — fades in when note toggle is active */}

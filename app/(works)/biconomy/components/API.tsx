@@ -161,7 +161,7 @@ function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProp
               animate={{ opacity: 1, filter: 'blur(0px)' }}
               exit={{ opacity: 0, filter: 'blur(4px)', transition: { duration: 0.3, ease: 'easeOut' } }}
               transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="api__caption t-p4"
+              className="api__caption t-caption"
             >
               {currentSlide.caption}
             </motion.p>

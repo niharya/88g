@@ -224,6 +224,23 @@
   line-height: 1.35;
 }
 
+/* Image / media caption — the standard treatment for short text that
+   sits below (or above) an image, video, or other media surface.
+   Mirrors t-p4 typography + a one-step-dimmer body color, centered by
+   default. Consumers compose the 8px gap from media in their own
+   wrapper layout (parent flex `gap: var(--space-8)` is the typical
+   pattern). text-align can be overridden where the caption shares its
+   row with controls (e.g. /biconomy API's caption + nav). */
+.t-caption {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.35;
+  color: var(--grey-480);
+  text-align: center;
+}
+
 .t-btn1 {
   font-family: var(--font-ui);
   font-size: 12px;

@@ -259,7 +259,7 @@ export default function Demos() {
                         />
                       </div>
                     </div>
-                    <p className="demos__caption t-p3">{item.caption}</p>
+                    <p className="demos__caption t-caption">{item.caption}</p>
                     <span className="demos__play-icon" aria-hidden="true">
                       {playing[i] ? 'pause_circle' : 'play_circle'}
                     </span>
@@ -278,7 +278,7 @@ export default function Demos() {
                       />
                     </div>
                     <div className="demos__caption-row">
-                      <p className="demos__caption t-p3">{item.caption}</p>
+                      <p className="demos__caption t-caption">{item.caption}</p>
                       {item.linkUrl && item.linkLabel && (
                         <a
                           href={item.linkUrl}

@@ -58,6 +58,8 @@ Intro, Cards, and Outcome opt in to `useDominanceSnap` via `<Sheet snap>` in [pa
 
 **CSS `scroll-snap-type` removed.** Earlier the route used `scroll-snap-type: y mandatory` + `scroll-snap-align: start`. Removed when migrating to JS dominance-snap so the dock uses `--ease-paper` instead of the native snap curve. The mobile-only override (`scroll-snap-type: none` at <768px) and `.workbench.transitioning` global override become dead but harmless without CSS snap. The `globals.css` rule is left in place as a no-op for now — **safe to delete in a follow-up sweep**; flag it here so the next reader doesn't assume it's load-bearing.
 
+**First-chapter idleMs override (v0.62.0).** Intro passes `snapIdleMs={100}` from [page.tsx](page.tsx); Cards and Outcome keep the 2000ms default. On entry the route lands ~50px below the dock and previously sat half-docked for the full 2s idle before snapping flush — the 100ms override lands it docked almost immediately. Mid-chapter snap-back protection (`topProximityPx: 80` + `is-overlay-open` gate) is unchanged. **Do not extend to Cards or Outcome** — they're entered by scroll, and a near-zero idle would yank the reader during reading pauses. See biconomy/ANOMALIES.md "Chapter dominance-snap" for shared rationale.
+
 ---
 
 ## Global nav coupling — `[data-arrow-target]`
@@ -173,6 +175,11 @@ Lives in `app/(works)/rr/components/Cards.tsx` + `app/(works)/rr/components/RugS
 - `CardFan.tsx` uses `BASE_Y = [-4, -12, -14, -9, 2]` alongside `BASE_ROT` for per-card vertical offsets.
 - `BASE_Y` feeds into all three transform functions: `restTransform`, `hoverTransform`, `spreadTransform`.
 - Values are hand-tuned to match the Figma reference — do not normalize to a computed curve.
+
+### Tab typography is inlined, not `.t-btn1`
+- `.rr-cards-tab` (rr.css ~line 1429) inlines the full typography stack — `font-family: var(--font-ui)`, `font-size: 12px`, `font-weight: 800`, `font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18`, `text-transform: capitalize`, plus the dotted-underline + 2px-thick + offset properties — instead of composing with the shared `.t-btn1` utility (which uses `'wght' 720`).
+- **Why:** `text-decoration-style: solid` (active tab) and `text-decoration-style: dotted` (inactive tab) span the same inline-box per spec, but Chrome paints them at slightly different visual widths — the dotted run insets by half a dot-spacing so the first/last dots aren't clipped, while the solid line fills edge-to-edge. At lighter weights (e.g. `'wght' 720`) the visible glyphs leave more side-bearing whitespace at each edge of the inline box, and that gap exposes the rendering quirk: the active solid underline reads as visibly longer than the inactive dotted run on the same tab. At `'wght' 800` the heavier glyphs collapse the side-bearing, the gap shrinks below perception, and the two underlines align visually. The cards section was authored at 800 originally and switching to `.t-btn1` (720) regressed the visual.
+- **Do not migrate these tabs to `.t-btn1`** without first verifying the underline width parity across active and inactive states. If `.t-btn1` is ever bumped back to 800, this can be dropped — but the inlined stack is intentional today.
 
 ---
 
@@ -657,3 +664,41 @@ The story↔structure tab toggle on the mechanics card runs a button-press feedb
 - **React-driven trigger**: a `useEffect` on `isStructure` adds `is-pressing` to the card and removes it after a 460ms timeout. The timeout = animation duration (`--dur-settle` 425ms) + 35ms margin. First render skips via a ref (`isFirstRenderRef`) so the card doesn't pulse on mount. Cleanup clears the timeout and removes the class so a rapid re-toggle restarts the keyframe cleanly.
 
 Do not raise the keyframe peak past ~`-32px` — past ~5% scale the press stops reading as feedback and starts reading as a depth swap. Do not lower the perspective value below ~600px — too sharp a perspective makes the recede look like a tilt instead of a press.
+
+---
+
+## Outcome canvas height override (860 vs 900)
+
+`.rr-canvas--outcome` (`rr.css` Section 4) sets `height: 860px`, overriding the default 1440×900 canvas. The mat itself takes its height from the canvas, and the train ticker (`position: absolute; bottom: 0`) on the canvas rises with the height reduction — that is the entire reason for the override. The outcome card is `position: absolute; top: 137`, anchored from the top, so it doesn't shift.
+
+**Don't normalize to 900.** The 40px trim brings the ticker into the reading rhythm; restoring it pushes the ticker out of the visible band the user lands on after the rules-card backseat dim resolves.
+
+---
+
+## StoryCard one-trail unification (underline + descent)
+
+The dotted underline beneath "only test" and the dotted S-curve down to North Star are a **single arc-length-parameterized path** in [StoryCard.tsx](components/StoryCard.tsx), not two. Anchored at the link's left edge (with `INSET=6` shrinking from both ends so the trail starts under "o" of "only" and exits under "t" of "test", not at the inline-box edges). Origin Y is `lr.bottom + 2` so the underline sits 2px below the glyphs with breathing room.
+
+**Why one path:** earlier two-segment versions (separate underline + curve, joined at a seam) had non-uniform spacing — the underline always over- or under-allocated dots relative to the descent. Concatenating their arc-length samples and pulling `TOTAL_DOTS=32` evenly across the combined length gives uniform spacing across the seam by construction. The descent's high-amplitude bezier (`amp = clamp(80–140, dy * 0.32)`) reads as a real squiggle, not a gentle bend.
+
+`text-decoration` on `.rr-story-card__text--link` (rr.css) is **suppressed** so the SVG dots ARE the underline. Re-enabling it produces a second, slightly-misaligned dotted line stacked on the SVG run.
+
+**Draw timing:** 200ms delay after `splitSettled` + 0.8s draw (was 1000ms + 1.5s). Tightened so the trail reveals shortly after the mat-split lands rather than two and a half seconds later.
+
+`document.fonts.ready` + `ResizeObserver` gate the position measurement — without these, font-swap reflow misreads the link's bounding rect on first paint.
+
+---
+
+## Rules-rail vertical tab — t-btn1 underline suppressed
+
+`.rr-rules-rail__tab-inner` (rr.css ~line 728) uses `t-btn1` typography but explicitly resets `text-decoration: none` and `::after { display: none }`. Reason: the tab uses `writing-mode: vertical-lr` to rotate the "Rules" label 90° along the rail's right edge, and under that mode `t-btn1`'s dotted underline AND its `::after` solid-bar both render along the rotated right edge — they read as a stray vertical line in the corner of the rail, not as an underline.
+
+This is a documented opt-out from `t-btn1`'s decoration, scoped tight to the vertical-text element.
+
+---
+
+## Constraints-card title vertical centering
+
+`.rr-constraints-card__title` overrides `t-h5`'s `line-height: 1` with `line-height: 1.3` (matching the item rows) AND uses asymmetric `padding: 8px 0 4px` to push the cap visually toward the row's center. Reason: Google Sans Flex caps sit high in the line-box — symmetric padding around `line-height: 1.3` produces a top-heavy reading; the looser top + tighter bottom collapse the optical asymmetry.
+
+The `display: flex; align-items: center; justify-content: center` is structural rather than a hardcoded height — it lets the row expand naturally with the line-height change. **Don't symmetrize the padding back to `6px 0`** — that was the prior value and it read as top-aligned against the ruled rows.

@@ -327,7 +327,12 @@
   transition: box-shadow var(--dur-slide) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
 }
 
-.project-card:hover {
+/* Hover effects are gated by [data-armed="true"], set by ProjectCard.tsx
+   on the first real cursor movement. Prevents a stale hover state from
+   rendering when the page mounts with the cursor already parked over a
+   card. The :has(.project-card[data-armed="true"]:hover) cascade below
+   gates the timeline dim+highlight on the same flag. */
+.project-card[data-armed="true"]:hover {
   box-shadow: var(--shadow-raised);
   transform: translateY(-2px);
 }
@@ -414,7 +419,7 @@
 .project-card__arrow .icon-chevron-shaft {
   transition: translate var(--dur-slide) var(--ease-paper);
 }
-.project-card:hover .project-card__arrow .icon-chevron-shaft {
+.project-card[data-armed="true"]:hover .project-card__arrow .icon-chevron-shaft {
   translate: 3px 0;
 }
 
@@ -434,17 +439,23 @@
   justify-content: center;
 }
 
-.project-card__illus--notes {
-  top: 62px;
-  left: 288px;
-  width: 104px;
-  height: 56px;
+/* Decorative sticker on the Biconomy (blue) card — hand-drawn paper-roll
+   illustration sitting in the empty space right of the body copy and
+   above the divider. Decorative only; pointer-events disabled via the
+   parent .project-card__illus rule. */
+.project-card__illus--paperroll {
+  top: 60px;
+  right: 12px;
+  width: 120px;
+  height: 65px;
+  transform: rotate(-3deg);
+  transform-origin: bottom right;
 }
 
-.project-card__illus--notes img {
+.project-card__illus--paperroll img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -483,30 +494,35 @@
   transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
 }
 
+/* Hover-driven highlight cascade — gated by [data-armed="true"] on the
+   inner .project-card link (set by ProjectCard.tsx after the cursor
+   actually moves). Without the gate, the cascade fires on stale-mount
+   hover when the cursor lands on a card via navigation. */
+
 /* Dim all when any project card is hovered */
-.selected-tl:has(.selected-card-terra:hover) > *,
-.selected-tl:has(.selected-card-blue:hover) > * {
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) > *,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) > * {
   filter: opacity(0.35);
 }
 
 /* Terra (Rug Rumble) — highlight yellow bar + card + Q4•25 */
-.selected-tl:has(.selected-card-terra:hover) .selected-card-terra,
-.selected-tl:has(.selected-card-terra:hover) .selected-tl__bar-yellow,
-.selected-tl:has(.selected-card-terra:hover) .selected-tl__year--q425 {
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-card-terra,
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow,
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__year--q425 {
   filter: opacity(1);
 }
-.selected-tl:has(.selected-card-terra:hover) .selected-tl__bar-yellow {
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow {
   background: var(--yellow-240);
 }
 
 /* Blue (Biconomy) — highlight blue bar + card + years 2025 & 23 */
-.selected-tl:has(.selected-card-blue:hover) .selected-card-blue,
-.selected-tl:has(.selected-card-blue:hover) .selected-tl__bar-blue,
-.selected-tl:has(.selected-card-blue:hover) .selected-tl__year--2025,
-.selected-tl:has(.selected-card-blue:hover) .selected-tl__year--23 {
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-card-blue,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--2025,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--23 {
   filter: opacity(1);
 }
-.selected-tl:has(.selected-card-blue:hover) .selected-tl__bar-blue {
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue {
   background: var(--blue-160);
 }
 
@@ -988,7 +1004,7 @@ a.ap-entry:hover .ap-entry__hint {
   }
 
   .project-card__illus--hov,
-  .project-card__illus--notes {
+  .project-card__illus--paperroll {
     display: none;
   }
 
@@ -1087,8 +1103,8 @@ a.ap-entry:hover .ap-entry__hint {
   /* aren't repeated here. The :has() selectors below only need to undo the  */
   /* desktop filter:opacity(0.35) dim on cards so tapping doesn't leave      */
   /* everything else ghosted.                                                 */
-  .selected-tl:has(.selected-card-terra:hover) > *,
-  .selected-tl:has(.selected-card-blue:hover) > * {
+  .selected-tl:has(.project-card--terra[data-armed="true"]:hover) > *,
+  .selected-tl:has(.project-card--blue[data-armed="true"]:hover) > * {
     filter: none;
   }
 

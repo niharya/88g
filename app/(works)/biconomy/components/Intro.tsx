@@ -20,6 +20,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { TAB_EASE } from '../../../lib/motion'
 import IconHighlighter from './IconHighlighter'
 import { ExpandToggle } from '../../../components/ExpandToggle'
 
@@ -53,7 +54,21 @@ export default function Intro() {
           className="intro__toggle t-h5"
           initial={{ x: '50%', rotate: -2 }}
           whileInView={{ x: '75%', rotate: 0 }}
-          transition={{ type: 'spring', duration: 1, bounce: 0.2 }}
+          /* Hover squish lives in Framer (not CSS) so all transform writes
+             stay in one interpolator — no CSS `transition: transform`
+             tail at the end of the entrance. */
+          whileHover={{ scaleX: 1.05, scaleY: 0.95 }}
+          /* Per-property transitions — each property keeps the same
+             timing in both directions:
+              • x / rotate (entrance): --dur-glide on --ease-paper
+              • scaleX / scaleY (hover in + out): --dur-instant on
+                --ease-snap (TAB_EASE), tab/micro-tier per CLAUDE.md. */
+          transition={{
+            x:      { duration: 0.8, ease: [0.5, 0, 0.2, 1] },
+            rotate: { duration: 0.8, ease: [0.5, 0, 0.2, 1] },
+            scaleX: { duration: 0.1, ease: TAB_EASE },
+            scaleY: { duration: 0.1, ease: TAB_EASE },
+          }}
           viewport={{ once: true }}
           onClick={() => setOpen(s => !s)}
           aria-expanded={open}

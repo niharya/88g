@@ -74,6 +74,18 @@
   animation: img-materialize 700ms var(--ease-paper) forwards;
 }
 
+/* Cached — this Img mounted with a src that was already loaded by a
+ * previous mount this session. Browser serves the bytes instantly, so
+ * replaying the materialize would visibly jerk a fully-painted image
+ * (the v0.56+ slide-in regression). Pin to the keyframe's end-state
+ * directly. */
+.img.is-loaded.is-cached .img__inner {
+  animation: none;
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
 @keyframes img-materialize {
   from {
     opacity: 0;
