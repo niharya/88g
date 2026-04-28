@@ -398,7 +398,7 @@ export default function LandingPage() {
           <div className="landing__section--about-short">
             <div className="about-card about-card--short">
               <p className="about-card__text t-p2">
-                I started with graphic design, then evolved the process to build a studio where we created timeless brands, and from there towards making products solo.
+                I started with graphic design, then evolved the process to build a studio where we created timeless brands, and from there towards making products, solo&hellip;
               </p>
               <div className="about-card__divider" />
             </div>
@@ -461,7 +461,7 @@ export default function LandingPage() {
           <div className="landing__section--about-long">
             <div className="about-card about-card--long">
               <p className="about-card__text t-p2">
-                <span style={{ color: 'var(--grey-160)' }}>Now I look at the world through the lens of system design and sitting here, I could design anything (if it interests me enough). A game being the last one.</span>
+                <span style={{ color: 'var(--grey-160)' }}>&hellip;and today I look at the world through the lens of system design and from here, I could design anything that interests me. A game being the last one.</span>
               </p>
             </div>
           </div>
@@ -470,17 +470,15 @@ export default function LandingPage() {
           <div className="landing__section--about-practice">
             <div className="about-card about-card--practice">
               <p className="about-card__text t-p2">
-                My practice has evolved from designing symbols to designing objects, dashboards, processes that contribute to live systems. To live cultures.
+                My practice has evolved from designing symbols to designing dashboards. I&rsquo;ve found joy in breaking and making processes within live systems to make them flowww.
               </p>
               <div className="about-card__divider about-card__divider--full" />
               <p className="about-card__text t-p2">
                 I live well to be able to design well. I want to make my life and lives of those around me beautiful.
                 <br /><br />
-                Small interventions. In work. In daily life.
-                <br />
-                Adjustments that make things function better and make life feel better.
+                Small interventions. In work. In daily life. And adjustments that make things function a bit better and make life feel a bit better.
                 <br /><br />
-                Welcome to my collection of design interventions.
+                Welcome to my collection of design interventions aka my portfolio.
               </p>
             </div>
           </div>
@@ -526,7 +524,7 @@ export default function LandingPage() {
             <div className={contactClasses.join(' ')}>
               <div className="contact-card__border">
                 <p className="contact-card__intro t-h1">
-                  I am looking to give my creative practice its deepest and farthest expression. If we&rsquo;re going the same way, we could join our energies.
+                  I am looking to give my creative practice its deepest and farthest expression. If we&rsquo;re going the same way, I could use a lift.
                 </p>
 
                 {/* Action wrap */}

@@ -23,6 +23,10 @@ interface Options {
   total:         number        // total slide count for this mark
   active:        boolean       // is this section currently visible?
   slideMs?:      number        // default 8000
+  // Per-slide duration override. Returning undefined falls back to slideMs.
+  // Used by MarkCarousel to extend the dwell for video slides longer than
+  // the default — short videos and images still tick on the 8s default.
+  slideMsFor?:   (index: number) => number | undefined
   idleResumeMs?: number        // default 12000
   onWrap?:       () => void    // called when advancing past the last slide
 }
@@ -31,9 +35,14 @@ export function useShowcaseTimer({
   total,
   active,
   slideMs     = 8000,
+  slideMsFor,
   idleResumeMs = 12000,
   onWrap,
 }: Options) {
+  const durationFor = useCallback(
+    (i: number) => slideMsFor?.(i) ?? slideMs,
+    [slideMsFor, slideMs],
+  )
   const [index, setIndex] = useState(0)
   // Two separate pause sources with different semantics:
   //   • clickPaused — "I interacted"; locks the fill to full, auto-releases
@@ -49,7 +58,7 @@ export function useShowcaseTimer({
   // Deadline tracking so hoverPaused freezes in place. remainingRef holds
   // the time left on the current slide; deadlineRef is the performance.now()
   // at which the tick will fire while a timeout is armed.
-  const remainingRef = useRef<number>(slideMs)
+  const remainingRef = useRef<number>(durationFor(0))
   const deadlineRef = useRef<number | null>(null)
   const lastIndexRef = useRef<number>(0)
 
@@ -83,7 +92,7 @@ export function useShowcaseTimer({
 
     // Fresh slide → reset remaining to full duration.
     if (lastIndexRef.current !== index) {
-      remainingRef.current = slideMs
+      remainingRef.current = durationFor(index)
       lastIndexRef.current = index
     }
 
@@ -91,9 +100,9 @@ export function useShowcaseTimer({
     deadlineRef.current = performance.now() + wait
     const id = window.setTimeout(() => {
       deadlineRef.current = null
-      remainingRef.current = slideMs
       setIndex((prev) => {
         const next = (prev + 1) % total
+        remainingRef.current = durationFor(next)
         if (next === 0 && onWrap) onWrap()
         return next
       })
@@ -106,7 +115,7 @@ export function useShowcaseTimer({
         deadlineRef.current = null
       }
     }
-  }, [active, paused, index, total, slideMs, onWrap])
+  }, [active, paused, index, total, durationFor, onWrap])
 
   // When `active` flips off, reset to slide 0 so each visit starts fresh.
   useEffect(() => {

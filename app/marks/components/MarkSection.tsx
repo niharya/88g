@@ -137,9 +137,28 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
     scrollGlide(top)
   }, [index])
 
+  // Per-slide measured video durations. Videos longer than the 8s default
+  // dwell stretch their slide to the full video length — short videos and
+  // images stay on the default. Filled in lazily by MarkCarousel as videos
+  // (active or preloaded) report their loadedmetadata.
+  const videoDurationsRef = useRef<Record<number, number>>({})
+  const [durationsVersion, setDurationsVersion] = useState(0)
+  const onVideoDuration = useCallback((i: number, ms: number) => {
+    if (videoDurationsRef.current[i] === ms) return
+    videoDurationsRef.current[i] = ms
+    setDurationsVersion((n) => n + 1)
+  }, [])
+  // Rebuild on every duration update so its identity flips and the timer
+  // effect re-evaluates the dwell for the active slide.
+  const slideMsFor = useCallback((i: number) => {
+    const d = videoDurationsRef.current[i]
+    return d && d > 8000 ? d : undefined
+  }, [durationsVersion])
+
   const { index: activeSlide, setIndex, pauseForInteraction, setHoverPaused, clickPaused, hoverPaused } = useShowcaseTimer({
     total:  mark.slides.length,
     active: active && !autoScrolling,
+    slideMsFor,
     onWrap: advanceToNextMark,
   })
 
@@ -224,7 +243,12 @@ export default function MarkSection({ mark, index }: MarkSectionProps) {
       data-mark-id={mark.id}
       data-mark-index={index}
     >
-      <MarkCarousel mark={mark} index={activeSlide} preload={hasEnteredViewport} />
+      <MarkCarousel
+        mark={mark}
+        index={activeSlide}
+        preload={hasEnteredViewport}
+        onVideoDuration={onVideoDuration}
+      />
       <MarkChrome
         mark={mark}
         index={activeSlide}

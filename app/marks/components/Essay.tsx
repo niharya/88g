@@ -63,9 +63,8 @@ export default function Essay() {
   return (
     <section className="marks-essay">
       <p className="marks-essay__body">
-        As my approach to designing marks shifted from answering the brief to
-        treating them as empty vessels that could carry an idea or emotion, my
-        process also changed.
+        My approach to designing marks shifted from answering the brief to
+        treating them as empty vessels that could carry an idea or an emotion.
       </p>
 
       <div className="marks-essay__divider">
@@ -75,8 +74,8 @@ export default function Essay() {
       </div>
 
       <div className="marks-essay__body marks-essay__body--p2">
-        <p>Now, it&rsquo;s all about uncovering an idea or emotion first, and letting the form emerge.</p>
-        <p>Eventually, one such mark does emerge and it often gets a positive response, often it is resonance with the client.</p>
+        <p>So the process became about uncovering the idea or emotion first, and then letting the form emerge from it.</p>
+        <p>Eventually, a mark like that surfaces that can carry this particular emotion and gets resonance with the client.</p>
       </div>
 
       <div className="marks-essay__preview marks-essay__preview--wordmarks">

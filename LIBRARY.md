@@ -474,6 +474,26 @@ Museum-label caption docked to the viewport bottom. Collapsed state shows only a
 
 ---
 
+## Sticker
+
+Shared shell for the portfolio's "fun play" elements — the paper-roll and RR diamond on /selected, the web3-abstractor on biconomy/Demos, the zhao.eth card on biconomy/API, the notes USB on biconomy/StayingAnchored, and the BiconomyChip dice in biconomy/Multiverse. Family contract: every sticker reads as printed and pressed onto the page (drop-shadow follows the alpha mask), and every sticker lifts on hover. Tilt is per-instance via the `tilt` prop. Some consumers are static images, some are interactive (`as="button" | "a"`); future stickers join by wrapping their content in this shell — no inner-art changes needed.
+
+**Where it lives**
+- [app/components/Sticker.tsx](app/components/Sticker.tsx) — component + `StickerProps` (as / tilt / className / aria-*).
+- [app/globals.css](app/globals.css) — `.sticker` rules + the `--sticker-shadow-rest / -lift / lift-y / tilt / dur` tokens. Tune the family from this one block.
+
+**AI notes**
+- **Family treatment via tokens.** Shadow values come from `--sticker-shadow-rest` (= `--filter-shadow-resting`) and `--sticker-shadow-lift` (= `--filter-shadow-raised`). Tweaking those re-skins every sticker — that's the point of the primitive. Don't author per-consumer shadows.
+- **drop-shadow, not box-shadow.** `filter: drop-shadow(...)` follows the inner art's alpha mask so PNGs/WebPs with custom silhouettes (and inline SVGs with non-rectangular paths) cast a shadow on their actual outline rather than a rectangle. Reverting to `box-shadow` makes paper-roll and the RR diamond look like cards.
+- **Interactive consumers can opt out of the lift.** BiconomyChip applies `.sticker` for the shadow but sets `--sticker-lift-y: 0px` inline so the chip's press-scale stays the headline interaction. Pattern: keep the shadow, suppress the translate, let the consumer's own click/press effect own the motion.
+- **Tilt is per-instance, not random.** The `tilt` prop sets `--sticker-tilt` inline. Stable per consumer so siblings on the same page don't drift between renders. Don't randomize — the at-rest pose is part of the composition.
+- **`pointer-events: none` on a parent will kill the hover.** `/selected` previously had `.project-card__illus { pointer-events: none }` to keep the parent `<Link>`'s click clean — that was removed when stickers landed there because it disabled the hover lift on the sticker itself. Click events still bubble through to the Link, so removing the rule was safe.
+- Consumers (today): `/biconomy` Demos web3-abstractor, API zhao.eth card, StayingAnchored notes USB, Multiverse BiconomyChip; `/selected` ProjectCard illustrations (paper-roll, RR diamond).
+- What's route-specific: per-consumer positioning classes (e.g. `.api__trailing-sticker`, `.project-card__illus--paperroll`) layer on top of `.sticker` for placement only.
+- What's library-ready: the entire API.
+
+---
+
 <!-- New entries above this line, most recent first. Keep entries tight — link to the source, don't copy it. -->
 
 ---

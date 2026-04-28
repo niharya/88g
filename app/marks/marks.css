@@ -235,6 +235,11 @@ html[data-marks-hidden='true'] .marks-background::after {
   opacity: calc(1 - var(--hero-recede, 0));
   text-shadow: 0 0 calc(20px * var(--hero-recede, 0)) rgba(0, 0, 0, 0.75);
   z-index: 0;
+  animation: marks-hero-text-enter var(--dur-slide) var(--ease-paper);
+}
+
+@keyframes marks-hero-text-enter {
+  from { opacity: 0; }
 }
 
 
@@ -352,13 +357,12 @@ html[data-marks-hidden='true'] .marks-background::after {
 
 .marks-essay {
   /* position, z-index, width are set by the shared phase rule above.
-     Essay starts BELOW the Hero (no negative margin) — the reader must
-     scroll past the full hero viewport for the essay to begin rising into
-     view. Previously the essay peeked into the Hero; that was retired once
-     the Hero became a watermark behind the reading field. */
-  margin-top: 0;
+     Essay top sits well inside the Hero viewport so scroll-driven recede
+     engages almost immediately on page entry — the Hero is a watermark
+     behind the reading field and is meant to be peeked through. */
+  margin-top: -60svh;
   min-height: 100svh;
-  padding: 144px 0 180px;
+  padding: 32px 0 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -666,6 +670,17 @@ html[data-marks-hidden='true'] .marks-background::after {
   max-height: 70svh;
   width:  auto;
   height: auto;
+}
+
+/* Pre-load placeholder for videos. Without intrinsic dimensions a fresh
+   <video> renders 0×0 and reads as a tiny box; min-size + a tinted fill
+   give the figure a visible footprint until metadata arrives. The
+   placeholder collapses naturally once the video settles to its intrinsic
+   aspect (width: auto wins over min-width when content is bigger). */
+.mark-carousel__media > video {
+  min-width: 480px;
+  min-height: 270px;
+  background: rgba(245, 245, 245, 0.06);
 }
 
 /* Hidden preloader — lives in the DOM to trigger network fetches for all

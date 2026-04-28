@@ -16,13 +16,12 @@ export default function AboutCard() {
       transition={SPRING}
     >
       <div className="about-card-p__text">
-        <p className="about-card-p__quote">While finishing this portfolio, I noticed something.</p>
-        <h1 className="about-card-p__heading">Most of my work converges on system design.</h1>
+        <p className="about-card-p__quote">While working on this portfolio, I noticed that</p>
+        <h1 className="about-card-p__heading">most of my work becomes about system design.</h1>
         <p className="about-card-p__body">
-          Whatever the medium: product, interface, culture or brand, the real work becomes about
-          adjusting the underlying structure.
+          It could be a product, an interface, a culture, or a brand. Across all types of work, the real work lies in tweaking the underlying structure.
           <br /><br />
-          When that isn&rsquo;t possible, I design around it and still move forward.
+          When that isn&rsquo;t possible directly, I design around it and still do what&rsquo;s needed.
         </p>
       </div>
       <div className="about-card-p__divider" />

@@ -92,7 +92,10 @@ export default function BiconomyChip() {
   return (
     <button
       type="button"
-      className={`biconomy-chip${pressed ? ' is-pressed' : ''}`}
+      className={`biconomy-chip sticker${pressed ? ' is-pressed' : ''}`}
+      // Interactive sticker — joins the family for shadow but suppresses the
+      // hover lift so the press-scale stays the headline interaction.
+      style={{ ['--sticker-lift-y' as string]: '0px' }}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
       onPointerLeave={() => setPressed(false)}

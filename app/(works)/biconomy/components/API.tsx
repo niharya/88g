@@ -12,6 +12,7 @@ import TwitterEmbed from './TwitterEmbed'
 import NavPill from './NavPill'
 import IconExternalLink from '../../../components/icons/IconExternalLink'
 import { Img } from '../../../components/Img'
+import Sticker from '../../../components/Sticker'
 import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../../lib/motion'
 
 type Slide = { src: string; caption: string }
@@ -316,15 +317,17 @@ export default function API() {
 
       {/* ── Trailing zhao.eth card — closing artifact, centered ─────────── */}
       <div className="api__trailing">
-        <Img
-          src="/images/biconomy/api/send_assets.png"
-          alt=""
-          className="api__trailing-img"
-          draggable={false}
-          intrinsic
-          placeholder="none"
-          sizes="200px"
-        />
+        <Sticker tilt={-1} className="api__trailing-sticker">
+          <Img
+            src="/images/biconomy/api/send_assets.webp"
+            alt=""
+            className="api__trailing-img"
+            draggable={false}
+            intrinsic
+            placeholder="none"
+            sizes="200px"
+          />
+        </Sticker>
       </div>
 
     </section>

@@ -167,6 +167,19 @@
      mask instead of the rectangular box.
      -------------------------------------------------------------------- */
   --filter-shadow-resting: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.24));
+  --filter-shadow-raised:  drop-shadow(0 4px 10px rgba(0, 0, 0, 0.28));
+
+  /* ---- Sticker family ---------------------------------------------------
+     The portfolio's "fun play" stickers (paper-roll, web3 abstractor,
+     send-assets card, notes USB, the RR diamond, the multiverse pill, …)
+     all consume the <Sticker> primitive. These tokens are the family's
+     single tuning point — change them here and every sticker updates.
+     -------------------------------------------------------------------- */
+  --sticker-shadow-rest: var(--filter-shadow-resting);
+  --sticker-shadow-lift: var(--filter-shadow-raised);
+  --sticker-lift-y:      -3px;
+  --sticker-tilt:        0deg;
+  --sticker-dur:         var(--dur-fast);
 
   /* ---- Borders ---- */
   --border-frame: 4px solid var(--grey-80);
@@ -899,3 +912,49 @@ p, li {
 .monostamp--dark.is-active.monostamp--olive   { background: var(--olive-800);  border-color: var(--olive-400);  color: var(--olive-400); }
 .monostamp--dark.is-active.monostamp--yellow  { background: var(--yellow-800); border-color: var(--yellow-400); color: var(--yellow-400); }
 .monostamp--dark.is-active.monostamp--neutral { background: var(--grey-240);   border-color: var(--grey-400);   color: var(--grey-400); }
+
+
+/* ── Sticker ─────────────────────────────────────────────────────────────── */
+/* Shared shell for the portfolio's "fun play" stickers. Authors the family's
+   physical metaphor — printed and pressed onto the page — once, so every
+   consumer reads as a sibling. drop-shadow (not box-shadow) follows the
+   inner art's alpha mask so PNGs/WebPs with custom silhouettes shadow on
+   their actual outline rather than a rectangle. Tilt is per-instance via
+   --sticker-tilt (set by the component when `tilt` is passed). */
+.sticker {
+  display: inline-block;
+  line-height: 0;
+  transform: rotate(var(--sticker-tilt, 0deg)) translateY(0);
+  filter: var(--sticker-shadow-rest);
+  transition:
+    transform var(--sticker-dur) var(--ease-paper),
+    filter    var(--sticker-dur) var(--ease-paper);
+  cursor: inherit;
+  /* Decorative wrapper — never lay out as a flex/grid stretchy item. */
+  flex: none;
+}
+
+.sticker:hover,
+.sticker:focus-visible {
+  transform: rotate(var(--sticker-tilt, 0deg)) translateY(var(--sticker-lift-y));
+  filter: var(--sticker-shadow-lift);
+}
+
+/* When the consumer is a button or anchor, strip native chrome but leave
+   background/border/padding alone — interactive stickers (e.g. the
+   BiconomyChip pill) often supply their own surface. */
+button.sticker,
+a.sticker {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+a.sticker { text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sticker { transition: none; }
+  .sticker:hover,
+  .sticker:focus-visible { transform: rotate(var(--sticker-tilt, 0deg)); }
+}

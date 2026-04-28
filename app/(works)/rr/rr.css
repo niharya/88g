@@ -538,14 +538,14 @@
   position: relative;
   width: 256px;
   background: var(--olive-80);
-  box-shadow: var(--shadow-flat);
+  box-shadow: var(--shadow-resting);
   padding: var(--space-4);
   overflow: hidden;
   transition: box-shadow var(--dur-slide) var(--ease-paper);
 }
 
 .rr-constraints-card--expanded .rr-constraints-card__inner {
-  box-shadow: var(--shadow-resting);
+  box-shadow: var(--shadow-raised);
 }
 
 /* Ruled horizontal lines */

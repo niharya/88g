@@ -33,6 +33,10 @@ interface MarkCarouselProps {
   mark:  MarkEntry
   index: number  // active slide index (0-based), driven by useShowcaseTimer.
   preload?: boolean  // once true, all media slides render into a hidden preloader.
+  // Reports a measured video duration (ms) for slide `i`. Fired once when
+  // metadata loads. Lets the parent extend the auto-advance dwell to the
+  // full video length when it exceeds the 8s default.
+  onVideoDuration?: (i: number, durationMs: number) => void
 }
 
 function flipTransform(flip?: 'x' | 'y'): string | undefined {
@@ -41,7 +45,7 @@ function flipTransform(flip?: 'x' | 'y'): string | undefined {
   return undefined
 }
 
-export default function MarkCarousel({ mark, index, preload = false }: MarkCarouselProps) {
+export default function MarkCarousel({ mark, index, preload = false, onVideoDuration }: MarkCarouselProps) {
   const MarkGlyph = marks[mark.id]
   const slide = mark.slides[index]
 
@@ -88,6 +92,12 @@ export default function MarkCarousel({ mark, index, preload = false }: MarkCarou
                 loop
                 playsInline
                 aria-label={slide.caption}
+                onLoadedMetadata={(e) => {
+                  const d = e.currentTarget.duration
+                  if (Number.isFinite(d) && d > 0) {
+                    onVideoDuration?.(index, d * 1000)
+                  }
+                }}
               />
             </figure>
           ) : (
@@ -114,7 +124,21 @@ export default function MarkCarousel({ mark, index, preload = false }: MarkCarou
           {mark.slides.map((s, i) => {
             if (s.kind === 'mark' || i === index) return null
             if (s.kind === 'video') {
-              return <video key={`pre-${i}`} src={s.src} muted playsInline preload="auto" />
+              return (
+                <video
+                  key={`pre-${i}`}
+                  src={s.src}
+                  muted
+                  playsInline
+                  preload="auto"
+                  onLoadedMetadata={(e) => {
+                    const d = e.currentTarget.duration
+                    if (Number.isFinite(d) && d > 0) {
+                      onVideoDuration?.(i, d * 1000)
+                    }
+                  }}
+                />
+              )
             }
             return <Img key={`pre-${i}`} src={s.src} alt="" intrinsic />
           })}

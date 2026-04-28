@@ -228,9 +228,11 @@
   /* Typography from .t-h5 (applied via JSX). */
   position: absolute;
   left: 163px;
-  top: 64px;
+  top: 72px;
+  transform: translateY(-50%);
   color: var(--yellow-720);
   white-space: nowrap;
+  line-height: 1;
 }
 
 /* Dot clusters */
@@ -423,10 +425,14 @@
   translate: 3px 0;
 }
 
-/* Illustrations */
+/* Illustrations — wrapped in <Sticker> for the family treatment (drop
+   shadow + hover lift). Sticker owns the rotation via `tilt`, so the
+   per-instance transform is set inline via --sticker-tilt rather than
+   on these positional classes. The illustrations stay interactive (no
+   pointer-events: none) so the sticker can receive hover; click events
+   bubble up to the parent <Link>. */
 .project-card__illus {
   position: absolute;
-  pointer-events: none;
 }
 
 .project-card__illus--hov {
@@ -437,18 +443,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* SVG renders slightly larger than the box (white sticker rim bleeds
+     past) — let it overflow without clipping. */
+  overflow: visible;
 }
 
 /* Decorative sticker on the Biconomy (blue) card — hand-drawn paper-roll
    illustration sitting in the empty space right of the body copy and
-   above the divider. Decorative only; pointer-events disabled via the
-   parent .project-card__illus rule. */
+   above the divider. Tilt comes from the Sticker `tilt` prop. */
 .project-card__illus--paperroll {
   top: 60px;
   right: 12px;
   width: 120px;
   height: 65px;
-  transform: rotate(-3deg);
   transform-origin: bottom right;
 }
 

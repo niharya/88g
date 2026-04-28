@@ -1435,23 +1435,27 @@
 }
 
 .biconomy-chip {
+  /* Layout proportions follow the 2-multi sticker reference: a pill outline
+     with three B-glyph cells and a hairline divider between each. The
+     filter-based shadow comes from the .sticker class also applied here —
+     interactive stickers join the family but suppress the hover lift via
+     --sticker-lift-y: 0 (set inline) so the press-scale stays the headline
+     interaction. */
   display: inline-flex;
   align-items: center;
   gap: var(--space-16);
-  border-radius: 16px;
+  border-radius: 9999px;
   border: 1px solid var(--grey-800);
   background: white;
   padding: var(--space-24);
-  box-shadow: var(--shadow-flat);
   font: inherit;
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-snap),
-              box-shadow var(--dur-fast) var(--ease-snap);
+              filter    var(--dur-fast) var(--ease-snap);
 }
 
 .biconomy-chip.is-pressed {
   transform: scale(0.96);
-  box-shadow: none;
 }
 
 .biconomy-chip__slot {
@@ -2542,6 +2546,16 @@
   padding-top: var(--space-16);
   padding-bottom: var(--space-40);
 }
+
+/* Closing notes-USB sticker, centered below the prose. Matches the
+   trailing-artifact pattern used by Demos (web3 abstractor) and API
+   (zhao.eth card). */
+.sa__trailing {
+  display: flex;
+  justify-content: center;
+  padding-bottom: var(--space-56);
+}
+.sa__trailing-sticker img { width: 184px; height: auto; display: block; }
 
 /* ── Reduced motion ── */
 

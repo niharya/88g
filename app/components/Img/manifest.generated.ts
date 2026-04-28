@@ -94,11 +94,11 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1600,
     "hasAlpha": false
   },
-  "/images/biconomy/api/send_assets.png": {
+  "/images/biconomy/api/send_assets.webp": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "NAiCA4AeNamPdXUAAAAAACgnh4iAdBg=",
-    "width": 482,
-    "height": 256,
+    "thumbHash": "9QeCA4AeNaqPdXQCatxfOTg3h4iAdBg=",
+    "width": 478,
+    "height": 254,
     "hasAlpha": true
   },
   "/images/biconomy/demos/after.webp": {
@@ -129,11 +129,11 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 2153,
     "hasAlpha": true
   },
-  "/images/biconomy/demos/web3_abstractor.png": {
+  "/images/biconomy/demos/web3_abstractor.webp": {
     "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "81mCA4AnxYpsZX86k6AzCSZbNKawulg=",
-    "width": 448,
-    "height": 248,
+    "thumbHash": "NUmCA4AnxYtsZX86k6AzCSZbNKawulg=",
+    "width": 546,
+    "height": 302,
     "hasAlpha": true
   },
   "/images/biconomy/flows/gas_tank_setup_after.png": {
@@ -227,6 +227,13 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1695,
     "hasAlpha": false
   },
+  "/images/biconomy/multiverse_pill.webp": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "exiCCoQeeIl5eX93hnBnCAgYiIdxgkc=",
+    "width": 546,
+    "height": 236,
+    "hasAlpha": true
+  },
   "/images/biconomy/multiverse_poster.webp": {
     "dominantColor": "rgb(40, 24, 8)",
     "thumbHash": "DimKDAQPCFiYN4d3lhCZmHS/tPR4B3iPAA==",
@@ -297,6 +304,13 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1600,
     "hasAlpha": false
   },
+  "/images/biconomy/sa/notes.webp": {
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "MheCC4A4qsdvZA/ldH8IWGdnN4iAink=",
+    "width": 460,
+    "height": 248,
+    "hasAlpha": true
+  },
   "/images/biconomy/sa/scooters-in-baku.webp": {
     "dominantColor": "rgb(152, 200, 248)",
     "thumbHash": "IecNLYhViIiPiHePd1eJdIlxgBgH",
@@ -304,18 +318,18 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1200,
     "hasAlpha": false
   },
-  "/images/rr/north-star-bg.webp": {
-    "dominantColor": "rgb(232, 232, 216)",
-    "thumbHash": "tgiCAoAeR2hYlnCKn/P5fklJi4dwuAg=",
-    "width": 152,
-    "height": 68,
+  "/images/paper-roll.webp": {
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "cheCC4A4qsdvZA/kdH8IWGdnN4iAink=",
+    "width": 207,
+    "height": 112,
     "hasAlpha": true
   },
-  "/images/rr/paper-texture-card.webp": {
-    "dominantColor": "rgb(232, 216, 200)",
-    "thumbHash": "tgiCBQAHV8aYp2V1CLJVD3i4T1X3qWRXOQ==",
-    "width": 1024,
-    "height": 1024,
+  "/images/rr/north-star-bg.webp": {
+    "dominantColor": "rgb(232, 232, 216)",
+    "thumbHash": "tgiCAoAeU5RApnWrv6b5mmdnlnhwaAo=",
+    "width": 299,
+    "height": 135,
     "hasAlpha": true
   },
   "/images/rr/rr-card-texture.webp": {

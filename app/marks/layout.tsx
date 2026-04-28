@@ -10,13 +10,13 @@
 import type { ReactNode } from 'react'
 import '../components/nav/nav.css'
 import '../components/NavMarker/navmarker.css'
-import ExitMarker from '../components/nav/ExitMarker'
+import MarksExitMarker from './components/MarksExitMarker'
 import './marks.css'
 
 export default function MarksLayout({ children }: { children: ReactNode }) {
   return (
     <>
-      <ExitMarker />
+      <MarksExitMarker />
       {children}
     </>
   )

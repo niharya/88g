@@ -18,6 +18,7 @@
 import { useEffect, useState } from 'react'
 import NavPill from './NavPill'
 import { Img } from '../../../components/Img'
+import Sticker from '../../../components/Sticker'
 
 type Photo = { src: string; alt: string }
 
@@ -119,6 +120,21 @@ export default function StayingAnchored() {
           conversations with them informed some of the decisions on navigation
           and flow.
         </p>
+      </div>
+
+      {/* ── Trailing notes USB sticker — closing artifact ───────────────── */}
+      <div className="sa__trailing">
+        <Sticker tilt={-2} className="sa__trailing-sticker">
+          <Img
+            src="/images/biconomy/sa/notes.webp"
+            alt=""
+            width={184}
+            height={99}
+            draggable={false}
+            intrinsic
+            placeholder="none"
+          />
+        </Sticker>
       </div>
     </div>
   )

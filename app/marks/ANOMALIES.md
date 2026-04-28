@@ -31,6 +31,34 @@ Consequences:
 
 ---
 
+## /marks ships its own exit choreography (MarksExitMarker)
+
+`app/marks/layout.tsx` imports `MarksExitMarker` (route-local, at
+`app/marks/components/MarksExitMarker.tsx`) — **not** the shared
+`ExitMarker`. Because `/marks` lives outside `(works)/`, it cannot use
+`TransitionSlot`'s exit choreography, so the route ships its own.
+
+What it does: intercepts the click on the EXIT marker, plays a local
+exit animation on `.route-marks` (content dim 340ms / 28px translate,
+then ghost recede 420ms / 64px translate, both `--ease-paper`), then
+`router.push('/selected')`.
+
+Load-bearing details:
+
+- The numeric constants (340 / 28, 420 / 64, `GHOST_DELAY` 100) are
+  deliberately mirrored from `TransitionSlot`'s project → selected exit
+  (`GHOST_CONTENT_DUR_EXIT`, `GHOST_CONTENT_Y_EXIT`, `GHOST_DUR`,
+  `GHOST_Y_EXIT`, `GHOST_DELAY`). If `TransitionSlot`'s values change,
+  re-sync this file.
+- The dim-targets selector deliberately excludes `.exit-marker` siblings
+  (`Array.from(.route-marks children)` filtered) so the marker itself
+  stays visible during the recede.
+- Future "consolidate with shared `ExitMarker`" passes will silently
+  break the exit choreography — `/marks` needs the local pane animation,
+  and the shared marker has no equivalent hook for it.
+
+---
+
 ## Route-local marks, not shared
 
 The six mark SVG components live at `app/marks/components/marks/`, not at
@@ -430,6 +458,38 @@ clone on their own.
 
 ---
 
+## Showcase timer extends dwell to video duration when > 8s
+
+`useShowcaseTimer` accepts a `slideMsFor(index)` option. The rule: if the
+active slide is a video AND its duration is > 8000 ms, the timer dwells
+for the full video duration; otherwise the 8s default applies. Images
+and short videos behave as before.
+
+Wiring across three files (`useShowcaseTimer.ts`, `MarkCarousel.tsx`,
+`MarkSection.tsx`) is non-obvious:
+
+- The preloader inside `MarkCarousel` ALSO calls `onLoadedMetadata`, not
+  just the active video. This is intentional — durations populate before
+  a slide becomes active so the timer schedules the correct dwell from
+  the first tick of that slide. Removing the preloader hook makes the
+  first long video on each mark land on the 8s default.
+- `slideMsFor` is wrapped in `useCallback` with `durationsVersion` in
+  the deps so its identity flips on every duration update. The timer
+  effect depends on `durationFor`; without the version-bumped identity
+  it wouldn't re-evaluate when a video's metadata loads mid-tick.
+- Videos keep their `loop` attribute. The timer's duration advance is
+  what cuts to the next slide — we don't listen on `onEnded`. Setting
+  `loop=false` would create flickers when a slide stays past the natural
+  end.
+
+Adjacent CSS in `marks.css`: `.mark-carousel__media > video` has
+`min-width: 480px; min-height: 270px; background: rgba(245, 245, 245, 0.06)`
+so videos render a visible footprint pre-metadata instead of a 0×0
+box. Removing those reintroduces the "tiny box" behavior on slow
+connections.
+
+---
+
 ## Showcase timer ticks on single-slide marks
 
 `useShowcaseTimer` guards `total < 1`, not `total <= 1`. A mark with exactly
@@ -507,18 +567,25 @@ the veil subscription.
 
 ---
 
-## Essay has no negative margin peek
+## Essay overlaps the Hero by design (`-60svh` margin)
 
-The essay element sits at the natural document position immediately after
-the hero — `margin-top: 0`. It scrolls *up into* the hero, not out of a
-pre-placed anchor inside the hero.
+`.marks-essay` in `marks.css` (around line 358) sets
+`margin-top: -60svh; padding: 32px 0 180px`. The essay's top sits ~40svh
+from the page top — well inside the 100svh Hero's viewport. It is **not**
+parked below the hero at rest.
 
-Any historical notes referencing a `-13.78vh` (or `y=776` Figma) peek
-position are obsolete. The earlier design had the essay sitting partially
-inside the hero viewport at rest; the current behavior is that the essay
-enters from below when the reader scrolls, which is why the two-stage
-`HeroText` fade keys off essay-top-crosses-viewport rather than a static
-offset.
+This is load-bearing for `HeroText.tsx`'s two-stage `--hero-recede`. Both
+stages are anchored to `.marks-essay`'s `getBoundingClientRect()`:
+Stage A: `tA = (vh - rect.top) / (vh * 0.4)`;
+Stage B: `tB = (vh - rect.bottom) / (vh * 0.6)`.
+Moving the essay up means the recede engages almost immediately on page
+entry — that is the whole point of the change. Reverting `margin-top` to
+0 silently delays the recede until after the hero has fully passed.
+
+Don't normalize the negative margin away. The Hero is a watermark behind
+the reading field — peeking through it is intentional. Older notes about
+"retired peeking" referred to a different hero behavior that no longer
+applies; ignore them.
 
 ---
 

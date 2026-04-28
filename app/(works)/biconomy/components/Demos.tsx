@@ -8,6 +8,7 @@
 import { AnimatePresence, motion, useInView } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { Img } from '../../../components/Img'
+import Sticker from '../../../components/Sticker'
 import {
   TAB_TITLE_ENTER,
   TAB_TITLE_VISIBLE,
@@ -315,15 +316,16 @@ export default function Demos() {
       {/* ── Web3 Abstractor ──────────────────────────────────────────────── */}
       <div className="demos__web3-row">
         <div className="demos__web3-wrap">
-          <Img
-            src="/images/biconomy/demos/web3_abstractor.png"
-            alt="Web3 Abstractor"
-            width={112}
-            height={62}
-            className="demos__web3-img"
-            draggable={false}
-            intrinsic
-          />
+          <Sticker tilt={-2} className="demos__web3-sticker">
+            <Img
+              src="/images/biconomy/demos/web3_abstractor.webp"
+              alt="Web3 Abstractor"
+              width={112}
+              height={62}
+              draggable={false}
+              intrinsic
+            />
+          </Sticker>
           <div className="demos__web3-tooltip t-p4">
             <p>How we aspired<br />to be known as</p>
           </div>
