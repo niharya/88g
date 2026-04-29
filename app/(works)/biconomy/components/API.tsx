@@ -13,7 +13,7 @@ import NavPill from './NavPill'
 import IconExternalLink from '../../../components/icons/IconExternalLink'
 import { Img } from '../../../components/Img'
 import Sticker from '../../../components/Sticker'
-import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION } from '../../../lib/motion'
+import { TAB_BODY_VARIANTS, TAB_BODY_TRANSITION, TAB_EASE } from '../../../lib/motion'
 
 type Slide = { src: string; caption: string }
 type Flow = { id: string; name: string; slides: Slide[]; raw?: boolean }
@@ -72,35 +72,50 @@ const FLOWS: Flow[] = [
   },
 ]
 
-// Stack: front (z 3) at 0,0 · 2nd (z 2) at -64,-64 · 3rd (z 1) at -128,-128
-function getStackStyle(slideIndex: number, frontIndex: number, total: number) {
-  const distance = (slideIndex - frontIndex + total) % total
-  if (distance === 0) return { zIndex: 3, x: 0,    y: 0    }
-  if (distance === 1) return { zIndex: 2, x: -64,  y: -64  }
-  if (distance === 2) return { zIndex: 1, x: -128, y: -128 }
-  return                     { zIndex: 0, x: -128, y: -128 }
-}
+// Tight deck — slots 0/1/2 at 0/-16/-32. Smaller stagger than the original
+// 0/-64/-128 so the depth reveal reads as a paper deck, not a splay.
+const SLOT_OFFSETS = [
+  { x: 0,   y: 0   },
+  { x: -16, y: -16 },
+  { x: -32, y: -32 },
+] as const
+
+const PAPER_EASE = [0.5, 0, 0.2, 1] as const
+
+// Direction signal lives in the trajectory, not in keyframes. On next, the
+// wrapping card travels up-left from front → back while the other two move
+// down-right; on prev the directions invert. A keyframe detour was tried
+// first and produced a teleport-then-settle jerk because framer reads the
+// first keyframe as the starting value. Smooth single-segment animation
+// connects new and old positions visually.
 
 type SliderProps = {
   className?: string
   flow: Flow
   currentIndex: number
+  direction: 1 | -1 | 0
   onPrev: () => void
   onNext: () => void
 }
 
-function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProps) {
+function APISlider({ className, flow, currentIndex, direction, onPrev, onNext }: SliderProps) {
   const total = flow.slides.length
   const currentSlide = flow.slides[currentIndex]
   const captionKey = `${flow.id}-${currentIndex}`
+  // Leading card = the one whose slot just changed by the largest step
+  // (front→back for next, back→front for prev). Used only for stagger
+  // ordering — leading goes first so the eye latches onto the gesture's
+  // actor; the rest follow with a tight delay so motion feels connected.
+  const leadingSlot = direction === 1 ? Math.min(2, total - 1) : 0
 
   return (
     <div className={`api__slider ${className ?? ''}${flow.raw ? ' api__slider--raw' : ''}`}>
       <div className="api__slider-inner">
-        {/* Stack container — pl-128 pt-128 creates depth reveal room.
-            Flow switch runs through AnimatePresence with the tab-switch tokens
-            (mode="wait", TAB_BODY_VARIANTS). Slide advance within a flow is
-            a CSS transform — the stack itself doesn't remount. */}
+        {/* Stack container — slider-inner padding (32px) leaves the
+            depth-reveal gutter for the tight deck. Flow switch runs
+            through AnimatePresence with the tab-switch tokens (mode="wait",
+            TAB_BODY_VARIANTS). Slide advance within a flow runs through
+            framer-motion per card: see SLOT_OFFSETS + leading-card detour. */}
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={flow.id}
@@ -123,16 +138,23 @@ function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProp
           >
             <div className="api__stack">
               {flow.slides.map((slide, slideIndex) => {
-                const { zIndex, x, y } = getStackStyle(slideIndex, currentIndex, total)
+                const distance = (slideIndex - currentIndex + total) % total
+                const slot = Math.min(distance, 2)
+                const { x, y } = SLOT_OFFSETS[slot]
+                const zIndex = 3 - slot
+
+                const isLeading = direction !== 0 && slot === leadingSlot
+
                 return (
-                  <div
+                  <motion.div
                     key={`${flow.id}-${slideIndex}`}
                     className="api__card"
-                    style={{
-                      zIndex,
-                      transform: `translate3d(${x}px, ${y}px, 0)`,
-                      transition: 'transform 300ms ease-out',
-                      willChange: 'transform',
+                    style={{ zIndex }}
+                    animate={{ x, y }}
+                    transition={{
+                      duration: 0.4,
+                      ease: PAPER_EASE,
+                      delay: isLeading ? 0 : 0.04,
                     }}
                   >
                     <div className="api__card-frame">
@@ -146,7 +168,7 @@ function APISlider({ className, flow, currentIndex, onPrev, onNext }: SliderProp
                         sizes="(max-width: 767px) 90vw, 600px"
                       />
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
@@ -213,17 +235,30 @@ function MediumXMassageIcon() {
 export default function API() {
   const [activeFlowId, setActiveFlowId] = useState(FLOWS[0].id)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [direction, setDirection] = useState<1 | -1 | 0>(0)
 
   const activeFlow = FLOWS.find(f => f.id === activeFlowId) ?? FLOWS[0]
+  const activeFlowIndex = FLOWS.findIndex(f => f.id === activeFlowId)
   const total = activeFlow.slides.length
 
-  const goPrev = () => setCurrentIndex(i => (i - 1 + total) % total)
-  const goNext = () => setCurrentIndex(i => (i + 1) % total)
-  const selectFlow = (id: string) => {
-    if (id === activeFlowId) return
-    setActiveFlowId(id)
-    setCurrentIndex(0)
+  const goPrev = () => {
+    setDirection(-1)
+    setCurrentIndex(i => (i - 1 + total) % total)
   }
+  const goNext = () => {
+    setDirection(1)
+    setCurrentIndex(i => (i + 1) % total)
+  }
+
+  const selectFlowAt = (rawIndex: number) => {
+    const next = (rawIndex + FLOWS.length) % FLOWS.length
+    if (FLOWS[next].id === activeFlowId) return
+    setActiveFlowId(FLOWS[next].id)
+    setCurrentIndex(0)
+    setDirection(0)
+  }
+  const selectPrevFlow = () => selectFlowAt(activeFlowIndex - 1)
+  const selectNextFlow = () => selectFlowAt(activeFlowIndex + 1)
 
   return (
     <section id="api" className="api">
@@ -249,35 +284,39 @@ export default function API() {
         </div>
       </div>
 
-      {/* ── Slider + flows side col ─────────────────────────────────────── */}
+      {/* ── Slider + side col (switcher + tweet stack) ──────────────────── */}
       <div className="api__two-col">
         <APISlider
           className="api__slider-col"
           flow={activeFlow}
           currentIndex={currentIndex}
+          direction={direction}
           onPrev={goPrev}
           onNext={goNext}
         />
         <div className="api__side-col">
           <div className="api__side-sheet">
-            <div className="api__flows-list" role="tablist" aria-label="API flows">
-              <h3 className="api__flows-label t-h5">Flows</h3>
-              {FLOWS.map((flow, i) => {
-                const isActive = flow.id === activeFlowId
-                return (
-                  <button
-                    key={flow.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    className={`api__flow-item${isActive ? ' is-active' : ''}`}
-                    onClick={() => selectFlow(flow.id)}
-                  >
-                    <span className="api__flow-num t-p4">{String(i + 1).padStart(2, '0')}</span>
-                    <span className="api__flow-name t-p3">{flow.name}</span>
-                  </button>
-                )
-              })}
+            {/* Paginator — active flow name + prev/next, replacing the
+                3-button list. NavPill handles wrap-around already. */}
+            <div className="api__flows-paginator" role="group" aria-label="API flows">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.h3
+                  key={activeFlow.id}
+                  className="api__flows-name t-h5"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.2, ease: TAB_EASE }}
+                >
+                  {activeFlow.name}
+                </motion.h3>
+              </AnimatePresence>
+              <NavPill
+                onPrev={selectPrevFlow}
+                onNext={selectNextFlow}
+                prevLabel="Previous flow"
+                nextLabel="Next flow"
+              />
             </div>
             <p className="t-p4 api__side-text">
               I read a few Asimov stories, hoping for a direction. I got ideas for
@@ -285,10 +324,27 @@ export default function API() {
               of the client dApp.
             </p>
           </div>
+
+          {/* Tweet column docked under the switcher — both green sheets
+              now share the side-col rhythm. */}
+          <div className="api__tweet-col">
+            <p className="t-h5 api__tweet-label">
+              Post walking you through the full context
+              <IconExternalLink size={14} className="api__tweet-label-ext icon-ext" />
+            </p>
+            <TwitterEmbed
+              tweetId="1555817593185107968"
+              body={
+                'An experiment in API design: if sci‑fi can inspire rockets, how about an interface? A thread on Science Fiction meeting Interface Fiction — walking through the full context of this exploration.'
+              }
+              timestamp="9:14 AM · Aug 5, 2022"
+            />
+            <span className="api__tweet-hint">opens in new tab</span>
+          </div>
         </div>
       </div>
 
-      {/* ── Twitter section ─────────────────────────────────────────────── */}
+      {/* ── Quote card — centered alone ─────────────────────────────────── */}
       <div className="api__twitter-row">
         <div className="api__quote-card">
           <p className="t-p2 api__quote-text">
@@ -298,20 +354,6 @@ export default function API() {
           <div className="api__spin-wrap">
             <MediumXMassageIcon />
           </div>
-        </div>
-        <div className="api__tweet-col">
-          <p className="t-h5 api__tweet-label">
-            Post walking you through the full context
-            <IconExternalLink size={14} className="api__tweet-label-ext icon-ext" />
-          </p>
-          <TwitterEmbed
-            tweetId="1555817593185107968"
-            body={
-              'An experiment in API design: if sci‑fi can inspire rockets, how about an interface? A thread on Science Fiction meeting Interface Fiction — walking through the full context of this exploration.'
-            }
-            timestamp="9:14 AM · Aug 5, 2022"
-          />
-          <span className="api__tweet-hint">opens in new tab</span>
         </div>
       </div>
 

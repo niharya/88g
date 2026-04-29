@@ -10,6 +10,6 @@ export const chapters: Chapter[] = [
   { id: 'demos',            title: 'Demos',             year: '2023–24' },
   { id: 'bips',             title: 'BIPs',              year: '2022'    },
   { id: 'multiverse',       title: 'Multiverse',        year: '2023'    },
-  { id: 'api',              title: 'API',               year: '2022'    },
+  { id: 'api',              title: 'API concepts',      shortTitle: 'API', year: '2022'    },
   { id: 'staying-anchored', title: 'Staying Anchored',  year: '2022–24' },
 ]

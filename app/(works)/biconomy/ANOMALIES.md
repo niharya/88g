@@ -826,64 +826,108 @@ Composition moves:
   columns. Mobile drops the cap so captions use the full column width
   with a standard `--space-24` cushion.
 
-### API — crafted-lite pass
+### API — layout, palette, and crafted-lite pass
 
-Composition moves:
+The section runs as two blocks on desktop and one stacked column on mobile.
+Layout, palette, and motion all carry constraints that aren't obvious from
+the code alone.
 
-- **Both section grids unbound.** `.api__two-col` (6-col grid: slider
-  4/5 + side-col 5/7) and `.api__twitter-row` (flex row, 48px gap) both
-  collapse into single flex columns on mobile. DOM order was already
-  correct for the desired vertical stacking — no JSX re-order needed:
-  - **Block 1**: slider (images + caption w/ arrows) → olive side-sheet
-    (flows list + Asimov text).
-  - **Block 2**: white quote-card (Medium×X spin badge) → olive tweet-col
-    (label + TwitterEmbed).
-- **Slider depth padding halved.** Desktop `.api__slider-inner`
-  reserves `padding-left: 128px; padding-top: 128px` so the 2nd and
-  3rd stacked cards peek up-left of the front card. At 375px that
-  crushes usable image width. Halved to 64px — the depth read
-  survives with ~30% less reveal room, adequate for the tight layout.
-- **Slider gap.** 24px added between the stack and the caption row so
-  the stack peek doesn't run into the caption on switch.
-- **Caption viewport-left alignment.** `.api__caption-row` gets
-  `margin-left: calc(var(--space-64) * -1)` to cancel the slider-inner's
-  64px depth padding and land the caption at the sheet's natural left
-  edge (not the image's left). This is a mobile-only trick — desktop
-  keeps the caption aligned with the image.
+Composition (desktop):
+
+- **`.api__two-col`** — 6-col grid: slider (cols 1–4) ‖ `.api__side-col`
+  (cols 5–6). Side-col stacks `.api__side-sheet` (paginator + Asimov text)
+  on top of `.api__tweet-col` (label + TwitterEmbed + hint). Both grey sheets
+  share the column rhythm.
+- **`.api__twitter-row`** — full-width flex row, `justify-content: center`,
+  hosts only the white `.api__quote-card`. The tweet column is **not** here;
+  it lives inside `.api__side-col`.
+
+Composition (mobile, < 768px):
+
+- Both section grids collapse into single flex columns. DOM order produces
+  the intended stacking: slider → side-sheet → tweet-col → quote-card.
+
+Palette:
+
+- **Both grey sheets are intentional.** `.api__side-sheet` and `.tweet-card`
+  use `--grey-960` bg, `--grey-720` outline, `--grey-240` text. The desaturated
+  palette is the point — section attention belongs to the slide images, not
+  the supporting sheets. Don't restore the olive palette without rethinking
+  the focal hierarchy.
+- **`box-shadow: var(--shadow-flat)`** lifts both sheets off the mat just
+  enough to read as separate objects. Without it the desaturated sheets
+  sit tone-on-tone with the mat and disappear visually.
+- **`outline-offset: -8px` on both sheets** insets the visible outline 8px
+  in from the element rect. The outline is the visible card edge, not the
+  outer rect. See "outline-offset coupling" below.
+
+Slider stack (paper deck):
+
+- **Tight offsets — slot 0/1/2 at 0/-16/-32px** (`SLOT_OFFSETS` in
+  `API.tsx`). The previous 0/-64/-128px splay was bulky; the deck reads
+  as a deck, not a fan, only with shallow stagger.
+- **Slider-inner reserves `padding-left/top: 32px`** to give the back
+  slots their reveal gutter. If you change `SLOT_OFFSETS[2]`, change
+  this in lock-step (desktop and mobile).
+- **Direction-aware motion.** `direction` state (`+1` next, `-1` prev,
+  `0` initial) is passed into `APISlider`. The leading card (slot 2 on
+  next, slot 0 on prev) animates first; non-leading cards trail by
+  0.04s so the gesture's actor reads as the leading element. All cards
+  use single-segment `animate={{ x, y }}` on `--ease-paper`, 0.4s.
+  Don't reintroduce keyframe arrays (`animate={{ x: [a, b] }}`) — framer
+  treats the first array entry as the start value, which produces a
+  teleport-then-settle jerk on each switch.
+
+Caption row (mobile):
+
+- **Caption viewport-left alignment.** `.api__caption-row { margin-left:
+  -32px }` cancels the slider-inner's `padding-left: 32px` and lands
+  the caption at the sheet's natural left edge (not the image's left).
+  Mobile-only — desktop keeps caption aligned with the image.
 - **Raw-variant caption reset.** `.api__slider--raw .api__caption-row`
   carries `width: 56.25%; margin-inline: auto` on desktop to match the
   portrait image's letterboxed width. Mobile resets both (`width: 100%;
-  margin-inline: 0`) because the raw image also fills the width on
-  mobile.
-- **Caption jump prevention.** `.api__caption { min-height: calc(1.4em
-  * 4) }` reserves four lines. Captions vary from 1 to 4 lines across
+  margin-inline: 0`) because the raw image also fills the width on mobile.
+- **Caption jump prevention.** `.api__caption { min-height: calc(1.4em *
+  4) }` reserves four lines. Captions vary from 1 to 4 lines across
   slides and flows; without this, AnimatePresence `mode="wait"` collapses
   the row mid-exit and content below jumps. Pair with `align-items:
   start` on the row so the NavPill stays pinned at the first-line
   position rather than centering in the reserved block.
-- **Quote-card repadded.** Desktop `.api__quote-card { padding-right:
-  160px }` reserves space for the absolute spin badge in the bottom-right.
-  At mobile widths 160px eats most of the column; override to
-  `padding: var(--space-40); padding-bottom: var(--space-96);
-  padding-right: var(--space-40)`. The spin badge shrinks from 64 → 56px
-  (inner icon 56 → 48) and re-pins to `bottom: 16; right: 16` so it
-  clears the prose that now flows where the padding used to be.
-- **Tweet card desaturation.** `.tweet-card { filter: saturate(0.3) }`
-  on mobile only. The olive palette reads as dominant in the shortened
-  single-column layout; low saturation keeps the material cue without
-  the green overpowering the block. First and only use of `filter` in
-  this route — if another surface needs the same treatment, consider
-  promoting to a CSS variable.
+
+Quote-card (mobile):
+
+- Desktop `.api__quote-card { padding-right: 160px }` reserves space for
+  the absolute spin badge. At mobile widths 160px eats most of the
+  column; override to `padding: var(--space-40); padding-bottom:
+  var(--space-96); padding-right: var(--space-40)`. The spin badge
+  shrinks from 64 → 56px (inner icon 56 → 48) and re-pins to
+  `bottom: 16; right: 16` so it clears the prose that now flows where
+  the padding used to be.
+
+**Outline-offset coupling — don't drop the 8px nudge:**
+
+`.tweet-card` and `.api__side-sheet` both use `outline-offset: -8px`,
+which insets the visible outline 8px from the element's outer rect.
+That makes `.api__tweet-label`'s `padding-left: 8px` and
+`.api__tweet-hint`'s `margin-right: 8px` load-bearing — both align the
+label / hint text to the *visible* card outline, not the outer rect.
+Without those 8px nudges the title sits 8px to the left of the card it
+labels. If you change `outline-offset`, change both nudges in lock-step.
 
 **Don't touch:**
 
-- Keep the caption `margin-left: -64px` in lock-step with the
-  slider-inner's `padding-left: 64px`. If one changes, the other must.
+- Keep the caption `margin-left: -32px` in lock-step with the
+  slider-inner's `padding-left: 32px`. If one changes, the other must.
+- Keep `SLOT_OFFSETS` and the slider-inner padding in lock-step
+  (deepest slot value === slider-inner padding).
 - Keep the caption `min-height: calc(1.4em * 4)`. Reducing it re-introduces
   the jump on slide/flow switch. Increasing it wastes vertical space.
 - Keep `.api__caption-row { align-items: start }` on mobile. Without
   it the NavPill either stretches (default grid) or floats mid-row
   (centered) — both read as broken.
+- Keep both grey sheets monochrome — restoring olive without rethinking
+  focal hierarchy returns the palette imbalance the desaturation fixed.
 
 ### Staying Anchored — photostack breathability
 

@@ -2016,8 +2016,10 @@
   gap: 0;
   width: 100%;
   min-width: 0;
-  padding-left: 128px; /* creates depth reveal room */
-  padding-top: 128px;
+  /* Tight deck (slot offsets 0/-16/-32) needs a small reveal gutter, not
+     the prior 128px splay. 32px matches the deepest slot. */
+  padding-left: 32px;
+  padding-top: 32px;
 }
 
 /* Stack container — overflow: visible so offset cards show behind.
@@ -2118,8 +2120,9 @@
   text-align: start;
 }
 
-/* ── Side column — olive sheet housing the flows list + asimov copy.
-   Palette + inner outline mirror .bips__notes-content. ── */
+/* ── Side column — monochrome sheet stack (switcher sheet + tweet col).
+   Palette deliberately desaturated so the slide images carry the section's
+   color weight; sheets are infrastructure, not focal. ── */
 
 .api__side-col {
   grid-column: 5 / 7;     /* col-span-2 */
@@ -2127,98 +2130,45 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
+  gap: var(--space-32);
 }
 
 .api__side-sheet {
-  background: var(--olive-80);
-  color: var(--olive-800);
-  /* Outer padding: content inset (24) so inner outline sits 8px from sheet edge.
-     Flows-list uses negative margins to reach the outline and full-bleed dividers. */
+  background: var(--grey-960);
+  color: var(--grey-240);
+  /* Outer padding: content inset (24) so inner outline sits 8px from sheet edge. */
   padding: var(--space-24);
-  outline: 1px solid var(--olive-400);
+  outline: 1px solid var(--grey-720);
   outline-offset: -8px;
+  /* Mild lift off the mat — just enough that the desaturated sheet
+     reads as a separate object, not a tone-on-tone block. */
+  box-shadow: var(--shadow-flat);
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
 }
 
-/* ── Flows list — numbered switcher. Dividers extend to the inner
-      olive outline (−16px margin-inline reaches the outline, which sits
-      8px from the sheet edge → 24 − 8 = 16). ── */
+/* ── Flows paginator — active flow name + prev/next.
+      Replaces the prior 3-button list; height is fixed at one line so
+      vertical room below stays consistent across flows. ── */
 
-.api__flows-list {
+.api__flows-paginator {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-inline: calc(var(--space-16) * -1);
-}
-
-.api__flows-label {
-  color: var(--olive-720);
-  padding: 0 var(--space-16) var(--space-16);
-  margin: 0;
-}
-
-.api__flow-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: var(--space-12);
-  padding: var(--space-16);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  color: var(--olive-560);
-  border-top: 1px solid var(--olive-400);
-  transition: color var(--dur-fast) var(--ease-snap);
+  justify-content: space-between;
+  gap: var(--space-16);
+  min-height: 32px;
 }
 
-.api__flow-item:last-child {
-  border-bottom: 1px solid var(--olive-400);
-}
-
-.api__flow-item:hover,
-.api__flow-item:focus-visible {
-  color: var(--olive-720);
-}
-
-.api__flow-item:focus-visible {
-  outline: 2px solid var(--olive-720);
-  outline-offset: 2px;
-}
-
-.api__flow-item.is-active {
-  color: var(--olive-960);
-}
-
-.api__flow-num {
-  font-variant-numeric: tabular-nums;
-  color: var(--olive-400);
-  font-weight: 400;
-  transition: color var(--dur-fast) var(--ease-snap),
-              font-weight var(--dur-fast) var(--ease-snap);
-}
-
-.api__flow-item:hover .api__flow-num,
-.api__flow-item:focus-visible .api__flow-num {
-  color: var(--olive-720);
-}
-
-/* Selected numeral — one weight stop heavier (400 → 500). Label weight
-   is unchanged; only color communicates selection on the label. */
-.api__flow-item.is-active .api__flow-num {
-  color: var(--olive-960);
-  font-weight: 600;
-}
-
-.api__flow-name {
+.api__flows-name {
+  color: var(--grey-160);
+  margin: 0;
   text-wrap: balance;
 }
 
 .api__side-text {
   text-wrap: balance;
-  color: var(--olive-720);
+  color: var(--grey-400);
   margin: 0;
 }
 
@@ -2247,9 +2197,12 @@
 
 /* ── Twitter section ── */
 
+/* Twitter-row now hosts only the white quote-card, centered. The tweet
+   column moved into .api__side-col and stacks under the switcher sheet. */
 .api__twitter-row {
   grid-column: 1 / -1;
   display: flex;
+  justify-content: center;
   gap: var(--space-48);
   width: 100%;
 }
@@ -2300,23 +2253,26 @@
   height: 56px;
 }
 
-/* Tweet column */
+/* Tweet column — now nested inside .api__side-col under the switcher
+   sheet. Width follows the column, no top margin (gap handled by side-col). */
 .api__tweet-col {
-  width: 384px;            /* snapped: 8-grid multiple, ~2/3 of prior 550px */
-  margin-top: var(--space-112);
+  width: 100%;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
 }
 
 /* Label — the "title" of this column. Single line, icon inline at the end.
-   Reacts to hover on the sibling .tweet-card via :has() on the column. */
+   Reacts to hover on the sibling .tweet-card via :has() on the column.
+   Padded 8px to the right to align with the tweet-card's visible outline
+   (the card's outline-offset: -8px insets the visible edge by 8px). */
 .api__tweet-label {
   color: var(--grey-320);
   display: inline-flex;
   align-items: center;
   gap: 6px;
   margin: 0 0 var(--space-8);
+  padding-left: 8px;
   white-space: nowrap;
 }
 
@@ -2337,6 +2293,9 @@
 .api__tweet-hint {
   align-self: flex-end;
   margin-top: var(--space-8);
+  /* Symmetric to api__tweet-label — sit on the card's visible outline,
+     not its outer rect. */
+  margin-right: 8px;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.02em;
@@ -2372,10 +2331,12 @@
   flex-direction: column;
   gap: var(--space-16);
   padding: var(--space-24);
-  background: var(--olive-80);
-  color: var(--olive-800);
-  outline: 1px solid var(--olive-400);
+  background: var(--grey-960);
+  color: var(--grey-240);
+  outline: 1px solid var(--grey-720);
   outline-offset: -8px;
+  /* Match .api__side-sheet — both grey cards lift off the mat together. */
+  box-shadow: var(--shadow-flat);
   text-decoration: none;
   transition: background var(--dur-fast) var(--ease-paper);
 }
@@ -2383,8 +2344,8 @@
 
 .tweet-card:hover,
 .tweet-card:focus-visible {
-  background: color-mix(in srgb, var(--olive-80) 70%, var(--olive-160));
-  outline-color: var(--olive-560);
+  background: color-mix(in srgb, var(--grey-960) 70%, var(--grey-880));
+  outline-color: var(--grey-480);
 }
 
 .tweet-card__header {
@@ -2405,9 +2366,9 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--olive-160);
-  color: var(--olive-800);
-  border: 1px solid var(--olive-400);
+  background: var(--grey-880);
+  color: var(--grey-240);
+  border: 1px solid var(--grey-720);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2436,15 +2397,15 @@
 }
 
 .tweet-card__name {
-  color: var(--olive-960);
+  color: var(--grey-160);
 }
 
 .tweet-card__handle {
-  color: var(--olive-560);
+  color: var(--grey-480);
 }
 
 .tweet-card__bird {
-  color: var(--olive-720);
+  color: var(--grey-400);
   flex-shrink: 0;
   transition: color var(--dur-slide) var(--ease-paper),
               rotate var(--dur-slide) var(--ease-paper);
@@ -2457,13 +2418,13 @@
 }
 
 .tweet-card__body {
-  color: var(--olive-800);
+  color: var(--grey-240);
   text-wrap: pretty;
   margin: 0;
 }
 
 .tweet-card__timestamp {
-  color: var(--olive-560);
+  color: var(--grey-480);
   display: block;
 }
 
@@ -3239,15 +3200,12 @@
 
   /* ── API — crafted-lite pass ───────────────────────────────────────────
      Composition moves:
-     - Section-level grids unbind: `.api__two-col` (slider | side-col) and
-       `.api__twitter-row` (quote | tweet) both collapse into flex columns.
-       DOM order already produces the intended stacking:
-         Block 1 → slider (images + caption w/ arrows) → side-sheet (green)
-         Block 2 → quote-card (white)                   → tweet-col (green)
-     - Slider depth-reveal room: desktop adds `pl-128 pt-128` on the
-       slider-inner to let the 2nd and 3rd cards peek up-left of the front
-       card. At 375px this eats most of the image width. Halve it so the
-       depth read survives without crushing content.
+     - `.api__two-col` collapses to a flex column. DOM order produces:
+         slider → side-sheet (paginator + asimov copy) → tweet-col
+     - `.api__twitter-row` carries only the centered white quote-card now;
+       the tweet column lives inside .api__side-col.
+     - Slider depth-reveal room: tight deck (slot offsets 0/-16/-32) only
+       needs a 32px gutter, matching desktop.
      - Quote-card: drop the 160px right-padding that reserved space for
        the absolute spin badge; shrink the badge and let it sit below the
        text in the vertical flow. */
@@ -3281,8 +3239,9 @@
   }
 
   .api__slider-inner {
-    padding-left: var(--space-64);
-    padding-top: var(--space-64);
+    /* Mobile mirrors the desktop tight-deck gutter. */
+    padding-left: 32px;
+    padding-top: 32px;
     gap: var(--space-24);
   }
 
@@ -3299,14 +3258,14 @@
   }
 
   /* Caption row — align to viewport/sheet left edge, not the image's
-     left edge. The slider-inner carries a 64px depth-reveal padding
-     for the stack; pull the caption back out of that padding with a
-     matching negative margin so the text sits at the section's
+     left edge. The slider-inner carries a 32px depth-reveal padding
+     for the tight deck; pull the caption back out of that padding with
+     a matching negative margin so the text sits at the section's
      natural left. Reserve vertical room so slide/flow switches don't
      collapse the row mid-transition — captions vary from one line to
      four, so ~4.5em covers most cases. */
   .api__caption-row {
-    margin-left: calc(var(--space-64) * -1);
+    margin-left: -32px;
     /* Default grid `align-items: stretch` was stretching the NavPill
        to the reserved 4-line caption height. Top-align so the pill
        sits on the caption's first line — reads as a pair at the top
@@ -3318,16 +3277,7 @@
     min-height: calc(1.4em * 4);
   }
 
-  /* Tweet card — desaturate the olive palette on mobile. The green
-     reads as loud against the shortened column; a low-saturation tint
-     keeps the material cue without dominating. `filter` is scoped to
-     this element, which is fine here — no descendants need crisp
-     color. */
-  .tweet-card {
-    filter: saturate(0.3);
-  }
-
-  /* Block 2 — quote-card + tweet-col stack */
+  /* Block 2 — quote-card alone (tweet-col now lives in side-col). */
   .api__twitter-row {
     flex-direction: column;
     gap: var(--space-48);
@@ -3354,11 +3304,6 @@
   .api__spin-icon {
     width: 48px;
     height: 48px;
-  }
-
-  .api__tweet-col {
-    width: 100%;
-    margin-top: 0;
   }
 
   /* Label may need to wrap at narrow widths */
