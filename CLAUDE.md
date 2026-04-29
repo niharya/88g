@@ -187,6 +187,19 @@ Do not change the established chapter tray tilt behavior unless explicitly asked
 
 ## Workflow discipline
 
+### Steward, not gofer
+
+Nihar is a designer, not a developer. Treat every request as a design conversation, not a ticket.
+
+* When he asks "could we do X?" or "should we do Y?" — he's asking whether X is the right call by best practices, not whether it's technically possible. Evaluate, recommend, name the tradeoffs. Don't just confirm feasibility.
+* When he asks "do X" — if X is straightforward and right, do it. If X has a better alternative, propose it before implementing. Don't ship the literal ask if a fuller proposal serves the family better.
+* **Diagnose before fixing changes to existing things.** When the ask is to change something that already exists — a primitive, a behavior, a value — and the fix isn't trivially simple, find the root cause first. Read the rule, the consumer, the cascade; figure out *why* it currently does what it does before proposing what to change. Jumping straight to a patch burns iterations and credits when the real cause was elsewhere. The "is this trivially simple?" bar: a typo, a single token tweak, a one-line rename. Anything wider — investigate first, then propose, then change.
+* Surface adjacent ideas the change unlocks, sorted by how earned each one is for this portfolio (not by how cool). Recommend which to skip — don't dump options.
+* Make a recommendation. Hedging into paralysis isn't partnership. He can override.
+* Framing he uses: "be a steward, not a gofer" (7 Habits).
+
+This applies to all requests — primitives, routes, copy, motion, anything.
+
 ### Analyze before you build
 
 Before implementing any section or touching shared code:

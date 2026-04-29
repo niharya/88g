@@ -218,6 +218,65 @@ rail-driven case. Removing either breaks one direction of the pairing.
   baseline; don't drop it.
 - Keep both `:hover` and `.is-hovered` as activators.
 
+### StayingAnchored notes USB is the family rolodex
+
+The trailing sticker on the closing section (`.sa__trailing-sticker`) is
+not just the notes USB — it's a **rolodex of the three image stickers
+in /biconomy** (notes USB, web3 abstractor, zhao.eth card). Click cycles
+through them; the local `RolodexSticker` component in
+`components/StayingAnchored.tsx` owns the index state.
+
+Why here: notes USB is the *last* sticker in the page's reading order,
+so it doubles as a recap mechanism — the visitor can riffle back through
+the family from the closing artifact without scrolling.
+
+Wiring notes:
+- `Sticker as="button"` so the click event resolves on the sticker
+  itself (not a wrapping anchor). The `clickRotate` default fires every
+  click and gives the rotation feel of flipping a card off the top.
+- `.sa__trailing-sticker` resets `padding/border/background` because
+  `button.sticker` intentionally leaves those alone (some interactive
+  stickers — BiconomyChip — supply their own surface).
+- All three frames render at `width: 184px; height: auto` via
+  `.sa__trailing-sticker img`, so the bbox barely moves between frames
+  (each image is roughly 1.86:1).
+- BiconomyChip is **not** in the rolodex — it's a complex interactive
+  (dice shake), not a swappable image. If a future biconomy *image*
+  sticker lands, add it to `ROLODEX_FRAMES`.
+
+Don't strip the rolodex back to a static image without flagging — the
+recap moment is intentional and load-bearing for the closing beat.
+
+---
+
+### Web3-abstractor tooltip slides out from under the sticker
+
+The "How we aspired to be known as" tooltip in Demos lives inside
+`.demos__web3-wrap` next to the `.demos__web3-sticker`. The reveal must
+read as the tooltip *emerging from beneath* the sticker — not landing
+over it.
+
+Two pieces hold this:
+
+1. **z-stacking.** `.demos__web3-sticker` is `position: relative; z-index: 2`,
+   tooltip is `z-index: 1`. Without these, the tooltip (later in DOM
+   source) renders above the sticker and the reveal looks like it pops
+   onto the page. Both must be in the same stacking context (the wrap
+   has `position: relative` for that).
+2. **Start translate is far enough left to actually be hidden.** Tooltip
+   starts at `translateX(-120px)` so it sits inside the sticker's
+   footprint at rest, then animates to `translateX(0)` (final
+   `right: -96px` from the wrap). An older `translateX(-8px)` start
+   was effectively in the open already and made the slide read as a
+   tiny opacity fade, not a from-under emerge. If you tighten or
+   widen the tooltip, re-pick the start translate so its right edge
+   begins behind the sticker.
+
+Don't drop the z-index pair when re-skinning shadows or repositioning
+the block — the cascade is what sells the metaphor.
+
+---
+
 ### NavPill is biconomy-local-shared
 
 `app/(works)/biconomy/components/NavPill.tsx` is used by both Flows and the

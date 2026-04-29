@@ -430,9 +430,20 @@
    per-instance transform is set inline via --sticker-tilt rather than
    on these positional classes. The illustrations stay interactive (no
    pointer-events: none) so the sticker can receive hover; click events
-   bubble up to the parent <Link>. */
+   bubble up to the parent <Link>.
+
+   Card-hover lift: hovering anywhere on the card (not just the sticker)
+   should trigger the sticker's lift, so the sticker reads as part of
+   the card's hover personality, not a separate hit zone. The card also
+   sets --sticker-jitter on pointerenter (see ProjectCard.tsx) for a
+   per-hover ±1° random offset that composes with the resting tilt. */
 .project-card__illus {
   position: absolute;
+}
+
+.project-card[data-armed="true"]:hover .sticker {
+  transform: rotate(calc(var(--sticker-tilt, 0deg) + var(--sticker-jitter, 0deg))) translateY(var(--sticker-lift-y));
+  filter: var(--sticker-shadow-lift);
 }
 
 .project-card__illus--hov {

@@ -1882,22 +1882,39 @@
   display: block;
 }
 
+/* Sticker stacks above the tooltip so the tooltip can slide out from
+   under it. Without an explicit z-index, the tooltip (later in DOM)
+   would render on top — which made the reveal look like the note was
+   landing over the sticker instead of emerging from beneath. */
+.demos__web3-sticker {
+  position: relative;
+  z-index: 2;
+}
+
 .demos__web3-tooltip {
   position: absolute;
   opacity: 0;
-  transform: translateX(-8px) rotate(0deg);
+  /* Short travel from just behind the sticker's right edge — long enough
+     to read as emerging from under, short enough that the eye doesn't
+     track the note crossing the sticker's transparent regions (the
+     drop-shadow follows the alpha mask, so most of the bbox is see-
+     through and a long sweep reads as the note flying across the
+     sticker face). Quick + crisp duration keeps the motion below the
+     attention threshold. */
+  transform: translateX(-32px) rotate(0deg);
   right: -96px; /* -right-24 = -6rem */
   top: 0;
+  z-index: 1;
   display: flex;
   color: var(--grey-560);
-  background-color: var(--grey-960);
+  background-color: #fff;
   text-align: center;
   flex-direction: column;
   height: fit-content;
   width: fit-content;
   padding: 4px 8px;
   border: 2px solid var(--mint-100);
-  transition: opacity var(--dur-settle) var(--ease-paper), transform var(--dur-settle) var(--ease-paper);
+  transition: opacity var(--dur-fast) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
   pointer-events: none;
 }
 
@@ -2554,6 +2571,14 @@
   display: flex;
   justify-content: center;
   padding-bottom: var(--space-56);
+}
+/* Sticker is now a <button> (rolodex consumer) — strip the surface so
+   the inner art is the only visible thing, matching the prior <span>
+   look. The .sticker family handles cursor/transform/shadow. */
+.sa__trailing-sticker {
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 .sa__trailing-sticker img { width: 184px; height: auto; display: block; }
 

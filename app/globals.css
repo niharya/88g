@@ -174,11 +174,26 @@
      send-assets card, notes USB, the RR diamond, the multiverse pill, …)
      all consume the <Sticker> primitive. These tokens are the family's
      single tuning point — change them here and every sticker updates.
+
+     Shadow recipe is two stacked drop-shadows:
+       layer 1 — tight contact line (the die-cut edge against the paper)
+       layer 2 — small ambient halo (the "lifted card" haze)
+     Warm-tinted (rgba(60,40,20,…)) instead of pure black so the cast
+     reads as cast onto cream paper, not muddy. Stickers are nearly flush
+     with the substrate at rest, and the lift is small — they don't
+     levitate, they peel a hair off the surface.
      -------------------------------------------------------------------- */
-  --sticker-shadow-rest: var(--filter-shadow-resting);
-  --sticker-shadow-lift: var(--filter-shadow-raised);
-  --sticker-lift-y:      -3px;
+  --sticker-shadow-rest:
+    drop-shadow(0 0.5px 0px rgba(60, 40, 20, 0.34))
+    drop-shadow(0 1px   1px rgba(60, 40, 20, 0.10));
+  --sticker-shadow-lift:
+    drop-shadow(0 1px   1px rgba(60, 40, 20, 0.22))
+    drop-shadow(0 3px   6px rgba(60, 40, 20, 0.14));
+  --sticker-shadow-press:
+    drop-shadow(0 0.5px 0px rgba(60, 40, 20, 0.36));
+  --sticker-lift-y:      -2px;
   --sticker-tilt:        0deg;
+  --sticker-jitter:      0deg;
   --sticker-dur:         var(--dur-fast);
 
   /* ---- Borders ---- */
@@ -924,20 +939,37 @@ p, li {
 .sticker {
   display: inline-block;
   line-height: 0;
-  transform: rotate(var(--sticker-tilt, 0deg)) translateY(0);
+  transform: rotate(calc(var(--sticker-tilt, 0deg) + var(--sticker-jitter, 0deg))) translateY(0);
   filter: var(--sticker-shadow-rest);
   transition:
     transform var(--sticker-dur) var(--ease-paper),
     filter    var(--sticker-dur) var(--ease-paper);
-  cursor: inherit;
+  /* Every sticker reads as something you could pick up and play with.
+     Real interactivity is wired per consumer; the cursor sells the
+     invitation regardless. */
+  cursor: pointer;
   /* Decorative wrapper — never lay out as a flex/grid stretchy item. */
   flex: none;
 }
 
 .sticker:hover,
 .sticker:focus-visible {
-  transform: rotate(var(--sticker-tilt, 0deg)) translateY(var(--sticker-lift-y));
+  transform: rotate(calc(var(--sticker-tilt, 0deg) + var(--sticker-jitter, 0deg))) translateY(var(--sticker-lift-y));
   filter: var(--sticker-shadow-lift);
+}
+
+/* Press-down on click — lift collapses, shadow snaps tight, mimicking a
+   finger pressing the sticker back into contact with the page. :active
+   fires on any element being mouse-pressed, so this works on decorative
+   spans too — every sticker gets the press feedback whether or not the
+   consumer has wired a real handler. Snap tier so the press resolves
+   inside attention. */
+.sticker:active {
+  transform: rotate(calc(var(--sticker-tilt, 0deg) + var(--sticker-jitter, 0deg))) translateY(0);
+  filter: var(--sticker-shadow-press);
+  transition:
+    transform var(--dur-instant) var(--ease-snap),
+    filter    var(--dur-instant) var(--ease-snap);
 }
 
 /* When the consumer is a button or anchor, strip native chrome but leave
@@ -956,5 +988,8 @@ a.sticker { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .sticker { transition: none; }
   .sticker:hover,
-  .sticker:focus-visible { transform: rotate(var(--sticker-tilt, 0deg)); }
+  .sticker:focus-visible,
+  .sticker:active {
+    transform: rotate(calc(var(--sticker-tilt, 0deg) + var(--sticker-jitter, 0deg)));
+  }
 }

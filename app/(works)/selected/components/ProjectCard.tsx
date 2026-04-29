@@ -13,7 +13,7 @@
 // entrance spring leaves the gate closed. Any cursor nudge — even
 // inside the card — opens it.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import Link from 'next/link'
 import IconChevronRight from '../../../components/icons/IconChevronRight'
 import Sticker from '../../../components/Sticker'
@@ -49,11 +49,27 @@ export default function ProjectCard({ variant, title, body, role, href }: Projec
     return () => document.removeEventListener('mousemove', onMove)
   }, [])
 
+  // On each card-hover entry, re-roll a random ±2° offset and set it as
+  // --sticker-jitter on the card. CSS-var inheritance carries it down to
+  // the inner <Sticker>, where it composes with the resting `tilt`. The
+  // sticker also gets its lift treatment via the parent-hover CSS rule
+  // in selected.css. Cleared on leave so the sticker eases back to its
+  // authored rest pose.
+  const onCardEnter = useCallback((e: ReactPointerEvent<HTMLAnchorElement>) => {
+    const j = (Math.random() * 4 - 2).toFixed(2)
+    e.currentTarget.style.setProperty('--sticker-jitter', `${j}deg`)
+  }, [])
+  const onCardLeave = useCallback((e: ReactPointerEvent<HTMLAnchorElement>) => {
+    e.currentTarget.style.setProperty('--sticker-jitter', '0deg')
+  }, [])
+
   return (
     <Link
       href={href}
       className={`project-card project-card--${variant}`}
       data-armed={armed || undefined}
+      onPointerEnter={onCardEnter}
+      onPointerLeave={onCardLeave}
     >
       {/* Illustration */}
       {variant === 'terra' && (
@@ -61,6 +77,7 @@ export default function ProjectCard({ variant, title, body, role, href }: Projec
           tilt={-6}
           className="project-card__illus project-card__illus--hov"
           aria-hidden
+          clickRotate={false}
         >
           {/* Die-cut diamond. The white stroke is the sticker's offset rim
               — paint-order keeps it outside the orange fill, matching the
@@ -82,6 +99,7 @@ export default function ProjectCard({ variant, title, body, role, href }: Projec
           tilt={-3}
           className="project-card__illus project-card__illus--paperroll"
           aria-hidden
+          clickRotate={false}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/paper-roll.webp" alt="" />

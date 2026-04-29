@@ -15,7 +15,7 @@
 // No entrance animation, no exit animation, no transitions on rotate. The
 // whole point is the instant snap of flipping through a physical stack.
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import NavPill from './NavPill'
 import { Img } from '../../../components/Img'
 import Sticker from '../../../components/Sticker'
@@ -122,20 +122,55 @@ export default function StayingAnchored() {
         </p>
       </div>
 
-      {/* ── Trailing notes USB sticker — closing artifact ───────────────── */}
+      {/* ── Trailing notes USB sticker — closing artifact ─────────────────
+           Doubles as a rolodex of the biconomy sticker family — clicking
+           cycles through the page's three image stickers (notes USB →
+           web3 abstractor → zhao.eth card → repeat). Each click also
+           rolls a fresh ±2° via Sticker's clickRotate, so the swap
+           reads as flipping a physical card off the top of a stack. */}
       <div className="sa__trailing">
-        <Sticker tilt={-2} className="sa__trailing-sticker">
-          <Img
-            src="/images/biconomy/sa/notes.webp"
-            alt=""
-            width={184}
-            height={99}
-            draggable={false}
-            intrinsic
-            placeholder="none"
-          />
-        </Sticker>
+        <RolodexSticker />
       </div>
     </div>
+  )
+}
+
+// Rolodex of the biconomy image-sticker family. The notes USB is the
+// resting face; clicks advance through the other two and loop. Each
+// frame keeps the same `.sa__trailing-sticker` container so layout
+// stays put — only the inner Img swaps. The `width: 184px` rule on
+// `.sa__trailing-sticker img` (biconomy.css) lets each frame's natural
+// aspect render cleanly inside the same horizontal slot.
+const ROLODEX_FRAMES: { src: string; width: number; height: number }[] = [
+  { src: '/images/biconomy/sa/notes.webp',                   width: 184, height:  99 },
+  { src: '/images/biconomy/demos/web3_abstractor.webp',      width: 112, height:  62 },
+  { src: '/images/biconomy/api/send_assets.webp',            width: 478, height: 254 },
+]
+
+function RolodexSticker() {
+  const [i, setI] = useState(0)
+  const advance = useCallback(() => {
+    setI((prev) => (prev + 1) % ROLODEX_FRAMES.length)
+  }, [])
+  const frame = ROLODEX_FRAMES[i]
+  return (
+    <Sticker
+      as="button"
+      tilt={-2}
+      className="sa__trailing-sticker"
+      onClick={advance}
+      aria-label="Cycle through the Biconomy stickers"
+    >
+      <Img
+        key={frame.src}
+        src={frame.src}
+        alt=""
+        width={frame.width}
+        height={frame.height}
+        draggable={false}
+        intrinsic
+        placeholder="none"
+      />
+    </Sticker>
   )
 }
