@@ -139,6 +139,17 @@ html[data-marks-hidden='true'] .marks-background,
 html[data-marks-hidden='true'] .marks-background::after {
   animation-play-state: paused;
 }
+
+/* Hide scrollbar on /marks the same way landing does. Native scroll is
+   preserved; only the visual indicator goes away. macOS / iOS / Android
+   already overlay-hide; this rule covers Windows / Linux Chrome / Edge /
+   Firefox where the gutter is persistent. Scoped via :has() so other
+   routes keep their scrollbars. */
+html:has(.route-marks) {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* legacy Edge / IE */
+}
+html:has(.route-marks)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 @media (prefers-reduced-motion: reduce) {
   .route-marks,
   .route-marks *,
@@ -236,6 +247,15 @@ html[data-marks-hidden='true'] .marks-background::after {
   text-shadow: 0 0 calc(20px * var(--hero-recede, 0)) rgba(0, 0, 0, 0.75);
   z-index: 0;
   animation: marks-hero-text-enter var(--dur-slide) var(--ease-paper);
+}
+
+/* Wrap re-entry — Kilti's last slide → fade-to-black → teleport → hero
+   reappears. The veil's fade-out is 700ms; matching the hero animation to
+   --dur-glide (800ms) lets the hero ramp up across that window so the
+   reveal reads as a fade-in, not a snap behind the fade. HeroText.tsx
+   adds this class on every remount past the first. */
+.marks-hero-text--wrapped {
+  animation-duration: var(--dur-glide);
 }
 
 @keyframes marks-hero-text-enter {
@@ -357,12 +377,12 @@ html[data-marks-hidden='true'] .marks-background::after {
 
 .marks-essay {
   /* position, z-index, width are set by the shared phase rule above.
-     Essay top sits well inside the Hero viewport so scroll-driven recede
-     engages almost immediately on page entry — the Hero is a watermark
-     behind the reading field and is meant to be peeked through. */
-  margin-top: -60svh;
+     Essay starts below the Hero (no overlap) but with a reduced top
+     padding so it enters view sooner than the original 144px lead-in.
+     The Hero remains a watermark behind the reading field. */
+  margin-top: 0;
   min-height: 100svh;
-  padding: 32px 0 180px;
+  padding: 64px 0 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -420,6 +440,12 @@ html[data-marks-hidden='true'] .marks-background::after {
   /* Button reset — the row stays a row of marks, not a row of buttons. */
   all: unset;
   display: block;
+  box-sizing: content-box;
+  /* Generous padding extends the hover/click target so a casual cursor
+     near the mark triggers it. Visual size is unchanged (content-box +
+     fixed widths set on the children); the row gaps (144 / 280px) absorb
+     the extra easily. */
+  padding: 20px 28px;
   cursor: pointer;
   color: inherit;
   opacity: 0.8;
@@ -676,9 +702,12 @@ html[data-marks-hidden='true'] .marks-background::after {
    <video> renders 0×0 and reads as a tiny box; min-size + a tinted fill
    give the figure a visible footprint until metadata arrives. The
    placeholder collapses naturally once the video settles to its intrinsic
-   aspect (width: auto wins over min-width when content is bigger). */
+   aspect (width: auto wins over min-width when content is bigger).
+   min-width is clamped to the viewport-cap so on mobile the placeholder
+   never overflows past the 86vw bound (a flat 480px would blow past
+   375px viewports during the metadata wait). */
 .mark-carousel__media > video {
-  min-width: 480px;
+  min-width: min(86vw, 480px);
   min-height: 270px;
   background: rgba(245, 245, 245, 0.06);
 }
@@ -934,6 +963,13 @@ html[data-marks-hidden='true'] .marks-background::after {
   }
   .marks-essay__divider { margin: 56px 0 48px; }
 
+  /* Touch target on mobile: keep the vertical pad for comfortable tap
+     height, but zero horizontal pad so the wordmark row still fits two-up
+     (codezeros + slangbusters at 128px wide each + 48px gap = 304px,
+     within the 327px content area at 375px viewport). The row gap already
+     provides horizontal separation between adjacent buttons. */
+  .marks-essay__preview-btn { padding: 12px 0; }
+
   /* Preview rows recompose: stay row, wrap to two-up. Wordmarks pair
      Codezeros + Slangbusters on row 1, Beringer wraps centered to row 2.
      Glyphs pair Ecochain + Kilti on a single row. Row-gap (64px) > column-
@@ -992,4 +1028,30 @@ html[data-marks-hidden='true'] .marks-background::after {
   .mark-chrome {
     bottom: max(32px, env(safe-area-inset-bottom));
   }
+
+  /* Mobile blend-mode fallback. Mobile Safari/Chrome form isolation groups
+     around transformed/scrolled ancestors that sever mix-blend-mode from
+     the fixed .marks-background gradient — producing flat-grey or invisible
+     ink. Drop the blend on mobile and let the underlying tokens render
+     directly; the glyph reads in --marks-ink, paginator dots stay grey,
+     EXIT label stays white over the dark palette. */
+  .mark-carousel__slide--blend,
+  .mark-chrome__paginator,
+  .exit-marker .nav-marker--exit {
+    mix-blend-mode: normal;
+  }
+
+  /* With overlay disabled the glyph would read as flat --marks-ink (white)
+     against every gradient. Restore each mark's original ink so the
+     section identity survives without the blend. Values mirror the
+     previewColor / previewAccent in app/marks/data/marks.ts. */
+  .marks-section[data-mark-id='furrmark']     .mark-carousel__glyph { color: #F04E6B; }
+  .marks-section[data-mark-id='codezeros']    .mark-carousel__glyph { color: #FF2633; }
+  .marks-section[data-mark-id='codezeros']    .mark-carousel__glyph [data-depth] { fill: #FF9933; }
+  .marks-section[data-mark-id='slangbusters'] .mark-carousel__glyph { color: #FFFFFF; }
+  .marks-section[data-mark-id='slangbusters'] .mark-carousel__glyph [data-depth] { fill: #00CC66; }
+  .marks-section[data-mark-id='beringer']     .mark-carousel__glyph { color: #EC1C24; }
+  .marks-section[data-mark-id='beringer']     .mark-carousel__glyph [data-depth] { fill: #EF5223; }
+  .marks-section[data-mark-id='ecochain']     .mark-carousel__glyph { color: #4CB400; }
+  .marks-section[data-mark-id='kilti']        .mark-carousel__glyph { color: #9B99FF; }
 }

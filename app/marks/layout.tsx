@@ -10,12 +10,14 @@
 import type { ReactNode } from 'react'
 import '../components/nav/nav.css'
 import '../components/NavMarker/navmarker.css'
+import { CrossShellEntryFader } from '../components/CrossShellVeil'
 import MarksExitMarker from './components/MarksExitMarker'
 import './marks.css'
 
 export default function MarksLayout({ children }: { children: ReactNode }) {
   return (
     <>
+      <CrossShellEntryFader />
       <MarksExitMarker />
       {children}
     </>

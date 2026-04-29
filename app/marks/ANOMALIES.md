@@ -31,31 +31,28 @@ Consequences:
 
 ---
 
-## /marks ships its own exit choreography (MarksExitMarker)
+## /marks bridges to /selected via CrossShellVeil
 
-`app/marks/layout.tsx` imports `MarksExitMarker` (route-local, at
-`app/marks/components/MarksExitMarker.tsx`) — **not** the shared
-`ExitMarker`. Because `/marks` lives outside `(works)/`, it cannot use
-`TransitionSlot`'s exit choreography, so the route ships its own.
-
-What it does: intercepts the click on the EXIT marker, plays a local
-exit animation on `.route-marks` (content dim 340ms / 28px translate,
-then ghost recede 420ms / 64px translate, both `--ease-paper`), then
-`router.push('/selected')`.
+`MarksExitMarker` (route-local, at `app/marks/components/MarksExitMarker.tsx`) is
+**not** the shared `ExitMarker`. Because `/marks` lives outside
+`(works)/`, it cannot use `TransitionSlot`. Instead, the EXIT click is
+routed through the shared `CrossShellVeil` primitive (see
+`LIBRARY.md` → "CrossShellVeil" and `CLAUDE.md` → "Cross-shell
+navigation"). The same veil bridges the inbound path
+(`/selected → /marks`) — both halves of the journey use one beat.
 
 Load-bearing details:
 
-- The numeric constants (340 / 28, 420 / 64, `GHOST_DELAY` 100) are
-  deliberately mirrored from `TransitionSlot`'s project → selected exit
-  (`GHOST_CONTENT_DUR_EXIT`, `GHOST_CONTENT_Y_EXIT`, `GHOST_DUR`,
-  `GHOST_Y_EXIT`, `GHOST_DELAY`). If `TransitionSlot`'s values change,
-  re-sync this file.
-- The dim-targets selector deliberately excludes `.exit-marker` siblings
-  (`Array.from(.route-marks children)` filtered) so the marker itself
-  stays visible during the recede.
-- Future "consolidate with shared `ExitMarker`" passes will silently
-  break the exit choreography — `/marks` needs the local pane animation,
-  and the shared marker has no equivalent hook for it.
+- The marker is a thin shell. The actual transition is owned by
+  `useCrossShellNav('/selected')` — don't duplicate animation timing
+  here; tune it at the primitive.
+- The veil ID `cross-shell-veil` is a cross-route contract. Both the
+  outgoing hook (in `/selected`'s Timeline + here) and the incoming
+  fader (in `/marks/layout.tsx` and `(works)/layout.tsx`) reference it.
+- Future "consolidate with shared `ExitMarker`" passes are still risky:
+  the shared marker has no `onClick` hook for this; touching it would
+  drop the cross-shell bridge. Keep this route-local marker until the
+  shared one grows the affordance.
 
 ---
 
@@ -619,6 +616,20 @@ deviations / drop-outs:
   `height: auto` because the desktop rules pin the opposite axis. Side
   effect: Codezeros's 7.8:1 aspect renders quite thin (~29px tall) at
   width 230px — accepted as the cost of the standardization.
+- **Mobile drops `mix-blend-mode` and restores per-mark colors directly.**
+  Desktop renders the mark glyph, paginator dots, and EXIT label with
+  `mix-blend-mode: overlay` (or `color-dodge` for the dots) over the fixed
+  `.marks-background` gradient. Mobile Safari/Chrome form isolation groups
+  around transformed/scrolled ancestors that sever the blend from the
+  fixed gradient — the result is flat-grey or invisible ink. The mobile
+  block sets `mix-blend-mode: normal` on those three targets and then
+  re-injects each mark's original ink via per-`data-mark-id` rules
+  (`#F04E6B`, `#FF2633` + `#FF9933`, etc.) so section identity survives
+  without the blend. Values mirror `previewColor` / `previewAccent` in
+  `app/marks/data/marks.ts` — keep them in sync if either side changes.
+  Re-enabling overlay on mobile in a future cleanup pass will silently
+  break this; use the desktop gradient sparingly, the blend isn't a
+  cross-platform mechanism here.
 - **Essay preview-btn at rest sits at `opacity: 0.8`** and lifts to 1.0
   on hover/focus. Marks read a touch quieter against the dark field at
   rest; hover/focus brings them back to full presence. The opacity

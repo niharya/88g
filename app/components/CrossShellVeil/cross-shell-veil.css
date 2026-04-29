@@ -1,0 +1,30 @@
+/* CrossShellVeil — full-bleed fade-to-black bridge for cross-shell
+   navigation. Used when a route outside (works)/ opens from inside it
+   (or vice versa). The veil lives on document.body so it persists across
+   the router.push / layout swap; once the destination layout mounts, it
+   takes ownership of the same veil and fades it out.
+
+   See LIBRARY.md → "CrossShellVeil" and CLAUDE.md → "Cross-shell
+   navigation" for the contract. Durations mirror the existing
+   marks-outro-veil (900 ms in / 700 ms out) for symmetry — a reader
+   coming back via EXIT and going forward via the link both cross the
+   same beat. */
+.cross-shell-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;            /* above every route's chrome */
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 700ms var(--ease-paper);
+}
+
+.cross-shell-veil[data-phase='in'] {
+  opacity: 1;
+  transition-duration: 900ms;
+}
+
+.cross-shell-veil[data-phase='hold'] {
+  opacity: 1;
+  transition: none;         /* held opaque during nav — no animation */
+}

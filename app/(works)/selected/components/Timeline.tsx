@@ -9,6 +9,7 @@ import { motion } from 'framer-motion'
 import NavMarker from '../../../components/NavMarker'
 import ProjectCard from './ProjectCard'
 import { getGreeting } from '../../../lib/greeting'
+import { useCrossShellNav } from '../../../components/CrossShellVeil'
 
 
 const SPRING = { type: 'spring' as const, duration: 0.5, bounce: 0.15 }
@@ -57,6 +58,11 @@ interface TimelineProps {
 }
 
 export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelineProps) {
+  // /marks lives outside the (works) shell, so TransitionSlot doesn't
+  // bridge the navigation. Crossfade through black instead — see
+  // CrossShellVeil + CLAUDE.md "Cross-shell navigation".
+  const onMarksClick = useCrossShellNav('/marks')
+
   return (
     <div className="selected-tl">
       {/* Now dot */}
@@ -227,6 +233,7 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
           role="chapter"
           icon="category"
           label="Marks and Symbols Made"
+          onClick={onMarksClick}
         />
       </motion.div>
 

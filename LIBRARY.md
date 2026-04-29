@@ -494,6 +494,32 @@ Shared shell for the portfolio's "fun play" elements — the paper-roll and RR d
 
 ---
 
+## CrossShellVeil
+
+Bridge between routes that don't share a layout boundary (currently `/marks` ↔ `/selected`; future cross-shell routes will use this too). TransitionSlot can't cross those boundaries — its DOM-snapshot trick relies on staying mounted. CrossShellVeil instead fades a single black `<div>` up on the outgoing side, holds it opaque through `router.push`, and the incoming side fades it down. The veil lives on `document.body` so it survives the layout swap. One DOM node, two halves, one beat.
+
+**Where it lives**
+- [app/components/CrossShellVeil/useCrossShellNav.ts](app/components/CrossShellVeil/useCrossShellNav.ts) — outgoing hook. Returns an `onClick` handler for the link.
+- [app/components/CrossShellVeil/CrossShellEntryFader.tsx](app/components/CrossShellVeil/CrossShellEntryFader.tsx) — incoming half. Mount in the destination's layout; finds the in-flight veil and fades it out on first paint.
+- [app/components/CrossShellVeil/cross-shell-veil.css](app/components/CrossShellVeil/cross-shell-veil.css) — styles + phase tokens. Loaded from `app/layout.tsx` so both shells have the rules immediately.
+- [app/components/CrossShellVeil/index.ts](app/components/CrossShellVeil/index.ts) — barrel.
+
+**AI notes**
+- **Both halves are required.** Outgoing without incoming = the veil never clears. Incoming without outgoing = the fader is a harmless no-op (it only acts if a veil is actually present), so dropping `<CrossShellEntryFader />` into a layout speculatively is safe.
+- **Veil ID is the contract.** The hook appends `id="cross-shell-veil"` and the fader queries by the same id. Don't rename without updating both.
+- **Timings mirror the marks-outro-veil**: 900 ms in / 700 ms out. Symmetry with `/marks`'s internal Kilti→Hero teleport veil. If you tune one, tune the other (and the existing tokens `--marks-veil-in` / `--marks-veil-out`).
+- **Modifier-clicks bypass.** `useCrossShellNav` lets cmd/ctrl/shift/alt clicks fall through to the anchor's normal behavior so "open in new tab" still works.
+- **Don't stack veils.** Rapid double-click is guarded — the hook returns early if a veil already exists.
+- **Don't combine with TransitionSlot.** A route uses TransitionSlot (in-shell, snapshot-clone slide) OR CrossShellVeil (cross-shell, opacity bridge). Wiring both creates competing animations on the same navigation.
+- **Consumers today**:
+  - Outgoing from `/selected` to `/marks`: `app/(works)/selected/components/Timeline.tsx` (the "Marks and Symbols Made" nameplate).
+  - Outgoing from `/marks` to `/selected`: `app/marks/components/MarksExitMarker.tsx`.
+  - Incoming on `/marks`: `app/marks/layout.tsx`.
+  - Incoming on `(works)`: `app/(works)/layout.tsx` (covers all three works routes).
+- See `CLAUDE.md` → "Cross-shell navigation" for the rule.
+
+---
+
 <!-- New entries above this line, most recent first. Keep entries tight — link to the source, don't copy it. -->
 
 ---

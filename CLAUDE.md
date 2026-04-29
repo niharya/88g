@@ -114,6 +114,18 @@ All three phases use `--ease-paper`.
 
 Random rotation is set via `--place-rotate` CSS custom property, assigned by `Sheet.tsx` on mount.
 
+## Cross-shell navigation
+
+Routes inside `(works)/` (selected, rr, biconomy) cross between each other through `TransitionSlot` — DOM ghost-clone, slide-and-fade. That only works because they share a layout boundary, so the old page can stay mounted as a snapshot while the new one mounts.
+
+Routes outside `(works)/` (currently `/marks`; future: `/names`) **cannot** use TransitionSlot — the layout boundary tears down on every transition. They use the **CrossShellVeil** primitive instead: a black veil fades up on the outgoing side, holds opaque through `router.push`, and fades down on the incoming side. One DOM node travels across the navigation, owned in turn by each side.
+
+**Both halves are required.** The outgoing route uses `useCrossShellNav(href)` on the link's `onClick`; the incoming route renders `<CrossShellEntryFader />` in its layout. If only one half is wired, the veil either doesn't appear or doesn't clear.
+
+The pattern is symmetric — selected→marks and marks→selected use the same veil, same timings (900 ms in / 700 ms out), so the journey feels like the same beat in both directions. **Don't mix idioms** — a route either uses TransitionSlot (in-shell) or CrossShellVeil (cross-shell), never both.
+
+See `LIBRARY.md` → "CrossShellVeil" for the primitive and current consumers.
+
 ## Responsive rules (summary)
 
 Full reference: [`docs/responsive.md`](./docs/responsive.md). Read it before starting a responsive pass.

@@ -53,7 +53,7 @@ export const MARKS: MarkEntry[] = [
     year:         2021,
     story:        'This mark is the face your pet makes when your hand rests on its head.',
     palette:      { stopA: '#2B0E13', stopMid: '#491821', stopB: '#912F41', angle: 45 },  // bottom-left #2B0E13 → mid (50%) #491821 → top-right #912F41
-    previewColor: '#902F41',
+    previewColor: '#F04E6B',
     slides: [
       { kind: 'mark' },
       { kind: 'image', src: '/marks/furrmark/01.webp', caption: 'Early iterations' },

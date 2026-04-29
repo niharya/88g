@@ -64,7 +64,8 @@ export default function Essay() {
     <section className="marks-essay">
       <p className="marks-essay__body">
         My approach to designing marks shifted from answering the brief to
-        treating them as empty vessels that could carry an idea or an emotion.
+        treating them as empty vessels, capable of carrying an idea or an
+        emotion.
       </p>
 
       <div className="marks-essay__divider">
@@ -74,8 +75,8 @@ export default function Essay() {
       </div>
 
       <div className="marks-essay__body marks-essay__body--p2">
-        <p>So the process became about uncovering the idea or emotion first, and then letting the form emerge from it.</p>
-        <p>Eventually, a mark like that surfaces that can carry this particular emotion and gets resonance with the client.</p>
+        <p>The process then became about uncovering that idea or emotion first, and letting the form emerge from it.</p>
+        <p>Over time, a mark surfaces: one that carries the feeling and also resonates with the client.</p>
       </div>
 
       <div className="marks-essay__preview marks-essay__preview--wordmarks">
@@ -91,7 +92,7 @@ export default function Essay() {
       </div>
 
       <div className="marks-essay__caption marks-essay__caption--between">
-        <p>For me, marks are not decorations but transmissions: vessels built for timelessness.</p>
+        <p>For me, marks are not decorations but transmissions.</p>
       </div>
 
       <div className="marks-essay__preview marks-essay__preview--glyphs">
@@ -104,7 +105,7 @@ export default function Essay() {
       </div>
 
       <div className="marks-essay__caption">
-        <p>Here is a selection of a few distilled ideas and emotions.</p>
+        <p>Here is a selection of some distilled ideas and emotions.</p>
       </div>
     </section>
   )

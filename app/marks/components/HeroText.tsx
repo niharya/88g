@@ -19,10 +19,16 @@
 // the committed mark name for both screen readers and tab-title parity).
 // `aria-hidden="true"` keeps this out of the accessibility tree.
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { subscribeOutroVeil } from '../lib/autoScroll'
 
 export default function HeroText() {
+  // Bumped each time the wrap completes (veil opaque → hidden) so the
+  // hero text remounts and replays its CSS entry animation. Without this
+  // the veil reveals a static hero, which reads as a pop-in. With it,
+  // the hero fades in over the veil's fade-out — one settle, two layers.
+  const [reEnterKey, setReEnterKey] = useState(0)
+
   useEffect(() => {
     const root = document.querySelector<HTMLElement>('.route-marks')
     if (!root) return
@@ -33,12 +39,18 @@ export default function HeroText() {
     // lifts, the hero is already at full opacity — the reveal reads as the
     // veil unveiling the hero, not as the hero popping in.
     let veilLocked = false
+    let wasOpaque = false
     const unsubVeil = subscribeOutroVeil((state) => {
       if (state === 'opaque') {
         veilLocked = true
+        wasOpaque = true
         root.style.setProperty('--hero-recede', '0')
       } else {
         veilLocked = false
+        if (wasOpaque) {
+          wasOpaque = false
+          setReEnterKey((k) => k + 1)
+        }
       }
     })
 
@@ -94,8 +106,13 @@ export default function HeroText() {
     }
   }, [])
 
+  // First mount uses the snappy --dur-slide entry. Subsequent remounts
+  // (post-wrap) use a longer fade so the hero ramps up across the veil's
+  // 700ms clear instead of finishing while the veil is still opaque.
+  const wrappedClass = reEnterKey > 0 ? ' marks-hero-text--wrapped' : ''
+
   return (
-    <div className="marks-hero-text" aria-hidden="true">
+    <div className={`marks-hero-text${wrappedClass}`} key={reEnterKey} aria-hidden="true">
       <span className="marks-hero-text__line">MARKS &amp;</span>
       <span className="marks-hero-text__break"> </span>
       <span className="marks-hero-text__line">SYMBOLS</span>

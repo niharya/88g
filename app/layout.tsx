@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import localFont from 'next/font/local'
 import './globals.css'
+import './components/CrossShellVeil/cross-shell-veil.css'
 
 // Font loading strategy
 // ─────────────────────
