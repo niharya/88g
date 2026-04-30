@@ -97,7 +97,7 @@ export const metadata: Metadata = {
     default: 'Nihar Bhagat',
     template: '%s — Nihar Bhagat',
   },
-  description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Long-form case studies built as editorial reading environments.',
+  description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments.',
   applicationName: 'Nihar Bhagat',
   authors: [{ name: 'Nihar Bhagat', url: 'https://nihar.works' }],
   creator: 'Nihar Bhagat',
@@ -128,7 +128,7 @@ export const metadata: Metadata = {
     url: 'https://nihar.works',
     siteName: 'Nihar Bhagat',
     title: 'Nihar Bhagat',
-    description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Long-form case studies built as editorial reading environments.',
+    description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments.',
     locale: 'en_US',
     images: [
       {
@@ -142,7 +142,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Nihar Bhagat',
-    description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Long-form case studies built as editorial reading environments.',
+    description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments.',
     images: ['/og-image.png'],
   },
   robots: {

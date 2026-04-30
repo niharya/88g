@@ -430,10 +430,6 @@ loop. See also the `COLOPHON.md` at the repo root.
 
 `/rr` carries a retrofit-lite pass (≤767px). Desktop is unchanged. The page grows taller on mobile — each chapter recomposes vertically and preserves its desktop content instead of collapsing or replicating the scaled canvas. Anything below is a deviation or constraint future passes should inherit rather than reinvent.
 
-### North Star card — justified text on mobile
-
-`.rr-north-star-card__text` carries `text-align: justify` + `text-align-last: justify` only inside the mobile `@media (max-width: 767px)` block. The card outer width stays at the desktop's 148px on mobile (intentional — the sticker is an authored size); the text wraps to two lines and the natural left-align leaves a visible empty band on the right of each line. Justify redistributes the line-end whitespace into word-spacing so each line ends flush at the sticker's right edge. `text-align-last: justify` is required — without it the last of two lines stays left-aligned and the result reads as a typesetting bug rather than authored intent. **Don't drop either line; both are load-bearing.**
-
 ### Nav-sled left — route-scoped override on mobile
 
 The shared formula in `nav.css` positions the sled relative to the sheet's viewport-left, which it derives as `workbench-pad-x − sheet-bleed` (i.e. the sheet bleeds out by `--sheet-bleed`). On `/rr` mobile the sheet is recomposed so its margin-left is `-workbench-pad-x` instead of `-sheet-bleed` (see `.route-rr .mat` and sheet overrides in rr.css) — this puts the sheet's viewport-left at 0. The shared formula assumes −24px, lands 10px short, and a visible gap opens between the project marker and the chapter marker when docked.
