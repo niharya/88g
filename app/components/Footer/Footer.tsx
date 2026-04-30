@@ -6,7 +6,7 @@
 // Layout (default variant):
 //
 //     ────────────────────────────────────────────────────────────
-//     Designed and dev. by Nihar, 2026   Privacy │ Now │ LinkedIn │ ...
+//     Designed and dev. by Nihar, 2026   Privacy │ LinkedIn │ X │ GitHub
 //
 // Single row beneath the divider. Credit docks to the left, links dock
 // to the right. Within the links group, each link's padded box is the
