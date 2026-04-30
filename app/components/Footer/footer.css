@@ -331,12 +331,61 @@
 }
 
 
+/* ── Mid-divider — mobile-only second hairline ─────────────────────────── */
+/* Hidden on desktop (the row is single-line, credit and links share one
+   baseline so no inner divider is needed). Shown on mobile between the
+   stacked credit and link rows — mirrors the top hairline so the footer
+   reads as a two-row library card rather than a credit + floating links. */
+.footer--default .footer__divider--mid {
+  display: none;
+}
+
+
 /* ── Responsive — narrow viewports ─────────────────────────────────────── */
 
 @media (max-width: 640px) {
-  .footer--default .footer__link-item {
-    padding: 0 var(--space-8);
+  /* Stack the row vertically: credit on top (centered), mid-divider,
+     then a centered link cluster below. The top divider stays at the
+     workbench seam; the new mid-divider sits between the two rows.
+     Both hairlines span the full mat width — symmetric, ledger-like. */
+  .footer--default .footer__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
   }
+
+  .footer--default .footer__credit {
+    text-align: center;
+    /* Generous vertical breathing so the credit reads as its own row
+       between the two hairlines, not crammed against either. */
+    padding: var(--space-20) 0;
+  }
+
+  /* Reveal the mid-divider — same hairline as the top divider. */
+  .footer--default .footer__divider--mid {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: var(--grey-320);
+  }
+
+  /* Center the four-cell cluster under the divider; outer pipes still
+     bracket the group so it reads as a discrete ledger of links. */
+  .footer--default .footer__links {
+    justify-content: center;
+  }
+
+  /* Tap target — minimum 44 px tall per Apple HIG. Vertical padding
+     keeps the 44 px floor; horizontal is tuned so all four cells fit
+     side-by-side at 375 px (the smallest supported viewport) without
+     the right-most cell clipping past the mat. The 800-step hover
+     fill (or the press fallback on first tap before onTouchStart
+     fires) paints the entire cell, so the lit-up region matches what
+     the finger actually covered. */
+  .footer--default .footer__link {
+    padding: var(--space-16) var(--space-12);
+  }
+
   .footer--caption .footer__row {
     /* On narrow screens the row may need to wrap; keep credit and
        links on baseline, but allow the links to flow to a second line. */

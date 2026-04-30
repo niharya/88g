@@ -3087,19 +3087,6 @@
     z-index: 1;
   }
 
-  /* Justify the body copy on mobile so each line stretches to the
-     card's inner right edge instead of leaving the natural left-align
-     ragged band. `text-align-last: justify` is required because the
-     copy wraps to two lines — without it the last line stays
-     left-aligned and the result reads as "one stretched + one ragged"
-     instead of authored intent. Card outer width and font-size stay
-     unchanged — this just redistributes line-end whitespace into
-     word spacing. */
-  #intro .rr-north-star-card__text {
-    text-align: justify;
-    text-align-last: justify;
-  }
-
   /* Decorative siblings drop out under lite */
   #intro .rr-story-card__expand,
   #intro .rr-card-stack,

@@ -111,6 +111,10 @@ export default function Footer({
         <div className="footer__divider" aria-hidden="true" />
         <div className="footer__row">
           <p className="footer__credit t-h5">{CREDIT}</p>
+          {/* Mid-divider — hidden on desktop, shown on mobile between the
+              centered credit and the centered link cluster. Mirrors the
+              top hairline so the two rows read as a stacked library card. */}
+          <div className="footer__divider footer__divider--mid" aria-hidden="true" />
           <ul className="footer__links">
             {LINKS.map((link) => (
               <li key={link.label} className="footer__link-item">
@@ -125,6 +129,21 @@ export default function Footer({
                     // :active for the press-down state). The two are a
                     // matched 800/960 pair: hover saturates, click
                     // presses into the matching darker step.
+                    const next = pickHoverColor(palette, lastColorRef.current)
+                    lastColorRef.current = next
+                    const target = e.currentTarget
+                    target.style.setProperty('--hover-color', next)
+                    target.style.setProperty(
+                      '--active-color',
+                      ACTIVE_FOR_HOVER[next] ?? next,
+                    )
+                  }}
+                  onTouchStart={(e) => {
+                    // Touch never fires onMouseEnter, so without this
+                    // the :active fallback would be the gray rgba — the
+                    // cell would light up dim instead of in the route's
+                    // hue. Roll a fresh color and stamp both vars so the
+                    // tap registers in palette like a desktop click.
                     const next = pickHoverColor(palette, lastColorRef.current)
                     lastColorRef.current = next
                     const target = e.currentTarget

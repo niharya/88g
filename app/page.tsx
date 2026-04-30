@@ -108,10 +108,16 @@ export default function LandingPage() {
 
   const isDirty = actionLabel === 'Reset Form'
 
-  /* Footer reveal — only show the colophon slab once the user has
-     reached the contact form. Before that the footer would distract
-     from the form. Resets to false when the landing collapses so a
-     re-expand starts from hidden.
+  /* Footer reveal — only show the colophon slab once the user is
+     parked at the document bottom. Before that the footer would
+     distract from the form. Resets to false when the landing
+     collapses so a re-expand starts from hidden.
+
+     Gating on document-bottom proximity (not contact-section
+     visibility) means the slab disengages the moment the user starts
+     scrolling up — there's no lingering window where the form is
+     still mostly visible but the footer hangs around. Threshold is
+     small (64 px) so even a tiny upward gesture clears it.
 
      Scroll listener (not IntersectionObserver) because IO's setup-time
      callback can miss when the section is already in viewport at
@@ -125,14 +131,13 @@ export default function LandingPage() {
       return
     }
     const evaluate = () => {
-      const node = contactRef.current
-      if (!node) return
-      const rect = node.getBoundingClientRect()
-      // Reveal once the contact section's BOTTOM edge is in viewport —
-      // the user has scrolled the entire form into view (and likely
-      // past it). Matches the brief "after the form" without needing
-      // a separate scroll-end signal.
-      setPastForm(rect.bottom <= window.innerHeight + 8)
+      const distanceFromBottom =
+        document.documentElement.scrollHeight -
+        (window.scrollY + window.innerHeight)
+      // 64 px feels parked-at-bottom without being so loose that an
+      // upward nudge fails to clear it. Any honest scroll-up gesture
+      // pushes past this and hides the slab immediately.
+      setPastForm(distanceFromBottom <= 64)
     }
     evaluate()
     window.addEventListener('scroll', evaluate, { passive: true })
