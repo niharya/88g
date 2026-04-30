@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useLayoutEffect, useRef, useCallback } from 'react'
+import { useState, useLayoutEffect, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
@@ -8,9 +8,11 @@ import SlideInOnNav from './components/SlideInOnNav'
 import NavMarker from './components/NavMarker'
 import CaptionTag from './components/CaptionTag'
 import { ExpandToggle } from './components/ExpandToggle'
+import Footer from './components/Footer'
 import { getGreeting } from './lib/greeting'
 import './components/nav/nav.css'
 import './components/NavMarker/navmarker.css'
+import './components/Footer/footer.css'
 import './landing.css'
 
 /* Session flag read by /selected on arrival so it can slide in from the right.
@@ -105,6 +107,41 @@ export default function LandingPage() {
   const contactRef = useRef<HTMLDivElement>(null)
 
   const isDirty = actionLabel === 'Reset Form'
+
+  /* Footer reveal — only show the colophon slab once the user has
+     reached the contact form. Before that the footer would distract
+     from the form. Resets to false when the landing collapses so a
+     re-expand starts from hidden.
+
+     Scroll listener (not IntersectionObserver) because IO's setup-time
+     callback can miss when the section is already in viewport at
+     mount, leaving the slab hidden forever. The listener is a cheap
+     comparison on each scroll frame and re-evaluates from scratch. */
+  const [pastForm, setPastForm] = useState(false)
+
+  useEffect(() => {
+    if (!expanded) {
+      setPastForm(false)
+      return
+    }
+    const evaluate = () => {
+      const node = contactRef.current
+      if (!node) return
+      const rect = node.getBoundingClientRect()
+      // Reveal once the contact section's BOTTOM edge is in viewport —
+      // the user has scrolled the entire form into view (and likely
+      // past it). Matches the brief "after the form" without needing
+      // a separate scroll-end signal.
+      setPastForm(rect.bottom <= window.innerHeight + 8)
+    }
+    evaluate()
+    window.addEventListener('scroll', evaluate, { passive: true })
+    window.addEventListener('resize', evaluate)
+    return () => {
+      window.removeEventListener('scroll', evaluate)
+      window.removeEventListener('resize', evaluate)
+    }
+  }, [expanded])
 
   /* ---- Idle timer ---- */
   const cancelIdleTimer = useCallback(() => {
@@ -387,8 +424,43 @@ export default function LandingPage() {
 
   const TAGS = ['Hiring', 'Collaboration', 'Curiosity', 'Something else']
 
+  /* JSON-LD — Person + WebSite. Rendered inline as <script
+     type="application/ld+json"> per Google guidance; safe in a client
+     component because Next ships it as static markup. sameAs lists the
+     three public profiles; email is intentionally omitted (contact form
+     is the only path). */
+  const personLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Nihar Bhagat',
+    url: 'https://nihar.works',
+    jobTitle: 'Designer',
+    description: 'Product, system, and brand designer.',
+    sameAs: [
+      'https://linkedin.com/in/niharbhagat',
+      'https://github.com/niharya',
+      'https://x.com/neonihar',
+    ],
+  }
+  const websiteLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Nihar Bhagat',
+    url: 'https://nihar.works',
+    author: { '@type': 'Person', name: 'Nihar Bhagat' },
+    inLanguage: 'en',
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+      />
       <div className="landing-pattern-bg" aria-hidden="true" />
 
       <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}`}>
@@ -655,12 +727,17 @@ export default function LandingPage() {
                                   {submitStatus === 'sending' ? 'Sending\u2026' : submitStatus === 'sent' ? 'Note Sent' : 'Send Note'}
                                 </button>
                               </div>
-                              {submitStatus === 'sent' && (
-                                <span className="contact-form__success-pill" style={{ color: sentColor }}>Note Sent. Thank you.</span>
-                              )}
-                              {submitStatus === 'error' && (
-                                <span className="contact-form__error-pill">There seems to be a network error on my side. I&rsquo;ve been notified. Please try again in a few hours.</span>
-                              )}
+                              {/* aria-live="polite" so screen readers announce the
+                                  success or error pill when it appears, without
+                                  interrupting whatever is currently being read. */}
+                              <div role="status" aria-live="polite" aria-atomic="true">
+                                {submitStatus === 'sent' && (
+                                  <span className="contact-form__success-pill" style={{ color: sentColor }}>Note Sent. Thank you.</span>
+                                )}
+                                {submitStatus === 'error' && (
+                                  <span className="contact-form__error-pill">There seems to be a network error on my side. I&rsquo;ve been notified. Please try again in a few hours.</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -688,6 +765,16 @@ export default function LandingPage() {
           visible={!expanded}
         />
       </div>
+
+      {/* Site footer — mounts in expanded view but its visibility is
+          gated on `pastForm` so the slab only fades in once the user
+          has scrolled to the contact form (60 %+ of the contact
+          section in view). Before that, the form gets the user's
+          full attention — no distracting fixed-position element at
+          the bottom. The Startooth caption is hidden during expand
+          (`visible={!expanded}`); this footer takes over the same
+          bottom-of-viewport role with the same voice. */}
+      {expanded && <Footer variant="caption" visible={pastForm} />}
     </>
   )
 }

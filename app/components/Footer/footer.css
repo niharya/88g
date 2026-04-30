@@ -1,0 +1,345 @@
+/* ==========================================================================
+   Footer — minimum credit + links, anchored at the page end.
+
+   Layered depth:
+     The default variant is rendered OUTSIDE the workbench <main> in
+     app/(works)/layout.tsx. Workbench sits on `--workbench-bg` (cream
+     paper); the area below uses `--below-bg` (a half-step darker,
+     slightly cooler tone). The workbench casts a soft bottom-edge
+     shadow onto this layer (set in globals.css) so the eye reads the
+     paper as floating on a deeper desk and the footer occupies it.
+
+   Default-variant geometry:
+     ┌─ workbench bottom edge
+     │   32 px
+     ├── hairline divider (mat width)
+     │   24 px ┐
+     │   row: credit (left)        links (right, pipes between)   │ pipe
+     │   24 px ┘
+     └─ viewport bottom
+
+     Total height = 32 + 1 + 24 + 12 + 24 ≈ 93 px.
+
+     The 24 px above and below the row text live as padding on the
+     INNER `<a>` of each link (not the `<li>`), so:
+       1. The vertical hairlines (li's border-right) inherit the link's
+          full padded height — they attach to the horizontal divider
+          above and extend to the bottom of the row.
+       2. The padded box around each link's text becomes the hit area —
+          clicking or hovering anywhere in the cell triggers the link.
+          Reference: bottom row of typographyforlawyers.com footers.
+
+     The credit `<p>` shares the row via flex baseline alignment, so its
+     baseline lands at the same y as the link text even though the link
+     boxes are taller.
+
+   Reference: Butterick's footers on typographyforlawyers.com —
+   horizontal rule separating rows, vertical rules separating items.
+   The structural move is what carries the "library-card" feel; we keep
+   our own type ramp (t-h5 / t-btn1) and palette.
+   ========================================================================== */
+
+/* ── Footer stage — the deeper-desk wrapper ─────────────────────────────
+   Wraps the footer (and any future below-workbench content). The black
+   ground continues the 8 px viewport frame downward — the workbench
+   sheet ends, the frame's bottom edge merges into the footer surface,
+   and the credit row sits in the same black field as the page's border.
+   This makes the footer feel like the page's visible underside, with
+   the workbench reading as the framed sheet above. */
+
+.footer-stage {
+  background: #000;
+  color: var(--grey-640);
+}
+
+
+/* ── Footer base ────────────────────────────────────────────────────────── */
+
+.footer {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+/* ── Default variant — workbench routes ────────────────────────────────── */
+/* Paddings tuned to the Butterick reference (typographyforlawyers.com):
+   generous breathing on either side of the horizontal rule, and the
+   vertical rules between links extend visibly above and below the link
+   text. The gap from rule to text is achieved INSIDE the list items
+   (padding-top) — not on the <ul> itself — so the vertical rules attach
+   directly to the horizontal rule rather than starting in the middle
+   of empty space. Same trick on the bottom: the row's lower padding
+   lives on the items, so the pipes carry the full row height. */
+
+.footer--default {
+  /* No top padding — the divider sits flush against the workbench's
+     bottom edge. The hairline is technically present in the DOM but
+     visually merges with the workbench-to-stage transition. Kept for
+     structural completeness; can be removed entirely if it never
+     becomes useful. */
+  padding: 0 var(--workbench-pad-x) 0;
+  color: var(--grey-640);
+}
+
+/* Hairlines (horizontal divider + vertical pipes between links) sit on
+   --grey-320 — visible on black without shouting. */
+.footer--default .footer__divider {
+  width: 100%;
+  height: 1px;
+  background: var(--grey-320);
+  margin: 0;
+}
+
+/* Single row beneath the divider. Credit on the left, links docked to
+   the right via space-between. Baseline-aligned so the credit's
+   12-px-tall <p> shares a baseline with the taller link boxes. */
+.footer--default .footer__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-24);
+  flex-wrap: wrap;
+}
+
+.footer--default .footer__credit {
+  margin: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.footer--default .footer__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Each list item carries vertical hairlines on its right edge; the FIRST
+   item also gets a left border so the link group reads as fully enclosed
+   in cells. The result: `│ Privacy │ LinkedIn │ X │ GitHub │` — every
+   link is a framed box, the row reads as a ledger of named cells. */
+.footer--default .footer__link-item {
+  display: inline-flex;
+  border-right: 1px solid var(--grey-320);
+}
+
+.footer--default .footer__link-item:first-child {
+  border-left: 1px solid var(--grey-320);
+}
+
+/* The link FILLS the item — padding lives on <a>, not <li>. The padded
+   box becomes the hit area: clicking anywhere in the cell follows the
+   link, and hovering anywhere in the cell triggers the entire box's
+   reaction (background tint + the inner-span's t-btn1 underline
+   crossfade). Reference: bottom-row cells on typographyforlawyers.com.
+
+   The inner <span> carries the t-btn1 typography so the ::after solid
+   bar (positioned at bottom: -2px of t-btn1's containing block) lands
+   directly under the text. If t-btn1 sat on the <a>, ::after would
+   land at the bottom of the 60-px cell — visually disconnected.
+
+   Color is forced to inherit so the inner span picks up the footer's
+   --grey-640 over black, and the cell's hover-color shift propagates. */
+.footer--default .footer__link {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-24) var(--space-12);
+  color: inherit;
+  text-decoration: none;
+  background-color: transparent;
+  transition:
+    background-color var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap);
+}
+
+.footer--default .footer__link-label {
+  /* The label inherits color from the parent link (so the cell's hover
+     color shift cascades through). t-btn1's own dotted underline +
+     ::after solid bar render relative to this span, not the cell. */
+  color: inherit;
+}
+
+.footer--default .footer__link:hover,
+.footer--default .footer__link:focus-visible {
+  /* Bg is a random 800-step hue rolled per-hover by JS (sets
+     --hover-color via onMouseEnter). Fallback covers focus-visible
+     entries that bypass the mouseenter handler (keyboard nav). */
+  background-color: var(--hover-color, rgba(255, 255, 255, 0.08));
+  color: var(--grey-960);
+  outline: none;
+}
+
+/* Press state — paper-tag press-down. 1-px translate matches NavMarker's
+   `:active` (see app/components/NavMarker/navmarker.css). Bg switches to
+   the matched 960-step variant (`--active-color`, set in JS alongside
+   --hover-color), so the cell appears to press into the black surface
+   as it depresses. Snap easing, instant duration — same tier as
+   NavMarker. */
+.footer--default .footer__link:active {
+  background-color: var(--active-color, rgba(0, 0, 0, 0.4));
+  transform: translateY(1px);
+  transition:
+    background-color var(--dur-instant) var(--ease-snap),
+    color var(--dur-instant) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+
+/* Forward the cell's hover state to the inner span's t-btn1 treatment.
+   t-btn1's own `:hover` selector won't fire when only the cell padding
+   is under the cursor (the span itself isn't hovered), so we mirror
+   the rules here keyed off the cell. The dotted underline fades to
+   transparent and the ::after solid bar fades in — same crossfade as
+   t-btn1's stand-alone hover state. */
+.footer--default .footer__link:hover .footer__link-label,
+.footer--default .footer__link:focus-visible .footer__link-label {
+  text-decoration-color: transparent;
+}
+.footer--default .footer__link:hover .footer__link-label::after,
+.footer--default .footer__link:focus-visible .footer__link-label::after {
+  opacity: 1;
+}
+
+
+/* ── Caption variant — landing (expanded) ─────────────────────────────── */
+/* Mirrors the Startooth CaptionTag's collapsed state — fixed at viewport
+   bottom, dark terra slab, terra-orange text, the same 4 / 8 / 10 px
+   padding triplet. The Startooth tag hides on expand (`visible={!expanded}`
+   in app/page.tsx) and this footer mounts in its place, taking over the
+   bottom-of-viewport role with the same voice.
+
+   Position: fixed, bottom-centered. Width fits content (max 100vw - 32px)
+   so the slab reads as a docked tag rather than a full-width footer.
+   z-index 20 matches CaptionTag so it sits in the same stacking layer. */
+
+.footer--caption {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  /* Hidden state: slid fully below the viewport edge (X centering +
+     full-height Y offset). Revealed state translates Y back to 0. The
+     slab stays at opacity 1 throughout — what changes is its Y
+     position, so the read is "drawer slides up into view" rather
+     than "appears".
+
+     Using the dedicated `translate` property (not `transform`) so the
+     percentage on the Y axis interpolates cleanly through the
+     transition — `transform: translate(-50%, 100%) → (-50%, 0)`
+     fights Chrome's matrix conversion on fixed-position elements and
+     leaves the transition stuck at the start value. The dedicated
+     property doesn't have that gotcha. */
+  translate: -50% 100%;
+  z-index: 20;
+
+  /* Shrink-wrap to the row's natural width so the slab reads as a docked
+     tag, not a full-width footer. Capped at 100vw - 32px so it can't
+     overflow on narrow viewports. Padding is more generous than
+     CaptionTag's literal 4/8/10 — the row carries more text (credit
+     + four links + 64-px gap) so it needs the breathing room to read
+     as a deliberate slab rather than a label. */
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  padding: var(--space-16) var(--space-24) var(--space-12);
+  box-sizing: border-box;
+
+  background: var(--surface-bg);
+  color: #c96f42;
+
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.35;
+
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+
+.footer--caption.is-revealed {
+  translate: -50% 0%;
+}
+
+/* Single row inside the slab — credit on the left, links on the right,
+   separated by a generous gap so the credit reads as the byline and
+   the links as a distinct group. No vertical pipes here: CaptionTag's
+   collapsed title row carries the same austerity (icon + text, no
+   separators) and copying that holds the voice. */
+.footer--caption .footer__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-64);
+  flex-wrap: wrap;
+}
+
+/* Credit keeps the t-h5 ramp from its className — same typographic
+   register as CaptionTag's own title row (`<span class="caption-tag__title
+   t-h5">{title}, {year}</span>` in CaptionTag.tsx). No font overrides
+   here; just the color cascade and zero margin. */
+.footer--caption .footer__credit {
+  margin: 0;
+  color: inherit;
+}
+
+.footer--caption .footer__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: baseline;
+  /* 20 px between links — wide enough that finger taps hit the right
+     label without spilling into the next, narrow enough that the row
+     still reads as one group. Replaces the 12 px gap that left touch
+     targets visually adjoining. */
+  gap: var(--space-20);
+}
+
+.footer--caption .footer__link-item {
+  display: inline-flex;
+}
+
+.footer--caption .footer__link {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+/* Inner span carries t-btn1 for the dotted-to-solid underline crossfade.
+   Same trick as the default variant: the ::after solid bar stays close
+   to the text, not at the bottom of any padded cell. Keep the text
+   color inherited from the link so it's the terra orange. */
+.footer--caption .footer__link-label {
+  color: inherit;
+}
+
+.footer--caption .footer__link:hover .footer__link-label,
+.footer--caption .footer__link:focus-visible .footer__link-label {
+  text-decoration-color: transparent;
+}
+.footer--caption .footer__link:hover .footer__link-label::after,
+.footer--caption .footer__link:focus-visible .footer__link-label::after {
+  opacity: 1;
+}
+
+
+/* ── Reduced motion ───────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .footer--caption {
+    /* No motion — jump straight between hidden and revealed states. */
+    transition: translate 0s linear;
+  }
+}
+
+
+/* ── Responsive — narrow viewports ─────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .footer--default .footer__link-item {
+    padding: 0 var(--space-8);
+  }
+  .footer--caption .footer__row {
+    /* On narrow screens the row may need to wrap; keep credit and
+       links on baseline, but allow the links to flow to a second line. */
+    gap: var(--space-8);
+  }
+}

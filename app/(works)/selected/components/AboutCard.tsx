@@ -17,7 +17,7 @@ export default function AboutCard() {
     >
       <div className="about-card-p__text">
         <p className="about-card-p__quote">While working on this portfolio, I noticed that</p>
-        <h1 className="about-card-p__heading">most of my work becomes about system design.</h1>
+        <h2 className="about-card-p__heading">most of my work becomes about system design.</h2>
         <p className="about-card-p__body">
           It could be a product, an interface, a culture, or a brand. Across all types of work, the real work lies in tweaking the underlying structure.
           <br /><br />

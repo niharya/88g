@@ -33,9 +33,27 @@ const sheetContent: Record<string, React.ReactNode> = {
   'staying-anchored': <StayingAnchored />,
 }
 
+const creativeWorkLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: 'Biconomy',
+  headline: 'Biconomy — long-form UX case study',
+  description:
+    'A long-form UX case study on Biconomy — rethinking the platform Web3 developers use to manage smart contracts and gas tanks.',
+  url: 'https://nihar.works/biconomy',
+  inLanguage: 'en',
+  author: { '@type': 'Person', name: 'Nihar Bhagat', url: 'https://nihar.works' },
+  isPartOf: { '@type': 'WebSite', name: 'Nihar Bhagat', url: 'https://nihar.works' },
+}
+
 export default function BiconomyPage() {
   return (
     <div className="route-biconomy">
+      <h1 className="sr-only">Biconomy — long-form UX case study</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkLd) }}
+      />
       <div className="sheet-stack">
         {chapters.map((chapter, i) => (
           <Sheet

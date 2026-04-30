@@ -893,7 +893,7 @@
   isolation: isolate;
   overflow: visible;
   /* Yellow paper background for story state */
-  background: url('/images/rr/story-yellow-bg.png') center / cover no-repeat, var(--yellow-100);
+  background: url('/images/rr/story-yellow-bg.webp') center / cover no-repeat, var(--yellow-100);
   /* Toggle settle — sheet rotates -1deg in story view, +1deg in structure
      view, with a subtle overshoot to mirror the paper-physical settle used
      elsewhere (train ticker, Flows nav). `rotate:` (the standalone CSS
@@ -905,7 +905,7 @@
 
 /* Terra paper background for structure state */
 .rr-story-card--mechanics.rr-story-card--structure {
-  background: url('/images/rr/story-terra-bg.png') center / cover no-repeat, var(--terra-100);
+  background: url('/images/rr/story-terra-bg.webp') center / cover no-repeat, var(--terra-100);
   rotate: 1deg;
 }
 
@@ -998,9 +998,10 @@
   position: absolute;
   /* Live calibration (matches main @ v0.58 and earlier). The image at
      /images/rr/rr-hand-deck-fan.webp is intentionally the same 939×1170
-     asset that ships on production, so these values render the fan as
-     it appears on the live site. Don't drift. */
-  bottom: -150px;
+     asset that ships on production. Bumped up 40 px from -150 → -110
+     after a sketch-asset swap shifted the visual rest position lower
+     than intended. */
+  bottom: -110px;
   left: -100px;
   width: 307px;
   height: auto;
@@ -2262,7 +2263,7 @@
 }
 
 .rr-rule-card__title {
-  font-family: 'Londrina Solid', sans-serif;
+  font-family: var(--rr-font-londrina), Impact, sans-serif;
   font-size: 19px;
   font-weight: 400;
   color: #ffefab;
@@ -2287,7 +2288,7 @@
 .rr-rule-card--winning   { left: 949px; top: 291px; width: 381px; height: 327px; }
 
 .rr-rule-howto__title {
-  font-family: 'Londrina Solid', sans-serif;
+  font-family: var(--rr-font-londrina), Impact, sans-serif;
   font-size: 37px;
   font-weight: 400;
   color: #c4c4ff;
@@ -2313,7 +2314,7 @@
 
 .rr-rule-basics-desc {
   flex: 1;
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: #ccc;
@@ -2323,7 +2324,7 @@
 }
 
 .rr-rule-basics-desc strong {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-weight: 800;
   color: #fff7d3;
 }
@@ -2353,7 +2354,7 @@
 .rr-rule-stat:last-child { border-right: none; }
 
 .rr-rule-stat__label {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   color: rgba(255,247,211,0.8);
@@ -2361,7 +2362,7 @@
 }
 
 .rr-rule-stat__val {
-  font-family: 'Gluten', serif;
+  font-family: var(--rr-font-gluten), Georgia, serif;
   font-size: 36px;
   font-weight: 600;
   color: #fff7d3;
@@ -2403,7 +2404,7 @@
 }
 
 .rr-rule-energy-badge__num {
-  font-family: 'Gluten', serif;
+  font-family: var(--rr-font-gluten), Georgia, serif;
   font-size: 24px;
   font-weight: 600;
   color: #fff7d3;
@@ -2413,7 +2414,7 @@
 .rr-rule-energy-badge__icon { font-size: 18px; line-height: 1; }
 
 .rr-rule-energy-text {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: #f1d491;
@@ -2470,7 +2471,7 @@
 }
 
 .rr-rule-vital__num {
-  font-family: 'Gluten', serif;
+  font-family: var(--rr-font-gluten), Georgia, serif;
   font-size: 24px;
   font-weight: 600;
   color: #fff7d3;
@@ -2478,7 +2479,7 @@
 }
 
 .rr-rule-vital p {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
   margin: 0;
@@ -2538,7 +2539,7 @@
   background: #30304b;
   border: 1px solid #404064;
   border-radius: 50%;
-  font-family: 'Londrina Solid', sans-serif;
+  font-family: var(--rr-font-londrina), Impact, sans-serif;
   font-size: 16px;
   font-weight: 400;
   color: #c4c4ff;
@@ -2549,7 +2550,7 @@
 }
 
 .rr-rule-step__title {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
   color: #c4c4ff;
@@ -2558,7 +2559,7 @@
 }
 
 .rr-rule-step__desc {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 9px;
   font-weight: 500;
   color: #ccc;
@@ -2599,7 +2600,7 @@
 .rr-mini-card--down-you { background: #201e4e; border-color: #ffefab; }
 
 .rr-mini-label {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 6px;
   font-weight: 600;
   line-height: 1.4;
@@ -2633,7 +2634,7 @@
 .rr-rule-type-badge {
   padding: 6px;
   border-radius: 10px;
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 9px;
   font-weight: 600;
   color: #ffefab;
@@ -2649,7 +2650,7 @@
 .rr-rule-type-badge--attack  { background: rgb(187,46,46); }
 
 .rr-type-num {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-weight: 700;
   font-size: 10px;
 }
@@ -2681,7 +2682,7 @@
 .rr-rule-type-dot--attack  { background: rgb(187,46,46); }
 
 .rr-rule-type-desc {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 9px;
   font-weight: 600;
   color: #ccc;
@@ -2726,7 +2727,7 @@
 }
 
 .rr-rule-resolving-intro {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
   color: #ccc;
@@ -2756,7 +2757,7 @@
 }
 
 .rr-order-label {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   padding: 3px;
@@ -2787,7 +2788,7 @@
 .rr-order--attack  .rr-order-check-box { background: #bb2e2e; color: #ff9a9a; }
 
 .rr-rule-resolving-note {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   color: #ccc;
@@ -2803,7 +2804,7 @@
    ========================================================================== */
 
 .rr-rule-winning-intro {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   color: #ccc;
@@ -2833,7 +2834,7 @@
 }
 
 .rr-rule-scenario__when {
-  font-family: 'Londrina Solid', sans-serif;
+  font-family: var(--rr-font-londrina), Impact, sans-serif;
   font-size: 12px;
   font-weight: 400;
   color: #c4c4ff;
@@ -2850,7 +2851,7 @@
 }
 
 .rr-rule-scenario__text {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 9px;
   font-weight: 600;
   color: #ccc;
@@ -2878,7 +2879,7 @@
 }
 
 .rr-rule-hp-num {
-  font-family: 'Gluten', serif;
+  font-family: var(--rr-font-gluten), Georgia, serif;
   font-size: 24px;
   font-weight: 600;
   color: #fff7d3;
@@ -2886,7 +2887,7 @@
 }
 
 .rr-rule-tiebreaker {
-  font-family: 'Playpen Sans', sans-serif;
+  font-family: var(--rr-font-playpen), system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   color: #ccc;
@@ -3084,6 +3085,19 @@
     margin-top: var(--space-8);
     order: 3;
     z-index: 1;
+  }
+
+  /* Justify the body copy on mobile so each line stretches to the
+     card's inner right edge instead of leaving the natural left-align
+     ragged band. `text-align-last: justify` is required because the
+     copy wraps to two lines — without it the last line stays
+     left-aligned and the result reads as "one stretched + one ragged"
+     instead of authored intent. Card outer width and font-size stay
+     unchanged — this just redistributes line-end whitespace into
+     word spacing. */
+  #intro .rr-north-star-card__text {
+    text-align: justify;
+    text-align-last: justify;
   }
 
   /* Decorative siblings drop out under lite */

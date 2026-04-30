@@ -22,9 +22,28 @@ export const metadata: Metadata = {
   },
 }
 
+const creativeWorkLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: 'Rug Rumble',
+  headline: 'Rug Rumble — strategy card game',
+  description:
+    'Rug Rumble — a strategy card game designed around bluffing, momentum, and the feel of placing a real object on a table.',
+  url: 'https://nihar.works/rr',
+  inLanguage: 'en',
+  genre: 'Game design',
+  author: { '@type': 'Person', name: 'Nihar Bhagat', url: 'https://nihar.works' },
+  isPartOf: { '@type': 'WebSite', name: 'Nihar Bhagat', url: 'https://nihar.works' },
+}
+
 export default function RRPage() {
   return (
     <div className="route-rr">
+      <h1 className="sr-only">Rug Rumble — strategy card game</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkLd) }}
+      />
       <div className="sheet-stack">
         {chapters.map((chapter, i) => (
           <Fragment key={chapter.id}>

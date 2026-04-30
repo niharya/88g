@@ -24,15 +24,15 @@ type Photo = { src: string; alt: string }
 
 const PHOTOS: Photo[] = [
   { src: '/images/biconomy/sa/design-team-bico.webp',    alt: 'The Biconomy design team.' },
-  { src: '/images/biconomy/sa/gang.jpg',                alt: 'The broader Biconomy gang.' },
-  { src: '/images/biconomy/sa/flor-and-me.jpg',         alt: 'Flor and me.' },
-  { src: '/images/biconomy/sa/georgios-and-me.jpg',     alt: 'Georgios and me.' },
+  { src: '/images/biconomy/sa/gang.webp',                alt: 'The broader Biconomy gang.' },
+  { src: '/images/biconomy/sa/flor-and-me.webp',         alt: 'Flor and me.' },
+  { src: '/images/biconomy/sa/georgios-and-me.webp',     alt: 'Georgios and me.' },
   { src: '/images/biconomy/sa/flor-azaan-football.webp', alt: 'Flor, Azaan, and me at football.' },
-  { src: '/images/biconomy/sa/building-a-bridge.jpg',   alt: 'Building a bridge.' },
+  { src: '/images/biconomy/sa/building-a-bridge.webp',   alt: 'Building a bridge.' },
   { src: '/images/biconomy/sa/kalyug-ka-bazaar.webp',    alt: 'Kalyug ka Bazaar.' },
   { src: '/images/biconomy/sa/scooters-in-baku.webp',    alt: 'Scooters in Baku.' },
   { src: '/images/biconomy/sa/feast-in-bali.webp',       alt: 'A feast in Bali.' },
-  { src: '/images/biconomy/sa/breakfast.jpg',           alt: 'Breakfast.' },
+  { src: '/images/biconomy/sa/breakfast.webp',           alt: 'Breakfast.' },
 ]
 
 export default function StayingAnchored() {

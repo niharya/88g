@@ -10,6 +10,34 @@ export type ImageManifestEntry = {
 }
 
 export const imageManifest: Record<string, ImageManifestEntry> = {
+  "/android-chrome-192.png": {
+    "dominantColor": "rgb(248, 248, 232)",
+    "thumbHash": "uOcFHwT4N7iGeId+g6pnaIiFiG/o+IYO",
+    "width": 192,
+    "height": 192,
+    "hasAlpha": false
+  },
+  "/android-chrome-512.png": {
+    "dominantColor": "rgb(248, 248, 232)",
+    "thumbHash": "uOcFHwT4N7iGeId+g6pnaIiFiG/o+IYO",
+    "width": 512,
+    "height": 512,
+    "hasAlpha": false
+  },
+  "/icon-16.png": {
+    "dominantColor": "rgb(248, 248, 232)",
+    "thumbHash": "uOcFHwT4N6iGeId+g6pnaJiFiG/o+IYO",
+    "width": 16,
+    "height": 16,
+    "hasAlpha": false
+  },
+  "/icon-32.png": {
+    "dominantColor": "rgb(248, 248, 232)",
+    "thumbHash": "uOcFHwT4N7iGeId+g6pnaJiFiG/o+IYO",
+    "width": 32,
+    "height": 32,
+    "hasAlpha": false
+  },
   "/images/biconomy/api/1.webp": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "8gcGBYBwh4eUiIh1d5eIhyC38I30",
@@ -31,9 +59,9 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1506,
     "hasAlpha": false
   },
-  "/images/biconomy/api/biconomyx-pp.jpg": {
+  "/images/biconomy/api/biconomyx-pp.webp": {
     "dominantColor": "rgb(232, 232, 232)",
-    "thumbHash": "NggGBwD7OYaIeId9c6pneIiHRoBHB3oF",
+    "thumbHash": "NggGBwD7OYaIeId9c6pneIiHVoBHB3oG",
     "width": 400,
     "height": 400,
     "hasAlpha": false
@@ -96,10 +124,10 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/biconomy/api/send_assets.webp": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "9QeCA4AeNaqPdXQCatxfOTg3h4iAdBg=",
+    "thumbHash": "8wcGBIAnWDeKd2mAhpcZLG8+DQ==",
     "width": 478,
     "height": 254,
-    "hasAlpha": true
+    "hasAlpha": false
   },
   "/images/biconomy/demos/after.webp": {
     "dominantColor": "rgb(168, 136, 104)",
@@ -117,89 +145,89 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/biconomy/demos/game.webp": {
     "dominantColor": "rgb(120, 120, 136)",
-    "thumbHash": "XAeKFIIPqLdpZYBNyNgHeW9zePh4B3iPAA==",
+    "thumbHash": "XAcKFYKot1ZpZYSAbUaIi4x9kPc2",
     "width": 3444,
     "height": 2450,
-    "hasAlpha": true
+    "hasAlpha": false
   },
   "/images/biconomy/demos/web.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "h/eBA4APzXifioaon1uX+YeHj4dw9wg=",
+    "thumbHash": "h/cBBIC8eHaOineGZnCon2uX+Q==",
     "width": 3444,
     "height": 2153,
-    "hasAlpha": true
+    "hasAlpha": false
   },
   "/images/biconomy/demos/web3_abstractor.webp": {
-    "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "NUmCA4AnxYtsZX86k6AzCSZbNKawulg=",
+    "dominantColor": "rgb(24, 24, 24)",
+    "thumbHash": "nSgOFIQmW3g0poewios3RHBDBA==",
     "width": 546,
     "height": 302,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/gas_tank_setup_after.png": {
+  "/images/biconomy/flows/gas_tank_setup_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "hgeCA4APOfaXe4Boj53yuHd3f3eA9wg=",
+    "thumbHash": "hgcCBIBJ1iiHeneCj4hoj53yqA==",
     "width": 2982,
     "height": 1693,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/gas_tank_setup_after_2.png": {
+  "/images/biconomy/flows/gas_tank_setup_after_2.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "hweCA4APKZWIiHAqj+fo93h4f3iA9wc=",
+    "thumbHash": "hwcCBIAplZmIiHhwnoYaf+fZ9w==",
     "width": 2982,
     "height": 1695,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/gas_tank_setup_before.png": {
+  "/images/biconomy/flows/gas_tank_setup_before.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "xwcCDICMU2evWXZ5mkb/i7mvpw==",
+    "thumbHash": "xwcCDICMU2evWXZ6mlb/i7mvpw==",
     "width": 2979,
     "height": 1692,
     "hasAlpha": false
   },
-  "/images/biconomy/flows/network_change_prompt_after.png": {
+  "/images/biconomy/flows/network_change_prompt_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "hweCA4APfyGcaFS/iPZud1paj4dw+Ag=",
+    "thumbHash": "hwcCBIB/IXWcaIdVyni/iPZtdw==",
     "width": 2981,
     "height": 1695,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/network_change_prompt_before.png": {
+  "/images/biconomy/flows/network_change_prompt_before.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "xwcCDICOQ3evWIZ4u2ffieePiQ==",
+    "thumbHash": "xwcCDICOQ3evWIZ4q2ffieePiQ==",
     "width": 2979,
     "height": 1692,
     "hasAlpha": false
   },
-  "/images/biconomy/flows/paymaster_card_after.png": {
+  "/images/biconomy/flows/paymaster_card_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "hweCA4APhFxfuIv9a/qOqkpKj4dw+Ag=",
+    "thumbHash": "hwcCBICEXJdfuHZ7mZb9bPqOqg==",
     "width": 2981,
     "height": 1695,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/paymaster_card_before.png": {
+  "/images/biconomy/flows/paymaster_card_before.webp": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "xwcCDICleodvmneNmoj+evmeqQ==",
     "width": 2979,
     "height": 1692,
     "hasAlpha": false
   },
-  "/images/biconomy/flows/paymaster_empty_state_after.png": {
+  "/images/biconomy/flows/paymaster_empty_state_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "xweCA4APC1WVfIlqn8/4uoeHj4iA+Ag=",
+    "thumbHash": "xwcCBIAqZqSGe3aIh2Bqn8/4ug==",
     "width": 2982,
     "height": 1696,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/paymaster_empty_state_before.png": {
+  "/images/biconomy/flows/paymaster_empty_state_before.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "xweCC4APX1GfaFTvevi/lnh4f4eA+Ag=",
+    "thumbHash": "xwcCDIBeUUafaIhUzWbvevi/lg==",
     "width": 2982,
     "height": 1696,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/paymaster_overview_after.png": {
+  "/images/biconomy/flows/paymaster_overview_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",
     "thumbHash": "hwcCDIC/mFe7i3hiilSJj4746A==",
     "width": 2982,
@@ -208,17 +236,17 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/biconomy/flows/paymaster_overview_before.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "yPeBC4IPeEWPaaH+e7mc94eHf4eA+Ag=",
+    "thumbHash": "yPcBDIJ4RXaPaXahnYX+e7mc9w==",
     "width": 2979,
     "height": 1691,
-    "hasAlpha": true
+    "hasAlpha": false
   },
-  "/images/biconomy/flows/register_paymaster_dialog_after.png": {
+  "/images/biconomy/flows/register_paymaster_dialog_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "hweCA4APDpGeeFF/e/WaZnh4j4dw+Ag=",
+    "thumbHash": "hwcCBIAdkTieeHhSz2h/e/WaZg==",
     "width": 2982,
     "height": 1696,
-    "hasAlpha": true
+    "hasAlpha": false
   },
   "/images/biconomy/flows/register_paymaster_dialog_before.webp": {
     "dominantColor": "rgb(24, 24, 24)",
@@ -241,14 +269,14 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 2382,
     "hasAlpha": true
   },
-  "/images/biconomy/sa/breakfast.jpg": {
+  "/images/biconomy/sa/breakfast.webp": {
     "dominantColor": "rgb(200, 216, 232)",
     "thumbHash": "XvcRHQJJdq+Gd3mIh3mIeFCqKDgJ",
     "width": 1200,
     "height": 1600,
     "hasAlpha": false
   },
-  "/images/biconomy/sa/building-a-bridge.jpg": {
+  "/images/biconomy/sa/building-a-bridge.webp": {
     "dominantColor": "rgb(72, 88, 72)",
     "thumbHash": "HPgNDAJn+XeoiJhnZ3cYim/2KA==",
     "width": 900,
@@ -269,9 +297,9 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1600,
     "hasAlpha": false
   },
-  "/images/biconomy/sa/flor-and-me.jpg": {
+  "/images/biconomy/sa/flor-and-me.webp": {
     "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "UwgKJQKHim9nR4kndoZ3eIdlgFQG",
+    "thumbHash": "UwgKJQKHin93R4kndoZ3eIdlgEQG",
     "width": 1066,
     "height": 1600,
     "hasAlpha": false
@@ -283,14 +311,14 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1600,
     "hasAlpha": false
   },
-  "/images/biconomy/sa/gang.jpg": {
+  "/images/biconomy/sa/gang.webp": {
     "dominantColor": "rgb(8, 104, 136)",
-    "thumbHash": "3gQJFQaYiH+Id2lId3Z4V2OgMgcZ",
+    "thumbHash": "3gQJFQaYiH+Id2lId3Z4Z2OgQgcZ",
     "width": 1066,
     "height": 1600,
     "hasAlpha": false
   },
-  "/images/biconomy/sa/georgios-and-me.jpg": {
+  "/images/biconomy/sa/georgios-and-me.webp": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "lRgSFQKZmI+Hl3dnd4iHiLJvCft0",
     "width": 1200,
@@ -339,102 +367,53 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1024,
     "hasAlpha": true
   },
-  "/images/rr/rr-card-v1.png": {
-    "dominantColor": "rgb(200, 232, 216)",
-    "thumbHash": "8ceFDAAe9vdnuGeCXr+XJYBLQJCHN4h5Aw==",
-    "width": 449,
-    "height": 617,
-    "hasAlpha": true
-  },
   "/images/rr/rr-card-v1.webp": {
-    "dominantColor": "rgb(184, 216, 216)",
-    "thumbHash": "8ceFDAAe5vdnqGeDXr+nRIBLQJCGJ4h5Ag==",
+    "dominantColor": "rgb(200, 232, 216)",
+    "thumbHash": "8ceFDAAe9vdnuGeCXr+XJYBLQJCGJ4h5Ag==",
     "width": 449,
     "height": 617,
-    "hasAlpha": true
-  },
-  "/images/rr/rr-card-v2.png": {
-    "dominantColor": "rgb(184, 216, 216)",
-    "thumbHash": "sseBBAAepPZ4Z3ibJz/o9YdeULB4OIh7Aw==",
-    "width": 457,
-    "height": 626,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v2.webp": {
     "dominantColor": "rgb(184, 216, 216)",
-    "thumbHash": "sseBBAAehPZ3V3iLNj/o9YddULCIOIh7Aw==",
+    "thumbHash": "sseBBAAepPZ4V3iLJj/o9odeULCIOIh7Aw==",
     "width": 457,
     "height": 626,
     "hasAlpha": true
   },
-  "/images/rr/rr-card-v3.png": {
-    "dominantColor": "rgb(184, 216, 216)",
-    "thumbHash": "sreBBAAe9XaXqEeKVT+29q1aULB4OIh7Aw==",
-    "width": 452,
-    "height": 625,
-    "hasAlpha": true
-  },
   "/images/rr/rr-card-v3.webp": {
     "dominantColor": "rgb(184, 216, 216)",
-    "thumbHash": "sreBDAAe83WouDeLVD/G95tbULB4OIh7Aw==",
+    "thumbHash": "sreBBAAe9XanqDeKVT+29qxaULB4OIh7Aw==",
     "width": 452,
     "height": 625,
-    "hasAlpha": true
-  },
-  "/images/rr/rr-card-v4.png": {
-    "dominantColor": "rgb(232, 216, 152)",
-    "thumbHash": "pzmKDAIeNrdnB4d6UdUG94dOQMCIKIh8Ag==",
-    "width": 458,
-    "height": 632,
     "hasAlpha": true
   },
   "/images/rr/rr-card-v4.webp": {
     "dominantColor": "rgb(232, 216, 152)",
-    "thumbHash": "pzmKDAIeNrdnB4d7QdUG94deUMCIOIh7Aw==",
+    "thumbHash": "pzmKDAIeNrdnB4d6UdUG94deUMCIOIh7Aw==",
     "width": 458,
     "height": 632,
     "hasAlpha": true
   },
-  "/images/rr/rr-card-v5-art.png": {
+  "/images/rr/rr-card-v5-art.webp": {
     "dominantColor": "rgb(8, 8, 8)",
     "thumbHash": "muWFDYA2j1E7p6eFZqDVDVvtC2OBeFdaaA==",
     "width": 147,
     "height": 133,
     "hasAlpha": true
   },
-  "/images/rr/rr-card-v5.png": {
-    "dominantColor": "rgb(24, 24, 72)",
-    "thumbHash": "lTeGKwoemoH4hoeXcH0HuAUFe3eDtzc=",
-    "width": 427,
-    "height": 632,
-    "hasAlpha": true
-  },
   "/images/rr/rr-card-v5.webp": {
     "dominantColor": "rgb(24, 24, 72)",
-    "thumbHash": "lTeGKwoeioH4hoeXcH0HuAUFfHeDtzc=",
+    "thumbHash": "lTeGKwoemoH4hoeXcH0HuAUFfHeDtzc=",
     "width": 427,
     "height": 632,
-    "hasAlpha": true
-  },
-  "/images/rr/rr-hand-deck-fan.png": {
-    "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "4BiGDYI2rKadVk8gJjVwWgSHCYeIeHJ5dw==",
-    "width": 907,
-    "height": 886,
     "hasAlpha": true
   },
   "/images/rr/rr-hand-deck-fan.webp": {
     "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "4CiGDAI1i5aK9SZaZARmRmCVcKl4SJd0Bw==",
-    "width": 939,
-    "height": 1170,
-    "hasAlpha": true
-  },
-  "/images/rr/rr-interface-desktop.png": {
-    "dominantColor": "rgb(120, 120, 136)",
-    "thumbHash": "XAeKFIIPqLh4dJBNyNgHeW/z8IB3eHiIBw==",
-    "width": 1896,
-    "height": 1348,
+    "thumbHash": "4BiGDYI2rKadVk8gJjVwWgSHCYeIeHJ5dw==",
+    "width": 907,
+    "height": 886,
     "hasAlpha": true
   },
   "/images/rr/rr-interface-desktop.webp": {
@@ -458,14 +437,14 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1024,
     "hasAlpha": true
   },
-  "/images/rr/rr-score.png": {
+  "/images/rr/rr-score.webp": {
     "dominantColor": "rgb(8, 8, 8)",
-    "thumbHash": "abqCAYARyVN5hlBFhl9m+Ci3h3iAevg=",
+    "thumbHash": "abqCAYAR2VJ5hlBFhl9l+Ci3iHiAaug=",
     "width": 228,
     "height": 29,
     "hasAlpha": true
   },
-  "/images/rr/rr-sketch-1.jpg": {
+  "/images/rr/rr-sketch-1.webp": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "OigCCwT0ePhJd5m5aHKAMwc=",
     "width": 1328,
@@ -486,23 +465,23 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1170,
     "hasAlpha": true
   },
-  "/images/rr/rr-sketch-4.jpg": {
+  "/images/rr/rr-sketch-4.webp": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "/AeCAwAO+mm6ZPv/y+ivfgoKiYdxmBg=",
+    "thumbHash": "/AeCAwAOm1xcUN7/zNifjQoKiYdymCg=",
     "width": 804,
     "height": 1176,
     "hasAlpha": true
   },
-  "/images/rr/rr-sketch-5.jpg": {
+  "/images/rr/rr-sketch-5.webp": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "/gcCBYA/2LNRl5eFdYZnlT9D9ejZ",
+    "thumbHash": "/gcCBYA/2LJRl5eEdYZnlD9D9Oa5",
     "width": 2272,
     "height": 1744,
     "hasAlpha": false
   },
-  "/images/rr/rr-sketch-6.jpg": {
+  "/images/rr/rr-sketch-6.webp": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "/gcCBoCcxFqQaZtZmLh1iXinm5Bo9oc=",
+    "thumbHash": "/gcCBoCcxFqQaZtZmLh1iXiXm5CI9ag=",
     "width": 1768,
     "height": 1500,
     "hasAlpha": false
@@ -521,42 +500,42 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 900,
     "hasAlpha": false
   },
-  "/images/rr/story-terra-bg.png": {
+  "/images/rr/story-terra-bg.webp": {
     "dominantColor": "rgb(232, 216, 200)",
-    "thumbHash": "txgCBABgehOzZz/Fp3S/lvd0WQ==",
+    "thumbHash": "txgCBABQixOzZy/Up2TPt/Vleg==",
     "width": 368,
     "height": 624,
     "hasAlpha": false
   },
-  "/images/rr/story-yellow-bg.png": {
+  "/images/rr/story-yellow-bg.webp": {
     "dominantColor": "rgb(232, 216, 200)",
-    "thumbHash": "tggCBABgexOzZy/Ep3TPtfZmew==",
+    "thumbHash": "tggCBABQixOzZy/Up3TPufVUeg==",
     "width": 368,
     "height": 624,
     "hasAlpha": false
   },
-  "/marks/beringer/01.jpg": {
+  "/marks/beringer/01.webp": {
     "dominantColor": "rgb(184, 24, 24)",
-    "thumbHash": "KIkOFwqLhEtgh3dxhziIeIeHWvboZZ8O",
+    "thumbHash": "KIkOFwqLhEtgh3dxhziIeIeHWvbodZ8O",
     "width": 1080,
     "height": 1080,
     "hasAlpha": false
   },
-  "/marks/beringer/02.jpg": {
+  "/marks/beringer/02.webp": {
     "dominantColor": "rgb(232, 200, 184)",
     "thumbHash": "KnkKDwg8eqaflodxeNd4OHiKNxv2wmAP",
     "width": 1080,
     "height": 1080,
     "hasAlpha": false
   },
-  "/marks/beringer/03.jpg": {
+  "/marks/beringer/03.webp": {
     "dominantColor": "rgb(184, 24, 24)",
     "thumbHash": "XskOHwwGaJh4iIiEeYh4N6iHd3/I94cM",
     "width": 1080,
     "height": 1080,
     "hasAlpha": false
   },
-  "/marks/beringer/04.jpg": {
+  "/marks/beringer/04.webp": {
     "dominantColor": "rgb(184, 24, 24)",
     "thumbHash": "YqkOFwxAp3mjiHeUiGeIeIh4+Nu2v10L",
     "width": 1080,
@@ -584,9 +563,9 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1688,
     "hasAlpha": false
   },
-  "/marks/ecochain/02.jpg": {
+  "/marks/ecochain/02.webp": {
     "dominantColor": "rgb(216, 216, 216)",
-    "thumbHash": "b/kJJYiPfJqUeHiZZxeIdaJ/G8z3",
+    "thumbHash": "b/kJJYiPfJqUeHiZZxeIdaJ/K8z3",
     "width": 3000,
     "height": 2200,
     "hasAlpha": false
@@ -612,9 +591,9 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 2250,
     "hasAlpha": false
   },
-  "/marks/kilti/01.jpg": {
+  "/marks/kilti/01.webp": {
     "dominantColor": "rgb(216, 216, 216)",
-    "thumbHash": "YAgKDQKreEq1+lvWlmepiVt0/8ZD",
+    "thumbHash": "XwgKDQKreEq1+lvWlmepiVt0/8ZD",
     "width": 960,
     "height": 1280,
     "hasAlpha": false

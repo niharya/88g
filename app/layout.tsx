@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import localFont from 'next/font/local'
 import './globals.css'
@@ -84,6 +84,13 @@ const materialSymbols = localFont({
 // Inline script below coin-flips to one combination per hard reload.
 // Apple icon is the file-convention app/apple-icon.tsx (sticky — iOS home
 // screen doesn't re-roll). OG image lives in /public/og-image.png.
+// Theme color matches --workbench-bg in globals.css — the warm off-white
+// page surface. Mobile browser chrome (iOS Safari, Android Chrome) tints
+// the URL bar with this so the device shell visually merges into the page.
+export const viewport: Viewport = {
+  themeColor: '#f2f3ef',
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://nihar.works'),
   title: {
@@ -98,9 +105,24 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  // SVG icon is the primary — the favicon-swap script below rerolls
+  // its href to one of six startooth combinations on each hard reload.
+  // The PNG / .ico entries are fallbacks for legacy browsers and OSes
+  // that don't follow the SVG (older Safari, Windows pinned tiles).
   icons: {
-    icon: [{ url: '/icon-star-blue.svg', type: 'image/svg+xml' }],
+    icon: [
+      { url: '/icon-star-blue.svg', type: 'image/svg+xml' },
+      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: ['/favicon.ico'],
+    apple: [{ url: '/apple-icon', sizes: '180x180' }],
+    other: [
+      { rel: 'icon', url: '/android-chrome-192.png', sizes: '192x192', type: 'image/png' },
+      { rel: 'icon', url: '/android-chrome-512.png', sizes: '512x512', type: 'image/png' },
+    ],
   },
+  manifest: '/site.webmanifest',
   openGraph: {
     type: 'website',
     url: 'https://nihar.works',
@@ -177,6 +199,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}</Script>
       </head>
       <body>
+        {/* Skip-to-content — visually hidden until focused. Lets keyboard
+            users jump past the favicon swap script and land on #content
+            (the wrapper around route children). Styled in globals.css. */}
+        <a className="skip-link" href="#content">Skip to content</a>
         {/* Patience mark — centered startooth shown during the font-gate
             hold. Fades in ~200 ms after mount (so fast loads never flash
             it) and fades out when `.fonts-ready` lands on <html>. Kept
@@ -206,7 +232,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             />
           </svg>
         </div>
-        {children}
+        <div id="content">{children}</div>
       </body>
     </html>
   )

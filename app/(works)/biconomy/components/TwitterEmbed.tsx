@@ -42,7 +42,7 @@ export default function TwitterEmbed({
   className,
   author = 'Biconomy Experience',
   handle = 'BiconomyX',
-  avatarSrc = '/images/biconomy/api/biconomyx-pp.jpg',
+  avatarSrc = '/images/biconomy/api/biconomyx-pp.webp',
   body,
   timestamp,
 }: TweetProps) {

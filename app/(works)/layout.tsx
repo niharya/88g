@@ -10,6 +10,8 @@ import { CrossShellEntryFader } from '../components/CrossShellVeil'
 import PaperFilter from '../components/PaperFilter'
 import ShellNav from './ShellNav'
 import TransitionSlot from './TransitionSlot'
+import Footer from '../components/Footer'
+import '../components/Footer/footer.css'
 
 export default function WorksLayout({ children }: { children: ReactNode }) {
   // Font gate is set globally in the root layout so /selected, /rr, /biconomy,
@@ -24,6 +26,17 @@ export default function WorksLayout({ children }: { children: ReactNode }) {
         <ShellNav />
         <TransitionSlot>{children}</TransitionSlot>
       </main>
+      {/* Site footer — rendered OUTSIDE the workbench main on a "deeper
+          desk" surface (`.footer-stage` uses --below-bg, half-step
+          darker than the workbench paper). The workbench casts a soft
+          shadow onto this stage (see globals.css `.workbench`), so the
+          eye reads the workbench as a sheet of paper resting on a desk
+          and the footer as occupying that desk. Mounting at the layout
+          level covers /selected, /rr, /biconomy without per-page
+          wiring. */}
+      <div className="footer-stage">
+        <Footer />
+      </div>
     </>
   )
 }

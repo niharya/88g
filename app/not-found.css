@@ -1,0 +1,39 @@
+/* 404 page layout.
+   Editorial register matches the rest of the portfolio: paper canvas,
+   centered copy, gameboard as the focal artifact, home link below.
+   Uses --workbench-bg + --grey-* tokens so theming stays consistent. */
+
+.not-found {
+  min-height: 100vh;
+  background: var(--workbench-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-48) var(--space-24);
+}
+
+.not-found__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-32);
+  max-width: 720px;
+  width: 100%;
+}
+
+.not-found__copy {
+  text-align: center;
+  color: var(--grey-160);
+  max-width: 420px;
+}
+
+.not-found__board {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.not-found__home {
+  display: flex;
+  justify-content: center;
+}

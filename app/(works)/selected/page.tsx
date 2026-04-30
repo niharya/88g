@@ -24,6 +24,7 @@ export const metadata: Metadata = {
 export default function SelectedPage() {
   return (
     <div className="selected-workbench">
+      <h1 className="sr-only">Works</h1>
       <SlideInOnNav
         flag="to-selected"
         selector=".selected-workbench"

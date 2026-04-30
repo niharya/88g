@@ -28,8 +28,8 @@ one was, at some point, a real regression that took a real user-visible hit.
 - External `<link rel="stylesheet">` to Google Fonts for **the five primary fonts** (display, body, ui, mono, symbols). DNS lookup + two-stage waterfall + non-deterministic timing.
 - Redeclaring `--font-display` / `--font-body` / `--font-ui` / `--font-mono` / `--font-symbols` in `globals.css` (see contract above).
 
-**Documented exception — `/rr` route-decorative fonts.**
-[app/(works)/rr/layout.tsx](../app/(works)/rr/layout.tsx) loads three external Google Fonts (`Playpen Sans`, `Londrina Solid`, `Gluten`) for the Rug Rumble case-study editorial. They're route-scoped, decorative, and only render after a user navigates to `/rr` (not on the landing critical path). Migrating them to `next/font/local` is a future cleanup, not a blocker. If you add another *decorative case-study* font, the same pattern is acceptable — but document it here. **Do not** use this exception for primary site typography.
+**Route-decorative fonts.**
+Case-study routes can load decorative fonts via `next/font/local` in their own layout (see [app/(works)/rr/layout.tsx](../app/(works)/rr/layout.tsx) — `Playpen Sans`, `Londrina Solid`, `Gluten` for Rug Rumble). Use `preload: false` since these only matter once a user navigates into the route, and serve only the latin subset unless other scripts are actually used. The previous external `<link rel="stylesheet">` exception for /rr was retired in the production-readiness pass.
 
 **Adding a new font:**
 

@@ -9,3 +9,27 @@
 [build.environment]
   # Pin Node to match local (node --version → v22). Keeps CI builds reproducible.
   NODE_VERSION = "22"
+
+# Security headers — applied to every response. Order:
+#   • HSTS — force HTTPS for 2y once seen, include subdomains, allow preload list.
+#   • X-Frame-Options DENY — no embedding in iframes (pairs with frame-ancestors
+#     in CSP for older clients).
+#   • X-Content-Type-Options nosniff — browsers must respect declared MIME types.
+#   • Referrer-Policy — leak full URL same-origin only; cross-origin is just origin.
+#   • Permissions-Policy — disable powerful sensors / autoplay capabilities the
+#     site never uses, so an XSS can't request them.
+#   • Content-Security-Policy-Report-Only — observation phase. Once we've watched
+#     report-uri logs and no legitimate traffic is blocked, promote to enforcing
+#     Content-Security-Policy by renaming this header. The current policy keeps
+#     allowances for emailjs (contact form) and the Google Calendar embed
+#     (book-a-call). Google Fonts allowances were removed once /rr's
+#     decorative fonts moved to next/font/local.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.emailjs.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.emailjs.com; frame-src https://calendar.app.google; form-action 'self'; base-uri 'self'; report-uri /csp-report"

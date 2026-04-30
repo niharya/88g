@@ -18,7 +18,7 @@ export const flows: FlowSlide[] = [
     id: 1,
     title: "Paymaster Empty State",
     before: {
-      image: "/images/biconomy/flows/paymaster_empty_state_before.png",
+      image: "/images/biconomy/flows/paymaster_empty_state_before.webp",
       notes: [
         { text: "The empty state does not clearly signal what the user should do first.", x: 0.370, y: 0.268 },
         { text: "Explanatory content occupies the primary visual area before any setup action.", x: 0.330, y: 0.360 },
@@ -27,7 +27,7 @@ export const flows: FlowSlide[] = [
       ],
     },
     after: {
-      image: "/images/biconomy/flows/paymaster_empty_state_after.png",
+      image: "/images/biconomy/flows/paymaster_empty_state_after.webp",
       notes: [
         { text: "A single primary action is established and placed at the visual center of the screen.", x: 0.380, y: 0.187 },
         { text: "Explanatory content is moved below the primary action and reduced to a single supporting line.", x: 0.289, y: 0.720 },
@@ -50,7 +50,7 @@ export const flows: FlowSlide[] = [
       ],
     },
     after: {
-      image: "/images/biconomy/flows/paymaster_overview_after.png",
+      image: "/images/biconomy/flows/paymaster_overview_after.webp",
       notes: [
         { text: "The paymaster is tied to a team, name, and network.", x: 0.152, y: 0.036 },
         { text: "The page shows clear next steps instead of explaining concepts.", x: 0.272, y: 0.229 },
@@ -64,7 +64,7 @@ export const flows: FlowSlide[] = [
     id: 3,
     title: "Gas Tank Setup",
     before: {
-      image: "/images/biconomy/flows/gas_tank_setup_before.png",
+      image: "/images/biconomy/flows/gas_tank_setup_before.webp",
       notes: [
         { text: "The screen does not clearly communicate whether the gas tank already exists or not.", x: 0.148, y: 0.260 },
         { text: "Multiple messages, warnings, and links compete for attention at the moment of first setup.", x: 0.148, y: 0.314 },
@@ -73,14 +73,14 @@ export const flows: FlowSlide[] = [
       ],
     },
     after: {
-      image: "/images/biconomy/flows/gas_tank_setup_after.png",
+      image: "/images/biconomy/flows/gas_tank_setup_after.webp",
       notes: [
         { text: "The empty state clearly signals that the gas tank is not yet set up.", x: 0.526, y: 0.311 },
         { text: "The interface is reduced to a single primary message and a single primary action.", x: 0.573, y: 0.392 },
         {
           text: "Critical withdrawal rules are shown in a separate step, when they become relevant.",
           x: 0.28, y: 0.3,
-          image: "/images/biconomy/flows/gas_tank_setup_after_2.png",
+          image: "/images/biconomy/flows/gas_tank_setup_after_2.webp",
           toggleLabel: { initial: "See next step", after: "Go back" },
         },
         { text: "A short line explains what the gas tank does before asking the user to act.", x: 0.546, y: 0.503 },
@@ -91,7 +91,7 @@ export const flows: FlowSlide[] = [
     id: 4,
     title: "Paymaster Card",
     before: {
-      image: "/images/biconomy/flows/paymaster_card_before.png",
+      image: "/images/biconomy/flows/paymaster_card_before.webp",
       notes: [
         { text: "The card is clickable but looks like a static block.", x: 0.570, y: 0.120 },
         { text: "The long horizontal footprint makes lists harder to scan and compare.", x: 0.930, y: 0.220 },
@@ -100,7 +100,7 @@ export const flows: FlowSlide[] = [
       ],
     },
     after: {
-      image: "/images/biconomy/flows/paymaster_card_after.png",
+      image: "/images/biconomy/flows/paymaster_card_after.webp",
       notes: [
         { text: "A clear affordance shows you can open the card and go deeper.", x: 0.722, y: 0.143 },
         { text: "A tighter layout improves scannability in stacked lists.", x: 0.709, y: 0.241 },
@@ -122,7 +122,7 @@ export const flows: FlowSlide[] = [
       ],
     },
     after: {
-      image: "/images/biconomy/flows/register_paymaster_dialog_after.png",
+      image: "/images/biconomy/flows/register_paymaster_dialog_after.webp",
       notes: [
         { text: "A vertical stack creates a single, predictable reading and action order", x: 0.381, y: 0.145 },
         { text: "A sample name shows the expected format, removing guesswork", x: 0.484, y: 0.259 },
@@ -135,7 +135,7 @@ export const flows: FlowSlide[] = [
     id: 6,
     title: "Network Change Prompt",
     before: {
-      image: "/images/biconomy/flows/network_change_prompt_before.png",
+      image: "/images/biconomy/flows/network_change_prompt_before.webp",
       notes: [
         { text: "The error state does not clearly explain why the user is blocked.", x: 0.153, y: 0.310 },
         { text: "The wallet address draws more attention than the actual problem.", x: 0.257, y: 0.371 },
@@ -143,7 +143,7 @@ export const flows: FlowSlide[] = [
       ],
     },
     after: {
-      image: "/images/biconomy/flows/network_change_prompt_after.png",
+      image: "/images/biconomy/flows/network_change_prompt_after.webp",
       notes: [
         { text: "The prompt now states upfront that a network mismatch is preventing progress.", x: 0.312, y: 0.317 },
         { text: "The message focuses on the network mismatch before showing wallet details.", x: 0.381, y: 0.446 },

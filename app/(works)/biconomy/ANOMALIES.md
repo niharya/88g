@@ -1053,3 +1053,43 @@ One hardcoded hex in `biconomy.css` — Twitter's brand blue, used only for
 the `.tweet-card__bird` hover color. It is a brand citation, not part of
 the portfolio's token ladder. Leave it hardcoded; do not introduce a
 `--twitter-blue` token unless a second consumer appears.
+
+
+## UI flow scans flatten alpha to `#181818` (v0.70)
+
+The Biconomy flow chapter renders dashboard UI screenshots from the audit
+process (`public/images/biconomy/flows/*.webp`, plus `api/send_assets.webp`
+and `demos/{game,web,web3_abstractor}.webp`). The original PNG sources had
+soft-edge transparency that got preserved when the v0.70 mass-conversion
+pass moved everything to lossless WebP. On the workbench's cream paper
+those transparent regions bled through, making the dark UI scans appear
+to "break up" with cream patches.
+
+**The fix is bake-time, not render-time:** every UI scan was re-encoded
+with `sharp({ flatten: { background: '#181818' } })` — the Biconomy
+dashboard's own dark surface tone. Transparent pixels now resolve to the
+same color as the rest of the dashboard, so nothing bleeds.
+
+**Exempt from the flatten** (intentional transparency preserved):
+
+- `public/images/biconomy/multiverse_pill.webp`
+- `public/images/biconomy/multiverse_poster.webp`
+- `public/images/biconomy/sa/notes.webp`
+
+These are editorial / decorative pieces (a pill chip, a poster
+illustration, a paper-shaped notes silhouette) where transparency is
+authored, not residual. If you re-export them with new transparent
+regions, leave the alpha alone.
+
+**If you re-export a flow scan from Figma or replace one** — flatten it
+onto `#181818` before committing, or re-render the original transparent
+PNG and the cream-bleed bug returns. A handy one-liner:
+
+```js
+await sharp(file).flatten({ background: '#181818' }).webp({ lossless: true }).toFile(out)
+```
+
+The Biconomy dashboard tone is `#181818`; do **not** use the workbench
+cream or pure black — the former defeats the purpose, the latter creates
+visible edges where the screenshot's pseudo-transparent halo meets the
+flat fill.

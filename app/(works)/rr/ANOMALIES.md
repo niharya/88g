@@ -212,8 +212,10 @@ floats fully inside the mat with empty space below reads as accidental
 placement — the intentional design is "card overlay spills past the mat,
 mat clips it."
 
-Enforced by `bottom: -150px` on `.rr-story-card__deck-fan` (rr.css, under
-the Story Card block). The value is intentionally generous — enough that
+Enforced by a generous negative `bottom` offset on `.rr-story-card__deck-fan`
+(rr.css, under the Story Card block — currently `-110px` after the v0.70
+40-px lift; was `-150px` before a sketch-asset swap shifted the visual
+rest position lower). The value is intentionally generous — enough that
 the hand stays clipped even if the card moves vertically within the mat by
 a small amount, or the mat height changes within viewport ranges we care
 about.
@@ -427,6 +429,10 @@ loop. See also the `COLOPHON.md` at the repo root.
 ### Lite stance summary
 
 `/rr` carries a retrofit-lite pass (≤767px). Desktop is unchanged. The page grows taller on mobile — each chapter recomposes vertically and preserves its desktop content instead of collapsing or replicating the scaled canvas. Anything below is a deviation or constraint future passes should inherit rather than reinvent.
+
+### North Star card — justified text on mobile
+
+`.rr-north-star-card__text` carries `text-align: justify` + `text-align-last: justify` only inside the mobile `@media (max-width: 767px)` block. The card outer width stays at the desktop's 148px on mobile (intentional — the sticker is an authored size); the text wraps to two lines and the natural left-align leaves a visible empty band on the right of each line. Justify redistributes the line-end whitespace into word-spacing so each line ends flush at the sticker's right edge. `text-align-last: justify` is required — without it the last of two lines stays left-aligned and the result reads as a typesetting bug rather than authored intent. **Don't drop either line; both are load-bearing.**
 
 ### Nav-sled left — route-scoped override on mobile
 
@@ -703,3 +709,15 @@ This is a documented opt-out from `t-btn1`'s decoration, scoped tight to the ver
 `.rr-constraints-card__title` overrides `t-h5`'s `line-height: 1` with `line-height: 1.3` (matching the item rows) AND uses asymmetric `padding: 8px 0 4px` to push the cap visually toward the row's center. Reason: Google Sans Flex caps sit high in the line-box — symmetric padding around `line-height: 1.3` produces a top-heavy reading; the looser top + tighter bottom collapse the optical asymmetry.
 
 The `display: flex; align-items: center; justify-content: center` is structural rather than a hardcoded height — it lets the row expand naturally with the line-height change. **Don't symmetrize the padding back to `6px 0`** — that was the prior value and it read as top-aligned against the ruled rows.
+
+## Decorative fonts — local, not external
+
+The Rug Rumble case study uses three decorative fonts beyond the site-wide ramp: `Playpen Sans` (variable, wght 400–800), `Londrina Solid` (single weight 400), and `Gluten` (variable, wght 400–600). All three are loaded via `next/font/local` from `app/fonts/`:
+
+- `PlaypenSans-variable.woff2`
+- `LondrinaSolid-normal.woff2`
+- `Gluten-variable.woff2`
+
+The route layout ([app/(works)/rr/layout.tsx](app/(works)/rr/layout.tsx)) declares each via `localFont` with `display: 'swap'`, a sensible fallback chain, and `preload: false` (these only matter once the user navigates to /rr). CSS in [rr.css](rr.css) consumes them via `var(--rr-font-playpen)`, `var(--rr-font-londrina)`, `var(--rr-font-gluten)`.
+
+**Don't reintroduce a `<link rel='stylesheet'>` to fonts.googleapis.com.** The previous external-link approach was a documented exception in docs/performance.md; that exception was retired in v0.70 when these moved to local. CLAUDE.md performance hygiene bans external Google Fonts for primary fonts; the same discipline now extends to /rr's decorative ones. Only the latin subset is served (≈260 KB total) — adding emoji or extended scripts would require pulling new subsets from Google and re-saving the woff2 files.

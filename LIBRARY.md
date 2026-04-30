@@ -527,6 +527,48 @@ Bridge between routes that don't share a layout boundary (currently `/marks` ↔
 
 ---
 
+## Footer
+
+Site colophon — rendered in two variants depending on consumer.
+
+- **Where it lives:** [app/components/Footer/](app/components/Footer/) — `Footer.tsx`, `footer.css`, `index.ts`.
+- **Consumers:** mounted once in [app/(works)/layout.tsx](app/(works)/layout.tsx) (default variant covers `/selected`, `/rr`, `/biconomy`); also mounted on the landing in [app/page.tsx](app/page.tsx) when `expanded` is true (caption variant).
+- **Variants:**
+  - `default` — black `.footer-stage` slab below the workbench (rendered OUTSIDE `<main className="workbench">` so the workbench's bottom padding doesn't sit between the divider and viewport bottom). Hairline divider flush with workbench bottom edge, single row beneath: credit (left, `t-h5`) + framed link cells (right, `t-btn1`). Each `<li>` carries a vertical hairline border; the first item also gets a left border so the row reads as fully enclosed cells.
+  - `caption` — fixed-positioned dark terra slab (`var(--surface-bg)` bg, `#c96f42` text — mirrors CaptionTag's literal exactly so the two artifacts share voice). Slides up from below via the `translate` CSS property (Y: `100% → 0`) when `visible` prop flips true; slides back down on scroll-up. No opacity transition — only Y position changes.
+- **Per-route hover palette (default):** `usePathname()` selects two hues at the **800** luminance step:
+  - `/selected` → blue + terra
+  - `/rr` → yellow + terra
+  - `/biconomy` → blue + olive
+  Cell hover rolls a fresh pick via `onMouseEnter`, but **never the same color twice in a row** — a shared `lastColorRef` filters the previous hue. With 2-color palettes this collapses to strict alternation.
+- **Click state (default):** `:active` switches to the matching **960** hue (deeper, "pressed in") and translates the cell `translateY(1px)`. Same paper-tag press as `NavMarker:active`. Transition tier: `--dur-instant` + `--ease-snap`.
+- **Hover underline:** the link's text is wrapped in an inner `<span class="footer__link-label t-btn1">` — `t-btn1`'s `::after` solid bar positions at `bottom: -2px` of its containing block. Without the inner span, the bar lands at the bottom of the 60-px padded cell (visually disconnected from the text). The cell's `:hover` forwards to the span via descendant selectors.
+- **Dynamic Privacy back-link:** Footer's `onClick` writes the source pathname to `sessionStorage.privacy-from`. The privacy page's `PrivacyBackLink` component reads that flag in a `useLayoutEffect` and renders a NavMarker labelled / toned to match the source (`/selected → "Works" terra`, `/biconomy → "Biconomy" mint`, `/rr → "Rug Rumble" terra`, `/ → "Back" neutral`).
+- **Caption visibility on landing:** controlled by `pastForm` state, which a scroll listener flips true once `contactRef.bottom <= viewport.bottom + 8`. The slab stays hidden until the user has scrolled the contact form into view, then drawer-slides up. Resets on collapse so a re-expand starts hidden.
+
+**AI notes:**
+- Don't extract Footer to a route layer or duplicate it. Single shared primitive, two variants via `variant` prop.
+- The caption variant's `translate: -50% 100%` ↔ `-50% 0%` is intentional — the dedicated `translate` property is used (not `transform`), because Chrome's matrix conversion on fixed-position transforms with mixed `%` units stuck the transition at the start value.
+- The 800-step hover palette is keyed on the route via `usePathname()`. New work routes (e.g. /case-x) need an entry in `ROUTE_PALETTES`; absent that, the fallback palette (blue + terra) applies. The 960 click-state map (`ACTIVE_FOR_HOVER`) is keyed off the 800 var-string, so don't change one without the other.
+
+---
+
+## RR GameBoard (cross-route consumer)
+
+The Rug Rumble playable game module — [app/(works)/rr/components/game/](app/(works)/rr/components/game/) — has two consumers as of v0.69:
+
+- `/rr` Mechanics chapter (primary, with rails + scroll choreography around it).
+- `/` 404 page ([app/not-found.tsx](app/not-found.tsx)) — bare GameBoard, editorial copy, home link.
+
+**Not physically promoted to `app/components/`.** The game.css uses `--rr-game-*`, `--rr-z-game`, and `--rr-font-game` tokens that resolve under the `.route-rr` cascade in [app/(works)/rr/rr.css](app/(works)/rr/rr.css). A clean extraction would mean either copying those tokens into a shared file or sourcing rr.css globally — both add cost without changing the API. Both consumers wrap GameBoard in a `route-rr` ancestor and import `rr.css` + `game.css` directly. If a third consumer appears, revisit promotion at that point.
+
+**Component contract:**
+- `GameBoard` is the entry point. Optional callbacks: `onResultsChange`, `onGameOver`, `onGameStart`. No props are required for a standalone playable mount.
+- The board is `'use client'` — animations, input, and game state are all local.
+- `not-found.tsx` is the reference cross-route consumer. Copy its scoping pattern if a fourth surface ever needs the game.
+
+---
+
 <!-- New entries above this line, most recent first. Keep entries tight — link to the source, don't copy it. -->
 
 ---

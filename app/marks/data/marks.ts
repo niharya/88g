@@ -106,10 +106,10 @@ export const MARKS: MarkEntry[] = [
     previewAccent:'#EF5223',
     slides: [
       { kind: 'mark' },
-      { kind: 'image', src: '/marks/beringer/01.jpg', caption: 'Some fake mockups' },
-      { kind: 'image', src: '/marks/beringer/02.jpg', caption: 'It’s bay-rohn-jay ffs!' },
-      { kind: 'image', src: '/marks/beringer/03.jpg', caption: 'Like I said previously…' },
-      { kind: 'image', src: '/marks/beringer/04.jpg', caption: 'Just' },
+      { kind: 'image', src: '/marks/beringer/01.webp', caption: 'Some fake mockups' },
+      { kind: 'image', src: '/marks/beringer/02.webp', caption: 'It’s bay-rohn-jay ffs!' },
+      { kind: 'image', src: '/marks/beringer/03.webp', caption: 'Like I said previously…' },
+      { kind: 'image', src: '/marks/beringer/04.webp', caption: 'Just' },
     ],
   },
   {
@@ -123,7 +123,7 @@ export const MARKS: MarkEntry[] = [
       { kind: 'mark' },
       { kind: 'image', src: '/marks/ecochain/01.webp', caption: 'Presentation showing how a child is born' },
       { kind: 'video', src: '/marks/ecochain/03.mp4', caption: 'Fancy animation' },
-      { kind: 'image', src: '/marks/ecochain/02.jpg', caption: 'Real work by Savan Prajapati' },
+      { kind: 'image', src: '/marks/ecochain/02.webp', caption: 'Real work by Savan Prajapati' },
       { kind: 'video', src: '/marks/ecochain/04.mp4', caption: 'By Savan Prajapati + Akshar Dave' },
     ],
   },
@@ -136,7 +136,7 @@ export const MARKS: MarkEntry[] = [
     previewColor: '#9B99FF',
     slides: [
       { kind: 'mark' },
-      { kind: 'image', src: '/marks/kilti/01.jpg', caption: 'House of Kilti with its owner' },
+      { kind: 'image', src: '/marks/kilti/01.webp', caption: 'House of Kilti with its owner' },
     ],
   },
 ]

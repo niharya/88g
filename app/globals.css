@@ -345,6 +345,30 @@ html.fonts-ready .route-marks {
   transition: opacity var(--dur-settle) var(--ease-paper);
 }
 
+/* ── Skip-to-content link ────────────────────────────────────────────────
+   Keyboard a11y. Visually hidden until focused, then docks to the top-left
+   on a paper card so it reads as a real interactive control, not a system
+   overlay. Uses --workbench-bg + --grey-80 to match the page palette. */
+.skip-link {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  padding: var(--space-12) var(--space-16);
+  background: var(--workbench-bg);
+  color: var(--grey-80);
+  border: 1px solid var(--grey-80);
+  text-decoration: none;
+  font-family: var(--font-ui);
+  transform: translateY(-120%);
+  transition: transform var(--dur-slide) var(--ease-paper);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: none;
+}
+
 /* ── Page boot — patience mark ───────────────────────────────────────────
    During the gate hold, the page surfaces above are invisible. Instead of
    showing blank paper, a centered startooth fades in ~200 ms after mount
@@ -536,6 +560,13 @@ p, li {
   --workbench-pad-y:  48px;
   --workbench-pad-x:  64px;
   --workbench-bg:     #f2f3ef;
+  /* Layer that sits BEHIND the workbench — the "deeper desk" surface
+     that the workbench is laid on. A half-step darker, slightly cooler
+     than the cream paper. Visible in the area below the workbench
+     (footer stage) and anywhere else we want to show the workbench
+     as a sheet floating above. The contrast is intentionally subtle —
+     this is depth, not contrast. */
+  --below-bg:         #e6e7e2;
 
   /* Markers */
   --marker-top:            24px;
@@ -606,6 +637,16 @@ p, li {
   background-color: var(--workbench-bg);
   min-height: 100vh;
   overflow-x: clip;
+  /* Bottom-edge depth — the workbench is a sheet of paper laid on the
+     deeper desk (`--below-bg` shows below it via .footer-stage). A
+     two-layer shadow seals that read: a tight 1 px hairline for sharp
+     definition, a soft 12 px drop for atmospheric depth. Both are
+     restricted to the bottom edge by zero-spread + zero-x-offset, so
+     the existing 8 px black viewport frame rendered as ::before isn't
+     fought. Subtle on purpose — depth, not contrast. */
+  box-shadow:
+    0 1px 0 0 rgba(20, 20, 20, 0.06),
+    0 12px 24px -12px rgba(20, 20, 20, 0.12);
 }
 
 /* Viewport frame — fixed to screen edges, content scrolls behind it.

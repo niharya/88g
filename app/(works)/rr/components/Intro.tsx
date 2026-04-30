@@ -64,18 +64,11 @@ const SKETCH_ASPECTS: Record<number, number> = {
   6: 177 / 150,
 }
 
-// File extensions per sketch — the v0.56 perf pass converted only sketches
-// 2 and 3 to .webp (and removed their .jpg originals). 1, 4, 5, 6 stayed as
-// .jpg. Pointing every src at .jpg silently 404s 2 and 3.
-const SKETCH_EXT: Record<number, string> = {
-  1: 'jpg',
-  2: 'webp',
-  3: 'webp',
-  4: 'jpg',
-  5: 'jpg',
-  6: 'jpg',
-}
-const sketchSrc = (n: number) => `/images/rr/rr-sketch-${n}.${SKETCH_EXT[n] ?? 'jpg'}`
+// All sketches are .webp — the production-readiness pass (v0.69)
+// converted any remaining .jpg sources to .webp uniformly. Earlier the
+// extensions diverged per file (sketches 2, 3 webp; 1, 4, 5, 6 jpg) and
+// this map disambiguated; now it's one extension everywhere.
+const sketchSrc = (n: number) => `/images/rr/rr-sketch-${n}.webp`
 
 export default function Intro() {
   const [isExpanded, setIsExpanded] = useState(false)

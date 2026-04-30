@@ -2,7 +2,7 @@
 export const lqipSamples = [
   {
     "label": "UI mockup",
-    "src": "/images/rr/rr-card-v5.png",
+    "src": "/images/rr/rr-card-v5.webp",
     "dominantColor": "rgb(24, 24, 72)",
     "thumbHash": "lTeGKwoemoH4hoeXcH0HuAYGe3eDtzc=",
     "width": 214,
@@ -10,7 +10,7 @@ export const lqipSamples = [
   },
   {
     "label": "Sketch",
-    "src": "/images/rr/rr-sketch-1.jpg",
+    "src": "/images/rr/rr-sketch-1.webp",
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "OigCCwT0ePhJd5m5aHKAMwc=",
     "width": 1328,
