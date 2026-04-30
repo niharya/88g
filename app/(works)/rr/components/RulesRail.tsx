@@ -59,7 +59,7 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(max-width: 767px)')
+    const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
     const apply = () => setIsMobile(mq.matches)
     apply()
     mq.addEventListener('change', apply)
@@ -79,7 +79,7 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
   useEffect(() => {
     if (!firstVisit) return
     if (!gameboardInView) return
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) return
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px), (max-height: 500px)').matches) return
     setIsOpen(true)
   }, [firstVisit, gameboardInView])
 
@@ -100,7 +100,7 @@ export default function RulesRail({ dismiss = false, otherOpen = false, onOpenCh
       // On desktop the first-visit overlay auto-opens, so the first click is
       // dismissal. On mobile there's no auto-open, so the first click should
       // open the rail (and mark as seen) — otherwise the user has to click twice.
-      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px), (max-height: 500px)').matches
       if (isMobile) {
         setFirstVisit(false)
         setIsOpen(true)

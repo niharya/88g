@@ -407,6 +407,49 @@ an inline `style={{ transform }}`. The React-inline-style conflict gate
 (playbook → Named patterns) does not apply here, which is the cleanest
 version of Shape 10. Compare to `/rr` rails, which *do* require the gate.
 
+### BIPs — section reorder via `display: contents` (mobile)
+
+Mobile reading order is `Copy of the Notion` label → iframe →
+footnote caption → `Design of the Workflow` rail. The notes rail
+lives inside `.bips__notion-wrap` in the DOM (alongside the iframe);
+the footnote is a sibling of the wrap. To interleave them on mobile
+without restructuring the JSX, `.bips__notion-wrap` flips to
+`display: contents` so its children become flex items of
+`.bips__notion-section` directly. Then `order: 0/1/2/3` places the
+label, iframe, footnote, and rail in reading sequence.
+
+Two coupling rules go with this:
+
+- **`align-items: stretch` on the section** (overriding desktop
+  `center`). Without this, children center on the cross-axis as
+  blocks even when their `text-align` is `left`, so the notion label
+  reads centered. Stretch lets `.bips__notion-label { text-align:
+  left }` flush the label to the iframe's left edge.
+- **The wrap's own `gap: var(--space-24)`** is replaced by the
+  section's gap — `display: contents` strips the wrap's gap (it has
+  no box). The section gap was widened from 16 → 24 to match.
+
+Don't reintroduce a `flex-direction: column` on `.bips__notion-wrap`
+mobile — that re-promotes the wrap to a real box and the four
+children stop interleaving.
+
+### BIPs / Flows — notes-rail arrow rotations (mobile)
+
+The notes-tab arrow is `ArrowBackIcon` (renders ←). On mobile both
+rails want closed = ↓ (signals "expand down"), open = ↑ (signals
+"collapse up"). The mapping:
+
+- `.flows__notes-arrow` / `.bips__notes-arrow` (open, no `is-flipped`):
+  `transform: rotate(90deg)` → ↑.
+- `.is-flipped` (closed): `transform: rotate(-90deg)` → ↓.
+
+This is the **opposite** of the rotations the section comments
+historically claimed. The pre-correction CSS had `rotate(-90deg)` on
+the open state and `rotate(90deg)` on `.is-flipped`, which actually
+rendered open=↓ / closed=↑ (the reverse of the comment). Don't flip
+back — the current rotations match the comments and the desired
+visual.
+
 ### BIPs — iframe height cap
 
 Desktop passes `height="600"` as an iframe attribute. CSS overrides to
@@ -584,6 +627,31 @@ just bad sizing. Mobile:
   rather than composed. Override both nth-child rules to
   `--tilt: 0deg`.
 
+**Two-line tab labels.** Mobile renders each tab label across two
+stacked lines so the row reads as a uniform block while the graduated
+vertical padding (8 / 12 / 16) still creates a perceptible height
+ladder. Each `<label>` wraps its text in two
+`.demos__tab-label-line` spans separated by `{' '}` — desktop sees
+the spans inline and renders the original single-line strings ("Figma
+Prototypes", "Web-Based Apps", "On-Chain Game") unchanged.
+
+Mobile flips three things to make the stacking actually land:
+
+- `.demos__tab-label-line { display: block; white-space: nowrap }`
+  — block stacks the spans; `nowrap` keeps each word on a single
+  line so "Figma" doesn't wrap to "Figm / a" at narrow widths.
+- `.demos__tab-label { flex-direction: column }` — the label is a
+  flex container (for `align-items: center`); without `column`, the
+  block-display children are still placed as row flex items and the
+  spans render on a single line again.
+- The mobile-only `.demos__tab-label-full` / `.demos__tab-label-short`
+  swap was removed; the new line-spans replace it.
+
+If you ever need to re-tighten widths, drop `min-width: 0; width: 0`
+in lock-step with `flex: 1 1 0` — without all three, the longest
+label ("Web-Based Apps") wins min-content and pushes the row past the
+viewport.
+
 **Don't-touch:**
 
 - Keep the DOM order radio/label triples + trailing disabled span.
@@ -694,6 +762,17 @@ Symbols resolves the glyph from the child text node. If `/rr`'s
 `.rr-story-card__expand` ever gets promoted into a shared primitive,
 re-source this intro pill from the shared module — they should stay
 structurally identical.
+
+**Pill icon: hand-rolled marker (empty/fill), not ExpandToggle.** The
+mobile pill renders `IconHighlighter` (the same SVG used on the
+desktop slide-out toggle), not the shared `ExpandToggle` hooks. Closed
+state = empty stroke (`.icon-hl-tip { fill: none }`); open state =
+filled tip (`.is-active .icon-hl-tip { fill: var(--blue-720) }`). The
+default `.intro__hl-icon` rule paints olive (consumed by the desktop
+toggle); the pill scope retints to blue via
+`.intro-expand .intro__hl-icon { color: var(--blue-720) }`. If you
+move back to ExpandToggle, the family read inside the UX Audit chapter
+fragments — desktop says "marker," mobile suddenly says "hooks."
 
 **Don't touch (dashboard trigger).** Keep `type="button"` and the
 `.text-marker` class. Removing `text-marker` drops the yellow
@@ -928,6 +1007,26 @@ labels. If you change `outline-offset`, change both nudges in lock-step.
   (centered) — both read as broken.
 - Keep both grey sheets monochrome — restoring olive without rethinking
   focal hierarchy returns the palette imbalance the desaturation fixed.
+
+### Staying Anchored — closing prose breathing room (mobile)
+
+The closing prose block reads as three paragraphs visually, but the
+JSX is two `<p>` tags — the second carries an internal `<br/><br/>`
+to split its two sentences. Mobile doubles the breathing room
+between all three:
+
+- `.sa__prose { gap: var(--space-48) }` — doubles the inter-`<p>` gap
+  (24 → 48).
+- `.sa__prose br { display: block; content: ""; margin-top:
+  var(--space-24) }` — promotes the `<br/>` line breaks to block
+  elements with explicit margin so the visible space between the two
+  sentences inside the second `<p>` matches the doubled gap above.
+  Without this, the inter-paragraph gap doubles but the
+  intra-paragraph break stays at the original `<br/>` line height
+  and the rhythm reads inconsistent.
+
+Scoped to mobile only — desktop keeps the original 24px gap and the
+native `<br/>` whitespace.
 
 ### Staying Anchored — photostack breathability
 

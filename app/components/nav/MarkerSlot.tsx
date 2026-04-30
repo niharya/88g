@@ -64,7 +64,7 @@ export default function MarkerSlot({ position, measure = true, children }: Marke
     // via :has() — the class/route change lands in the same frame as
     // the media condition the listener is already watching.
     const mqs = [
-      window.matchMedia('(max-width: 767px)'),
+      window.matchMedia('(max-width: 767px), (max-height: 500px)'),
       window.matchMedia('(max-width: 1023px)'),
     ]
     mqs.forEach(mq => mq.addEventListener('change', publish))

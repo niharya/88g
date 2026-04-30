@@ -32,7 +32,7 @@ export default function NoteRail({ playReveal = false, otherOpen = false, onOpen
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(max-width: 767px)')
+    const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
     const apply = () => setIsMobile(mq.matches)
     apply()
     mq.addEventListener('change', apply)

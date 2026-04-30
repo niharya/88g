@@ -925,7 +925,7 @@ html:has(.route-marks)::-webkit-scrollbar { display: none; }  /* Chrome / Safari
   background: none;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
   .marks-hero-text {
     /* Hero stacks "MARKS &" / "SYMBOLS" on two lines at mobile so the
        lockup reads at editorial scale instead of shrinking to fit one line.

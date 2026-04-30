@@ -5,6 +5,23 @@ summary; read this file before starting a responsive pass.
 
 Breakpoints: mobile < 768px, tablet 768–1023px, desktop ≥ 1024px.
 
+**Landscape-phone clause.** All mobile media queries also OR-clause `(max-height: 500px)`, and all desktop guards AND-clause `(min-height: 501px)`. This catches phones in landscape orientation (iPhone 16 Pro Max landscape is 932×430 — width past the 768 breakpoint, height well below 500) and routes them through the mobile block instead of the desktop block. The 500px threshold sits comfortably above all current phone landscape heights (≤ 430) and well below all tablet portrait heights (≥ 768) so iPad portrait/landscape are unaffected.
+
+When you author a new media query, use these exact compound forms:
+
+```css
+/* Mobile — also catches landscape phones via OR */
+@media (max-width: 767px), (max-height: 500px) { ... }
+
+/* Desktop — guarded against short viewports via AND */
+@media (min-width: 768px) and (min-height: 501px) { ... }
+
+/* Tablet band */
+@media (min-width: 768px) and (max-width: 1023px) and (min-height: 501px) { ... }
+```
+
+The same OR clause applies to JS `matchMedia` checks tied to mobile composition: `window.matchMedia('(max-width: 767px), (max-height: 500px)')`. When CSS and JS gates drift apart, the inline-style overrides Framer writes can fight the CSS layout — keep them in lock-step.
+
 ---
 
 ## Principles

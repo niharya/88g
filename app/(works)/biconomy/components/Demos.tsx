@@ -166,8 +166,8 @@ export default function Demos() {
               htmlFor="demo-figma"
               className={`demos__tab-label demos__tab-label--figma t-h5${currentDemo === 'figma' ? ' demos__tab-label--active' : ''}`}
             >
-              <span className="demos__tab-label-full">Figma Prototypes</span>
-              <span className="demos__tab-label-short">Prototypes</span>
+              <span className="demos__tab-label-line">Figma</span>{' '}
+              <span className="demos__tab-label-line">Prototypes</span>
             </label>
 
             <input
@@ -180,7 +180,8 @@ export default function Demos() {
               htmlFor="demo-web"
               className={`demos__tab-label demos__tab-label--web t-h5${currentDemo === 'web' ? ' demos__tab-label--active' : ''}`}
             >
-              Web-Based Apps
+              <span className="demos__tab-label-line">Web-Based</span>{' '}
+              <span className="demos__tab-label-line">Apps</span>
             </label>
 
             <input
@@ -193,7 +194,8 @@ export default function Demos() {
               htmlFor="demo-game"
               className={`demos__tab-label demos__tab-label--game t-h5${currentDemo === 'game' ? ' demos__tab-label--active' : ''}`}
             >
-              On-Chain Game
+              <span className="demos__tab-label-line">On-Chain</span>{' '}
+              <span className="demos__tab-label-line">Game</span>
             </label>
 
             <span className="demos__tab-disabled t-h5">

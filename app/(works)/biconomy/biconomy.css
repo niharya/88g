@@ -106,7 +106,7 @@
     border-color 1s var(--ease-paper);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (min-height: 501px) {
   .intro__inner {
     padding: var(--space-64); /* md:p-16 */
   }
@@ -1017,7 +1017,7 @@
   position: relative;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (min-height: 501px) {
   .bips__card-inner {
     padding-top: var(--space-48);
     padding: var(--space-64); /* md:p-16 */
@@ -1321,7 +1321,7 @@
   position: relative;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (min-height: 501px) {
   .multiverse__card-inner { padding: 64px; }
 }
 
@@ -2562,7 +2562,7 @@
    biconomy/ANOMALIES.md → "Responsive anomalies".
    ========================================================================== */
 
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
 
   /* ── Nav markers — shared mobile behavior + year hide ─────────────────
      Project/Exit/Chapter markers inherit mobile padding and short-title swap
@@ -2648,6 +2648,16 @@
     display: block;
   }
 
+  /* Pill swaps the desktop slide-out's hand-rolled marker icon (empty
+     stroke at rest, filled tip on open). The shared .intro__hl-icon
+     transitions own the fill animation; we just retint to blue here. */
+  .intro-expand .intro__hl-icon {
+    color: var(--blue-720);
+  }
+  .intro-expand .intro__hl-icon.is-active .icon-hl-tip {
+    fill: var(--blue-720);
+  }
+
   /* ── BIPs — crafted-lite pass ─────────────────────────────────────────
      Composition moves:
      - Grid unbind (Shape 1): 4-col overlap collapses to authored flex column.
@@ -2720,14 +2730,29 @@
   .bips__notion-section {
     padding-left: 0;
     padding-right: 0;
-    gap: var(--space-16);
+    gap: var(--space-24);
+    align-items: stretch;
   }
 
-  .bips__notion-wrap {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-24);
+  /* Left-align the section label to the iframe's left edge. Desktop
+     centers it as a scholarly caption; mobile lands it flush. */
+  .bips__notion-label {
+    text-align: left;
   }
+
+  /* Reorder the section: notion preview → footnote caption → notes
+     accordion. The notes rail lives inside `.bips__notion-wrap` in the
+     DOM; flatten the wrap with `display: contents` so its children
+     become flex items of `.bips__notion-section` and `order` can place
+     them independently of the footnote sibling. The wrap's own gap is
+     dropped — the section's gap takes over for the flattened children. */
+  .bips__notion-wrap {
+    display: contents;
+  }
+  .bips__notion-label  { order: 0; }
+  .bips__iframe-col    { order: 1; }
+  .bips__footnote      { order: 2; text-align: left; }
+  .bips__notes-rail    { order: 3; }
 
   /* Iframe column — drop desktop translate-on-open; stay full-width */
   .bips__iframe-col,
@@ -2769,14 +2794,15 @@
     gap: var(--space-8);
   }
 
-  /* Arrow re-targeted for horizontal accordion direction:
-     open → ↑ (collapse), .is-flipped (closed) → ↓ (expand). */
+  /* Arrow re-targeted for vertical accordion direction:
+     open → ↑ (collapse), .is-flipped (closed) → ↓ (expand).
+     ArrowBackIcon points ←; rotate(90deg) lands ↑, rotate(-90deg) lands ↓. */
   .bips__notes-arrow {
-    transform: rotate(-90deg);
+    transform: rotate(90deg);
   }
 
   .bips__notes-arrow.is-flipped {
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
   }
 
   .bips__notes-content {
@@ -2939,12 +2965,13 @@
   }
 
   /* Arrow re-targeted for vertical accordion:
-     open → ↑ (collapse), .is-flipped (closed) → ↓ (expand). */
+     open → ↑ (collapse), .is-flipped (closed) → ↓ (expand).
+     ArrowBackIcon points ←; rotate(90deg) lands ↑, rotate(-90deg) lands ↓. */
   .flows__notes-arrow {
-    transform: rotate(-90deg);
+    transform: rotate(90deg);
   }
   .flows__notes-arrow.is-flipped {
-    transform: rotate(90deg);
+    transform: rotate(-90deg);
   }
 
   /* Content: collapse to zero-height closed; open reveals list.
@@ -2991,9 +3018,16 @@
      affordance. ±1° tilts dropped — a single visible tilted item reads
      as broken rather than composed. */
 
-  /* Label swap: mobile shows the short form */
-  .demos__tab-label-full { display: none; }
-  .demos__tab-label-short { display: inline; }
+  /* Two-line labels on mobile: each label JSX is wrapped in two
+     `.demos__tab-label-line` spans. Block display stacks them onto
+     individual lines; `white-space: nowrap` keeps each span on a single
+     line so the cell reads as exactly two stacked words rather than
+     letting "Figma" or "Prototypes" wrap mid-word at narrow widths.
+     Graduated vertical padding still creates the height difference. */
+  .demos__tab-label-line {
+    display: block;
+    white-space: nowrap;
+  }
 
   /* Tab group → two-row box */
   .demos__tab-group {
@@ -3005,14 +3039,15 @@
     align-items: flex-start;
   }
 
-  /* Row 1 — evolution tag full-width, top of the stack */
+  /* Row 1 — evolution tag full-width, top of the stack. Left-align text
+     to the tab box's inner edge instead of centering. */
   .demos__tab-disabled {
     order: 0;
     flex: 1 1 100%;
     margin-left: 0;
     padding: var(--space-12) var(--space-16);
-    justify-content: center;
-    text-align: center;
+    justify-content: flex-start;
+    text-align: left;
     min-height: 44px;
     align-items: center;
   }
@@ -3033,10 +3068,12 @@
     min-width: 0;
     width: 0;
     margin-top: -1px;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     word-break: break-word;
+    line-height: 1.2;
   }
 
   .demos__tab-label--figma { padding: var(--space-8)  var(--space-8); }
@@ -3051,6 +3088,10 @@
   /* ── Title header + single media row: drop 128px cushion ──────────── */
   .demos__title-header {
     padding: var(--space-16) var(--space-24) 0;
+    align-items: flex-start;
+  }
+  .demos__title {
+    text-align: left;
   }
 
   .demos__media-row--single {
@@ -3090,10 +3131,22 @@
     width: 100%;
   }
 
-  /* Caption: desktop locks width:20rem (320px) which crushes at 375px */
+  /* Caption: desktop locks width:20rem (320px) which crushes at 375px.
+     Left-align caption + button content so the caption flushes to the
+     video's left edge instead of centering under the frame. */
+  .demos__video-item {
+    align-items: flex-start;
+    text-align: left;
+  }
   .demos__video-item .demos__caption {
     width: auto;
     max-width: 100%;
+    text-align: left;
+  }
+  .demos__caption-row {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
   }
 
   /* Image height fix — desktop sets `height: 70vh` on .demos__image-el
@@ -3136,6 +3189,26 @@
     border-radius: 12px;
   }
 
+  /* Web3-abstractor tooltip — left-align the 2-line copy. The JSX
+     already carries an explicit `<br/>` so the line break is preserved;
+     this drops the desktop `text-align: center` only. */
+  .demos__web3-tooltip {
+    text-align: left;
+  }
+
+  /* Header blue card — left-align the running text, mirroring the
+     UX Audit intro card. Desktop centers via `align-items: center` and
+     `text-align: center` on the subtitle; mobile flushes everything to
+     the card's inner left edge. */
+  .demos__header-inner,
+  .demos__header-text {
+    align-items: flex-start;
+  }
+  .demos__header-h2,
+  .demos__header-sub {
+    text-align: left;
+  }
+
   /* ── Multiverse — crafted-lite pass ────────────────────────────────────
      Composition moves:
      - Grid unbind: 4-col grid collapses to flex column so header, poster,
@@ -3166,12 +3239,18 @@
     max-width: none;
   }
 
-  /* Before/After caption rows — drop inner grid; unbind text max-widths */
+  /* Before/After caption rows — drop inner grid; unbind text max-widths;
+     left-flush so "Once I had…" / "They agreed with…" anchor to the
+     section's left edge instead of centering on the column. */
   .multiverse__before-row,
   .multiverse__after-row {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     padding-inline: var(--space-24);
+  }
+  .multiverse__before-text,
+  .multiverse__after-text {
+    text-align: left;
   }
 
   .multiverse__before-text {
@@ -3221,6 +3300,19 @@
   .api__card-outer {
     padding: var(--space-40);
     max-width: none;
+  }
+
+  /* Header card — left-align the running text, mirroring the UX Audit
+     intro card. Desktop centers via `align-items: center` + `text-align:
+     center` on the h2; mobile flushes everything to the card's inner
+     left edge. */
+  .api__card-inner,
+  .api__card-text {
+    align-items: flex-start;
+  }
+  .api__h2,
+  .api__subtitle {
+    text-align: left;
   }
 
   /* Block 1 — slider + side-sheet stack. Extra gap between the header
@@ -3337,6 +3429,20 @@
     max-width: 280px;
     max-height: 360px;
   }
+
+  /* Double the breathing room between the closing three paragraphs.
+     Inter-paragraph gap doubles from 24 → 48; the inner sentence break
+     in the second paragraph (rendered as `<br/><br/>`) is widened by
+     making the line breaks block elements with explicit margin so the
+     visible gap matches. Scoped to the closing prose only. */
+  .sa__prose {
+    gap: var(--space-48);
+  }
+  .sa__prose br {
+    display: block;
+    content: "";
+    margin-top: var(--space-24);
+  }
 }
 
 
@@ -3420,7 +3526,7 @@
 /* Mobile — recompose to flow layout so the card fits inside the viewport.
    Desktop keeps the absolute-positioned painting; mobile collapses to
    stacked children sized to card width. */
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
   .bicon-marker-info-card {
     width: min(408px, calc(100vw - 2 * var(--workbench-pad-x)));
     height: auto;

@@ -93,6 +93,10 @@ skipping one of these.
 - **430px** — iPhone Pro Max. Sanity check: composition still reads.
 - **768px** — tablet edge. If the mobile block covers this correctly, you
   don't need a tablet block.
+- **932×430** — iPhone Pro Max in landscape. Verifies the
+  landscape-phone clause is active (mobile composition fires even though
+  the width crosses 768). If the page reverts to a desktop layout here,
+  the media query is missing the `(max-height: 500px)` OR-clause.
 - **1024px** and **1440px** — desktop parity. Unchanged vs. before. If
   anything moved on desktop, the pass already went wrong.
 

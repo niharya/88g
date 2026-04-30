@@ -132,7 +132,7 @@ Full reference: [`docs/responsive.md`](./docs/responsive.md). Read it before sta
 
 Core principles:
 
-* **Breakpoints:** mobile < 768px, tablet 768–1023px, desktop ≥ 1024px.
+* **Breakpoints:** mobile < 768px, tablet 768–1023px, desktop ≥ 1024px. Mobile media queries also OR `(max-height: 500px)`; desktop guards AND `(min-height: 501px)` — catches phones in landscape (Pro Max 932×430) and routes them through the mobile block. JS `matchMedia` calls tied to mobile composition use the same OR-clause. See `docs/responsive.md` → "Landscape-phone clause".
 * **Recompose, don't replicate.** Mobile is a purposeful different composition, not desktop scaled down.
 * **No hacks.** No `transform: scale()` on text, no `!important` chains, no hidden-but-present DOM tricks.
 * **Structural breakpoints for layout, fluid scaling for sizing** (clamp, vw). No JS media queries.

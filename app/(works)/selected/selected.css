@@ -681,7 +681,7 @@ a.ap-entry:hover .icon-ext .icon-ext-arrow {
 
 /* Responsive archive toggle label — desktop vs mobile copy */
 .archive-toggle-label--mobile { display: none; }
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
   .archive-toggle-label--desktop { display: none; }
   .archive-toggle-label--mobile { display: inline; }
 }
@@ -835,7 +835,7 @@ a.ap-entry:hover .ap-entry__hint {
    Mobile — max-width: 767px
    ========================================================================== */
 
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
 
   /* ── Layout: flow instead of absolute ──────────────────────────────────── */
   /* Mat extends to fill any remaining viewport height so the grid surface    */
@@ -1141,7 +1141,7 @@ a.ap-entry:hover .ap-entry__hint {
    Tablet — 768px to 1023px
    ========================================================================== */
 
-@media (min-width: 768px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px) and (min-height: 501px) {
 
   /* ── Layout: two-column but narrower ───────────────────────────────────── */
 

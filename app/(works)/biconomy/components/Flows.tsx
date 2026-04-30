@@ -87,7 +87,7 @@ export default function Flows() {
   useEffect(() => {
     if (!showNotes) return
     if (typeof window === 'undefined') return
-    if (!window.matchMedia('(max-width: 767px)').matches) return
+    if (!window.matchMedia('(max-width: 767px), (max-height: 500px)').matches) return
     const id = requestAnimationFrame(() => {
       const el = headerLeftRef.current
       if (!el) return

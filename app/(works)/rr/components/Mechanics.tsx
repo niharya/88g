@@ -106,7 +106,7 @@ export default function Mechanics() {
     // Skipped on mobile — there is no scroll-bound mat split to advance to;
     // primary + secondary stack as siblings and auto-scrolling past the game
     // board on game-end hijacks the user's position.
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) return
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px), (max-height: 500px)').matches) return
     if (autoScrollTimer.current) clearTimeout(autoScrollTimer.current)
     autoScrollTimer.current = setTimeout(() => {
       const scene = sceneRef.current

@@ -22,7 +22,6 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { TAB_EASE } from '../../../lib/motion'
 import IconHighlighter from './IconHighlighter'
-import { ExpandToggle } from '../../../components/ExpandToggle'
 
 export default function Intro() {
   const [open, setOpen] = useState(false)
@@ -31,7 +30,7 @@ export default function Intro() {
   // SSR default: false — matches the closed state's x:0 at hydration.
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
+    const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
     const sync = () => setIsMobile(mq.matches)
     sync()
     mq.addEventListener('change', sync)
@@ -116,12 +115,14 @@ export default function Intro() {
         animate={{ x: open ? openX : 0, rotate: open ? -1 : 0, scale: open ? 0.95 : 1 }}
         transition={{ type: 'spring', duration: 0.6, bounce: 0.15 }}
       >
-        {/* Expand/collapse pill — mobile-only affordance. Ported from /rr
-            Intro's `.rr-story-card__expand`: a single-icon rounded pill
-            inset into the top-right of the card. Uses the shared
-            ExpandToggle SVG (currentColor inherits `.intro-expand`'s blue
-            tint) so all three call sites — landing, rr, biconomy — show
-            the same hand-drawn-feel hooks. */}
+        {/* Expand/collapse pill — mobile-only affordance. Pill shape ported
+            from /rr Intro's `.rr-story-card__expand` (single-icon rounded
+            pill inset into the top-right of the card), but the icon is the
+            biconomy-local `IconHighlighter` rather than `ExpandToggle` —
+            the marker (empty stroke ↔ filled tip) keeps the UX Audit
+            chapter's highlighter motif consistent with the desktop
+            slide-out toggle. See ANOMALIES → "Pill icon: hand-rolled
+            marker". */}
         <button
           type="button"
           className="intro-expand"
@@ -129,7 +130,10 @@ export default function Intro() {
           aria-expanded={open}
           aria-label={open ? 'Hide context' : 'Reveal context'}
         >
-          <ExpandToggle expanded={open} className="intro-expand__icon" />
+          <IconHighlighter
+            size={20}
+            className={`intro-expand__icon intro__hl-icon${open ? ' is-active' : ''}`}
+          />
         </button>
 
         {/* Inner card */}

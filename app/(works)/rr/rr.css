@@ -2902,7 +2902,7 @@
    See ANOMALIES.md § "Responsive anomalies" for rationale + drop-outs.
    ========================================================================== */
 
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
 
   /* Halve the workbench horizontal pad on mobile (24 → 12) so the docked
      nav markers — ProjectMarker, ChapterMarker, ExitMarker — get more room
@@ -3685,7 +3685,7 @@
 /* Mobile — recompose to flow layout so the card fits inside the viewport.
    Desktop keeps the absolute-positioned painting; mobile collapses to
    stacked children with the illus pinned to the card's top-right. */
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) {
   .rr-marker-info-card {
     width: min(408px, calc(100vw - 2 * var(--workbench-pad-x)));
     height: auto;

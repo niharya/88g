@@ -266,7 +266,7 @@ The portfolio's expand/collapse glyph as an inline SVG. Hand-drawn-feel hooks po
 
 **Where it lives**
 - [app/components/ExpandToggle/ExpandToggle.tsx](app/components/ExpandToggle/ExpandToggle.tsx)
-- Consumers: [app/page.tsx](app/page.tsx) (landing pill-btn, terra), [app/(works)/rr/components/Intro.tsx](app/(works)/rr/components/Intro.tsx) (rr-story-card pill, yellow), [app/(works)/biconomy/components/Intro.tsx](app/(works)/biconomy/components/Intro.tsx) (intro-expand pill, blue, mobile-only).
+- Consumers: [app/page.tsx](app/page.tsx) (landing pill-btn, terra), [app/(works)/rr/components/Intro.tsx](app/(works)/rr/components/Intro.tsx) (rr-story-card pill, yellow). /biconomy's mobile pill renders the route-local `IconHighlighter` instead — the marker (empty ↔ filled) keeps the UX Audit chapter's highlighter motif consistent with the desktop slide-out toggle (see biconomy ANOMALIES → "Pill icon: hand-rolled marker").
 
 **AI notes**
 - **Promoted in v0.59.** Previously the SVG lived inline in `app/page.tsx` and the two case-study consumers used Material Symbols `expand_content`/`collapse_content` ligatures — three call sites, two visual families. Now one component, one shape.
