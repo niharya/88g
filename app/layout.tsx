@@ -155,32 +155,36 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${fraunces.variable} ${googleSans.variable} ${googleSansFlex.variable} ${googleSansCode.variable} ${materialSymbols.variable}`} suppressHydrationWarning>
       <head>
-        {/* Bounded font gate. Holds top-level page surfaces (.landing,
-            .workbench, .route-marks) at opacity 0 until either
-            `document.fonts.ready` resolves OR a 1000 ms cap fires —
-            whichever first. The .page-boot startooth below is sibling
-            to those surfaces so it remains visible during the hold.
-            The cap is the filter that lets us skip waiting on the
-            1.18 MB Material Symbols on slow connections — typography
-            fonts almost always finish within ~1 s; MS keeps loading
-            after release and ligature glyphs swap in when ready.
+        {/* Font gate — JS shortcut path. Lands `.fonts-ready` on <html>
+            either when `document.fonts.ready` resolves or when a 1000 ms
+            cap fires. CSS in globals.css consumes the class to fade
+            .landing / .workbench / .route-marks in and the .page-boot
+            diamond out.
+
+            This is no longer the only release path. globals.css carries
+            a CSS-only failsafe animation that auto-releases the gate at
+            1500 ms regardless of whether this script runs — see
+            "Font gate" in globals.css. The failsafe exists because
+            stylesheet <link> tags rendered by Next into <head> appear
+            BEFORE this inline script, and per HTML spec a script after
+            a stylesheet is blocked until that stylesheet loads. On
+            cold-cache first opens the JS cap doesn't even start
+            counting until CSS lands; without the failsafe, the diamond
+            can appear stuck. Both paths set the same end state.
 
             Why a vanilla <script dangerouslySetInnerHTML> and NOT
             <Script strategy="beforeInteractive">: in App Router,
             beforeInteractive Script with inline content does not get
             inlined as a real <script> tag — it gets queued through
             self.__next_s.push([...]) and only executes after the async
-            framework scripts (main-app.js, app-pages-internals.js,
-            etc.) finish loading and process the queue. On slow
-            connections or under CPU pressure that delay is several
-            seconds, during which the gate script never runs,
-            `.fonts-ready` is never set, surfaces stay at opacity 0,
-            and the diamond appears stuck. A vanilla inline <script>
-            executes synchronously during HTML parse — before any
-            async framework script — which is what this gate needs.
+            framework scripts process the queue, which can be several
+            seconds on slow connections. A vanilla inline <script>
+            executes during HTML parse, which is what we want for the
+            shortcut path.
 
-            Do not raise the cap past 1000 ms — past 1 s users start
-            to wonder. Banned predecessor: the 3-second uncapped gate. */}
+            Do not raise the JS cap past 1000 ms (the failsafe is the
+            ceiling, not this). Banned predecessor: the 3-second
+            uncapped gate. */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){var d=false;var r=function(){if(d)return;d=true;document.documentElement.classList.add('fonts-ready');};var c=setTimeout(r,1000);if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){clearTimeout(c);r();});}else{clearTimeout(c);r();}})();`,

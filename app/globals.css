@@ -320,28 +320,41 @@
 }
 
 /* ── Font gate ───────────────────────────────────────────────────────────
-   Top-level surfaces are held invisible until `.fonts-ready` lands on
-   <html>. The script in app/layout.tsx adds the class either when
-   document.fonts.ready resolves or when an 800 ms cap fires (whichever
-   first), so users with normal-speed connections never see fallback
-   metrics, and users on slow connections see the page within 1 second
-   even if Material Symbols hasn't finished loading. The .page-boot
-   startooth lives outside these gated surfaces, so it remains visible
-   during the hold. */
+   Top-level surfaces are held invisible until either
+     (a) the inline script in app/layout.tsx lands `.fonts-ready` on
+         <html> — fires when document.fonts.ready resolves OR its 1000 ms
+         JS cap, whichever first; OR
+     (b) the CSS-only failsafe animation below auto-releases the gate at
+         1500 ms.
+   The failsafe is the bulletproof path: it runs purely from declarative
+   CSS, so a fresh device whose first paint is delayed by CSS-fetch
+   blocking the inline script (scripts after a stylesheet wait for it),
+   hydration pressure, or any environment where the script is late or
+   never runs, will still see the page. Without the failsafe the diamond
+   could appear "stuck" indefinitely on cold-cache first opens.
+
+   Both paths set the same end state (opacity: 1, pointer-events: auto)
+   so the JS path can shortcut the failsafe at any time without conflict.
+   The .page-boot startooth lives outside these gated surfaces. */
+@keyframes page-gate-failsafe {
+  to { opacity: 1; pointer-events: auto; }
+}
 .landing,
 .workbench,
 .route-marks {
   opacity: 0;
-  /* Defensive: even if the gate ever fails to release, gated surfaces
-     can't receive clicks while invisible. opacity:0 alone does not
-     block events; this does. */
+  /* opacity:0 alone does not block events — pointer-events:none does.
+     The failsafe animation flips both at the same keyframe. */
   pointer-events: none;
+  animation: page-gate-failsafe 1ms linear 1500ms forwards;
 }
 html.fonts-ready .landing,
 html.fonts-ready .workbench,
 html.fonts-ready .route-marks {
   opacity: 1;
   pointer-events: auto;
+  /* Cancel the failsafe so the JS path's transition owns the reveal. */
+  animation: none;
   transition: opacity var(--dur-settle) var(--ease-paper);
 }
 
@@ -383,7 +396,13 @@ html.fonts-ready .route-marks {
   pointer-events: none;
   z-index: 1;
   opacity: 0;
-  animation: page-boot-in var(--dur-slide) var(--ease-paper) 200ms forwards;
+  /* Two animations in sequence: in at 200ms, then a CSS-only failsafe
+     fade-out at 1500ms. Pairs with the gate failsafe above so the
+     diamond never outlives the gate when JS is late or never runs.
+     `html.fonts-ready .page-boot` overrides this with the JS path. */
+  animation:
+    page-boot-in var(--dur-slide) var(--ease-paper) 200ms forwards,
+    page-boot-out var(--dur-slide) var(--ease-paper) 1500ms forwards;
 }
 
 .page-boot__mark {
