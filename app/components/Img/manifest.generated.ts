@@ -124,10 +124,10 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/biconomy/api/send_assets.webp": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "8wcGBIAnWDeKd2mAhpcZLG8+DQ==",
+    "thumbHash": "9QeCA4AeNaqPdXQCatxfOTg3h4iAdBg=",
     "width": 478,
     "height": 254,
-    "hasAlpha": false
+    "hasAlpha": true
   },
   "/images/biconomy/demos/after.webp": {
     "dominantColor": "rgb(168, 136, 104)",
@@ -158,11 +158,11 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "hasAlpha": false
   },
   "/images/biconomy/demos/web3_abstractor.webp": {
-    "dominantColor": "rgb(24, 24, 24)",
-    "thumbHash": "nSgOFIQmW3g0poewios3RHBDBA==",
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "NUmCA4AnxYtsZX86k6AzCSZbNKawulg=",
     "width": 546,
     "height": 302,
-    "hasAlpha": false
+    "hasAlpha": true
   },
   "/images/biconomy/flows/gas_tank_setup_after.webp": {
     "dominantColor": "rgb(24, 24, 24)",

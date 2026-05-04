@@ -343,7 +343,7 @@
 
 /* ── Responsive — narrow viewports ─────────────────────────────────────── */
 
-@media (max-width: 640px) {
+@media (max-width: 767px), (max-height: 500px) {
   /* Stack the row vertically: credit on top (centered), mid-divider,
      then a centered link cluster below. The top divider stays at the
      workbench seam; the new mid-divider sits between the two rows.

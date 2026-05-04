@@ -6,7 +6,7 @@
 // Layout (default variant):
 //
 //     ────────────────────────────────────────────────────────────
-//     Designed and dev. by Nihar, 2026   Privacy │ LinkedIn │ X │ GitHub
+//     Made in 2026   Privacy │ LinkedIn │ X │ GitHub
 //
 // Single row beneath the divider. Credit docks to the left, links dock
 // to the right. Within the links group, each link's padded box is the
@@ -26,7 +26,7 @@ const LINKS: { label: string; href: string; external?: boolean }[] = [
   { label: 'GitHub', href: 'https://github.com/niharya', external: true },
 ]
 
-const CREDIT = 'Designed and built with Claude by Nihar, 2026'
+const CREDIT = 'Made in 2026'
 
 // Hover-fill palettes for default-variant link cells, scoped per route.
 // Each route's two hues at the 800 luminance step — deeper / more

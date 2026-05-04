@@ -116,7 +116,37 @@ Flag ⚠ for each deviation without a comment trail.
 - Verify `ANOMALIES.md` for that route has a "Responsive anomalies" section if drop-outs were made.
 - Flag ⚠ if responsive changes went in without the section being updated.
 
-### 10. Verification
+### 10. Performance hygiene (conditional)
+
+Reference: `docs/performance.md`. Run these checks **only if** the diff touches the matching surface area.
+
+**Fonts (touched `app/fonts/` or font config in `app/layout.tsx`):**
+- Any new `.woff2` added without a corresponding `localFont(...)` block in `layout.tsx`?
+- Any new external `<link>` to `fonts.googleapis.com` (or any CDN) reintroduced into `layout.tsx`?
+- Any reintroduction of the `font-gate` script or `.fonts-ready` / `.page-boot` CSS hooks?
+- Any `display:` value other than `'block'` on a new `localFont`?
+- `app/fonts/MaterialSymbolsRounded-normal.woff2` size jumped above ~1.3 MB? (May indicate the full font was committed.)
+
+Flag each as ⚠ with the file and the proposed fix per `docs/performance.md` → "Fonts" / "Material Symbols icons".
+
+**Images (touched `public/images/`):**
+- Any new raw `.png` / `.jpg` / `.jpeg` over **400 KB** committed without a `.webp` sibling in the same directory?
+- Any individual image file over **1 MB** in any format? (Soft per-file budget exceeded — needs justification.)
+- Any `<img>` or `<Image>` reference to a deleted raster path?
+
+Flag with file:size — propose `npm run optimize-images` and re-running `npm run lqip`.
+
+**Material Symbols icons (touched any `.tsx` with `material-symbols-rounded`):**
+- Any new ligature name (text content of a `material-symbols-rounded` span, or value passed to `<NavMarker icon=...>`) that isn't in the subsetted icon list in `docs/performance.md` → "Material Symbols icons"?
+
+Flag as ⚠ with the new name — propose adding it and re-subsetting per the doc.
+
+**Motion tokens (touched `--dur-*` declarations in `app/globals.css`):**
+- Any of `--dur-instant`, `--dur-fast`, `--dur-slide`, `--dur-settle`, `--dur-glide` changed?
+
+Flag as ⚠ — propose either reverting or noting the rationale in `docs/performance.md` → "Motion tokens".
+
+### 11. Verification
 
 **If** the diff touched any file that would be observable in `preview_*` (components, route CSS, globals.css, layouts):
 
@@ -148,6 +178,8 @@ Examples of well-formed lines:
 - `⚠  CLAUDE.md: /prepush skill added but not mentioned in "Versioning and pushing".`
 - `↳  Agent suggestion: responsive-guardian — diff touches 4 @media blocks. Run it?`
 - `↳  UI-observable diff; dev server not started this session — preview before push?`
+- `⚠  Perf: rr-hero.png (2.1 MB) committed without .webp — run npm run optimize-images?`
+- `⚠  Perf: new icon "settings" used in NavMarker but not in subsetted list — re-subset?`
 
 If all checks pass, say so:
 
