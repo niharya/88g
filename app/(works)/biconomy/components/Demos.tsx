@@ -28,6 +28,9 @@ interface MediaItem {
   caption: string
   linkLabel?: string
   linkUrl?: string
+  /** Optional Figma embed URL — when present, desktop renders an iframe
+      and `src` is used as the mobile fallback image. */
+  embedUrl?: string
 }
 
 interface Demo {
@@ -59,7 +62,8 @@ const DEMOS: Record<string, Demo> = {
     media: [
       {
         src: '/images/biconomy/demos/web.webp',
-        caption: 'The entry point to the demo: choosing a signer (wallet, social login, passkey) made real and usable rather than abstractions.',
+        caption: 'A live demo — click through the flow to choose a signer (wallet, social login, passkey).',
+        embedUrl: 'https://embed.figma.com/proto/g0UcX73oUXSVMCfTzYtY8Y/2024-Workshop?node-id=899-5998&viewport=-21851%2C584%2C0.68&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=899%3A5998&show-proto-sidebar=1&page-id=499%3A34064&embed-host=share',
       },
     ],
   },
@@ -87,6 +91,17 @@ export default function Demos() {
   const currentDemoData = DEMOS[currentDemo]
   const currentMedia = currentDemoData?.media ?? []
   const mediaType = currentDemoData?.type ?? 'image'
+  // Mobile gate for the Figma proto embed — keeps the iframe off phones
+  // (cramped to interact with, ~1–2 MB to fetch). null on first paint so
+  // we render the cheap image until the breakpoint resolves.
+  const [isMobile, setIsMobile] = useState<boolean | null>(null)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   const togglePlay = (index: number) => {
     const v = videoRefs.current[index]
@@ -235,7 +250,22 @@ export default function Demos() {
               transition={TAB_BODY_TRANSITION}
             >
               {currentMedia.map((item, i) => (
-                mediaType === 'video' ? (
+                item.embedUrl && isMobile === false ? (
+                  <div key={`${currentDemo}-${i}`} className="demos__embed-item">
+                    <div className="demos__embed-frame">
+                      <iframe
+                        src={item.embedUrl}
+                        className="demos__embed-iframe"
+                        allowFullScreen
+                        loading="lazy"
+                        title={`${currentDemo} prototype`}
+                      />
+                    </div>
+                    <div className="demos__caption-row">
+                      <p className="demos__caption t-caption">{item.caption}</p>
+                    </div>
+                  </div>
+                ) : mediaType === 'video' ? (
                   <button
                     key={`${currentDemo}-${i}`}
                     type="button"

@@ -620,7 +620,11 @@ just bad sizing. Mobile:
   irrelevant when items are authored-sized.
 - `.demos__video-item .demos__caption { width: auto; max-width:
   100% }` — desktop locks `width: 20rem` (320px), which crushes the
-  layout at 375px.
+  layout at 375px. Centering (`align-items: center` / `text-align:
+  center`) is preserved from desktop on mobile too — earlier passes
+  left-flushed the caption + play icon under the frame, but that read
+  as ragged below a centered title; current stance keeps everything
+  axis-centered under each video.
 - **±1° tilts dropped.** Desktop sets `--tilt: -1deg` / `1deg` on
   `:nth-child(1)` / `(2)`. When only one video is visible at a
   time in the scroll strip, a lone tilted item reads as broken
@@ -669,7 +673,41 @@ viewport.
   two aren't compatible.
 - Title-header cushion (`padding: 20px 128px 0` → `20px 24px 0`) is
   a literal 24px today. When the `--biconomy-card-inset-x` token
-  lands (plan item #6), swap literals for token.
+  lands (plan item #6), swap literals for token. The title itself
+  stays centered on mobile (desktop default holds); previous passes
+  set `align-items: flex-start` + `text-align: left` here and that
+  has been reverted.
+
+**Header card inner padding (mobile).** `.demos__header-card` is the
+blue surface; `.surface` gives it 8px outer padding, but the
+desktop `.demos__header-inner` uses `padding: 48px 0` — zero
+horizontal inset. On mobile that left text snug against the blue
+edge (~8px). Mobile override: `padding: var(--space-40) var(--space-32)`
+on `.demos__header-inner` — lands the running text 40px from the
+blue card edge, matching `.api__card-outer` mobile padding. The
+horizontal token is `--space-32` (not `--space-40`) because the
+8px surface inset already contributes; 8 + 32 = 40 from card edge
+to text.
+
+**Web tab — Figma proto iframe (desktop only).** Tab 2's content
+is a static `web.webp` on mobile and a live Figma proto iframe on
+desktop. Gating lives in `Demos.tsx` via `matchMedia('(max-width:
+767px), (max-height: 500px)')` with `null` initial state — same
+pattern as `Intro.tsx`. The iframe (~1–2 MB third-party) is too
+cramped to operate at 375px and pulls weight without payoff, so
+mobile keeps the screenshot as evidence. The render branch
+(`item.embedUrl && isMobile === false`) checks `=== false`
+explicitly so the `null` first-paint state doesn't accidentally
+mount the iframe before the breakpoint resolves. Iframe carries
+`loading="lazy"` so even on desktop the fetch defers until the
+section enters viewport. Frame uses `aspect-ratio: 16 / 9;
+max-width: calc(70vh * 16 / 9)` — caps height at 70vh to mirror
+the image fallback's vertical envelope so both tabs share the same
+visual slot.
+
+Selectors: `.demos__embed-item` (column wrapper), `.demos__embed-frame`
+(16:9 aspect-ratio box, capped at 70vh tall, centered via `margin: 0
+auto`), `.demos__embed-iframe` (fills frame, `border: 0`).
 
 ### Nav markers — year hide (Shape 6 / Shape 7)
 
@@ -904,6 +942,14 @@ Composition moves:
   and `.multiverse__after-text` to `max-width: 240px` inside their grid
   columns. Mobile drops the cap so captions use the full column width
   with a standard `--space-24` cushion.
+- **Caption alignment is centered, not left-flushed.** The grey
+  before/after captions ("Once I had…" / "They agreed with…") read as
+  quiet margin notes under the centered poster, not as flushed
+  paragraph copy. `.multiverse__before-row` / `.multiverse__after-row`
+  use `justify-content: center`; the text uses `text-align: center`.
+  An earlier crafted-lite pass set both to `flex-start` / `left` —
+  reverted because it disconnected the captions from the centered
+  poster column above them.
 
 ### API — layout, palette, and crafted-lite pass
 
