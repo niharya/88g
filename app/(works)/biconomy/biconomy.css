@@ -1849,7 +1849,7 @@
   background: white;
   border: 2px solid var(--mint-100);
   gap: var(--space-8);
-  padding: 32px 80px 36px;
+  padding: 32px 80px 36px var(--space-48);
 }
 
 .demos__quote-text {
@@ -3207,6 +3207,10 @@
   .demos__header-h2,
   .demos__header-sub {
     text-align: left;
+  }
+
+  .demos__quote-card {
+    padding: var(--space-40);
   }
 
   /* ── Multiverse — crafted-lite pass ────────────────────────────────────
