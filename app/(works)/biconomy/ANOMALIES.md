@@ -700,14 +700,14 @@ mobile keeps the screenshot as evidence. The render branch
 explicitly so the `null` first-paint state doesn't accidentally
 mount the iframe before the breakpoint resolves. Iframe carries
 `loading="lazy"` so even on desktop the fetch defers until the
-section enters viewport. Frame uses `aspect-ratio: 16 / 9;
-max-width: calc(70vh * 16 / 9)` — caps height at 70vh to mirror
-the image fallback's vertical envelope so both tabs share the same
-visual slot.
+section enters viewport. Frame is a flexible `width: 100%; height:
+70vh` rectangle — no aspect-ratio lock. Figma's `scaling=min-zoom`
+fits the proto inside; we don't force geometry it has to fight.
+Border-radius is 0 (the proto's own chrome carries the framing).
 
 Selectors: `.demos__embed-item` (column wrapper), `.demos__embed-frame`
-(16:9 aspect-ratio box, capped at 70vh tall, centered via `margin: 0
-auto`), `.demos__embed-iframe` (fills frame, `border: 0`).
+(70vh-tall flexible box, centered via `margin: 0 auto`),
+`.demos__embed-iframe` (fills frame, `border: 0`).
 
 ### Nav markers — year hide (Shape 6 / Shape 7)
 

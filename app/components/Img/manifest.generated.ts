@@ -145,10 +145,10 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/images/biconomy/demos/game.webp": {
     "dominantColor": "rgb(120, 120, 136)",
-    "thumbHash": "XAcKFYKot1ZpZYSAbUaIi4x9kPc2",
-    "width": 3444,
-    "height": 2450,
-    "hasAlpha": false
+    "thumbHash": "XAeKFIIPqLh4dJBNyMgHeW/y8HB4eHiHBw==",
+    "width": 1896,
+    "height": 1348,
+    "hasAlpha": true
   },
   "/images/biconomy/demos/web.webp": {
     "dominantColor": "rgb(24, 24, 24)",

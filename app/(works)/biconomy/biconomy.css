@@ -1839,12 +1839,9 @@
 }
 
 .demos__embed-frame {
-  position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-width: calc(70vh * 16 / 9);
+  height: 70vh;
   margin: 0 auto;
-  border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-resting);
 }
