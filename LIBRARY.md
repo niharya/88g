@@ -501,6 +501,27 @@ Shared shell for the portfolio's "fun play" elements — the paper-roll and RR d
 
 ---
 
+## LabelSticker
+
+Text-based sticker variant. Composes `<Sticker>` for the family contract (drop-shadow, hover lift, `:active` press, `tilt`, `clickRotate`, `jitter`) and adds a typeset label as the inner art. Adding a new label sticker is a `shape` + `tone` + `children` call — no new SVG, no new raster. The shape vocabulary references the bookish library-sticker family (FRANCINE plaque, DUE DATE ticket, etc.).
+
+**Where it lives**
+- [app/components/LabelSticker/LabelSticker.tsx](app/components/LabelSticker/LabelSticker.tsx) — component + `LabelStickerProps` (`children` / `shape` / `tone` / forwarded `StickerProps`). `'use client'` only because `<Sticker>` is.
+- [app/components/LabelSticker/label-sticker.css](app/components/LabelSticker/label-sticker.css) — shape blocks (`pill`, `plaque`, `ticket`) and tone blocks (`cream`, `orange`, `green`).
+
+**AI notes**
+- **Composition over duplication.** LabelSticker wraps `<Sticker>` rather than re-implementing it. The wrapper element is the `.sticker` (with all its shadow/lift/press semantics); the `.label-sticker__face` inside is just the visible silhouette + label. Don't add shadow/lift CSS to `.label-sticker__face` — the family contract already provides it.
+- **Drop-shadow alignment.** The wrapper sets `display: inline-block` and `line-height: 0` so the `filter: drop-shadow(...)` on `.sticker` follows the rounded silhouette of the inner face, not the line-box around it. Removing either will detach the shadow from the shape.
+- **Shapes are silhouettes.** `pill` is a true capsule — `border-radius: 999px` so the ends always render as half-circles regardless of font-size. `plaque` is a rounded rectangle with visible corners (FRANCINE / READERS reference). `ticket` is a rounded rectangle with an outer outline + an inset dashed perforation drawn via `::before` (DUE DATE reference). The dashed line is *inside* the fill — the wrapper's drop-shadow follows the outer rounded rectangle, not the dashes. Adding a shape (e.g. `seal`, `banner`) is a new block in `label-sticker.css` keyed off a face modifier — flag promotion before growing the vocabulary further.
+- **Tones are two-tone presets.** Each tone resolves to `--label-fill` + `--label-ink` via portfolio palette tokens (`--terra-80`, `--terra-320`, `--mint-960`). No freeform hex inside the component. Adding a tone = a new `.label-sticker__face--tone-X` block. Don't expose a `fill` / `ink` prop — that breaks the "stays on system" contract.
+- **Type voice.** The face carries the shared `.t-h5` typography token — that's where `font-family: var(--font-ui)`, `font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'opsz' 18`, `letter-spacing`, and `line-height` come from. Don't re-declare those in `label-sticker.css`. Strings are passed in **title case** (`Engineers`, `Due Date`) — there is no `text-transform` on the face, so what you pass is what renders. If `.t-h5` ever evolves, every label sticker follows automatically.
+- **Sizing is em-based.** `padding`, `border`, `border-radius`, and the inset perforation are all in `em`s, so changing `font-size` on the face scales the whole sticker proportionally. Consumers control size by setting `font-size` on `.label-sticker__face` via a route-local class.
+- **Routes own placement.** LabelSticker does not own position, scale, or layout. Consumers add a route-local class (passed as `className`) for placement, the same way `/biconomy` consumes `<Sticker>` with `.api__trailing-sticker`.
+- Consumers (today): none yet — primitive lives ahead of its first consumer page (a planned `/marks`-sibling route).
+- What's library-ready: the entire API.
+
+---
+
 ## CrossShellVeil
 
 Bridge between routes that don't share a layout boundary (currently `/marks` ↔ `/selected`; future cross-shell routes will use this too). TransitionSlot can't cross those boundaries — its DOM-snapshot trick relies on staying mounted. CrossShellVeil instead fades a single black `<div>` up on the outgoing side, holds it opaque through `router.push`, and the incoming side fades it down. The veil lives on `document.body` so it survives the layout swap. One DOM node, two halves, one beat.

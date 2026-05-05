@@ -1,0 +1,115 @@
+/* LabelSticker — text-based sticker variant.
+   ──────────────────────────────────────────────────────────────────────
+   The wrapper (.label-sticker) is the <Sticker> element — it owns the
+   drop-shadow / lift / press / tilt family contract. We don't restyle
+   .sticker here; we only style the inner face that carries the shape
+   and the typeset label.
+
+   Tones — two-tone presets (fill + ink). Adding one is a new block.
+   Shape — silhouette + perforation detail. Adding one is a new block.
+   ────────────────────────────────────────────────────────────────────── */
+
+.label-sticker {
+  /* Wrapper inherits all .sticker rules from globals.css.
+     We only ensure the face renders inline-block so drop-shadow follows
+     the rounded silhouette of the inner shape, not the whitespace
+     around it. */
+  display: inline-block;
+  line-height: 0;          /* collapse baseline gap so shadow hugs face */
+}
+
+.label-sticker__face {
+  /* The visible sticker shape. Wraps the typeset label in a
+     border-radiused box; drop-shadow on the wrapper follows this
+     rounded silhouette via alpha mask (see Sticker ANOMALIES).
+
+     Typography comes from .t-h5 (applied via the component) — that
+     token owns font-family, wdth/wght/opsz axes, letter-spacing, and
+     line-height. We only own layout + color here. Strings come in
+     title-cased; no text-transform. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  white-space: nowrap;
+  color: var(--label-ink);
+  background: var(--label-fill);
+}
+
+.label-sticker__text {
+  /* Reset to normal line-height so descenders aren't clipped by the
+     wrapper's line-height: 0. */
+  line-height: 1;
+  display: inline-block;
+}
+
+/* ── Shapes ──────────────────────────────────────────────────────────── */
+
+/* Pill — true capsule. Border-radius pinned to a value larger than any
+   reasonable height so the ends always render as half-circles, no
+   matter what font-size the consumer sets. Side padding bumps so the
+   text doesn't crowd the curved ends. */
+.label-sticker__face--pill {
+  padding: 0.5em 1.05em;
+  border-radius: 999px;
+  border: 0.18em solid var(--label-ink);
+}
+
+/* Plaque — rounded rectangle with visible corners, FRANCINE / READERS
+   reference. Solid fill, hairline ink outline. Padding is em-based so
+   the shape scales with the consumer's font-size override. */
+.label-sticker__face--plaque {
+  padding: 0.5em 0.9em;
+  border-radius: 0.55em;
+  border: 0.18em solid var(--label-ink);
+}
+
+/* Ticket — DUE DATE reference. Horizontal tag, dashed perforated
+   inset that reads as a stamped library ticket. The dashed line is
+   inside the fill (not the silhouette), so the wrapper's drop-shadow
+   still follows the outer rounded rectangle cleanly. */
+.label-sticker__face--ticket {
+  padding: 0.62em 1.15em;
+  border-radius: 0.4em;
+  /* Outline is the crisp silhouette. The inner dashes are detail —
+     thinner stroke and clearer breathing room so the two reads as
+     "outer rule + inner perforation," not two competing borders. */
+  outline: 0.1em solid var(--label-ink);
+  outline-offset: -0.1em;
+}
+.label-sticker__face--ticket::before {
+  content: '';
+  position: absolute;
+  inset: 0.34em;
+  /* Thinner dashes; CSS dashed-border dash length scales with
+     border-width, so a thinner stroke also tightens dash rhythm —
+     reads more "stamped ticket," less "stitched." */
+  border: 0.08em dashed var(--label-ink);
+  border-radius: 0.18em;
+  pointer-events: none;
+  /* Slight opacity softens the detail line so it sits behind the
+     type without fighting the outer outline for attention. */
+  opacity: 0.85;
+}
+
+/* ── Tones ───────────────────────────────────────────────────────────── */
+
+/* Cream — bookish off-white plaque with deep-green ink.
+   Default for a stack of stickers; reads as "library". */
+.label-sticker__face--tone-cream {
+  --label-fill: var(--terra-80);     /* warm off-white */
+  --label-ink:  var(--mint-960);     /* deep forest green */
+}
+
+/* Orange — warm tag with deep-green ink. The DUE DATE voice. */
+.label-sticker__face--tone-orange {
+  --label-fill: var(--terra-320);    /* sticker-orange */
+  --label-ink:  var(--mint-960);
+}
+
+/* Green — inverted: deep-green fill with cream ink. */
+.label-sticker__face--tone-green {
+  --label-fill: var(--mint-960);
+  --label-ink:  var(--terra-80);
+}

@@ -1,0 +1,59 @@
+/* Sticker lab — preview route. Throwaway styling, not promoted. */
+
+.sticker-lab {
+  min-height: 100vh;
+  padding: 64px 48px 96px;
+  background: #1f3a2a;          /* deep library green, like the reference */
+  color: var(--terra-80);
+  font-family: var(--font-google-sans), system-ui, sans-serif;
+}
+
+.sticker-lab__header {
+  margin-bottom: 48px;
+}
+.sticker-lab__header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+.sticker-lab__header p {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+.sticker-lab__section {
+  margin-bottom: 56px;
+}
+.sticker-lab__section h2 {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin: 0 0 24px;
+}
+.sticker-lab__section p {
+  font-size: 13px;
+  opacity: 0.65;
+  margin: -16px 0 24px;
+}
+.sticker-lab__section code {
+  font-family: var(--font-google-sans-code), ui-monospace, monospace;
+  font-size: 0.92em;
+  opacity: 0.85;
+}
+
+.sticker-lab__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 32px 40px;
+}
+.sticker-lab__row--align {
+  align-items: center;
+}
+
+/* Size knob — drives font-size on the face; em-based shape scales with it. */
+.sticker-lab__sm .label-sticker__face { font-size: 1rem; }
+.sticker-lab__lg .label-sticker__face { font-size: 2.2rem; }
