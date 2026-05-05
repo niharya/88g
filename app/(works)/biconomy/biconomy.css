@@ -1572,6 +1572,10 @@
 
 .demos__tab-label {
   display: flex;
+  /* Desktop: two `.demos__tab-label-line` spans render side-by-side.
+     Whitespace between flex items is collapsed, so a `gap` restores
+     the word-space. Mobile overrides to column + 0 gap below. */
+  gap: 0.25em;
   cursor: pointer;
   margin-left: -1px; /* -ml-px — overlap for connected border feel */
   max-height: fit-content;
@@ -1774,6 +1778,10 @@
   user-select: none;
   display: block;
   margin: 0 auto;
+  /* Match the embed/video resting shadow so the three tabs share
+     the same envelope. Wrapper hugs the image (max-width: fit-content),
+     so the shadow tracks the actual image bounds, not the frame. */
+  box-shadow: var(--shadow-resting);
 }
 .img.demos__image-el .img__inner {
   object-fit: contain;
@@ -1839,8 +1847,18 @@
 }
 
 .demos__embed-frame {
+  /* Frame matches the Figma proto's aspect (1440×900 = 16:10) so the
+     proto canvas centers cleanly inside. The embed URL uses
+     `scaling=contain` with the `viewport=…0.68` zoom intentionally
+     kept — Figma's proto player adds structural padding around the
+     canvas regardless of URL params, and the chosen scaling/zoom
+     pair is the version that read best in review. The black mat that
+     remains is Figma's, not ours; if it ever needs to disappear, the
+     only paths are `hide-ui=1` (loses chrome) or dropping the live
+     embed for the static `web.webp`. 70vh caps the canvas height. */
   width: 100%;
-  height: 70vh;
+  max-width: calc(70vh * 16 / 10);
+  aspect-ratio: 16 / 10;
   margin: 0 auto;
   overflow: hidden;
   box-shadow: var(--shadow-resting);
@@ -3094,6 +3112,9 @@
     width: 0;
     margin-top: -1px;
     flex-direction: column;
+    /* Desktop sets a horizontal word-space gap; column stack
+       doesn't want vertical breathing room between the two lines. */
+    gap: 0;
     align-items: center;
     justify-content: center;
     text-align: center;

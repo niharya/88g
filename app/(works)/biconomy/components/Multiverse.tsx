@@ -112,6 +112,9 @@ export default function Multiverse() {
           the founders.
           <br /><br />
           They agreed with the diagnosis, unfortunately not the solutions.
+          <br /><br />
+          Still, it aligned the rest of the team. We began looping each other
+          in more intentionally.
         </motion.p>
       </div>
 

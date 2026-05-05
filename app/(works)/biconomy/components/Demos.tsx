@@ -63,7 +63,7 @@ const DEMOS: Record<string, Demo> = {
       {
         src: '/images/biconomy/demos/web.webp',
         caption: 'The entry point to the demo: choosing a signer (wallet, social login, passkey) made real and usable rather than abstractions.',
-        embedUrl: 'https://embed.figma.com/proto/g0UcX73oUXSVMCfTzYtY8Y/2024-Workshop?node-id=899-5998&viewport=-21851%2C584%2C0.68&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=899%3A5998&show-proto-sidebar=1&page-id=499%3A34064&embed-host=share',
+        embedUrl: 'https://embed.figma.com/proto/g0UcX73oUXSVMCfTzYtY8Y/2024-Workshop?node-id=899-5998&viewport=-21851%2C584%2C0.68&scaling=contain&content-scaling=fixed&starting-point-node-id=899%3A5998&page-id=499%3A34064&show-proto-sidebar=0&embed-host=share',
       },
     ],
   },
