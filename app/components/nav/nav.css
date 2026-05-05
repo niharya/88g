@@ -81,6 +81,12 @@ a.nav-marker {
 .nav-marker--project.is-info-open .nav-icon {
   font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
 }
+/* Press tier — bump label + icon one stop darker against the pressed shell
+   so the marker reads readable while the ticket is open. Cascades to the
+   icon via currentColor. */
+.nav-marker--project.is-info-open .nav-marker__content {
+  color: var(--grey-640);
+}
 button.nav-marker--project.is-info-open {
   background: var(--grey-960);
 }

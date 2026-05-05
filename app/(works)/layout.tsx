@@ -6,6 +6,7 @@
 import type { ReactNode } from 'react'
 import '../components/nav/nav.css'
 import '../components/NavMarker/navmarker.css'
+import '../components/MarkerTicket/marker-ticket.css'
 import { CrossShellEntryFader } from '../components/CrossShellVeil'
 import PaperFilter from '../components/PaperFilter'
 import ShellNav from './ShellNav'

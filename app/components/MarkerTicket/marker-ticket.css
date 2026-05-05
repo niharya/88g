@@ -1,0 +1,144 @@
+/* ==========================================================================
+   MarkerTicket — postage-stamp ornament beneath an open project marker.
+   Owns its own layout + tones; consumers compose by passing tone + icon +
+   copy. See app/components/MarkerTicket/MarkerTicket.tsx for the full contract.
+   ========================================================================== */
+
+.marker-ticket {
+  position: relative;
+  width: var(--marker-ticket-w, 314px);
+  height: 96px;
+  background: transparent;
+  transform: rotate(var(--marker-ticket-rotate, 0deg));
+  transform-origin: 50% 50%;
+  transition: transform var(--dur-slide) var(--ease-paper);
+}
+
+.marker-ticket__outer,
+.marker-ticket__inner {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.marker-ticket__outer {
+  inset: 0;
+  width: var(--marker-ticket-w, 314px);
+  height: 96px;
+  filter: drop-shadow(1px 1px 0 rgb(0 0 0 / 0.24));
+}
+
+.marker-ticket__inner {
+  top: 4px;
+  left: 4px;
+  width: var(--marker-ticket-inner-w, 306px);
+  height: 88px;
+}
+
+/* Interior — flex row, vertically centered. Sits inside the inner notched
+   border via the 4px inset top/bottom and the 24px / pad-r horizontal pads
+   (24 left to clear the notch + give the icon a 24px shoulder; pad-r is
+   per-consumer). Children at align-items: center so icon, rule, and copy
+   share a vertical midline regardless of how many lines the title wraps to. */
+.marker-ticket__body {
+  position: absolute;
+  inset: 4px var(--marker-ticket-pad-r, 4px) 4px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.marker-ticket__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--marker-ticket-ink);
+}
+
+.marker-ticket__icon > * { display: block; }
+
+.marker-ticket__rule {
+  flex-shrink: 0;
+  width: 1px;
+  height: var(--marker-ticket-rule-h, 48px);
+  background: var(--marker-ticket-stroke);
+}
+
+.marker-ticket__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--marker-ticket-ink);
+}
+
+.marker-ticket__lead,
+.marker-ticket__title {
+  margin: 0;
+  color: inherit;
+}
+
+.marker-ticket__lead {
+  white-space: nowrap;
+}
+
+/* Tone palettes — each sets four custom properties that the SVGs + text + rule
+   pull from. Olive's fill-b (#EBC988) is a hand-picked warm peach that sits
+   outside the olive token family on purpose; the in-family palettes for
+   yellow / terra / mint stay within their token ramps. */
+
+.marker-ticket--olive {
+  --marker-ticket-fill-a: var(--olive-80);
+  --marker-ticket-fill-b: #EBC988;
+  --marker-ticket-stroke: var(--olive-560);
+  --marker-ticket-ink:    var(--olive-800);
+}
+
+.marker-ticket--yellow {
+  --marker-ticket-fill-a: var(--yellow-80);
+  --marker-ticket-fill-b: var(--yellow-240);
+  --marker-ticket-stroke: var(--yellow-560);
+  --marker-ticket-ink:    var(--yellow-800);
+}
+
+.marker-ticket--terra {
+  --marker-ticket-fill-a: var(--terra-80);
+  --marker-ticket-fill-b: var(--terra-240);
+  --marker-ticket-stroke: var(--terra-560);
+  --marker-ticket-ink:    var(--terra-800);
+}
+
+.marker-ticket--mint {
+  --marker-ticket-fill-a: var(--mint-80);
+  --marker-ticket-fill-b: var(--mint-160);
+  --marker-ticket-stroke: var(--mint-560);
+  --marker-ticket-ink:    var(--mint-800);
+}
+
+/* Mobile recompose — drops the notched shape (unreadable narrow), falls back
+   to a plain bordered card with icon + text in a flex row. Tone CSS vars
+   continue to drive the border + background. */
+@media (max-width: 767px), (max-height: 500px) {
+  .marker-ticket {
+    width: min(var(--marker-ticket-w, 314px), calc(100vw - 2 * var(--workbench-pad-x)));
+    height: auto;
+  }
+  .marker-ticket__outer,
+  .marker-ticket__inner,
+  .marker-ticket__rule {
+    display: none;
+  }
+  .marker-ticket__body {
+    position: static;
+    padding: var(--space-16);
+    border: 1px solid var(--marker-ticket-stroke);
+    background: var(--marker-ticket-fill-a);
+    pointer-events: auto;
+  }
+}

@@ -1,23 +1,18 @@
-// MarkerInfoCard — biconomy-local card shown when the project marker is opened.
-// Mirrors /selected's blue ProjectCard as initial content; route-owned so copy
-// can diverge from the index entry.
+// biconomy/MarkerInfoCard — thin consumer of the shared MarkerTicket primitive.
+// Picks the olive tone, plugs the Biconomy cube as the icon (file ships its
+// own halo + colors), and authors the route's copy.
 
-import IconChevronRight from '../../../components/icons/IconChevronRight'
+import MarkerTicket from '../../../components/MarkerTicket'
 
 export default function MarkerInfoCard() {
   return (
-    <div className="bicon-marker-info-card">
-      <h3 className="bicon-marker-info-card__title">
-        Designs to make the invisible infra: visible and usable
-      </h3>
-      <p className="bicon-marker-info-card__body">
-        + a UX Audit, demos, a concept UI, and cultural interventions in a web3 ecosystem.
-      </p>
-      <div className="bicon-marker-info-card__divider" />
-      <div className="bicon-marker-info-card__footer">
-        <span className="bicon-marker-info-card__role t-h5">Product Designer • Biconomy</span>
-        <IconChevronRight size={20} className="bicon-marker-info-card__arrow" />
-      </div>
-    </div>
+    <MarkerTicket
+      tone="olive"
+      icon={<img src="/images/biconomy/marker-ticket-mark.svg" alt="" width={40} height={40} />}
+      lead="Product Designer at"
+      title="a blockchain payments infrastructure company"
+      width={334}
+      padRight={24}
+    />
   )
 }
