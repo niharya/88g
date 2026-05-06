@@ -9,16 +9,16 @@ import Outcome from './components/Outcome'
 import InterstitialText from './components/InterstitialText'
 
 export const metadata: Metadata = {
-  title: 'Rug Rumble',
+  title: 'Rug Rumble — Turning Infrastructure into Play',
   description:
-    'Rug Rumble — a strategy card game designed around bluffing, momentum, and the feel of placing a real object on a table.',
+    'Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems.',
   alternates: { canonical: '/rr' },
   openGraph: {
-    title: 'Rug Rumble — Nihar Bhagat',
+    title: 'Rug Rumble — Turning Infrastructure into Play',
     description:
-      'A strategy card game designed around bluffing, momentum, and the feel of placing a real object on a table.',
+      'Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems.',
     url: '/rr',
-    images: ['/og-image.png'],
+    images: ['/og-rr.jpg'],
   },
 }
 
@@ -26,9 +26,9 @@ const creativeWorkLd = {
   '@context': 'https://schema.org',
   '@type': 'CreativeWork',
   name: 'Rug Rumble',
-  headline: 'Rug Rumble — strategy card game',
+  headline: 'Rug Rumble — Turning Infrastructure into Play',
   description:
-    'Rug Rumble — a strategy card game designed around bluffing, momentum, and the feel of placing a real object on a table.',
+    'Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems.',
   url: 'https://nihar.works/rr',
   inLanguage: 'en',
   genre: 'Game design',

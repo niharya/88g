@@ -612,9 +612,30 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 400,
     "hasAlpha": false
   },
+  "/og-biconomy.jpg": {
+    "dominantColor": "rgb(216, 232, 248)",
+    "thumbHash": "eOcFDIJci6coe5d/WLPAYhsq9w==",
+    "width": 1200,
+    "height": 630,
+    "hasAlpha": false
+  },
   "/og-image.png": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "/PcBDICHl5h/dnaEiHiYf4P4Nw==",
+    "thumbHash": "/PcBDIKHh5iPdnaEeHeYf4P4Nw==",
+    "width": 1200,
+    "height": 630,
+    "hasAlpha": false
+  },
+  "/og-marks.jpg": {
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "BAgGBIAIZ4iHeIhwe3gAAAAAAA==",
+    "width": 1200,
+    "height": 630,
+    "hasAlpha": false
+  },
+  "/og-rr.jpg": {
+    "dominantColor": "rgb(248, 232, 216)",
+    "thumbHash": "9xgGDII/q9UbbKichqKFyQBrPQ==",
     "width": 1200,
     "height": 630,
     "hasAlpha": false

@@ -10,16 +10,16 @@ import API from './components/API'
 import StayingAnchored from './components/StayingAnchored'
 
 export const metadata: Metadata = {
-  title: 'Biconomy',
+  title: 'Biconomy — Translating Complexity into Usable Systems',
   description:
-    'A long-form UX case study on Biconomy — rethinking the platform Web3 developers use to manage smart contracts and gas tanks.',
+    'Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem.',
   alternates: { canonical: '/biconomy' },
   openGraph: {
-    title: 'Biconomy — Nihar Bhagat',
+    title: 'Biconomy — Translating Complexity into Usable Systems',
     description:
-      'A long-form UX case study on Biconomy — rethinking the platform Web3 developers use to manage smart contracts and gas tanks.',
+      'Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem.',
     url: '/biconomy',
-    images: ['/og-image.png'],
+    images: ['/og-biconomy.jpg'],
   },
 }
 
