@@ -1,0 +1,499 @@
+/* ==========================================================================
+   /shape-of-product — musings page (route-local styles)
+
+   Route-local tokens live on `.route-sop`. Cross-route tokens come from
+   globals.css (`--ease-paper`, `--space-*`, `--mat-bg`, palette ramps).
+   ========================================================================== */
+
+.route-sop {
+  /* Editorial ink — same temperature as `/rr`'s `--rr-note-ink` but
+     re-declared route-locally so we're not reaching across routes for
+     a token. Don't replace with the literal hex; future palette work
+     will adjust this single declaration. */
+  --sop-prose-ink:    #3b4b5c;
+
+  /* Vertical rhythm — top is the standard editorial drop; the bottom
+     padding is doubled (240 → 480) so the closing sign-off card has
+     room to breathe before the page edge. */
+  --sop-pad-top:      160px;
+  --sop-pad-bottom:   480px;
+}
+
+
+/* ── Nav pair (Nihar + "Shape of Product") ──────────────────────────────
+   Mirrors /selected and landing's pattern: project-marker docked against
+   a static chapter-marker, sharing a halved seam. Pinned to the top of
+   the viewport, horizontally centered on the page so the chrome stays
+   anchored as the reader scrolls. */
+
+.sop-nav-row {
+  position: fixed;
+  top: var(--marker-top);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-project-marker);
+  display: inline-flex;
+  align-items: flex-start;
+}
+
+/* The MarkerSlot/.project-marker wrapper defaults to fixed positioning;
+   inside our docked row it needs to flow naturally next to the chapter
+   marker, so override it to static — same fix /selected uses. */
+.sop-nav-row .project-marker {
+  position: static;
+}
+
+/* Halve touching borders — project-marker right + chapter-nav left share
+   the 2px seam, so each shows 1px and they read as one unit. Mirrors
+   .selected-nav-row and .landing-nav-row exactly. */
+.sop-nav-row .nav-marker--project {
+  border-right-width: 1px;
+}
+
+.sop-nav-row .nav-marker--chapter {
+  border-left-width: 1px;
+}
+
+/* "Shape of Product" is a proper title with a lowercase "of"; t-btn1's
+   capitalize would render it "Shape Of Product". Preserve the editorial
+   casing while keeping the rest of t-btn1's treatment (Google Sans Flex,
+   weight, dotted underline, etc.).
+   `white-space: nowrap` prevents the multi-word title from wrapping on
+   narrow viewports — the marker simply expands horizontally to fit. */
+.sop-nav-row .nav-marker__title {
+  text-transform: none;
+  white-space: nowrap;
+}
+
+
+/* ── Page shell ─────────────────────────────────────────────────────── */
+
+.route-sop {
+  min-height: 100svh;
+  background: var(--mat-bg);
+  padding: var(--sop-pad-top) var(--workbench-pad-x) var(--sop-pad-bottom);
+  display: flex;
+  justify-content: center;
+}
+
+.sop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-56);
+  width: 100%;
+  max-width: 560px;
+}
+
+/* ── Prose blocks — match rr-interstitial typography ─────────────────── */
+
+.sop__prose {
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  line-height: 1.35;
+  color: var(--sop-prose-ink);
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  text-align: center;
+}
+
+.sop__prose p { margin: 0; }
+.sop__prose p + p { margin-top: var(--space-24); }
+
+/* Editorial chunks — three prose blocks separated by hairline dividers.
+   Internal gap is uniform around each divider (`--space-56`), so the
+   rhythm reads as a steady section beat across the lede. The chunk
+   wrapper itself is one flex child of `.sop`; the natural `.sop` gap
+   (also 56) flows the chunk-block into the role/approach stack with
+   the same beat, keeping the rhythm continuous through the page. */
+.sop__chunks {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-56);
+}
+
+.sop__divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--sop-prose-ink);
+  opacity: 0.24;
+  margin: 0;
+}
+
+
+/* ── Inline actor stickers — engineers / users / protocols ───────────── */
+/* Sizing left at the LabelSticker default (t-h5, 12px) — the sticker is a
+   smaller voice than the surrounding 24px Fraunces prose, which reads as
+   "label clipped onto a sentence" rather than "word in disguise."
+   Each sticker is wrapped in `.sop__actor-slot` so the per-instance Y
+   offset (set inline as `--sop-actor-y`) lives on the wrapper, leaving
+   the sticker's own transform free for tilt + hover lift. */
+
+.sop__actor-slot {
+  display: inline-block;
+  vertical-align: baseline;
+  transform: translateY(var(--sop-actor-y, 0px));
+}
+
+/* Overlap — each subsequent sticker pulls slightly under the previous, the
+   way three pasted stamps would fall on a page. Later siblings paint on top
+   in DOM order, so the rightmost edge sits cleanest. */
+.sop__actor-slot + .sop__actor-slot {
+  margin-inline-start: -16px;
+}
+
+
+/* ── Inline chapter chips — sit in the prose at natural scale ─────────── */
+
+.sop__chip {
+  display: inline-flex;
+  vertical-align: baseline;
+  transform-origin: center;
+  transition: transform var(--dur-slide) var(--ease-paper);
+}
+
+/* Marker labels quote prose phrases verbatim — drop t-btn1's capitalize. */
+.sop__chip .nav-marker__title { text-transform: none; }
+
+/* Icon trails the label; the marker's leading-icon padding gets reversed to
+   keep the chip tight in the prose flow. Gap on the content box is 0 at
+   rest — the icon owns the gap as a margin so it collapses with the icon. */
+.sop__chip .nav-marker__content {
+  flex-direction: row-reverse;
+  padding: 4px 8px;
+  gap: 0;
+}
+
+/* Icon is collapsed at rest (zero-width, no margin, no opacity) and unfurls
+   on hover/focus — width + leading margin + opacity transition together so
+   the chip hugs the label until the user reaches for it. Prose reflows by
+   ~18px around the chip on hover; that's intentional, the icon "reveals"
+   from inside the label edge rather than sitting reserved next to it. */
+.sop__chip .nav-icon {
+  width: 0;
+  height: 14px;
+  margin-inline-start: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    width var(--dur-fast) var(--ease-paper),
+    margin-inline-start var(--dur-fast) var(--ease-paper),
+    opacity var(--dur-fast) var(--ease-paper);
+}
+
+.sop__chip:hover .nav-icon,
+.sop__chip:focus-within .nav-icon {
+  width: 14px;
+  margin-inline-start: 4px;
+  opacity: 1;
+}
+
+/* Subtle resting tilt within the −1°/+1° range. The translateY lifts the
+   chip slightly above the prose baseline so the marker pill aligns with
+   the x-height of the surrounding 24px Fraunces rather than its baseline. */
+.sop__chip--left  { transform: translateY(-4px) rotate(-0.7deg); }
+.sop__chip--right { transform: translateY(-4px) rotate(0.7deg); }
+
+.sop__chip--left:hover,
+.sop__chip--left:focus-within  { transform: translateY(-4px) rotate(-1deg); }
+
+.sop__chip--right:hover,
+.sop__chip--right:focus-within { transform: translateY(-4px) rotate(1deg); }
+
+/* Animated arrow nudge on hover — same gesture as Footer external links. */
+.sop__chip:hover .icon-ext-arrow,
+.sop__chip:focus-within .icon-ext-arrow {
+  transform: translate(2px, -2px);
+  transition: transform var(--dur-fast) var(--ease-paper);
+}
+
+
+/* ── Roles ↔ Approach stack — toggle between two notes-rail-style cards ─ */
+/* Roles uses the bips-notes idiom (olive-80 + olive-400 outline); Approach
+   uses the rr rules-rail idiom (yellow-80 + yellow-400 outline + terra-800
+   ink). Both have a 90°-rotated tab on the right edge with a flippable
+   arrow icon. The inactive card sits behind the active one, offset
+   diagonally so its right-edge sliver + tab read as the swap affordance. */
+
+/* Grid container — both cards occupy the same cell so the cell auto-sizes
+   to the taller of the two contents. Approach (3 short lines) inherits
+   that height, matching Roles (lede + 4 numbered list items). Right
+   padding reserves room for the active card's tab + the inactive
+   Approach card's larger right offset (translate-x: 40px). */
+.sop__stack {
+  position: relative;
+  display: grid;
+  grid-template-areas: 'card';
+  width: 280px;
+  margin: 0;
+  padding: 0 72px 16px 0;
+}
+
+.sop__stack-card {
+  grid-area: card;
+  position: relative;
+  width: 280px;
+  padding: var(--space-24);
+  outline: 1px solid currentColor;
+  outline-offset: -8px;
+  display: flex;
+  flex-direction: column;
+  transition:
+    transform var(--dur-slide) var(--ease-paper),
+    opacity var(--dur-slide) var(--ease-paper);
+}
+
+.sop__stack-card--roles {
+  background: var(--olive-80);
+  color: var(--olive-800);
+  outline-color: var(--olive-400);
+}
+
+.sop__stack-card--approach {
+  background: var(--yellow-80);
+  color: var(--terra-800);
+  outline-color: var(--yellow-400);
+}
+
+/* Active card: in front, flat on the page, full opacity. */
+.sop__stack-card.is-active {
+  z-index: 2;
+  transform: translate(0, 0) rotate(0deg);
+  cursor: default;
+}
+
+/* Inactive card: behind, offset diagonally so its right-edge sliver and
+   tab are visible. Slightly tilted to read as a separate object on the
+   pile rather than a duplicate. Cursor invites the swap; content dims so
+   the half-hidden text doesn't compete with the active card's prose. */
+.sop__stack-card:not(.is-active) {
+  z-index: 1;
+  transform: translate(24px, 10px) rotate(1deg);
+  cursor: pointer;
+}
+
+/* Approach gets a wider right-offset when collapsed — yellow ground reads
+   harder than olive against the page bg, so a bigger peek lets the tab
+   colour signal "second card here" before the user reaches for it. */
+.sop__stack-card--approach:not(.is-active) {
+  transform: translate(40px, 10px) rotate(1deg);
+}
+
+.sop__stack-card:not(.is-active) .sop__stack-content {
+  opacity: 0.45;
+  user-select: none;
+  transition: opacity var(--dur-slide) var(--ease-paper);
+}
+
+/* ── Tab on right edge ──────────────────────────────────────────────── */
+
+.sop__stack-tab {
+  position: absolute;
+  right: -32px;
+  top: 0;
+  height: 100%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  padding: 0;
+}
+
+.sop__stack-card--roles .sop__stack-tab {
+  background: var(--olive-80);
+}
+.sop__stack-card--approach .sop__stack-tab {
+  background: var(--yellow-80);
+}
+
+.sop__stack-tab-inner {
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  writing-mode: vertical-lr;
+  text-orientation: sideways;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* The vertical writing-mode renders t-btn1's dotted underline + ::after
+   bar along the rotated right edge — suppress both. */
+.sop__stack-tab-inner::after { display: none; }
+
+.sop__stack-card--roles .sop__stack-tab-inner    { color: var(--olive-560); }
+.sop__stack-card--approach .sop__stack-tab-inner { color: var(--yellow-560); }
+
+.sop__stack-arrow {
+  flex-shrink: 0;
+  transition: transform var(--dur-slide) var(--ease-snap);
+}
+
+.sop__stack-arrow.is-flipped {
+  transform: rotate(180deg);
+}
+
+/* ── Content ────────────────────────────────────────────────────────── */
+
+.sop__stack-lede {
+  margin: 0 0 var(--space-16) 0;
+}
+
+.sop__stack-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sop__stack-list li { margin: 0; }
+
+.sop__stack-content--prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.sop__stack-content--prose p { margin: 0; }
+
+
+/* ── Sign-off card — closing identity artifact ──────────────────────── */
+/* Mirrors landing's `.hero-card` visual (centered greeting + headline +
+   subtitle), recolored to the biconomy blue-note palette: blue-80
+   ground, blue-800 ink, --shadow-resting. Sits at the page bottom with
+   doubled breathing room above. Promotion candidate — visual is now
+   duplicated between this and landing. */
+
+.sop__sign-off {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  /* Doubled padding above the card — 224px (was 112px). */
+  margin-top: calc(var(--space-112) * 2);
+}
+
+.sop__sign-off-card {
+  width: 528px;
+  max-width: 100%;
+  background: var(--blue-80);
+  color: var(--blue-800);
+  box-shadow: var(--shadow-resting);
+  padding: 32px 64px 40px;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  /* Tilt is set inline from React state (`rotate(2deg)` at rest;
+     `rotate(0)` once clicked). Transition + transform-origin live here
+     so the inline change interpolates smoothly. One-way settle: once
+     clicked the card stays flat for the session. The hover shadow
+     shift gives sighted users a small "this is interactive" cue
+     without breaking the editorial silence of the card. */
+  transform-origin: center;
+  cursor: pointer;
+  transition:
+    transform var(--dur-slide) var(--ease-paper),
+    box-shadow var(--dur-fast) var(--ease-paper);
+}
+
+.sop__sign-off-card:hover {
+  box-shadow: var(--shadow-raised);
+}
+
+.sop__sign-off-card.is-flat {
+  cursor: default;
+}
+
+.sop__sign-off-card.is-flat:hover {
+  /* Once flat, the card is no longer interactive — drop the hover
+     cue so the resting state stays still. */
+  box-shadow: var(--shadow-resting);
+}
+
+.sop__sign-off-card:focus-visible {
+  outline: 2px solid var(--blue-800);
+  outline-offset: 4px;
+}
+
+.sop__sign-off-greeting {
+  color: var(--blue-800);
+  margin: 0 0 var(--space-16) 0;
+}
+
+.sop__sign-off-headline {
+  color: var(--blue-800);
+  max-width: 400px;
+  margin: 0 auto var(--space-24);
+}
+
+.sop__sign-off-sub {
+  color: var(--blue-800);
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+
+/* ── Mobile / landscape-phone ─────────────────────────────────────────── */
+
+@media (max-width: 767px), (max-height: 500px) {
+  .route-sop {
+    /* Mobile rhythm — top still small, bottom proportionally doubled
+       (was 160; doubled to 320 to mirror desktop's doubling without
+       making the page feel hollow on a narrow viewport). The route
+       overrides `--workbench-pad-x` rather than setting a literal
+       `padding-inline` so the rest of the route's geometry that
+       reads the token (none today, but kept for parity with the
+       rest of the portfolio) follows automatically. */
+    --sop-pad-top:        96px;
+    --sop-pad-bottom:     320px;
+    --workbench-pad-x:    20px;
+  }
+
+  .sop {
+    gap: var(--space-40);
+    max-width: none;
+  }
+
+  .sop__prose {
+    font-size: 20px;
+    letter-spacing: -0.6px;
+  }
+
+  /* Roles/Approach stack narrows on phones — desktop's 280 + 72 right
+     padding (= 352px effective) overflows on a 375px viewport with the
+     route's 20px side padding. Drop the card body to fit, keep the tab
+     padding so the right-edge tab still sits inside the bounding box. */
+  .sop__stack {
+    width: 100%;
+    max-width: 240px;
+    padding-right: 64px;
+  }
+
+  .sop__stack-card {
+    width: 100%;
+  }
+
+  /* Tighten the inactive-card right offset proportionally so the peek
+     stays visible without pushing the card past the container edge. */
+  .sop__stack-card--approach:not(.is-active) {
+    transform: translate(28px, 10px) rotate(1deg);
+  }
+
+  /* Sign-off card narrows to viewport on mobile — landing's 528px would
+     overflow narrow phones. Tighten padding too so the type doesn't sit
+     in an oversized canvas. */
+  .sop__sign-off {
+    margin-top: var(--space-80);
+  }
+
+  .sop__sign-off-card {
+    width: 100%;
+    padding: var(--space-32) var(--space-24);
+    min-height: 0;
+  }
+}

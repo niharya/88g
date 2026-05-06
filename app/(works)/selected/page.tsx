@@ -4,7 +4,7 @@ import MarkerSlot from '../../components/nav/MarkerSlot'
 import NavMarker from '../../components/NavMarker'
 import AboutCard from './components/AboutCard'
 import SelectedContent from './components/SelectedContent'
-import NiharHomeLink from './components/NiharHomeLink'
+import NiharHomeLink from '../../components/NiharHomeLink'
 import SlideInOnNav from '../../components/SlideInOnNav'
 
 export const metadata: Metadata = {

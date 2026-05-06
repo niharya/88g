@@ -257,6 +257,7 @@ Three inline SVG icon components with animatable internal paths. Used for hover 
 - **Why hand-rolled, not an icon font:** consumers animate internal paths on hover (e.g. the chevron shaft translates, the external-link arrow lifts). Icon fonts render as a single glyph and cannot be animated piecewise.
 - **Stroke uses `currentColor`** so consumers style via `color`, not a prop.
 - New icons should follow the same pattern: named path elements (e.g. `.icon-chevron-shaft`) that consumer CSS can target.
+- Consumers of `IconExternalLink`: `Footer` (external links to LinkedIn / X / GitHub), `/shape-of-product` `.sop__chip` (inline chapter chips that link to `/biconomy#ux-audit` and `/biconomy#demos` in a new tab — the icon collapses to zero width at rest and unfurls on hover/focus, see route ANOMALIES.md).
 
 ---
 
@@ -541,8 +542,26 @@ Text-based sticker variant. Composes `<Sticker>` for the family contract (drop-s
 - **Type voice.** The face carries the shared `.t-h5` typography token — that's where `font-family: var(--font-ui)`, `font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'opsz' 18`, `letter-spacing`, and `line-height` come from. Don't re-declare those in `label-sticker.css`. Strings are passed in **title case** (`Engineers`, `Due Date`) — there is no `text-transform` on the face, so what you pass is what renders. If `.t-h5` ever evolves, every label sticker follows automatically.
 - **Sizing is em-based.** `padding`, `border`, `border-radius`, and the inset perforation are all in `em`s, so changing `font-size` on the face scales the whole sticker proportionally. Consumers control size by setting `font-size` on `.label-sticker__face` via a route-local class.
 - **Routes own placement.** LabelSticker does not own position, scale, or layout. Consumers add a route-local class (passed as `className`) for placement, the same way `/biconomy` consumes `<Sticker>` with `.api__trailing-sticker`.
-- Consumers (today): none yet — primitive lives ahead of its first consumer page (a planned `/marks`-sibling route).
+- Consumers: `/shape-of-product` ([app/shape-of-product/components/ActorStickers.tsx](app/shape-of-product/components/ActorStickers.tsx)) — three inline stickers (`engineers`, `users`, `protocols`) replacing words in the prose. All three render as the default `pill` shape; `tone` differentiates (`cream` / `orange` / `green`). Per-instance `tilt` is locked to module-level constants, not randomized. Route-local `.sop__actor-slot` wrapper carries the `translateY` offset so the inner Sticker's transform stays free for tilt + hover lift. Click-to-rotate jitter (±2°) comes from the Sticker family contract — unwrapping `clickRotate` is automatic.
 - What's library-ready: the entire API.
+
+---
+
+## NiharHomeLink
+
+The "Nihar" project-marker that takes the reader back to the landing page from any non-landing surface that wants the docked nav-pair pattern. Anchor-variant of `<NavMarker role="project">` with `arrow_back` icon, neutral tone, and a `sessionStorage['nav-direction'] = 'to-landing'` side-effect on click so the landing's `<SlideInOnNav>` can animate the hero in from the left on arrival.
+
+**Where it lives**
+- [app/components/NiharHomeLink/NiharHomeLink.tsx](app/components/NiharHomeLink/NiharHomeLink.tsx) — component, `'use client'` (event handler).
+- [app/components/NiharHomeLink/index.ts](app/components/NiharHomeLink/index.ts) — barrel.
+
+**AI notes**
+- **No props.** Stateless, no consumer-facing API. The label is fixed (`Nihar`), the role is fixed (`project`), the tone is fixed (neutral), the icon is fixed (`arrow_back`), the href is fixed (`/`). Adding a prop here is the wrong move — the link's identity is its sameness across surfaces. Any variation is a different primitive.
+- **`sessionStorage` is wrapped in try/catch.** Safari private-mode and other write-blocked contexts throw on `setItem`; the catch is non-fatal so the navigation still happens. If you ever extend the side-effect, keep the same defensive shape.
+- **Consumer owns placement.** The component renders a `.nav-marker--project` directly; consumers wrap it in their own `.project-marker` div + their docked-pair container. See `/selected` (`.selected-nav-row`) and `/shape-of-product` (`.sop-nav-row`) for the wrapping pattern. The border-halving rule (project-marker right + chapter-marker left both at 1px) is consumer-side too.
+- **The session flag is read by `<SlideInOnNav>`** ([app/components/SlideInOnNav.tsx](app/components/SlideInOnNav.tsx)) on the landing. If a future consumer wants a different return target than `/`, change the destination — but make sure the destination route also reads (or ignores) the flag cleanly. Don't fork the side-effect logic into route-local components.
+- Consumers (today): `/selected` ([app/(works)/selected/page.tsx](app/(works)/selected/page.tsx)) — paired with the static "Works" chapter-marker. `/shape-of-product` ([app/shape-of-product/components/SopNavRow.tsx](app/shape-of-product/components/SopNavRow.tsx)) — paired with the static "Shape of Product" chapter-marker.
+- Promoted at v0.79.0 (was route-local in `/selected/components/`).
 
 ---
 
@@ -643,3 +662,15 @@ Not a component — a recipe. When a future route needs a large flat gradient th
 4. Keep the noise tile ~160–220px with `background-repeat: repeat`; the tile edge is invisible at these sizes and seeds.
 
 Live instance: [app/marks/marks.css](app/marks/marks.css) — `.marks-background` + `.marks-background::after`.
+
+### HeroCard (centered identity card)
+
+- **Current homes:** landing's `.hero-card` ([app/landing.css](app/landing.css)) — terra-480 ground, with the expand `.pill-btn` interaction. `/shape-of-product`'s `.sop__sign-off-card` ([app/shape-of-product/shape-of-product.css](app/shape-of-product/shape-of-product.css)) — blue-80 ground (biconomy blue-note palette), no expand pill, click-to-flatten tilt.
+- **Shape when promoted:** `<HeroCard tone="terra" | "blue">` props for greeting / headline / sub. Layout (528px width, 32/64/40 padding, 240px min-height, centered text, `--shadow-resting`) is identical between consumers. The expand interaction stays a route-local extension on landing — it's not a card concern.
+- **Why not yet:** two consumers, both stable. A third (a future "essays" route or another musing) would justify the move.
+
+### Blue note card (biconomy palette)
+
+- **Current homes:** biconomy's `.bicon-marker-info-card` and `.intro__inner` ([app/(works)/biconomy/biconomy.css](app/(works)/biconomy/biconomy.css)) — both use `background: var(--blue-80)`, `color: var(--blue-800)`, `--shadow-resting`, optional 1px blue-560/800 border. `/shape-of-product`'s `.sop__sign-off-card` reuses the same color/shadow combo.
+- **Shape when promoted:** could be a `tone` token set (`--card-bg`, `--card-ink`, `--card-border`) rather than a component — most consumers want the tone applied to their own card geometry, not a fixed primitive shape.
+- **Why not yet:** the visual language is shared but each consumer owns different padding/border/layout. Promotion as a token set (not a component) is the cleaner move when a third consumer arrives.

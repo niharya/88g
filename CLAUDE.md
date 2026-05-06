@@ -32,6 +32,8 @@ The portfolio contains long-form editorial project routes built as sheet-stack r
 
 **Stage: finishing (90–100%).** Designs are final. Work is polish only — no new sections, no re-authoring, no speculative refactors. Default to the smallest correct change. If a task implies net-new structure or design, flag it before touching code.
 
+**Recognized exception: the `/shape-of-product` musings layer.** A sibling-of-`/marks` route added at v0.79+ as an editorial application page (separate from the case-study work in `(works)/`). Net-new authoring is allowed inside this layer — it's a deliberate add to the document system, not a refactor of existing work. Future musings (if any) live alongside it.
+
 Tone: precise, calm, human. Avoid hype and abstraction.
 
 Protect: evidence, docking relationships, material coherence.
@@ -118,7 +120,7 @@ Random rotation is set via `--place-rotate` CSS custom property, assigned by `Sh
 
 Routes inside `(works)/` (selected, rr, biconomy) cross between each other through `TransitionSlot` — DOM ghost-clone, slide-and-fade. That only works because they share a layout boundary, so the old page can stay mounted as a snapshot while the new one mounts.
 
-Routes outside `(works)/` (currently `/marks`; future: `/names`) **cannot** use TransitionSlot — the layout boundary tears down on every transition. They use the **CrossShellVeil** primitive instead: a black veil fades up on the outgoing side, holds opaque through `router.push`, and fades down on the incoming side. One DOM node travels across the navigation, owned in turn by each side.
+Routes outside `(works)/` (currently `/marks`, `/shape-of-product`; future: `/names`) **cannot** use TransitionSlot — the layout boundary tears down on every transition. They use the **CrossShellVeil** primitive instead: a black veil fades up on the outgoing side, holds opaque through `router.push`, and fades down on the incoming side. One DOM node travels across the navigation, owned in turn by each side.
 
 **Both halves are required.** The outgoing route uses `useCrossShellNav(href)` on the link's `onClick`; the incoming route renders `<CrossShellEntryFader />` in its layout. If only one half is wired, the veil either doesn't appear or doesn't clear.
 
@@ -144,7 +146,7 @@ Core principles:
 
 Full reference: [`docs/performance.md`](./docs/performance.md). Read it before adding fonts, images, or icons.
 
-* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'swap'` with an explicit `fallback` chain. Do **not** redeclare `--font-*` in `globals.css :root` — next/font sets the variables on `<html>` to hashed family names. A **bounded font-gate** holds top-level surfaces (`.landing`, `.workbench`, `.route-marks`) at `opacity: 0` until `document.fonts.ready` resolves *or* an **800 ms cap** fires (whichever first); the startooth `.page-boot` mark is visible during the hold. The uncapped 3-second font-gate is **banned**. `display: 'block'` is **banned**. External `<link>` to `fonts.googleapis.com` for the five primary fonts is **banned**.
+* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'swap'` with an explicit `fallback` chain. Do **not** redeclare `--font-*` in `globals.css :root` — next/font sets the variables on `<html>` to hashed family names. A **bounded font-gate** holds top-level surfaces (`.landing`, `.workbench`, `.route-marks`, `.route-sop`) at `opacity: 0` until `document.fonts.ready` resolves *or* an **800 ms cap** fires (whichever first); the startooth `.page-boot` mark is visible during the hold. The uncapped 3-second font-gate is **banned**. `display: 'block'` is **banned**. External `<link>` to `fonts.googleapis.com` for the five primary fonts is **banned**.
 * **Icons:** Material Symbols is subsetted to a fixed icon list (~1.1 MB, down from 5.1 MB). Adding a new icon requires re-subsetting per the doc. Don't replace the file with the full font.
 * **Images:** All content imagery uses `<Img>`. Every raster in `public/images/` is `.webp`. Raw images over ~400 KB must be optimized via `npm run optimize-images` before commit.
 * **Motion tokens:** `--dur-*` values are post-v0.55 tuned for snap. Don't drift back without intent — inline a duration in component CSS for one-off cases instead.

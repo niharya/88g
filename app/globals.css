@@ -341,7 +341,8 @@
 }
 .landing,
 .workbench,
-.route-marks {
+.route-marks,
+.route-sop {
   opacity: 0;
   /* opacity:0 alone does not block events — pointer-events:none does.
      The failsafe animation flips both at the same keyframe. */
@@ -350,7 +351,8 @@
 }
 html.fonts-ready .landing,
 html.fonts-ready .workbench,
-html.fonts-ready .route-marks {
+html.fonts-ready .route-marks,
+html.fonts-ready .route-sop {
   opacity: 1;
   pointer-events: auto;
   /* Cancel the failsafe so the JS path's transition owns the reveal. */
