@@ -35,7 +35,7 @@
   --projects-top: 460px;
   --short-top: var(--space-56);
   --long-top: 431px;
-  --practice-top: 688px;
+  --spectrum-top: 688px;
 
   /* Group B spacing + choreography tokens */
   --stack-gap: 40px;
@@ -43,10 +43,13 @@
   /* Downward settle distance — short enough to read as "placed", not "dropped" */
   --stack-settle: var(--space-24);
 
-  /* Expanded offsets for Group B. Practice card is the tallest (~470px)
-     because it carries 4 paragraphs + divider, so the gap to spectrum needs
-     to clear that height plus --stack-gap. */
-  --spectrum-top: 1165px;
+  /* Expanded offsets for Group B. Order after the spectrum/practice swap:
+     spectrum (#1, height ~362 with stack-gap), about-practice (#2, the
+     tallest at ~470px — 4 paragraphs + divider — drives the gap to contact),
+     contact (#3). --contact-top and --expanded-h are unchanged by the swap
+     because the sum of spectrum-block + practice-block stays the same; only
+     the order flipped. */
+  --practice-top: 1050px;
   --contact-top: 1527px;
   --expanded-h: 1872px;
 }
@@ -327,27 +330,27 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    (--stack-stagger-start ≈ --dur-slide * 0.6), then stagger by 0.02s per
    card. Transform nudge is --space-16 translateY for all, no scale. */
 
-/* About Practice — Group B #1 */
-.landing--expanded .landing__section--about-practice {
-  top: var(--practice-top);
-  transform: translateX(calc(-50% + 12px)) translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-  z-index: 2;
-  transition:
-    top var(--dur-slide) var(--ease-paper) var(--stack-stagger-start),
-    opacity var(--dur-slide) var(--ease-paper) var(--stack-stagger-start),
-    transform var(--dur-slide) var(--ease-paper) var(--stack-stagger-start);
-}
-
-/* Spectrum — Group B #2. Keeps its established -1deg base rotate. Sits
-   centered like the rest of Group B. */
+/* Spectrum — Group B #1 (post-swap; was #2). Keeps its established -1deg base
+   rotate. Sits centered like the rest of Group B. */
 .landing--expanded .landing__section--spectrum {
   top: var(--spectrum-top);
   transform: translateX(-50%) translateY(0) rotate(-1deg);
   opacity: 1;
   pointer-events: auto;
   z-index: 4;
+  transition:
+    top var(--dur-slide) var(--ease-paper) var(--stack-stagger-start),
+    opacity var(--dur-slide) var(--ease-paper) var(--stack-stagger-start),
+    transform var(--dur-slide) var(--ease-paper) var(--stack-stagger-start);
+}
+
+/* About Practice — Group B #2 (post-swap; was #1). */
+.landing--expanded .landing__section--about-practice {
+  top: var(--practice-top);
+  transform: translateX(calc(-50% + 12px)) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 2;
   transition:
     top var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
     opacity var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
@@ -608,9 +611,14 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   margin: 24px 0;
 }
 
+/* Full-width divider extends to the inner edge of the practice card's
+   ::before frame (inset 4px, 1px stroke) — same idiom as
+   .contact-card__footer-line ending at the inner edge of the contact
+   card's border. Math: card padding (36) − frame inset (4) − stroke (1)
+   = 31px past the content edge on each side. */
 .about-card__divider--full {
-  width: calc(100% + 64px);
-  margin-left: -32px;
+  width: calc(100% + 62px);
+  margin-left: -31px;
   border-bottom: 1px dashed var(--terra-800);
 }
 
@@ -1336,8 +1344,8 @@ textarea.contact-form__input {
     --projects-top: 396px;
     --short-top: var(--space-24);
     --long-top: 391px;
-    --practice-top: 632px;
-    --spectrum-top: 1146px;
+    --spectrum-top: 632px;
+    --practice-top: 996px;
     --contact-top: 1510px;
     --expanded-h: 1920px;
     min-height: 100svh;
@@ -1416,13 +1424,6 @@ textarea.contact-form__input {
     transition-delay: 0.04s;
   }
 
-  .landing--expanded .landing__section--about-practice {
-    top: var(--practice-top);
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-    transition-delay: var(--stack-stagger-start);
-  }
-
   .landing--expanded .landing__section--spectrum {
     top: var(--spectrum-top);
     transform: translateX(-50%) translateY(0) rotate(-1deg);
@@ -1430,9 +1431,16 @@ textarea.contact-form__input {
     pointer-events: auto;
     z-index: 4;
     transition:
-      top var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
-      opacity var(--dur-slide) var(--ease-paper) calc(var(--stack-stagger-start) + 0.02s),
-      transform var(--dur-settle) var(--ease-paper) calc(var(--stack-stagger-start) + 0.14s);
+      top var(--dur-slide) var(--ease-paper) var(--stack-stagger-start),
+      opacity var(--dur-slide) var(--ease-paper) var(--stack-stagger-start),
+      transform var(--dur-settle) var(--ease-paper) calc(var(--stack-stagger-start) + 0.12s);
+  }
+
+  .landing--expanded .landing__section--about-practice {
+    top: var(--practice-top);
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    transition-delay: calc(var(--stack-stagger-start) + 0.02s);
   }
 
   .landing--expanded .landing__section--contact {
@@ -1452,7 +1460,10 @@ textarea.contact-form__input {
   .about-card--long { padding-top: var(--space-56); }
   .about-card__text { width: auto; }
   .about-card__divider { width: auto; }
-  .about-card__divider--full { width: calc(100% + 2 * var(--space-24)); margin-left: calc(-1 * var(--space-24)); }
+  /* Mobile practice card padding is 24px (vs desktop 36) but frame ::before
+     stays at inset 4 with 1px stroke, so the divider extends 24 − 4 − 1 = 19px
+     past content edge to land at the frame's inner edge. */
+  .about-card__divider--full { width: calc(100% + 38px); margin-left: -19px; }
 
   /* About-short on mobile: above-hero space is tight (--hero-top: 160), so
      drop the decorative divider (the hero edge already serves as the seam)

@@ -543,24 +543,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* About Practice — split part 2: practice + life, framed sheet */}
-          <div className="landing__section--about-practice">
-            <div className="about-card about-card--practice">
-              <p className="about-card__text t-p2">
-                My practice has evolved from designing symbols to designing dashboards. I&rsquo;ve found joy in breaking and making processes within live systems to make them flowww.
-              </p>
-              <div className="about-card__divider about-card__divider--full" />
-              <p className="about-card__text t-p2">
-                I live well to be able to design well. I want to make my life and lives of those around me beautiful.
-                <br /><br />
-                Small interventions. In work. In daily life. And adjustments that make things function a bit better and make life feel a bit better.
-                <br /><br />
-                Welcome to my collection of design interventions aka my portfolio.
-              </p>
-            </div>
-          </div>
-
-          {/* Spectrum */}
+          {/* Spectrum — Group B #1 (was #2 before the spectrum/practice swap;
+              see _landing/ANOMALIES.md → "Group B order"). */}
           <div className="landing__section--spectrum">
             <div className="spectrum" onClick={handleSpectrumClick}>
               <div className="spectrum__frame" style={{ transform: `rotate(${specRotation}deg)` }}>
@@ -593,6 +577,24 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* About Practice — Group B #2 (split part 2: practice + life,
+              framed sheet). Sits below spectrum after the swap. */}
+          <div className="landing__section--about-practice">
+            <div className="about-card about-card--practice">
+              <p className="about-card__text t-p2">
+                My practice has evolved from designing symbols to designing dashboards. I&rsquo;ve found joy in breaking and making processes within live systems to make them flowww.
+              </p>
+              <div className="about-card__divider about-card__divider--full" />
+              <p className="about-card__text t-p2">
+                I live well to be able to design well. I want to make my life and lives of those around me beautiful.
+                <br /><br />
+                Small interventions. In work. In daily life. And adjustments that make things function a bit better and make life feel a bit better.
+                <br /><br />
+                Welcome to my collection of design interventions aka my portfolio.
+              </p>
             </div>
           </div>
 

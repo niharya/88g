@@ -11,7 +11,7 @@ Read this before touching the expand choreography or anything in the secondary s
 The landing has two logical groups of cards, and their entrance/exit motion must stay in separate idioms:
 
 - **Group A — hero-tucked.** `about-short`, `about-long`. These live *inside* the hero's mental frame in the default state and tuck out on expand (hero-glide keyframes). They share the hero's random micro-rotation vocabulary.
-- **Group B — secondary stack.** `about-practice`, `spectrum`, `contact`. These live *below* the hero in the expanded state only. In the default state they are opacity 0 with a small upward `translateY(-var(--stack-settle))` offset and `pointer-events: none`. On expand, they settle from above into place.
+- **Group B — secondary stack.** `spectrum`, `about-practice`, `contact` (in DOM order; see "Group B order" below). These live *below* the hero in the expanded state only. In the default state they are opacity 0 with a small upward `translateY(-var(--stack-settle))` offset and `pointer-events: none`. On expand, they settle from above into place.
 
 **Do not mix idioms.** Do not apply Group A's hero-tuck keyframes to Group B cards, and do not apply Group B's opacity-fade-settle to Group A. `about-practice` is part of Group B, not an extension of `about-long`, even though the copy continues.
 
@@ -23,7 +23,11 @@ Defined on `.landing` in `landing.css`:
 - `--stack-settle: var(--space-24)` — Y-offset Group B cards start from (above their resting top). Creates the "settling from above" read.
 - `--stack-gap: 40px` — design intent for vertical rhythm between Group B cards' unrotated boundaries. Used when positioning new stack cards.
 
-**Cascade offsets.** Spectrum and contact delay by `calc(var(--stack-stagger-start) + 0.02s)` and `+ 0.04s` respectively. This is the Group B cascade. If you add a fourth Group B card, it continues the cascade (+0.06s). Do not restart at 0.
+**Cascade offsets.** After the spectrum/practice swap, the order is spectrum (#1, no offset), about-practice (#2, `+0.02s`), contact (#3, `+0.04s`). If you add a fourth Group B card, it continues the cascade (+0.06s). Do not restart at 0.
+
+### Group B order
+
+Spectrum sits above about-practice in the expanded stack (post-swap). `--spectrum-top` is the first Group B slot below `about-long`; `--practice-top` is computed from `--spectrum-top + spectrum-block`. `--contact-top` and `--expanded-h` are unchanged by the swap because spectrum-block + practice-block totals the same in either order — they're a linked set anchored at long-top and contact-top. If you change either card's height, remeasure both intermediate tops in tandem.
 
 ## Group B card rotation — pinned to 0deg
 
@@ -83,5 +87,5 @@ On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop c
 
 - `--stack-stagger-start` value (0.22s is tuned against Group A's tuck-out duration)
 - The four-property collapsed-state contract for Group B cards
-- The cascade offset sequence (+0.02s, +0.04s, …) on spectrum/contact transitions
+- The cascade offset sequence (+0.02s on about-practice, +0.04s on contact) following spectrum's base delay
 - Group B 0deg rest pose (do not reintroduce random rotation without restoring the typed `@property` + batched reroll safety nets)

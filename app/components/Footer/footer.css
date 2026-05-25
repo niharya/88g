@@ -376,19 +376,32 @@
   }
 
   /* Tap target — minimum 44 px tall per Apple HIG. Vertical padding
-     keeps the 44 px floor; horizontal is tuned so all four cells fit
-     side-by-side at 375 px (the smallest supported viewport) without
-     the right-most cell clipping past the mat. The 800-step hover
-     fill (or the press fallback on first tap before onTouchStart
-     fires) paints the entire cell, so the lit-up region matches what
-     the finger actually covered. */
+     keeps the 44 px floor; horizontal is tuned so all five cells
+     (Privacy, Resume, LinkedIn, X, GitHub) fit side-by-side at 375 px
+     (the smallest supported viewport) without the right-most cell
+     clipping past the mat. The 800-step hover fill (or the press
+     fallback on first tap before onTouchStart fires) paints the entire
+     cell, so the lit-up region matches what the finger actually
+     covered. Horizontal padding dropped from 12 → 8 px when the
+     Resume cell was added — the four-cell budget at 12 px crossed
+     into the workbench-pad-x at 375 px once a fifth cell joined the row. */
   .footer--default .footer__link {
-    padding: var(--space-16) var(--space-12);
+    padding: var(--space-16) var(--space-8);
   }
 
   .footer--caption .footer__row {
-    /* On narrow screens the row may need to wrap; keep credit and
-       links on baseline, but allow the links to flow to a second line. */
+    /* On narrow screens the row may need to wrap; center the credit and
+       link cluster so both lines sit symmetrically inside the slab. The
+       caption variant has no vertical pipes, so centering reads cleanly
+       without a divider row. */
     gap: var(--space-8);
+    justify-content: center;
+    text-align: center;
+  }
+
+  .footer--caption .footer__links {
+    /* Keep the links centered when they wrap to their own row. */
+    justify-content: center;
+    flex-wrap: wrap;
   }
 }
