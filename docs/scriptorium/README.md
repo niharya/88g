@@ -21,7 +21,8 @@ One file per route, flat:
 - [`resume.md`](./resume.md) — `app/resume/`
 - [`privacy.md`](./privacy.md) — `app/privacy/`
 - [`not-found.md`](./not-found.md) — `app/not-found.tsx`
-- [`shared.md`](./shared.md) — Footer, nav, layout metadata, anything from `app/components/` that carries copy
+- [`shared.md`](./shared.md) — Footer, nav, anything from `app/components/` that carries copy
+- [`meta.md`](./meta.md) — All site metadata: titles, descriptions, Open Graph, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, sitemap. Lives in its own file because SEO/social is a different mental model from reading copy
 
 ## How to read an entry
 
