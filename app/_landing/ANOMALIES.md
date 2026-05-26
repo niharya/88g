@@ -64,9 +64,37 @@ Group B cards transition `top`, `opacity`, and `transform` on expand. All three 
 
 ## Responsive anomalies
 
-### `about-short` height docks to the hero
+### `about-short` is natural-height; dock is manual per viewport
 
-`.about-card--short` `min-height` is `calc(var(--hero-top) - var(--short-top))` — not a hand-tuned px value. This makes the card's bottom edge meet the hero's top edge with no gap at every breakpoint, since both tokens adapt (desktop `--hero-top: 224px` / `--short-top: 16px`; mobile `160px` / `24px`). The mobile media query intentionally does **not** override `min-height` — the calc already gives the right value (160 − 24 = 136). Don't reintroduce a hardcoded `184px` or a `min-height: 0` mobile reset; both regress the docking.
+`.about-card--short` has **no** `min-height`. The card shrinks to its natural content height (centered paragraph + tight padding + a divider above the bottom edge on desktop), and the hero docks against that natural bottom via a manually-tuned `--hero-top` per viewport:
+
+- desktop: `--hero-top: 178px`, `--short-top: var(--space-56)` (56), natural card height ~122 → 56 + 122 = 178 ✓
+- mobile: `--hero-top: 116px`, `--short-top: var(--space-24)` (24), natural card height ~92 (no divider) → 24 + 92 = 116 ✓
+
+**Why this changed.** The original architecture locked `min-height: calc(var(--hero-top) - var(--short-top))` so the card always filled the dock space at every breakpoint. That worked when the short-copy was the long-form three-clause paragraph it used to be, but the current copy ("I never fit neatly…") is shorter, and the locked min-height left 30–55px of empty space inside the card. Switching to natural-height + token-tuned dock removed that whitespace without breaking the dock.
+
+**If the copy ever grows back.** Either bump `--hero-top` (desktop and mobile) by the new card-height delta, or restore the calc + min-height approach. Don't ship a hardcoded `px` min-height without a tuned `--hero-top` — they'll desync.
+
+`--long-top` and `--projects-top` are part of the cascade — they were shifted by the same delta when `--hero-top` moved, so:
+
+- desktop: long-top 385 sits **33px above** hero-bottom 418 (the long card peeks 33px behind the hero from the bottom edge). projects-top 414 sits 4px above hero-bottom.
+- mobile: long-top 347 sits **9px above** hero-bottom 356 (a tighter overlap — there's less space behind the hero on mobile, and only the nav-pill row has to clear). projects-top 352 sits 4px above hero-bottom.
+
+If `--hero-top` changes again, move both `--long-top` and `--projects-top` by the same delta per viewport — they're a linked set, not independent values. Don't unify the desktop and mobile overlap figures; the 9px vs 33px split is intentional.
+
+### About-long horizontal padding is pinned to the discipline copy
+
+`.about-card--long` has `padding-left/right: var(--space-24)` (instead of the standard about-card 32). The reason is that "Studio-building and creative direction" + a trailing `<Monostamp>` chip would not fit on one line at `t-p3` with 32 horizontal padding (text width 320 too narrow). The tighter 24 padding gives text-width 336, which fits.
+
+The mobile `.about-card` rule already uses `var(--space-24)` padding all around, so the two viewports happen to agree — but the *intent* differs. If desktop copy ever changes and you need to widen the inner area further, scope the change with a viewport guard so mobile doesn't follow.
+
+### About-long copy is centered
+
+`.about-card--long .about-card__text` is `text-align: center` — three single-line discipline rows (or two-line, in row 3's case) read as a centered list of authored typographic units, with each chip sitting inline after its anchor word. This was a deliberate move *away* from right-edge chip docking; an earlier ledger composition right-aligned the chips, which read as "paying too much attention to the numbers." Don't propose tabular right-alignment again without re-checking that design intent.
+
+### "Growth experiments" is a single typographic unit on row 3
+
+`app/page.tsx` wraps the words "growth experiments" in a `<span style={{ whiteSpace: 'nowrap' }}>` inside row 3 of about-long. This is load-bearing for the wrap shape: with the wrap, line 1 breaks after "and" and line 2 reads "growth experiments [3y]" — keeping the two words together feels like one verbal cluster. Without the wrap, "growth" lands at the end of line 1 and "experiments" sits alone on line 2 next to the chip. Don't remove this `nowrap` span when editing the copy; if you replace "growth experiments" with a different phrase, decide whether the new phrase wants the same treatment.
 
 ### Mobile about-short — divider hidden, padding dropped
 
@@ -75,9 +103,9 @@ On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop c
 - the bottom `.about-card__divider` is `display: none`
 - `padding-bottom` is `0`
 - `padding-top` is `var(--space-16)`
-- `--short-top` is `var(--space-24)` (vs desktop `var(--space-16)`)
+- `--short-top` is `var(--space-24)` (vs desktop `var(--space-56)`)
 
-**Why.** Above-hero space on mobile is tight (`--hero-top: 160px`) and the about-short card is tall enough that the default desktop recipe pushes its last paragraph line + divider behind the hero. The hero's top edge already serves as the visual seam below the short card, so the decorative divider isn't load-bearing here. Don't restore it on mobile without re-measuring above-hero space.
+**Why.** Above-hero space on mobile is tight (`--hero-top: 116px`) and the about-short card needs every pixel for the centered copy. The hero's top edge already serves as the visual seam below the short card, so the decorative divider isn't load-bearing here. Don't restore it on mobile without re-measuring above-hero space and bumping `--hero-top` to absorb the extra height.
 
 ### Landing scrollbar hidden
 

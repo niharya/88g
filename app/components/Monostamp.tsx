@@ -25,8 +25,15 @@
 //
 // Known consumers
 //   • /biconomy Flows note pointers (tone="olive" variant="tall" appearance="dark").
+//   • Landing about-long discipline-year chips (tone="terra", default light).
+//     The terra tone was added alongside this consumer.
+//   • Landing contact-form success pill (neutral light + per-instance `style`
+//     for the randomized sentColor) and error pill (neutral light + a
+//     route-local className for orange ink + wide multi-line variant).
 //   • /selected archive entry "opens in new tab" hint — migration pending;
-//     see app/(works)/selected/ANOMALIES.md.
+//     see app/(works)/selected/ANOMALIES.md (blocked on missing per-entry
+//     tones — connektion/aleyr/codezeros/ecochain — and a token-promotion
+//     decision; not a duplicate of the pattern, an extension of it).
 //
 // Don't add color/border/background transitions to .monostamp.
 //   An earlier pass transitioned color, border-color, and background-color on
@@ -37,12 +44,12 @@
 //   intentionally instant. Reintroducing a transition here will silently
 //   break the active/rest flip on every dark-appearance consumer.
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 // Tones correspond 1:1 to color ramps in globals.css. When adding a new
 // tone, also add the matching 560 / 720 / 800 / 960 tokens and the light
 // + dark + is-active CSS rules so the tone works in both appearances.
-export type MonostampTone = 'neutral' | 'mint' | 'olive' | 'yellow'
+export type MonostampTone = 'neutral' | 'mint' | 'olive' | 'yellow' | 'terra'
 
 export type MonostampVariant = 'default' | 'tall'
 
@@ -56,6 +63,10 @@ export interface MonostampProps {
   /** When true, the stamp brightens to its "selected" palette. */
   active?: boolean
   className?: string
+  /** Inline style for one-off per-instance ink (e.g., the contact-form
+      success pill's randomized `sentColor`). Prefer `tone` + className for
+      anything reused. */
+  style?: CSSProperties
   'aria-hidden'?: boolean
 }
 

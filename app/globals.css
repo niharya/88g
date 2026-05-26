@@ -973,6 +973,7 @@ p, li {
 .monostamp--mint    { color: var(--mint-800); }
 .monostamp--olive   { color: var(--olive-800); }
 .monostamp--yellow  { color: var(--yellow-800); }
+.monostamp--terra   { color: var(--terra-800); }
 
 /* Dark appearance — for use on dark artefacts (e.g. dashboard screenshots). */
 /* Rest: tone-960 fill, tone-560 border + ink — bright ramp on a deep shell. */
@@ -981,6 +982,7 @@ p, li {
 .monostamp--dark.monostamp--mint    { background: var(--mint-960);   border-color: var(--mint-560);   color: var(--mint-560); }
 .monostamp--dark.monostamp--olive   { background: var(--olive-960);  border-color: var(--olive-560);  color: var(--olive-560); }
 .monostamp--dark.monostamp--yellow  { background: var(--yellow-960); border-color: var(--yellow-560); color: var(--yellow-560); }
+.monostamp--dark.monostamp--terra   { background: var(--terra-960);  border-color: var(--terra-560);  color: var(--terra-560); }
 .monostamp--dark.monostamp--neutral { background: var(--grey-160);   border-color: var(--grey-480);   color: var(--grey-320); }
 
 /* Active (hover/selected) — shell brightens to tone-800, ink + border step    */
@@ -988,6 +990,7 @@ p, li {
 .monostamp--dark.is-active.monostamp--mint    { background: var(--mint-800);   border-color: var(--mint-400);   color: var(--mint-400); }
 .monostamp--dark.is-active.monostamp--olive   { background: var(--olive-800);  border-color: var(--olive-400);  color: var(--olive-400); }
 .monostamp--dark.is-active.monostamp--yellow  { background: var(--yellow-800); border-color: var(--yellow-400); color: var(--yellow-400); }
+.monostamp--dark.is-active.monostamp--terra   { background: var(--terra-800);  border-color: var(--terra-400);  color: var(--terra-400); }
 .monostamp--dark.is-active.monostamp--neutral { background: var(--grey-240);   border-color: var(--grey-400);   color: var(--grey-400); }
 
 

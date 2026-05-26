@@ -8,6 +8,7 @@ import SlideInOnNav from './components/SlideInOnNav'
 import NavMarker from './components/NavMarker'
 import CaptionTag from './components/CaptionTag'
 import { ExpandToggle } from './components/ExpandToggle'
+import Monostamp from './components/Monostamp'
 import Footer from './components/Footer'
 import { getGreeting } from './lib/greeting'
 import './components/nav/nav.css'
@@ -474,8 +475,8 @@ export default function LandingPage() {
           {/* About Short */}
           <div className="landing__section--about-short">
             <div className="about-card about-card--short">
-              <p className="about-card__text t-p2">
-                I started with graphic design, then evolved the process to build a studio where we created timeless brands, and from there towards making products, solo&hellip;
+              <p className="about-card__text t-p3">
+                I never fit neatly into one discipline. Every time I thought I found &ldquo;my thing,&rdquo; it opened the door to a larger system behind it.
               </p>
               <div className="about-card__divider" />
             </div>
@@ -490,7 +491,7 @@ export default function LandingPage() {
                   <h1 className="hero-card__headline t-h2">
                     I&rsquo;m Nihar. I&rsquo;ve designed brands, cultures, and products.
                   </h1>
-                  <p className="hero-card__sub t-p3">What I was really doing was designing systems</p>
+                  <p className="hero-card__sub t-p3">What connected all of it was systems thinking.</p>
                 </div>
                 <button
                   className="pill-btn"
@@ -537,8 +538,16 @@ export default function LandingPage() {
           {/* About Long — split part 1: framing paragraph */}
           <div className="landing__section--about-long">
             <div className="about-card about-card--long">
-              <p className="about-card__text t-p2">
-                <span style={{ color: 'var(--grey-160)' }}>&hellip;and today I look at the world through the lens of system design and from here, I could design anything that interests me. A game being the last one.</span>
+              <p className="about-card__text t-p3">
+                <span className="discipline">
+                  UI and interaction design <Monostamp tone="terra" className="year-chip">2 years</Monostamp>
+                </span>
+                <span className="discipline">
+                  Studio-building and creative direction <Monostamp tone="terra" className="year-chip">3y</Monostamp>
+                </span>
+                <span className="discipline">
+                  Developer tooling, tech infrastructure, and <span style={{ whiteSpace: 'nowrap' }}>growth experiments</span> <Monostamp tone="terra" className="year-chip">3y</Monostamp>
+                </span>
               </p>
             </div>
           </div>
@@ -739,10 +748,10 @@ export default function LandingPage() {
                                   interrupting whatever is currently being read. */}
                               <div role="status" aria-live="polite" aria-atomic="true">
                                 {submitStatus === 'sent' && (
-                                  <span className="contact-form__success-pill" style={{ color: sentColor }}>Note Sent. Thank you.</span>
+                                  <Monostamp className="contact-form__success-pill" style={{ color: sentColor }}>Note Sent. Thank you.</Monostamp>
                                 )}
                                 {submitStatus === 'error' && (
-                                  <span className="contact-form__error-pill">There seems to be a network error on my side. I&rsquo;ve been notified. Please try again in a few hours.</span>
+                                  <Monostamp className="contact-form__error-pill">There seems to be a network error on my side. I&rsquo;ve been notified. Please try again in a few hours.</Monostamp>
                                 )}
                               </div>
                             </div>

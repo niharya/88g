@@ -30,11 +30,11 @@
      To add a new Group B card: advance its top by the previous card's height
      + var(--stack-gap), give it a --<name>-rot custom prop, and set its
      transition-delay to var(--stack-stagger-start) + N * 0.02s. */
-  --hero-top: 224px;
+  --hero-top: 178px;
   --hero-h: 240px;
-  --projects-top: 460px;
+  --projects-top: 414px;
   --short-top: var(--space-56);
-  --long-top: 431px;
+  --long-top: 385px;
   --spectrum-top: 688px;
 
   /* Group B spacing + choreography tokens */
@@ -551,27 +551,41 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   animation-delay: -0.24s;
 }
 
-/* Sized to dock against the hero — bottom edge meets hero top with no gap.
-   Calc keeps mobile docked too since both --hero-top and --short-top adapt. */
+/* Natural-height card — shrinks to text + divider + tight padding. The
+   --hero-top token is set so the hero docks against this card's natural
+   bottom edge (no explicit min-height needed; if the copy ever grows back,
+   bump --hero-top by the delta). Copy is centered; all vertical paddings
+   are tight (eyeballed at 1440) so the card reads as a snug label. */
 .about-card--short {
-  min-height: calc(var(--hero-top) - var(--short-top));
-  /* Tighter bottom so the divider's gap-below balances its gap-above.
-     Pairs with the .about-card__divider override below (no margin-bottom),
-     so the divider sits with 24px above (margin-top) and 24px below
-     (padding-bottom). The whole card protrudes less. */
-  padding-bottom: var(--space-24);
+  padding-top: var(--space-24);
+  padding-bottom: var(--space-16);
+}
+
+.about-card--short .about-card__text {
+  text-align: center;
 }
 
 .about-card--short .about-card__divider {
+  margin-top: var(--space-24);
   margin-bottom: 0;
 }
 
 /* Long card — first paragraph needs to clear the hero's nav pill row when
-   expanded. The card top sits 33px behind the hero bottom (long-top 431 vs
-   hero bottom 464), so the text needs enough top padding to appear below
-   the nav pill edge while keeping the text close to the nav pill's bottom. */
+   expanded. The card top sits 33px behind the hero bottom (long-top 417 vs
+   hero bottom 450), so the text needs enough top padding to appear below
+   the nav pill edge while keeping the text close to the nav pill's bottom.
+   Horizontal padding is tighter (24) than the standard about-card (32) so
+   the discipline rows have enough room for "Studio-building and creative
+   direction" + chip on a single line at t-p3. */
 .about-card--long {
   padding-top: var(--space-80);
+  padding-left: var(--space-24);
+  padding-right: var(--space-24);
+}
+
+.about-card--long .about-card__text {
+  width: auto;
+  text-align: center;
 }
 
 /* Practice card — the second split sheet. Framed with a terra-560 hairline
@@ -620,6 +634,43 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   width: calc(100% + 62px);
   margin-left: -31px;
   border-bottom: 1px dashed var(--terra-800);
+}
+
+
+/* ---- Discipline-year chips on about-long ----
+   Uses the shared `<Monostamp tone="terra">` primitive — terra ink comes
+   from the Monostamp tone (added alongside this consumer). Two route-local
+   concerns layered here:
+   1. Shell tint — the about-long card is terra-160; Monostamp's default
+      cream-grey shell reads as a white sticker on top of the card. Retint
+      to terra-240 fill + terra-560 hairline so the chip reads as a subtly
+      darker tile on the same surface. Lives in the consumer, not the
+      primitive, because the choice to tint depends on the surface, not the
+      tone (a future terra chip on a non-terra surface should still default
+      to the neutral shell).
+   2. `tabular-nums` so the year digits column stays stable across "2 years",
+      "3y", and any future format. */
+.year-chip {
+  background: var(--terra-240);
+  border-color: var(--terra-560);
+  font-variant-numeric: tabular-nums;
+  /* Nudge the chip a touch above the surrounding text baseline so the
+     bordered box sits visually centered against the cap-line of the
+     adjacent words, rather than dropping its descender past it. */
+  vertical-align: 2px;
+  /* Extra breathing room between the last word and the chip — beyond the
+     single inline space character that already sits there. */
+  margin-left: var(--space-4);
+}
+
+/* Each discipline is an inline-flow block — the chip flows right after the
+   last word of the sentence, no right-edge docking. Reads as a typographic
+   annotation rather than a tabular column. Gap goes between rows only. */
+.about-card--long .discipline {
+  display: block;
+}
+.about-card--long .discipline + .discipline {
+  margin-top: var(--space-12);
 }
 
 
@@ -1246,17 +1297,13 @@ textarea.contact-form__input {
   opacity: 0.6;
 }
 
-/* Success / error pills — matching archive hint pill pattern */
+/* Success / error pills — visual shell comes from `<Monostamp>` (mono pill,
+   cream fill, hairline border). These rules layer only the contact-form
+   placement (top margin), the entrance animation (success), the wide
+   multi-line variant (error), and the inked color when not driven via
+   per-instance `style` (success uses a randomized sentColor passed inline). */
 .contact-form__success-pill,
 .contact-form__error-pill {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  padding: 3px 6px;
-  border: 1px solid;
-  border-radius: 4px;
-  width: fit-content;
   margin-top: var(--space-8);
 }
 
@@ -1266,18 +1313,18 @@ textarea.contact-form__input {
 }
 
 .contact-form__success-pill {
-  background: var(--grey-960);
-  border-color: var(--grey-880);
-  color: var(--olive-800);
   animation: pill-enter var(--dur-slide) var(--ease-paper) both;
 }
 
 .contact-form__error-pill {
-  background: var(--grey-960);
-  border-color: var(--grey-880);
   color: var(--orange-560);
+  /* Error message is longer than the standard shrink-wrapped chip — let it
+     reflow over multiple lines, capped at 320px, with a more readable
+     line-height and slightly taller padding to match. Monostamp's base sets
+     `white-space: nowrap`; override it so the message can wrap. */
   width: auto;
   max-width: 320px;
+  white-space: normal;
   line-height: 1.4;
   padding: 4px 6px;
 }
@@ -1340,10 +1387,10 @@ textarea.contact-form__input {
 
 @media (max-width: 767px), (max-height: 500px) {
   .landing {
-    --hero-top: 160px;
-    --projects-top: 396px;
+    --hero-top: 116px;
+    --projects-top: 352px;
     --short-top: var(--space-24);
-    --long-top: 391px;
+    --long-top: 347px;
     --spectrum-top: 632px;
     --practice-top: 996px;
     --contact-top: 1510px;
@@ -1465,7 +1512,7 @@ textarea.contact-form__input {
      past content edge to land at the frame's inner edge. */
   .about-card__divider--full { width: calc(100% + 38px); margin-left: -19px; }
 
-  /* About-short on mobile: above-hero space is tight (--hero-top: 160), so
+  /* About-short on mobile: above-hero space is tight (--hero-top: 116), so
      drop the decorative divider (the hero edge already serves as the seam)
      and remove the bottom padding. Keeps the paragraph fully visible above
      the hero rather than tucking the last line behind it. */
