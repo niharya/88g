@@ -1,0 +1,49 @@
+/* /resume — full-viewport PDF wrapper.
+
+   The route is a real HTML page (for OG / Twitter / title metadata that a
+   raw PDF response can't carry), but the user should perceive it as the PDF
+   itself. So the wrapper is zero-chrome: no header, footer, padding, or
+   workbench layer. The iframe fills the viewport edge-to-edge and the
+   browser's PDF viewer chrome takes over from there.
+
+   The root layout's font-gate (`opacity: 0` until `.fonts-ready` lands) is
+   skipped here because this route doesn't render any project typography —
+   the iframe content is the PDF document, not page copy. The .resume-page
+   selector intentionally has no font-gate participation; if the gate ever
+   becomes mandatory site-wide, add an explicit opt-in or opt-out here. */
+
+.resume-page {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  background: var(--workbench-bg, #f2f3ef);
+  /* Bypass the font-gate's default `opacity: 0` for top-level surfaces —
+     this route renders no typography of its own, so the gate would only
+     delay the iframe's appearance for no readability benefit. */
+  opacity: 1;
+}
+
+.resume-page__viewer {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  /* Disable Chrome's tap-to-zoom and any default focus ring around the
+     iframe itself — the PDF viewer inside is the interactive surface, the
+     iframe element is just a window. */
+  outline: none;
+}
+
+/* Noscript fallback styling — only visible when the iframe is blocked. */
+.resume-page noscript p {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-32, 32px);
+  text-align: center;
+  font-family: var(--font-body, system-ui);
+  color: var(--grey-960, #1a1a1a);
+}

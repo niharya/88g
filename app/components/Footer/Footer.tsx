@@ -21,11 +21,12 @@ import { usePathname } from 'next/navigation'
 
 const LINKS: { label: string; href: string; external?: boolean }[] = [
   { label: 'Privacy', href: '/privacy' },
-  // `/resume` is a pretty-URL alias for the actual file in `public/`
-  // (rewrite wired in next.config.mjs). #navpanes=0 hides Chrome's PDF
-  // sidebar (thumbnails/bookmarks); #view=FitH fits the page to viewport
-  // width for smoother scrolling on the design-heavy single-page PDF.
-  { label: 'Resume', href: '/resume#navpanes=0&view=FitH', external: true },
+  // `/resume` is a real Next.js route (app/resume/page.tsx) that carries
+  // proper title / OG / Twitter metadata and embeds the PDF in a full-
+  // viewport iframe. The iframe handles the `#navpanes=0&view=FitH`
+  // fragments internally — keep this href clean so the URL bar stays at
+  // `nihar.works/resume`.
+  { label: 'Resume', href: '/resume', external: true },
   { label: 'LinkedIn', href: 'https://linkedin.com/in/niharbhagat', external: true },
   { label: 'X', href: 'https://x.com/neonihar', external: true },
   { label: 'GitHub', href: 'https://github.com/niharya', external: true },

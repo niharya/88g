@@ -10,17 +10,6 @@
   # Pin Node to match local (node --version → v22). Keeps CI builds reproducible.
   NODE_VERSION = "22"
 
-# Pretty-URL rewrite for the resume PDF. Netlify-native rewrite (status=200
-# preserves the URL bar) is what actually fires in production; the equivalent
-# `next.config.mjs` rewrites block doesn't run under @netlify/plugin-nextjs
-# without the plugin being explicitly installed, so we mirror the rule here
-# so /resume resolves on the live host. Keep both in sync — local `next dev`
-# uses the next.config rule, production uses this one.
-[[redirects]]
-  from = "/resume"
-  to = "/nihar-bhagat-resume-2025.pdf"
-  status = 200
-
 # Security headers — applied to every response. Order:
 #   • HSTS — force HTTPS for 2y once seen, include subdomains, allow preload list.
 #   • X-Frame-Options DENY — no embedding in iframes (pairs with frame-ancestors
