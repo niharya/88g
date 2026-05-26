@@ -146,7 +146,24 @@ Flag as ⚠ with the new name — propose adding it and re-subsetting per the do
 
 Flag as ⚠ — propose either reverting or noting the rationale in `docs/performance.md` → "Motion tokens".
 
-### 11. Verification
+### 11. Scriptorium drift
+
+Reference: `docs/scriptorium/README.md`. The Scriptorium is the verbatim copy catalog — one MD per route under `docs/scriptorium/`.
+
+**If** the diff touched any `.tsx` or copy-bearing `.ts` file under a catalogued route (`app/page.tsx`, `app/marks/`, `app/shape-of-product/`, `app/(works)/*/`, `app/resume/`, `app/privacy/`, `app/not-found.tsx`, `app/components/Footer/`, `app/components/nav/`, `app/layout.tsx`):
+
+- Diff the changed files with `git diff main...HEAD -- <path>`.
+- Look for changes to **string literals containing user-visible text** (heuristic: quoted strings of >2 words, JSX text nodes, `title:` / `label:` / `eyebrow:` / `caption:` / `alt=` fields, metadata `title` / `description` exports).
+- Skip: className strings, CSS values, import paths, type/variable names, console.log, aria-label that only mirrors visible text.
+
+For each touched route, identify the matching scriptorium file (`docs/scriptorium/<route>.md`). Flag ⚠ if:
+- The MD wasn't updated in the same diff
+- A copy fragment in the diff doesn't appear verbatim in the MD
+- A new section was added without a new anchor in the MD
+
+Don't auto-edit the Scriptorium — propose the specific anchors to update and let the user confirm. Do **not** flag pure refactors that move copy between files without changing the words (note the move, don't gate the push).
+
+### 12. Verification
 
 **If** the diff touched any file that would be observable in `preview_*` (components, route CSS, globals.css, layouts):
 
@@ -180,6 +197,7 @@ Examples of well-formed lines:
 - `↳  UI-observable diff; dev server not started this session — preview before push?`
 - `⚠  Perf: rr-hero.png (2.1 MB) committed without .webp — run npm run optimize-images?`
 - `⚠  Perf: new icon "settings" used in NavMarker but not in subsetted list — re-subset?`
+- `⚠  Scriptorium: biconomy/Intro.tsx headline changed but docs/scriptorium/biconomy.md#intro-headline not updated.`
 
 If all checks pass, say so:
 
