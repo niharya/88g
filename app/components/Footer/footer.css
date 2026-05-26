@@ -344,64 +344,71 @@
 /* ── Responsive — narrow viewports ─────────────────────────────────────── */
 
 @media (max-width: 767px), (max-height: 500px) {
-  /* Stack the row vertically: credit on top (centered), mid-divider,
-     then a centered link cluster below. The top divider stays at the
-     workbench seam; the new mid-divider sits between the two rows.
-     Both hairlines span the full mat width — symmetric, ledger-like. */
+  /* Mobile composition — keep the desktop single-row layout, just compress.
+     The credit + five link cells stay on one horizontal line (no column
+     stacking, no wrapping). The footer breaks out of `workbench-pad-x`
+     so it can span the full viewport width — gives the row the breathing
+     room it needs to fit at 375 px without overflowing the mat.
+     The mid-divider stays hidden (only the column-stacked variant needed
+     it as a between-rows hairline). */
+  .footer--default {
+    padding: 0;
+  }
+
   .footer--default .footer__row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-  }
-
-  .footer--default .footer__credit {
-    text-align: center;
-    /* Generous vertical breathing so the credit reads as its own row
-       between the two hairlines, not crammed against either. */
-    padding: var(--space-20) 0;
-  }
-
-  /* Reveal the mid-divider — same hairline as the top divider. */
-  .footer--default .footer__divider--mid {
-    display: block;
-    width: 100%;
-    height: 1px;
-    background: var(--grey-320);
-  }
-
-  /* Center the four-cell cluster under the divider; outer pipes still
-     bracket the group so it reads as a discrete ledger of links. */
-  .footer--default .footer__links {
+    /* Center the credit + links cluster within the full-width row. Gap is
+       tight so the credit reads as the byline immediately preceding the
+       link ledger, not as a separate column. flex-wrap: nowrap is
+       explicit — never let the cells flow to a second line. */
     justify-content: center;
+    gap: var(--space-12);
+    flex-wrap: nowrap;
+  }
+
+  /* Credit is the smallest signal on a phone-sized viewport; the link
+     ledger is what the user actually needs. Hide the byline so all five
+     cells can claim the full width. */
+  .footer--default .footer__credit {
+    display: none;
+  }
+
+  /* Mid-divider stays hidden on mobile now — only the column-stacked
+     variant needed it as a between-rows hairline. */
+
+  .footer--default .footer__links {
+    /* Five cells stay strictly on one horizontal line, centered under
+       the top hairline. */
+    justify-content: center;
+    flex-wrap: nowrap;
   }
 
   /* Tap target — minimum 44 px tall per Apple HIG. Vertical padding
      keeps the 44 px floor; horizontal is tuned so all five cells
      (Privacy, Resume, LinkedIn, X, GitHub) fit side-by-side at 375 px
      (the smallest supported viewport) without the right-most cell
-     clipping past the mat. The 800-step hover fill (or the press
-     fallback on first tap before onTouchStart fires) paints the entire
-     cell, so the lit-up region matches what the finger actually
-     covered. Horizontal padding dropped from 12 → 8 px when the
-     Resume cell was added — the four-cell budget at 12 px crossed
-     into the workbench-pad-x at 375 px once a fifth cell joined the row. */
+     clipping past the viewport. */
   .footer--default .footer__link {
     padding: var(--space-16) var(--space-8);
   }
 
+  /* Caption variant — same single-row constraint. Credit is hidden so the
+     five labels fit on one line within the slab's `100vw - 32px` max-width
+     at 375 px. Keeping credit here would push the row past the slab edge. */
+  .footer--caption .footer__credit {
+    display: none;
+  }
+
   .footer--caption .footer__row {
-    /* On narrow screens the row may need to wrap; center the credit and
-       link cluster so both lines sit symmetrically inside the slab. The
-       caption variant has no vertical pipes, so centering reads cleanly
-       without a divider row. */
-    gap: var(--space-8);
+    gap: var(--space-12);
     justify-content: center;
-    text-align: center;
+    flex-wrap: nowrap;
   }
 
   .footer--caption .footer__links {
-    /* Keep the links centered when they wrap to their own row. */
+    /* Single horizontal line, no wrap. Tighter gap so all five labels fit
+       within the slab's max-width on a 375 px viewport. */
+    gap: var(--space-12);
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
 }
