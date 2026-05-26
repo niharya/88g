@@ -10,8 +10,8 @@ import '../components/NavMarker/navmarker.css'
 import './privacy.css'
 
 export const metadata: Metadata = {
-  title: 'Privacy',
-  description: 'How nihar.works handles the small amount of data it touches.',
+  title: 'Privacy · Nothing Weird Here',
+  description: 'Pretty standard privacy stuff.',
   alternates: { canonical: '/privacy' },
 }
 

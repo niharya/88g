@@ -178,11 +178,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 > "Website"
 > — [`page.tsx:643`](../../app/page.tsx#L643)
 
-## JSON-LD structured data {#json-ld}
-
-> "Nihar Bhagat" / "Designer" / "Product, system, and brand designer."
-> — [`page.tsx:441-444`](../../app/page.tsx#L441)
-
 ## Notes
 
 - Greeting is time-of-day computed at mount via `getGreeting()` — one of three strings shown.

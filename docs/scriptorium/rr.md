@@ -6,14 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Metadata {#meta}
-
-> "Rug Rumble — Turning Infrastructure into Play"
-> — [`page.tsx:12`](../../app/(works)/rr/page.tsx#L12)
-
-> "Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems."
-> — [`page.tsx:13-14`](../../app/(works)/rr/page.tsx#L13)
-
 ## sr-only heading {#sr-heading}
 
 > "Rug Rumble — strategy card game"

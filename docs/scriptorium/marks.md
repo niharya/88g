@@ -6,14 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Metadata {#meta}
-
-> "Marks & Symbols — Identity Work"
-> — [`page.tsx:29`](../../app/marks/page.tsx#L29)
-
-> "An editorial reel of logo marks and symbols, built like a slow strip of film credits."
-> — [`page.tsx:30-31`](../../app/marks/page.tsx#L30)
-
 ## Hero — big title (decorative) {#hero-title}
 
 > "MARKS &"

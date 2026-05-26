@@ -26,14 +26,14 @@ import { MARKS } from './data/marks'
 // distToNearestHero) makes the switch imperceptible.
 
 export const metadata: Metadata = {
-  title: 'Marks & Symbols — Identity Work',
+  title: 'Marks & Symbols · Trying To Reduce Things',
   description:
-    'An editorial reel of logo marks and symbols, built like a slow strip of film credits.',
+    'Trying to reduce things until they still feel alive.',
   alternates: { canonical: '/marks' },
   openGraph: {
-    title: 'Marks & Symbols — Identity Work',
+    title: 'Identity work before systems happened.',
     description:
-      'An editorial reel of logo marks and symbols, built like a slow strip of film credits.',
+      'Symbols, marks, reduction, repetition.',
     url: '/marks',
     images: ['/og-marks.jpg'],
   },

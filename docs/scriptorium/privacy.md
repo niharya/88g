@@ -6,14 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Metadata {#meta}
-
-> "Privacy"
-> — [`page.tsx:13`](../../app/privacy/page.tsx#L13)
-
-> "How nihar.works handles the small amount of data it touches."
-> — [`page.tsx:14`](../../app/privacy/page.tsx#L14)
-
 ## Header {#header}
 
 > "Privacy"

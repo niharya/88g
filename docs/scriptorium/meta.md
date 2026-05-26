@@ -15,25 +15,25 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ## Root — title template {#root-title}
 
-> default: "Nihar Bhagat"
-> template: "%s — Nihar Bhagat"
+> default: "Nihar, Advanced Designer, Basic Conversationalist"
+> template: "%s · Nihar"
 > — [`layout.tsx:96-99`](../../app/layout.tsx#L96)
 
 ## Root — description {#root-description}
 
-> "Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments."
+> "Started with graphic design and somehow ended up deep in developer tooling and infrastructure systems."
 > — [`layout.tsx:100`](../../app/layout.tsx#L100)
 
 ## Root — applicationName / authors / creator {#root-app}
 
-> applicationName: "Nihar Bhagat"
-> creator: "Nihar Bhagat"
-> authors: [{ name: "Nihar Bhagat", url: "https://nihar.works" }]
+> applicationName: "Nihar"
+> creator: "Nihar"
+> authors: [{ name: "Nihar", url: "https://nihar.works" }]
 > — [`layout.tsx:101-103`](../../app/layout.tsx#L101)
 
 ## Root — keywords {#root-keywords}
 
-> "Nihar Bhagat", "product design", "system design", "brand design", "portfolio", "design"
+> "Nihar", "product design", "system design", "brand design", "portfolio", "design"
 > — [`layout.tsx:104`](../../app/layout.tsx#L104)
 
 ## Root — alternates / canonical {#root-canonical}
@@ -45,18 +45,18 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 > type: "website"
 > url: "https://nihar.works"
-> siteName: "Nihar Bhagat"
-> title: "Nihar Bhagat"
-> description: "Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments."
+> siteName: "Nihar"
+> title: "This wasn’t the original plan."
+> description: "UI and interaction design. Studio-building and creative direction. Developer tooling, tech infrastructure, growth experiments."
 > locale: "en_US"
-> image: "/og-image.png" (1200×630, alt: "Nihar Bhagat — Portfolio")
+> image: "/og-image.png" (1200×630, alt: "Nihar — Portfolio")
 > — [`layout.tsx:126-141`](../../app/layout.tsx#L126)
 
 ## Root — Twitter card {#root-twitter}
 
 > card: "summary_large_image"
-> title: "Nihar Bhagat"
-> description: "Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments."
+> title: "Nihar, Screens, Teams, Infrastructure"
+> description: "Got into design because of curiosity and stayed because I like making complicated things feel clear."
 > images: ["/og-image.png"]
 > — [`layout.tsx:142-147`](../../app/layout.tsx#L142)
 
@@ -90,19 +90,19 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 ## Landing — JSON-LD (Person) {#landing-jsonld-person}
 
 > @type: "Person"
-> name: "Nihar Bhagat"
+> name: "Nihar"
 > url: "https://nihar.works"
 > jobTitle: "Designer"
-> description: "Product, system, and brand designer."
+> description: "Started with graphic design and somehow ended up deep in developer tooling and infrastructure systems."
 > sameAs: linkedin.com/in/niharbhagat, github.com/niharya, x.com/neonihar
 > — [`page.tsx:438-450`](../../app/page.tsx#L438)
 
 ## Landing — JSON-LD (WebSite) {#landing-jsonld-website}
 
 > @type: "WebSite"
-> name: "Nihar Bhagat"
+> name: "Nihar"
 > url: "https://nihar.works"
-> author: { @type: "Person", name: "Nihar Bhagat" }
+> author: { @type: "Person", name: "Nihar" }
 > inLanguage: "en"
 > — [`page.tsx:451-458`](../../app/page.tsx#L451)
 
@@ -110,13 +110,13 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ## /selected (Works) — Metadata {#selected-meta}
 
-> title: "Works"
-> description: "Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward."
+> title: "Selected Work"
+> description: "Branding, onboarding flows, naming, systems work, infrastructure experiments."
 > canonical: "/selected"
 > — [`page.tsx:10-14`](../../app/(works)/selected/page.tsx#L10)
 
-> OG title: "Works — Nihar Bhagat"
-> OG description: "Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward."
+> OG title: "Different systems. Same instincts."
+> OG description: "Trying to organize complexity so people can move through it and get somewhere."
 > OG url: "/selected"
 > OG image: "/og-image.png"
 > — [`page.tsx:15-21`](../../app/(works)/selected/page.tsx#L15)
@@ -125,13 +125,13 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ## /biconomy — Metadata {#biconomy-meta}
 
-> title: "Biconomy — Translating Complexity into Usable Systems"
-> description: "Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem."
+> title: "Biconomy · Deep Infrastructure Stuff"
+> description: "Thought I was designing product screens. Most of the work was actually systems work."
 > canonical: "/biconomy"
 > — [`page.tsx:12-16`](../../app/(works)/biconomy/page.tsx#L12)
 
-> OG title: "Biconomy — Translating Complexity into Usable Systems"
-> OG description: "Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem."
+> OG title: "Deep infrastructure stuff."
+> OG description: "Trying to make complicated systems feel clear enough to move through."
 > OG url: "/biconomy"
 > OG image: "/og-biconomy.jpg"
 > — [`page.tsx:17-23`](../../app/(works)/biconomy/page.tsx#L17)
@@ -140,13 +140,13 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ## /rr (Rug Rumble) — Metadata {#rr-meta}
 
-> title: "Rug Rumble — Turning Infrastructure into Play"
-> description: "Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems."
+> title: "Rug Rumble · Systems Disguised As A Card Game"
+> description: "Turned infrastructure ideas into something people could actually play with."
 > canonical: "/rr"
 > — [`page.tsx:11-15`](../../app/(works)/rr/page.tsx#L11)
 
-> OG title: "Rug Rumble — Turning Infrastructure into Play"
-> OG description: "Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems."
+> OG title: "I think games are just systems people agree to take seriously."
+> OG description: "Part game, part product demo, part systems experiment."
 > OG url: "/rr"
 > OG image: "/og-rr.jpg"
 > — [`page.tsx:16-22`](../../app/(works)/rr/page.tsx#L16)
@@ -156,12 +156,12 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 > @type: "CreativeWork"
 > name: "Rug Rumble"
 > headline: "Rug Rumble — Turning Infrastructure into Play"
-> description: "Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems."
+> description: "Turned infrastructure ideas into something people could actually play with."
 > url: "https://nihar.works/rr"
 > inLanguage: "en"
 > genre: "Game design"
-> author: { @type: "Person", name: "Nihar Bhagat", url: "https://nihar.works" }
-> isPartOf: { @type: "WebSite", name: "Nihar Bhagat", url: "https://nihar.works" }
+> author: { @type: "Person", name: "Nihar", url: "https://nihar.works" }
+> isPartOf: { @type: "WebSite", name: "Nihar", url: "https://nihar.works" }
 > — [`page.tsx:25-37`](../../app/(works)/rr/page.tsx#L25)
 
 ## /rr — H1 (sr-only) {#rr-h1}
@@ -173,13 +173,13 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ## /marks — Metadata {#marks-meta}
 
-> title: "Marks & Symbols — Identity Work"
-> description: "An editorial reel of logo marks and symbols, built like a slow strip of film credits."
+> title: "Marks & Symbols · Trying To Reduce Things"
+> description: "Trying to reduce things until they still feel alive."
 > canonical: "/marks"
 > — [`page.tsx:28-32`](../../app/marks/page.tsx#L28)
 
-> OG title: "Marks & Symbols — Identity Work"
-> OG description: "An editorial reel of logo marks and symbols, built like a slow strip of film credits."
+> OG title: "Identity work before systems happened."
+> OG description: "Symbols, marks, reduction, repetition."
 > OG url: "/marks"
 > OG image: "/og-marks.jpg"
 > — [`page.tsx:33-39`](../../app/marks/page.tsx#L33)
@@ -188,8 +188,8 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ## /shape-of-product — Metadata {#sop-meta}
 
-> title: "Shape of Product"
-> description: "A musing on building tools for people who build tools, and the role design plays when the shape of product is open."
+> title: "Somewhere Between Product And Infrastructure"
+> description: "Thinking about tools, systems, interfaces, and the people building them."
 > canonical: "/shape-of-product"
 > — [`page.tsx:8-12`](../../app/shape-of-product/page.tsx#L8)
 
@@ -199,22 +199,22 @@ Notes: No openGraph block authored — falls back to root layout OG.
 
 ## /resume — Metadata {#resume-meta}
 
-> title: "Resume"
-> description: "Resume of Nihar Bhagat — product, system, and brand designer. Selected work, roles, and what I look for in the next chapter."
+> title: "Resume · Interfaces To Infrastructure"
+> description: "Most of my career happened because I kept going one layer deeper."
 > canonical: "/resume"
 > — [`page.tsx:27-30`](../../app/resume/page.tsx#L27)
 
 > OG type: "profile"
 > OG url: "https://nihar.works/resume"
-> OG siteName: "Nihar Bhagat"
-> OG title: "Resume — Nihar Bhagat"
-> OG description: "Resume of Nihar Bhagat — product, system, and brand designer."
-> OG image: "/og-image.png" (1200×630, alt: "Nihar Bhagat — Resume")
+> OG siteName: "Nihar"
+> OG title: "Went pretty far behind the curtain."
+> OG description: "Started with interfaces. Ended up deep in systems work."
+> OG image: "/og-image.png" (1200×630, alt: "Nihar — Resume")
 > — [`page.tsx:31-45`](../../app/resume/page.tsx#L31)
 
 > Twitter card: "summary_large_image"
-> Twitter title: "Resume — Nihar Bhagat"
-> Twitter description: "Resume of Nihar Bhagat — product, system, and brand designer."
+> Twitter title: "Went pretty far behind the curtain."
+> Twitter description: "Started with interfaces. Ended up deep in systems work."
 > Twitter images: ["/og-image.png"]
 > — [`page.tsx:46-51`](../../app/resume/page.tsx#L46)
 
@@ -222,8 +222,8 @@ Notes: No openGraph block authored — falls back to root layout OG.
 
 ## /privacy — Metadata {#privacy-meta}
 
-> title: "Privacy"
-> description: "How nihar.works handles the small amount of data it touches."
+> title: "Privacy · Nothing Weird Here"
+> description: "Pretty standard privacy stuff."
 > canonical: "/privacy"
 > — [`page.tsx:12-16`](../../app/privacy/page.tsx#L12)
 
@@ -263,7 +263,7 @@ Notes: `lastModified` is set to `new Date()` at request time — every fetch rep
 ## Notes
 
 - **Dev-only routes** (`/_dev-tools/lqip-lab`, `/_dev-tools/sticker-lab`, `/preview/404`) have minimal metadata (just `title`) and are intentionally not in the sitemap. Not catalogued here.
-- **Title template** (`%s — Nihar Bhagat`) applies to every route that sets `title` as a string. `title: "Resume"` renders as `"Resume — Nihar Bhagat"` in the browser tab.
+- **Title template** (`%s · Nihar`) applies to every route that sets `title` as a string. `title: "Resume · Interfaces To Infrastructure"` renders as `"Resume · Interfaces To Infrastructure · Nihar"` in the browser tab.
 - **OG image fallback chain:** routes without an OG block inherit root layout's `/og-image.png`. Routes with their own OG block override fully — fields you don't set are not inherited per-block (this is Next.js metadata behavior).
 - **JSON-LD lives in two places** today: landing (Person + WebSite) and `/rr` (CreativeWork). Other routes don't carry structured data.
 - **Same description string is reused** across `metadata.description`, `openGraph.description`, and `twitter.description` for each route — changing one means changing all three.

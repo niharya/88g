@@ -22,7 +22,7 @@ One file per route, flat:
 - [`privacy.md`](./privacy.md) — `app/privacy/`
 - [`not-found.md`](./not-found.md) — `app/not-found.tsx`
 - [`shared.md`](./shared.md) — Footer, nav, anything from `app/components/` that carries copy
-- [`meta.md`](./meta.md) — All site metadata: titles, descriptions, Open Graph, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, sitemap. Lives in its own file because SEO/social is a different mental model from reading copy
+- [`meta.md`](./meta.md) — All site metadata: titles, descriptions, Open Graph, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, sitemap. Lives in its own file because SEO/social is a different mental model from reading copy. **Per-route mds intentionally do not carry a `## Metadata` section** — all head-tag copy (title, description, OG, Twitter, JSON-LD, alt text on OG images) lives in `meta.md` only. Per-route mds catalog reading-copy (body text, chapter labels, captions, sr-only headings, iframe titles, aria-labels) — anything that renders inside the page, not in `<head>`. Don't reflexively add a Metadata block back; if you're editing head-tag copy, edit `meta.md`.
 
 ## How to read an entry
 

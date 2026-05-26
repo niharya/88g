@@ -6,9 +6,9 @@ import RoleApproachStack from './components/RoleApproachStack'
 import SignOffCard from './components/SignOffCard'
 
 export const metadata: Metadata = {
-  title: 'Shape of Product',
+  title: 'Somewhere Between Product And Infrastructure',
   description:
-    'A musing on building tools for people who build tools, and the role design plays when the shape of product is open.',
+    'Thinking about tools, systems, interfaces, and the people building them.',
   alternates: { canonical: '/shape-of-product' },
 }
 

@@ -6,14 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Metadata {#meta}
-
-> "Shape of Product"
-> — [`page.tsx:9`](../../app/shape-of-product/page.tsx#L9)
-
-> "A musing on building tools for people who build tools, and the role design plays when the shape of product is open."
-> — [`page.tsx:10-11`](../../app/shape-of-product/page.tsx#L10)
-
 ## Heading (sr-only) {#sr-heading}
 
 > "Shape of Product"

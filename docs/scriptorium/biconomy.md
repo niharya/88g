@@ -6,14 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Metadata {#meta}
-
-> "Biconomy — Translating Complexity into Usable Systems"
-> — [`page.tsx:13`](../../app/(works)/biconomy/page.tsx#L13)
-
-> "Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem."
-> — [`page.tsx:14-15`](../../app/(works)/biconomy/page.tsx#L14)
-
 ## sr-only heading {#sr-heading}
 
 > "Biconomy — long-form UX case study"

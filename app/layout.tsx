@@ -94,14 +94,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://nihar.works'),
   title: {
-    default: 'Nihar Bhagat',
-    template: '%s — Nihar Bhagat',
+    default: 'Nihar, Advanced Designer, Basic Conversationalist',
+    template: '%s · Nihar',
   },
-  description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments.',
-  applicationName: 'Nihar Bhagat',
-  authors: [{ name: 'Nihar Bhagat', url: 'https://nihar.works' }],
-  creator: 'Nihar Bhagat',
-  keywords: ['Nihar Bhagat', 'product design', 'system design', 'brand design', 'portfolio', 'design'],
+  description: 'Started with graphic design and somehow ended up deep in developer tooling and infrastructure systems.',
+  applicationName: 'Nihar',
+  authors: [{ name: 'Nihar', url: 'https://nihar.works' }],
+  creator: 'Nihar',
+  keywords: ['Nihar', 'product design', 'system design', 'brand design', 'portfolio', 'design'],
   alternates: {
     canonical: '/',
   },
@@ -126,23 +126,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: 'https://nihar.works',
-    siteName: 'Nihar Bhagat',
-    title: 'Nihar Bhagat',
-    description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments.',
+    siteName: 'Nihar',
+    title: 'This wasn’t the original plan.',
+    description: 'UI and interaction design. Studio-building and creative direction. Developer tooling, tech infrastructure, growth experiments.',
     locale: 'en_US',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Nihar Bhagat — Portfolio',
+        alt: 'Nihar — Portfolio',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nihar Bhagat',
-    description: 'Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments.',
+    title: 'Nihar, Screens, Teams, Infrastructure',
+    description: 'Got into design because of curiosity and stayed because I like making complicated things feel clear.',
     images: ['/og-image.png'],
   },
   robots: {

@@ -6,17 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Metadata {#meta}
-
-> "Works"
-> — [`page.tsx:11`](../../app/(works)/selected/page.tsx#L11)
-
-> "Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward."
-> — [`page.tsx:13`](../../app/(works)/selected/page.tsx#L13)
-
-> "Works — Nihar Bhagat" (OG title)
-> — [`page.tsx:16`](../../app/(works)/selected/page.tsx#L16)
-
 ## sr-only heading {#sr-heading}
 
 > "Works"

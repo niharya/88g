@@ -8,14 +8,14 @@ import NiharHomeLink from '../../components/NiharHomeLink'
 import SlideInOnNav from '../../components/SlideInOnNav'
 
 export const metadata: Metadata = {
-  title: 'Works',
+  title: 'Selected Work',
   description:
-    'Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward.',
+    'Branding, onboarding flows, naming, systems work, infrastructure experiments.',
   alternates: { canonical: '/selected' },
   openGraph: {
-    title: 'Works — Nihar Bhagat',
+    title: 'Different systems. Same instincts.',
     description:
-      'Selected works by Nihar Bhagat — product, systems, and brand design from 2018 onward.',
+      'Trying to organize complexity so people can move through it and get somewhere.',
     url: '/selected',
     images: ['/og-image.png'],
   },

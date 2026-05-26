@@ -11,7 +11,7 @@ Read it at the start of every session. Do not drift from it without explicit ins
 * **Per-route `ANOMALIES.md`** — load-bearing wiring, don't-touch items. **Read before editing the route**
 * **`docs/responsive.md`** + **`docs/responsive-playbook.md`** — full responsive rules and shape-by-shape decision tree
 * **`docs/vocabulary.md`** — design-language ↔ code-identifier mapping
-* **`docs/scriptorium/`** — verbatim copy reference, one file per route. See [`docs/scriptorium/README.md`](./docs/scriptorium/README.md). Don't edit copy here; edit the source. `/prepush` flags drift
+* **`docs/scriptorium/`** — verbatim copy reference, one file per route. See [`docs/scriptorium/README.md`](./docs/scriptorium/README.md). Don't edit copy here; edit the source. `/prepush` flags drift. Head-tag copy (titles, descriptions, OG, Twitter, JSON-LD, OG image alts) lives in `meta.md` only — per-route mds catalog reading-copy that renders inside the page
 * **`docs/claude/memory.md`** — durable project identity memory
 * **`COLOPHON.md`** — origins, credits, historical sources
 

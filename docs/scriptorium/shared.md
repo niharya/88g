@@ -6,48 +6,6 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 
 ---
 
-## Root metadata — title template {#meta-title}
-
-> "Nihar Bhagat" (default title)
-> — [`layout.tsx:97`](../../app/layout.tsx#L97)
-
-> "%s — Nihar Bhagat" (template applied to child route titles)
-> — [`layout.tsx:98`](../../app/layout.tsx#L98)
-
-## Root metadata — description {#meta-description}
-
-> "Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments."
-> — [`layout.tsx:100`](../../app/layout.tsx#L100)
-
-## Root metadata — applicationName / creator / authors {#meta-app}
-
-> "Nihar Bhagat"
-> — [`layout.tsx:101-103`](../../app/layout.tsx#L101)
-
-## Root metadata — keywords {#meta-keywords}
-
-> "Nihar Bhagat", "product design", "system design", "brand design", "portfolio", "design"
-> — [`layout.tsx:104`](../../app/layout.tsx#L104)
-
-## Root metadata — Open Graph {#meta-og}
-
-> "Nihar Bhagat" (siteName / title)
-> — [`layout.tsx:129-130`](../../app/layout.tsx#L129)
-
-> "Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments."
-> — [`layout.tsx:131`](../../app/layout.tsx#L131)
-
-> "Nihar Bhagat — Portfolio" (OG image alt)
-> — [`layout.tsx:138`](../../app/layout.tsx#L138)
-
-## Root metadata — Twitter card {#meta-twitter}
-
-> "Nihar Bhagat"
-> — [`layout.tsx:144`](../../app/layout.tsx#L144)
-
-> "Portfolio of Nihar Bhagat — product, system, and brand design. Case studies written as long-form reading environments."
-> — [`layout.tsx:145`](../../app/layout.tsx#L145)
-
 ## Skip-to-content link {#skip-link}
 
 > "Skip to content"

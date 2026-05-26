@@ -10,14 +10,14 @@ import API from './components/API'
 import StayingAnchored from './components/StayingAnchored'
 
 export const metadata: Metadata = {
-  title: 'Biconomy — Translating Complexity into Usable Systems',
+  title: 'Biconomy · Deep Infrastructure Stuff',
   description:
-    'Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem.',
+    'Thought I was designing product screens. Most of the work was actually systems work.',
   alternates: { canonical: '/biconomy' },
   openGraph: {
-    title: 'Biconomy — Translating Complexity into Usable Systems',
+    title: 'Deep infrastructure stuff.',
     description:
-      'Designing developer-facing products, onboarding flows, and interactive experiences inside a rapidly evolving infrastructure ecosystem.',
+      'Trying to make complicated systems feel clear enough to move through.',
     url: '/biconomy',
     images: ['/og-biconomy.jpg'],
   },
@@ -42,8 +42,8 @@ const creativeWorkLd = {
     'A long-form UX case study on Biconomy — rethinking the platform Web3 developers use to manage smart contracts and gas tanks.',
   url: 'https://nihar.works/biconomy',
   inLanguage: 'en',
-  author: { '@type': 'Person', name: 'Nihar Bhagat', url: 'https://nihar.works' },
-  isPartOf: { '@type': 'WebSite', name: 'Nihar Bhagat', url: 'https://nihar.works' },
+  author: { '@type': 'Person', name: 'Nihar', url: 'https://nihar.works' },
+  isPartOf: { '@type': 'WebSite', name: 'Nihar', url: 'https://nihar.works' },
 }
 
 export default function BiconomyPage() {

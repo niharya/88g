@@ -9,14 +9,14 @@ import Outcome from './components/Outcome'
 import InterstitialText from './components/InterstitialText'
 
 export const metadata: Metadata = {
-  title: 'Rug Rumble — Turning Infrastructure into Play',
+  title: 'Rug Rumble · Systems Disguised As A Card Game',
   description:
-    'Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems.',
+    'Turned infrastructure ideas into something people could actually play with.',
   alternates: { canonical: '/rr' },
   openGraph: {
-    title: 'Rug Rumble — Turning Infrastructure into Play',
+    title: 'I think games are just systems people agree to take seriously.',
     description:
-      'Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems.',
+      'Part game, part product demo, part systems experiment.',
     url: '/rr',
     images: ['/og-rr.jpg'],
   },
@@ -28,12 +28,12 @@ const creativeWorkLd = {
   name: 'Rug Rumble',
   headline: 'Rug Rumble — Turning Infrastructure into Play',
   description:
-    'Part game, part product demo. An experiment in using interaction and humor to communicate complex infrastructure systems.',
+    'Turned infrastructure ideas into something people could actually play with.',
   url: 'https://nihar.works/rr',
   inLanguage: 'en',
   genre: 'Game design',
-  author: { '@type': 'Person', name: 'Nihar Bhagat', url: 'https://nihar.works' },
-  isPartOf: { '@type': 'WebSite', name: 'Nihar Bhagat', url: 'https://nihar.works' },
+  author: { '@type': 'Person', name: 'Nihar', url: 'https://nihar.works' },
+  isPartOf: { '@type': 'WebSite', name: 'Nihar', url: 'https://nihar.works' },
 }
 
 export default function RRPage() {

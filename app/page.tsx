@@ -438,10 +438,10 @@ export default function LandingPage() {
   const personLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    name: 'Nihar Bhagat',
+    name: 'Nihar',
     url: 'https://nihar.works',
     jobTitle: 'Designer',
-    description: 'Product, system, and brand designer.',
+    description: 'Started with graphic design and somehow ended up deep in developer tooling and infrastructure systems.',
     sameAs: [
       'https://linkedin.com/in/niharbhagat',
       'https://github.com/niharya',
@@ -451,9 +451,9 @@ export default function LandingPage() {
   const websiteLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Nihar Bhagat',
+    name: 'Nihar',
     url: 'https://nihar.works',
-    author: { '@type': 'Person', name: 'Nihar Bhagat' },
+    author: { '@type': 'Person', name: 'Nihar' },
     inLanguage: 'en',
   }
 
