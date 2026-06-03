@@ -588,6 +588,13 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   text-align: center;
 }
 
+/* Lead paragraph above the discipline list — same type scale as the
+   disciplines, with a gap below so the two text blocks read as related
+   but distinct. */
+.about-card--long .about-card__lead {
+  margin-bottom: var(--space-24);
+}
+
 /* Practice card — the second split sheet. Framed with a terra-560 hairline
    set 4px in from the card edge (the inner margin reads as a traditional
    mat around the text block), and a mild flat shadow so the card feels

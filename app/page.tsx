@@ -538,6 +538,9 @@ export default function LandingPage() {
           {/* About Long — split part 1: framing paragraph */}
           <div className="landing__section--about-long">
             <div className="about-card about-card--long">
+              <p className="about-card__text about-card__lead t-p3">
+                I never tried to become a generalist. I specialized in one thing at a time.
+              </p>
               <p className="about-card__text t-p3">
                 <span className="discipline">
                   UI and interaction design <Monostamp tone="terra" className="year-chip">2 years</Monostamp>
