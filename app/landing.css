@@ -237,9 +237,16 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   z-index: 2;
 }
 
+/* Collapsed about-long is taller than hero (the lead line "I never tried
+   to become a generalist…" added in v0.89.0 pushed the card to ~273px,
+   above hero's 240px). To keep the card fully tucked behind hero in the
+   collapsed state, lift the top above --hero-top so the card's center
+   aligns with hero's center, and reduce the scale-down so the scaled
+   height fits inside hero's vertical bounds. Both offsets are tuned
+   against the current copy — if the card grows again, re-measure. */
 .landing--default .landing__section--about-long {
-  top: var(--hero-top);
-  transform: translateX(calc(-50% + 12px)) scale(0.9);
+  top: calc(var(--hero-top) - 20px);
+  transform: translateX(calc(-50% + 12px)) scale(0.82);
   pointer-events: none;
   z-index: 3;
 }
