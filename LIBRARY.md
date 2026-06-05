@@ -611,6 +611,7 @@ Site colophon — rendered in two variants depending on consumer.
 - **Caption visibility on landing:** controlled by `pastForm` state, which a scroll listener flips true when the document is parked at the bottom (`scrollHeight − scrollY − innerHeight ≤ 64`). The threshold is small on purpose — any honest upward scroll gesture clears the slab immediately rather than lingering until the form leaves the viewport. Resets on collapse so a re-expand starts hidden.
 - **Mobile composition (default, `≤767px` or `max-height: 500px`):** single horizontal row, centered, with the credit hidden so all five pipe-bracketed cells (Privacy, Resume, LinkedIn, X, GitHub) claim the full width. The footer drops `workbench-pad-x` to 0 on mobile so the row can span the full viewport. Cells are 44 px tall (Apple HIG min tap target) with `var(--space-8)` horizontal padding. The mid-divider hairline is not used here — that pattern was for an earlier 3-row mobile composition (credit + divider + links) that the v0.83 fix collapsed. Caption variant gets the same treatment: credit hidden, five cells centered on one line, `flex-wrap: nowrap` to guarantee no second-line wrap.
 - **Touch tap-light parity:** taps on mobile never fire `onMouseEnter`, so the link `<a>` also carries `onTouchStart` that rolls the same `--hover-color` / `--active-color` from `ROUTE_PALETTES`. Without this, the press state falls back to the gray rgba and the cell lights up dim instead of in the route's hue. Don't drop one handler without the other.
+- **StartoothRow (left of credit):** clickable home-link (`<a href="/">`) that renders three small (14 × 14) favicon-style icons drawn from the six startooth variants in `public/icon-{star,tooth}-{blue,olive,terra}.svg` — same source as the favicon-swap in `app/layout.tsx`. Roll rules: **shapes alternate** (first slot random, each subsequent flips) and **tones are a no-repeat permutation** of `[blue, olive, terra]`. SSR-stable default = `star-blue · tooth-olive · star-terra` so first paint matches hydration; `useEffect` rolls fresh on mount AND on hover-enter (cheap delight — never reads the same twice in a session). Hover state: anchor bg = `--grey-880`, each icon gets its own small per-slot rotation (slot 1 −8°, slot 2 +4°, slot 3 +9°) + 1 px lift. Active = `translateY(1 px)`. Touch target: `padding: var(--space-8)` with negative margin compensation so the row's layout doesn't shift.
 
 **AI notes:**
 - Don't extract Footer to a route layer or duplicate it. Single shared primitive, two variants via `variant` prop.
@@ -634,6 +635,66 @@ The Rug Rumble playable game module — [app/(works)/rr/components/game/](app/(w
 - `GameBoard` is the entry point. Optional callbacks: `onResultsChange`, `onGameOver`, `onGameStart`. No props are required for a standalone playable mount.
 - The board is `'use client'` — animations, input, and game state are all local.
 - `not-found.tsx` is the reference cross-route consumer. Copy its scoping pattern if a fourth surface ever needs the game.
+
+---
+
+## DotPager
+
+A 24 px-tall chip with a row of dots — one reads as the active page index. Whole chip is the click target; clicking advances the index (0 → 1 → 2 → … → N − 1 → 0). Lives at [app/components/DotPager/](app/components/DotPager/) — `DotPager.tsx` + `dotpager.css` + `index.ts`. Single consumer at promotion time (`/selected` Paymaster flow nav); promoted now so the showcase control trio — Switch, PauseButton, DotPager — all share one home and visual family.
+
+**Contract:**
+
+- Props: `count: number`, `activeIndex: number`, `onAdvance: () => void`. Optional `onClick` (for `stopPropagation` in click-to-focus tiles), `className`, `ariaLabel`.
+- Stateless. Consumer owns `activeIndex`. The component just renders the row and reports advance.
+- 8 px outer radius + 1 px `--grey-800` hairline + `--mat-bg` fill (matches Switch wrapper, PauseButton).
+- Active-dot tint via `--dotpager-tint` CSS variable (default `--grey-240`). Consumers set this on a wrapper so the active dot picks up an artefact-specific accent.
+
+**Known consumers:**
+
+- `/selected` showcase Paymaster tile — cycles between three audit flows. Tinted from `--sc-dotc` via the `.sc-pagechip` wrapper class.
+
+---
+
+## PauseButton
+
+A 24 × 24 mat-bg icon button that toggles play / pause. Lives at [app/components/PauseButton/](app/components/PauseButton/) — `PauseButton.tsx` + `pausebtn.css` + `index.ts`. Single consumer at promotion time (`/selected` showcase video tiles); promoted now so the showcase control family — Switch, PauseButton, future page chip — all sit in `app/components/` together with one consistent visual language.
+
+**Contract:**
+
+- Props: `paused: boolean`, `onToggle: () => void`. Optional `onClick` fires alongside (use for `stopPropagation` when the button sits inside a click-to-focus tile). Optional `className`, `ariaLabel: { play, pause }`.
+- Stateless — consumer owns `paused`. The button just renders the right icon and reports the toggle.
+- 8 px outer radius + 1 px `--grey-800` hairline + `--mat-bg` fill (matches the Switch wrapper + future page chip).
+- `:hover` swaps the background to `--grey-880` and the border to `--grey-720`. `:active` scales 0.96 for press feedback.
+
+**Known consumers:**
+
+- `/selected` showcase video tiles (Furrmark, Ecochain, Subway). Sits in `.sc-controls` next to the `Switch`.
+
+If a second consumer needs a different visual family (e.g. a transport bar with progress), don't fork — promote the divergent variant into its own primitive.
+
+---
+
+## Switch
+
+A bare-track-and-thumb binary toggle. Lives at [app/components/Switch/](app/components/Switch/) — `Switch.tsx` + `switch.css` + `index.ts`. Promoted from a tied implementation across `/biconomy` Flows (Before/After audit toggle) and `/selected` showcase tiles (Before/After, Clean/UI map, Interface/Icons).
+
+**Contract:**
+
+- Props: `checked: boolean`, `onCheckedChange: (next: boolean) => void`, optional `ariaLabel`, `id`, `className`, `style`, `disabled`. No internal state — stateless.
+- Renders a single `<button role="switch" aria-checked>` with a thumb span inside. Click flips. `:active` scales the thumb x-axis (the gentle settle ported from the vanilla reference).
+- Dimensions are baked in by Figma spec 2463-3758 — **track 24×16, thumb 8×12, 4 / 2 px radii**. Do not parameterise size in the primitive; if a consumer needs a different scale, that's a different primitive.
+- Tokens via CSS variables on the element (or any ancestor):
+  - `--switch-tint` — main "on" colour (filled track, off thumb).
+  - `--switch-tint-soft` — light variant (off track, on thumb).
+  - `--switch-border-off` / `--switch-border-on` — optional overrides (default to `--switch-tint`).
+- Consumers do **not** import or duplicate the dimensions, transitions, or transform values. They supply tint via CSS vars and chrome via their own wrapper.
+
+**Known consumers:**
+
+- `/biconomy` Flows audit Before/After toggle — [app/(works)/biconomy/components/Flows.tsx](app/(works)/biconomy/components/Flows.tsx). Tinted via `.flows__ba-switch` scope: `--switch-tint: var(--orange-720)`, `--switch-tint-soft: var(--orange-80)`, plus `--switch-border-off: var(--orange-560)`. Wrapped in `.flows__ba-pill` for the orange motion chrome (pill fades in on standby→active).
+- `/selected` showcase tiles — [app/(works)/selected/components/Showcase/ShowcasePiece.tsx](app/(works)/selected/components/Showcase/ShowcasePiece.tsx). Tinted via `.sc-switch` scope: `--switch-tint: var(--sc-dotc)` so the toggle picks up the per-piece caption-dot colour automatically. Wrapped in a mat-bg pill (`.sc-switch`) with hover/press chrome.
+
+**Don't** add internal padding, border, or background to the primitive — those are chrome and belong to the consumer wrapper. The whole point is that the same toggle composes inside two visually distinct shells without forking.
 
 ---
 

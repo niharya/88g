@@ -61,6 +61,7 @@ When refining or building any component, run this short loop. It makes the promo
 * A primitive moves into `app/components/` the **second** time it is needed — not the first. Flag the move before doing it; don't silent-promote.
 * **Grep before editing shared.** If you're touching anything under `app/components/` or a token in `app/globals.css`, grep all routes for consumers first.
 * **Route-local stays route-local until it isn't.** NavPill (biconomy-local, two biconomy consumers) is the reference.
+* **User can override the 2-consumer rule for the design-system layer.** When the user explicitly asks to promote a single-consumer primitive (because it's part of a family that should sit together — e.g. the showcase control trio: Switch + PauseButton + DotPager), honor it. Still grep, still add a `LIBRARY.md` entry, still update consumers in the same commit.
 
 ## Shared design system
 

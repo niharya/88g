@@ -43,6 +43,17 @@
 /* ── Page layout ────────────────────────────────────────────────────────── */
 /* About card left, mat right — mirrors vanilla absolute positioning.       */
 
+/* First viewport — fills the workbench's content area (viewport minus  */
+/* the workbench's top + bottom padding) so the .sc-cue at the bottom  */
+/* (margin-top: auto) pins to the bottom of the initial visible        */
+/* viewport, not 100 svh past the workbench's top padding.              */
+.selected-firstview {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - (var(--workbench-pad-y) * 2));
+  width: 100%;
+}
+
 .selected-layout {
   position: relative;
   width: 100%;

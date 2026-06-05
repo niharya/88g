@@ -1,10 +1,122 @@
 # /selected — Route Notes
 
-## Overview
+## Overview (v0.94+)
 
-The `/selected` page is the portfolio landing. It has two main areas:
-- **AboutCard** (left) — editorial statement
-- **Timeline + Archive** (right) — vertical timeline with project cards and an expandable archive of previous works
+The `/selected` page is a single vertical flow:
+- **AboutCard** — centered intro at the top, in-flow, with an inset hairline frame inside the mint border. Big breath below (`--space-80`).
+- **Prelude** — copy block (left) + Timeline tile (right) side-by-side. The Nihar/Works nav chips are absolute-positioned children of the Timeline column so they sit half-on-top of the mat's top edge.
+- **HintRow** — keycap glyphs explaining the click/esc model. Sits between the Prelude and the masonry with `margin-top: var(--space-64)`.
+- **Showcase grid** — CSS Grid masonry of the 10 tiles below. Timeline is **not** part of this grid; the masonry is its own surface.
+
+---
+
+## Showcase grid
+
+Route-local under [app/(works)/selected/components/Showcase/](app/(works)/selected/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Timeline tile wrapper is `TimelineTile.tsx`. Data lives in `data.ts`. Page composition is `Prelude.tsx` → `HintRow.tsx` → `Showcase.tsx`, all rendered by `SelectedContent.tsx`.
+
+### Layout idiom — 6-col CSS Grid with JS-measured row spans
+- `.sc-grid` is a single CSS Grid: `grid-template-columns: repeat(6, minmax(0, 1fr))`, `grid-auto-rows: 8 px` (`--sc-row`), `grid-auto-flow: dense`, `gap: 36 px` (`--sc-gap`).
+- Each slot's `--sc-rowspan` is written by `Showcase.tsx` after measuring the slot's first child: `span = ceil((h + gap) / (row + gap))`. The slot itself is constrained by the last-written span, so the measurement reads `slot.firstElementChild` — measuring the slot directly is a chicken-and-egg trap.
+- The measurement pass is rAF-debounced. Re-triggers: ResizeObserver on each slot AND on the grid container itself (so a container-width change from a parent layout shift re-fires — per-slot observers only catch slot content-height changes), window resize, the `activeId` change (the `.is-active` translateY + scale changes rendered height), and `<img>` load events (LQIP → real bytes can change perceived height for unframed/cropped media).
+- Constants `ROW_HEIGHT_PX = 8`, `GAP_PX = 36`, `MOBILE_GAP_PX = 24` in `Showcase.tsx` mirror the CSS tokens; if you change `--sc-row` or `--sc-gap`, change them here too.
+- **Wide tiles span 4 of 6, not 3.** Earlier in the layout's life wide = 3, which left 1-col orphans (4-col rows of `3+2=5` or `3+3=6`). At 4, the math packs cleanly — `wide + normal = 4+2 = 6` and `normal+normal+normal = 2+2+2 = 6`, no orphan column ever.
+- **Tile width** is `width: 'normal' | 'wide'` on the `Piece` type. Normal tiles span 2 of 6 columns (one visual third); wide tiles span 4 of 6 (two visual thirds = 2× a normal tile). Currently wide: `paymaster` + `ecochain`. To change, edit the `width` field in `data.ts`.
+- **Responsive collapse**:
+  - Tablet (768–1023, min-height 501): grid drops to 4 columns. Normal tiles span 2, wide tiles span 4 (full-width hero row).
+  - Mobile (≤767 or ≤500h): grid drops to 1 column. Normal + wide both span 1. `--sc-gap` reduces to 24 px (mirror constant `MOBILE_GAP_PX = 24`).
+- `grid-auto-flow: dense` packs short tiles into gaps that wide tiles would otherwise leave. Visual order can deviate from DOM order; reading-order DOM in `PIECES` is by `num` (1 → 10).
+- Trade vs the older CSS-multi-column model: fractional widths (1.5×) are possible here, but layout depends on JS measurement and can leave orphan whitespace next to wide tiles when neighbours can't pack in tightly.
+
+### Prelude
+- `.sc-prelude` is a 2-column grid: `1fr 608px`. Copy LEFT, Timeline RIGHT. On tablet/mobile it collapses to 1 column.
+- Timeline lives inside `.sc-prelude__timeline`, which is `position: relative` so the `.selected-nav-row` (`position: absolute; top: -22px; left: 24px`) can dock on top of the Timeline mat's top edge.
+- The Timeline mat (`.selected-mat`) has its width neutralized inside the Prelude via the contextual selector `.sc-prelude__timeline .sc-timeline-tile`. The `sc-timeline-tile` is a dedicated class added alongside `selected-mat` (see §"Timeline tile coupling" below).
+
+### Timeline tile coupling — IMPORTANT
+- The Timeline lives inside `TimelineTile.tsx` and renders `<section class="selected-mat mat sc-timeline-tile">`. `selected-mat` keeps the original mint-bordered styling and dimensions; `sc-timeline-tile` is the showcase-context hook for overrides like `width: 100%`.
+- The Timeline owns its own archive open/close state locally (was previously owned by `SelectedContent`). Archive open grows the mat to 1201 px tall; the Prelude row grows; the masonry below pushes down. No row-span re-measure is required because the masonry is a separate surface.
+- **Do not** rename `.selected-mat` without auditing both `selected.css` and `showcase.css` — multiple media-query overrides reference it.
+
+### Click + focus interaction
+- Click any tile (or its caption dot) → tile gets `.is-active`, lifts via `translateY(-12px) scale(1.025)`, siblings dim to `opacity 0.30 / saturate 0.6`, and `SpecNote` renders absolutely on the side declared by `piece.noteSide` (`top` | `bottom` | `left` | `right`, default `bottom`).
+- **Active tile click triggers the tile's primary affordance**: switch tiles (Paymaster, Ecochain, Interface) flip the switch; video tiles (Furrmark, Ecochain) play/pause; everything else is no-op. Close happens via the dot's `×` glyph, Esc, or the backdrop.
+- Dimmed siblings get `position: relative; z-index: 30` so they sit above the backdrop (z 20) and stay clickable — clicking one switches focus to that piece.
+- **Focus trap**: while a tile is open, Tab cycles inside its caption dot + switch + note link instead of escaping to the next tile. Esc still closes.
+- **No magnifying cursors** — default `pointer` on the body, `default` on the active tile. The cardstack tile's media has its own click handler (expand fan) that `stopPropagation`s so it doesn't open the spec note; the caption row click bubbles up and opens the note as normal.
+
+### Spec note (`.sc-note`)
+- Per-piece `noteSide` controls which keyframe variant fires (`sc-note-toss-up/down/left/right`). Each variant translates by `--sc-toss-d` (40 px default) and settles with a per-mount random rotation `--sc-note-rotate` between -2° and +2°.
+- Duration `--dur-settle` (0.5 s), easing `--ease-paper`. Square corners, 1 px `--grey-880` border, tight shadow.
+- The link to the case study uses `IconChevronRight` from the shared icons folder. Pieces without `href` suppress the link entirely (currently: furrmark, posters, dual, ecochain, startooth — startooth excluded because `/marks` lives outside the `(works)/` shell and would need `CrossShellVeil` wiring).
+
+### Index card (spec note) placement rule — IMPORTANT
+The `.sc-note` no longer reads `piece.noteSide` for its side at runtime. Side is chosen at activation by `ShowcasePiece.tsx` based on viewport class + grid column:
+
+1. **Mobile** (`max-width: 767px` OR `max-height: 500px`, same media query as the 1-col `.sc-grid`):
+   - `activeSide = 'bottom'`.
+   - The tile smooth-scrolls so its top sits 24 px below the viewport top (one `requestAnimationFrame` deferral so the `.is-active` translateY lift commits before measuring).
+   - The note renders **OUTSIDE** the `.sc-frame` wrapper (after `.sc-cap`) so `top: calc(100% + 12px)` resolves against the bottom of the entire tile (media + caption), not the media frame alone. Together the tile and the note read as one read-this-now unit.
+
+2. **Desktop / tablet** — measure the tile's center horizontally inside `.sc-grid`:
+   - Center in the **left third** → `activeSide = 'right'` (note opens to the right of the tile).
+   - Center in the **middle or right third** → `activeSide = 'left'` (note opens to the left).
+   - The note renders **INSIDE** the `.sc-frame` wrapper around `.sc-media`. This is the explicit FRAME anchor: `top: 4 px`, `left: calc(100% + 12 px)` (or `right: ...`), `transform-origin` set to the open-toward corner. Anchoring to `.sc-frame` (not `.sc-piece`) keeps the note pinned to the media frame's geometry — never offset by the `.sc-cap` row below or by future caption growth. The 4 px nudge keeps it just inside the frame's top edge so it reads as snug, not taped flush.
+
+3. **Column placement is dynamic** because `.sc-grid` is a 6-column CSS Grid with `grid-auto-flow: dense` — a tile's visual column depends on its width-spec + the dense packer fitting it next to neighbours, not on its DOM index. The measurement uses `getBoundingClientRect()` against the closest `.sc-grid` ancestor, run inside a `useLayoutEffect` keyed on `active`.
+
+4. **Toss keyframes** are still per side (`sc-note-toss-left/right/up/down`) and bring the card in from the open direction with a per-mount random ±2° settle.
+
+If you change which container the note lives in, also update the corresponding placement CSS (`.sc-piece--note-{left,right,bottom}`) and re-verify both the desktop frame anchor and the mobile below-tile flow.
+
+### Scroll cue → Showcase, pinned via `.selected-firstview`
+- `.selected-firstview` is a wrapper around `selected-layout` + `.sc-cue` in `page.tsx`, given `min-height: calc(100svh - var(--workbench-pad-y) * 2)` + `display: flex; flex-direction: column;`. The `.sc-cue` has `margin-top: auto`, which pushes it to the bottom of the wrapper — i.e. the bottom of the visible workbench content area in the initial viewport.
+- The `-2× workbench-pad-y` math matters: the workbench has padding-top + padding-bottom (both `--workbench-pad-y`, 48 px desktop) and we want the wrapper to fit *between* them, not extend past. Without the subtraction, the cue ends ~96 px below the fold.
+- `100svh` (small viewport height) is intentional — on mobile, browser chrome shrinks the viewport, and `100vh` would push the cue under the URL bar.
+- The `ShowcaseSection` follows the cue and uses its own `margin-top` to start the visuals grid below. The cue is the only thing that lives in the firstview wrapper besides the layout block — don't accidentally hoist HeaderBlock or HintRow into the wrapper or the math breaks.
+
+### Per-tile kind class hook (`.sc-piece--{piece.kind}`)
+- `ShowcasePiece.tsx` emits a `sc-piece--${piece.kind}` class on every tile. This is the targeting hook for **per-kind visual overrides** in `showcase.css` — corner radius, border on/off, video object-position. Used by:
+  - `.sc-piece--cardstack .sc-media { border-radius: 0; }`
+  - `.sc-piece--interface .sc-media { border-radius: 6px; }`
+  - `.sc-piece--paymaster .sc-media { border-radius: 10px; }`
+  - `.sc-piece--ecochain .sc-media { border-radius: 8px; }`
+  - `.sc-piece--ecochain .sc-video { object-position: 22% 50%; }`  (per-tile crop offset on the looping ecochain video)
+  - `.sc-piece--startooth .sc-media { border-radius: 10px; }`
+  - `.sc-piece--multiverse .sc-media { border-radius: 18px; }`
+  - `.sc-piece--dual .sc-media { border: none; }`  (overrides the `.sc-media--plain` default hairline so the chip + gauge canvas sits on the bench un-boxed; internal `.sc-dual__pane` borders + the mint chip pill remain)
+- Why a kind class instead of `:has()` on a descendant: it survives empty / null media states and reads cleanly when scanning the CSS. Don't migrate to `:has()` without a real reason — the per-kind list above is the source-of-truth lookup table.
+
+### Cardstack alpha-clip + drop-shadow (load-bearing)
+- The five RR card webps carry their own rounded corners baked into the alpha channel. `.sc-cardfan__card` is intentionally transparent (no background, no border, no border-radius, no overflow:hidden, no box-shadow on the wrapper). If you put a background or border-radius back on the wrapper, the stacked cards bleed through each other at the alpha edges as ghost halos — the exact bug we fixed by porting `/rr`'s pattern.
+- All shadow weight lives on the inner `<img>` via `filter: drop-shadow(...)` so the shadow traces the alpha shape, not a square wrapper box. Two-tier recipes:
+  - Rest: `drop-shadow(-2px 4px 8px rgba(0,0,0,0.38))`
+  - Selected: `drop-shadow(-3px 18px 22px rgba(0,0,0,0.52))`
+  - Pushed-back (others while one is selected): drop-shadow + `brightness(0.78) saturate(0.6)`
+  - Hovered while pushed-back: drop-shadow + `brightness(0.92) saturate(0.85)`
+- Mirrors `/rr/components/cards/CardFan.tsx` + `.rr-card-item__img` in `rr.css`. Don't migrate this to `box-shadow` without re-thinking the alpha — they're not interchangeable.
+
+### Cardstack split-click model
+- The cardstack tile media (`.sc-cardfan`) owns its own click — toggle between *stacked* (default fan) and *expanded* (cards splay wider, upright). `stopPropagation` on that handler keeps it from bubbling up to the tile's "open spec note" click.
+- The caption row click does NOT have `stopPropagation`, so clicking on the caption bubbles up to the tile and opens the spec note.
+- Esc collapses the expanded cardfan (separate effect from the spec-note Esc handler).
+
+### Video tiles (Furrmark, Ecochain)
+- Both use `media/VideoSlot.tsx` — autoplay + loop + muted + playsInline. A `paused` prop controlled by the parent tile drives `video.play()` / `video.pause()` via ref.
+- Source video aspects are **baked into data.ts** (Furrmark: 998/668, Ecochain: 16/9). No runtime measurement, so first paint never letterboxes.
+- Ecochain has a `toggle` config that swaps between two source URLs (`interface-introduction.mp4` ↔ `audit-status-icons.mp4`). The active-tile click flips it.
+
+### Design-language polish
+- **Switch** matches biconomy `.flows__ba-switch` exactly: 24×16 rectangular track at 4 px radius, 8×12 thumb at 2 px radius, 1 px border in the piece's category colour, light tinted background (color-mix 14%) → solid colour on active. Tinted per piece via `--sc-dotc`.
+- **Rounded edges are conditional**: only `.sc-media--framed` (UI screenshots) gets 8 px radius + 1 px border + flat shadow. Plain (frameless) tiles — cardstack, posters, multiverse, startooth, dual — stay sharp because posters and printed/tiled surfaces have hard corners.
+- **Plain active tiles have no shadow**: the cards/posters read fully transparent on focus (no implied tile rectangle behind them).
+- **Multiverse poster** is `border-radius: 8px` and width-capped (80% of its tile) via `.sc-multiverse` — sits inset rather than dominating its column.
+- **Video / GIF badge** is a paper pill (mat-bg + 1 px grey-880 + mono caps), not a dark UI chip.
+
+### Helper file split (Fast Refresh)
+- Per-renderer helpers live in their own files under `media/`: `VideoSlot.tsx`, `CardstackFan.tsx`, `PosterStack.tsx`, `Misc.tsx` (Placeholder + UiMapPlaceholder + DualPlaceholder). `PieceMedia.tsx` is a thin switch that delegates.
+- This was a fix for a recurring React Fast Refresh trap: helper function declarations defined *after* the default-exported component in the same module produced `ReferenceError: X is not defined` at runtime even though tsc passed. Splitting kills the pattern. If you add a new renderer, **make it its own file under `media/`**.
+
+---
 
 This document covers the **archive panel timeline** — the expandable section under "Works from the previous portfolio."
 

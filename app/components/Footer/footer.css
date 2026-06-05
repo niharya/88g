@@ -105,7 +105,54 @@
   margin: 0;
   color: inherit;
   text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
 }
+
+/* Startooth row — three small favicon-style icons sit to the left of   */
+/* the credit. Same six SVG variants as the favicon swap                */
+/* (star / tooth × blue / olive / terra @720, /icon-*.svg in public).  */
+/* Per-mount roll picks one shape per slot (alternating so no two       */
+/* adjacent shapes match) and a permutation of the three tones so each */
+/* colour appears once and never repeats across the row. The wrapper   */
+/* is the home-link <a> — its padding gives a larger touch target than */
+/* the icon bounds and hosts the hover/active states.                   */
+.footer__startooths {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* Touch target padding — taps anywhere in this padded box hit the   */
+  /* link, not just the 14 × 14 icons.                                 */
+  padding: var(--space-8);
+  margin: calc(var(--space-8) * -1);  /* compensate so layout doesn't shift */
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+.footer__startooths:hover {
+  background: var(--grey-880);
+}
+.footer__startooths:active {
+  transform: translateY(1px);
+}
+.footer__startooth {
+  width: 14px;
+  height: 14px;
+  display: block;
+  transform-origin: 50% 50%;
+  transition:
+    transform var(--dur-fast) var(--ease-snap);
+}
+/* Per-slot hover rotations — slight, deliberate, asymmetric so the    */
+/* trio reads as three loose paper pieces being nudged at once, not a  */
+/* lockup snapping in unison.                                           */
+.footer__startooths:hover .footer__startooth--slot-1 { transform: rotate(-8deg) translateY(-1px); }
+.footer__startooths:hover .footer__startooth--slot-2 { transform: rotate( 4deg) translateY(-1px); }
+.footer__startooths:hover .footer__startooth--slot-3 { transform: rotate( 9deg) translateY(-1px); }
 
 .footer--default .footer__links {
   list-style: none;
@@ -277,6 +324,9 @@
 .footer--caption .footer__credit {
   margin: 0;
   color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
 }
 
 .footer--caption .footer__links {

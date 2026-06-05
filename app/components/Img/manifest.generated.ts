@@ -353,6 +353,34 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 112,
     "hasAlpha": true
   },
+  "/images/posters/cutting-2.webp": {
+    "dominantColor": "rgb(40, 24, 40)",
+    "thumbHash": "CxiCBAIPCGiHWMeKh7v3yItvYaB4F4iKAQ==",
+    "width": 1222,
+    "height": 1726,
+    "hasAlpha": true
+  },
+  "/images/posters/cutting-comedy.webp": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "NgiKBAAPnXh492R6U6X0VVrf0HB4WHiHBQ==",
+    "width": 1224,
+    "height": 1725,
+    "hasAlpha": true
+  },
+  "/images/posters/falah-faisal.webp": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "bPiNDAQP2/pmxmhnogB3bz2XkHB4OIiHAw==",
+    "width": 1222,
+    "height": 1722,
+    "hasAlpha": true
+  },
+  "/images/posters/legal.webp": {
+    "dominantColor": "rgb(232, 232, 248)",
+    "thumbHash": "MQiKDAIPoKx5l3is9VeHj3aYsKKJR3aaBA==",
+    "width": 1225,
+    "height": 1726,
+    "hasAlpha": true
+  },
   "/images/rr/north-star-bg.webp": {
     "dominantColor": "rgb(232, 232, 216)",
     "thumbHash": "tgiCAoAeU5RApnWrv6b5mmdnlnhwaAo=",
@@ -512,6 +540,13 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "thumbHash": "tggCBABQixOzZy/Up3TPufVUeg==",
     "width": 368,
     "height": 624,
+    "hasAlpha": false
+  },
+  "/images/startooth/sc-startooth.webp": {
+    "dominantColor": "rgb(56, 24, 8)",
+    "thumbHash": "DTkODgI5ZXeHiAe2mYl3inaXEIgBhEg=",
+    "width": 1100,
+    "height": 1375,
     "hasAlpha": false
   },
   "/marks/beringer/01.webp": {

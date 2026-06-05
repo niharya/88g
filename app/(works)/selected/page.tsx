@@ -4,6 +4,7 @@ import MarkerSlot from '../../components/nav/MarkerSlot'
 import NavMarker from '../../components/NavMarker'
 import AboutCard from './components/AboutCard'
 import SelectedContent from './components/SelectedContent'
+import ShowcaseSection from './components/Showcase/ShowcaseSection'
 import NiharHomeLink from '../../components/NiharHomeLink'
 import SlideInOnNav from '../../components/SlideInOnNav'
 
@@ -30,28 +31,48 @@ export default function SelectedPage() {
         selector=".selected-workbench"
         className="selected-workbench--slide-in"
       />
-      <div className="selected-layout">
-        {/* Nav markers — docked together, positioned above the mat */}
-        <div className="selected-nav-row">
-          <MarkerSlot position="left" measure={false}>
-            <NiharHomeLink />
-          </MarkerSlot>
-          <div className="chapter-nav chapter-nav--static">
-            <NavMarker
-              as="button"
-              role="chapter"
-              icon="arrow_downward"
-              acknowledgeOnClick="shake"
-              label="Works"
-              sublabel="2018-25"
-              aria-label="Works — you are here"
-            />
+      {/* First viewport — AboutCard + Timeline panel up top, scroll cue */}
+      {/* pinned to the bottom of the initial 100svh so the hand-off to  */}
+      {/* the Showcase reads without scrolling.                          */}
+      <div className="selected-firstview">
+        <div className="selected-layout">
+          {/* Nav markers — docked together, positioned above the mat */}
+          <div className="selected-nav-row">
+            <MarkerSlot position="left" measure={false}>
+              <NiharHomeLink />
+            </MarkerSlot>
+            <div className="chapter-nav chapter-nav--static">
+              <NavMarker
+                as="button"
+                role="chapter"
+                icon="arrow_downward"
+                acknowledgeOnClick="shake"
+                label="Works"
+                sublabel="2018-25"
+                aria-label="Works — you are here"
+              />
+            </div>
           </div>
+
+          <AboutCard />
+          <SelectedContent />
         </div>
 
-        <AboutCard />
-        <SelectedContent />
+        <div className="sc-cue" aria-hidden="true">
+          <div className="sc-cue__rule" />
+          <div className="sc-cue__row">
+            <span className="material-symbols-rounded sc-cue__arrow">
+              arrow_downward
+            </span>
+            <span className="sc-cue__label">Showcase</span>
+          </div>
+        </div>
       </div>
+
+      {/* Showcase — appended below the first viewport. The hint row +    */}
+      {/* 10-tile bento grid live here; HeaderBlock above them carries   */}
+      {/* the Claude Design intro copy.                                   */}
+      <ShowcaseSection />
     </div>
   )
 }

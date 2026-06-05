@@ -189,8 +189,145 @@ Verbatim copy reference. Edit the source files, not this doc — run `/prepush` 
 > "opens in new tab"
 > — [`ArchivePanel.tsx:128, 170, 202, 234, 266`](../../app/(works)/selected/components/ArchivePanel.tsx#L128)
 
+## Showcase — scroll cue {#showcase-cue}
+
+Pinned to the bottom of the initial viewport (via `.selected-firstview` 100svh wrapper); marks the hand-off from the AboutCard + Timeline above to the visuals grid below.
+
+> "SHOWCASE"
+> — [`showcase.css`](../../app/(works)/selected/components/Showcase/showcase.css) `.sc-cue__label`, rendered in [`ShowcaseSection.tsx`](../../app/(works)/selected/components/Showcase/ShowcaseSection.tsx)
+
+## Showcase — HeaderBlock {#showcase-header}
+
+> "nihar.works · selected visuals"
+> — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) eyebrow
+
+> "Visuals"
+> — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) title
+
+> "A flatlay of the work — interfaces, posters, motion, and marks, laid out on one bench. Click any piece to lift it and read the note."
+> — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) sub
+
+> "pieces · one bench"
+> — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) countlabel (preceded by the live count, currently `10`)
+
+## Showcase — HintRow {#showcase-hint}
+
+> "click" / "to focus a piece" / "·" / "esc" / "to dismiss"
+> — [`HintRow.tsx`](../../app/(works)/selected/components/Showcase/HintRow.tsx). The two glyphs `click` and `esc` render as keycap chips; the rest is mono caption.
+
+## Showcase — pieces (10) {#showcase-pieces}
+
+Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Showcase/data.ts) → `PIECES`. Each piece carries: title, category, source, year, plus the spec-note copy (Why / Outcome / work line) shown when the tile is opened.
+
+### 01 · Cardstack (Evolution of Card) {#showcase-cardstack}
+
+> "Evolution of Card" / "Interaction" / "Rug Rumble · /rr" / "2023"
+
+> "The card had to survive from flat tile to a dealt hand."  *(Why)*
+> "Each iteration earned its place in the final fan."  *(Outcome)*
+> "Interaction design"  *(work)*
+
+### 02 · Furrmark {#showcase-furrmark}
+
+> "Furrmark" / "Motion" / "Identity · loop" / "2025"
+
+> "A wordmark had to feel alive without a single illustration."  *(Why)*
+> "The loop became the brand's signature across every reel."  *(Outcome)*
+> "Brand motion"  *(work)*
+
+### 03 · Subway-inspired Site Nav {#showcase-subway}
+
+> "Subway-inspired Site Nav" *(short label: "Site Nav")* / "Wayfinding" / "nihar.works · /" / "2025"
+
+> "Visitors kept missing how the portfolio's pages connected."  *(Why)*
+> "Wayfinding clicked once routes read as a transit line."  *(Outcome)*
+> "Information design"  *(work)*
+
+### 04 · Multiverse Poster {#showcase-multiverse}
+
+> "Multiverse Poster" / "Poster" / "Biconomy" / "2024"
+
+> "Created to call attention to the operation within silos."  *(Why)*
+> "We began looping each other in more intentionally."  *(Outcome)*
+> "Design intervention"  *(work)*
+
+### 05 · Paymaster (UX Audit) {#showcase-paymaster}
+
+> "Paymaster — Before / After" *(short label: "Paymaster")* / "UX Audit" / "Biconomy · /biconomy" / "2024"
+
+> Toggle labels (on-tile control): "Before Audit" / "After Audit"
+
+> "The paymaster flow hid three quiet failure points."  *(Why)*
+> "The redesign resolved each one before launch."  *(Outcome)*
+> "UX audit"  *(work)*
+
+### 06 · Posters (comedy series) {#showcase-posters}
+
+> "Posters" / "Poster" / "Series · print" / "2024"
+
+> "A launch wall needed three ideas, not one busy sheet."  *(Why)*
+> "One idea per sheet kept the series legible across the room."  *(Outcome)*
+> "Print system"  *(work)*
+
+Poster alt text — [`Showcase/media/PosterStack.tsx`](../../app/(works)/selected/components/Showcase/media/PosterStack.tsx):
+> "Comedy poster — Legal" / "Comedy poster — Falah Faisal" / "Comedy poster — Cutting Comedy" / "Comedy poster — Cutting 2"
+
+### 07 · Interface (Rug Rumble UI) {#showcase-interface}
+
+> "Interface" / "Product UI" / "Rug Rumble · /rr" / "2023"
+
+> Toggle labels (on-tile control): "Clean" / "UI Map"
+
+> "Players couldn't parse the table at a glance mid-match."  *(Why)*
+> "Labelling the regions cut new-player confusion sharply."  *(Outcome)*
+> "Product design"  *(work)*
+
+### 08 · Startooth (Pattern) {#showcase-startooth}
+
+> "Startooth Pattern" / "Pattern" / "nihar.works · marks" / "2025"
+
+> "The personal mark needed a tileable companion."  *(Why)*
+> "A surface that signals authorship without shouting."  *(Outcome)*
+> "Pattern study"  *(work)*
+
+### 09 · Dual (Job Chip + Status Gauge) {#showcase-dual}
+
+> "Job Chip + Status Gauge" *(short label: "Components")* / "Components" / "Connektion · system" / "2025"
+
+> "Status was scattered across mismatched components."  *(Why)*
+> "A chip and its gauge now report from one source."  *(Outcome)*
+> "Design systems"  *(work)*
+
+### 10 · Ecochain UI {#showcase-ecochain}
+
+> "Ecochain UI" / "Product UI" / "Ecochain · product" / "2025"
+
+> Toggle labels (on-tile control): "Interface" / "Status icons"
+
+> "Emissions data felt abstract until it started to move."  *(Why)*
+> "A live trend made the dashboard worth checking daily."  *(Outcome)*
+> "Product design"  *(work)*
+
+## Showcase — RR card captions (cardstack tile, inside `Showcase/media/CardstackFan.tsx`) {#showcase-cardstack-captions}
+
+Five card iterations. Caption renders below the selected card.
+
+> "The very first hand-drawn concept" *(v1)*
+> "Added energy and name" *(v2)*
+> "Added conditional effects" *(v3)*
+> "First printed version" *(v4)*
+> "Final digital design" *(v5)*
+
+## Showcase — controls aria-labels {#showcase-controls-aria}
+
+> "Play" / "Pause"  — [`PauseButton.tsx`](../../app/components/PauseButton/PauseButton.tsx). aria-label flips with state.
+> "Open details" / "Close details"  — [`ShowcasePiece.tsx`](../../app/(works)/selected/components/Showcase/ShowcasePiece.tsx). Caption-dot toggle.
+> `Flow {n} of 3` — [`ShowcasePiece.tsx`](../../app/(works)/selected/components/Showcase/ShowcasePiece.tsx) paymaster page chip, templated.
+
 ## Notes
 
 - Entry meta string is templated: `"{role} • {company} • {year}"` rendered via separate spans; the bullet `•` comes from the `&bull;` HTML entity.
 - Year labels around the timeline bars use `Q4&bull;25` literal markup; preserved here as "Q4•25".
 - Archive entries link to external `niharbhagat.com` / `slangbusters.com` URLs.
+- Showcase Why / Outcome lines are paired (asked + answered). Tone is plain, past-tense, no marketing voice. When you rewrite, keep both ≤ 12 words.
+- Per-piece `num` (catalogue number "No. 01" — "No. 10") shows in the spec note. Source of truth is `num` in `data.ts`.

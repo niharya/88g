@@ -16,7 +16,7 @@
 // to the horizontal divider above and extend through the link box's
 // full height.
 
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 const LINKS: { label: string; href: string; external?: boolean }[] = [
@@ -33,6 +33,87 @@ const LINKS: { label: string; href: string; external?: boolean }[] = [
 ]
 
 const CREDIT = 'Made in 2026'
+
+// Startooth row — three small icons from the favicon-swap palette
+// (star / tooth × blue / olive / terra @720, same six SVGs as
+// app/layout.tsx's icon set).
+//
+// Rules per roll:
+//   • Three slots.
+//   • Each slot picks one of the two SHAPES (star, tooth), random but
+//     never the same shape as the slot immediately before it (so the
+//     row alternates: star-tooth-star or tooth-star-tooth).
+//   • The three TONES are a permutation of [blue, olive, terra] —
+//     each colour used exactly once, no repeats across the row.
+const STARTOOTH_SHAPES = ['star', 'tooth'] as const
+const STARTOOTH_TONES = ['blue', 'olive', 'terra'] as const
+const STARTOOTH_COUNT = 3
+type StartoothShape = typeof STARTOOTH_SHAPES[number]
+type StartoothTone = typeof STARTOOTH_TONES[number]
+type StartoothPick = { shape: StartoothShape; tone: StartoothTone }
+
+function shuffleTones(): StartoothTone[] {
+  const out = [...STARTOOTH_TONES]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
+function rollShapes(): StartoothShape[] {
+  // First slot random; each subsequent slot flips to the other shape.
+  const first = STARTOOTH_SHAPES[Math.floor(Math.random() * STARTOOTH_SHAPES.length)]
+  return Array.from({ length: STARTOOTH_COUNT }, (_, i) =>
+    i % 2 === 0 ? first : (first === 'star' ? 'tooth' : 'star'),
+  )
+}
+
+function rollStartooths(): StartoothPick[] {
+  const tones = shuffleTones()
+  const shapes = rollShapes()
+  return shapes.map((shape, i) => ({ shape, tone: tones[i] }))
+}
+
+// SSR-stable default so server + client first paint match. useEffect
+// rolls fresh per mount.
+const STARTOOTH_DEFAULT: StartoothPick[] = [
+  { shape: 'star', tone: 'blue' },
+  { shape: 'tooth', tone: 'olive' },
+  { shape: 'star', tone: 'terra' },
+]
+
+function StartoothRow() {
+  const [picks, setPicks] = useState<StartoothPick[]>(STARTOOTH_DEFAULT)
+  useEffect(() => {
+    setPicks(rollStartooths())
+  }, [])
+  // Hover delight — re-roll on each hover-enter so the row never reads
+  // exactly the same twice in a single session. Cheap, no animation.
+  const reroll = () => setPicks(rollStartooths())
+  return (
+    <a
+      className="footer__startooths"
+      href="/"
+      aria-label="Back to the home page"
+      onMouseEnter={reroll}
+    >
+      {picks.map((p, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={i}
+          className={`footer__startooth footer__startooth--slot-${i + 1}`}
+          src={`/icon-${p.shape}-${p.tone}.svg`}
+          alt=""
+          width={14}
+          height={14}
+          aria-hidden="true"
+          draggable={false}
+        />
+      ))}
+    </a>
+  )
+}
 
 // Hover-fill palettes for default-variant link cells, scoped per route.
 // Each route's two hues at the 800 luminance step — deeper / more
@@ -116,7 +197,10 @@ export default function Footer({
       <footer ref={ref} className={className}>
         <div className="footer__divider" aria-hidden="true" />
         <div className="footer__row">
-          <p className="footer__credit t-h5">{CREDIT}</p>
+          <p className="footer__credit t-h5">
+            <StartoothRow />
+            <span>{CREDIT}</span>
+          </p>
           {/* Mid-divider — hidden on desktop, shown on mobile between the
               centered credit and the centered link cluster. Mirrors the
               top hairline so the two rows read as a stacked library card. */}
@@ -179,7 +263,10 @@ export default function Footer({
   return (
     <footer ref={ref} className={className}>
       <div className="footer__row">
-        <p className="footer__credit t-h5">{CREDIT}</p>
+        <p className="footer__credit t-h5">
+          <StartoothRow />
+          <span>{CREDIT}</span>
+        </p>
         <ul className="footer__links">
           {LINKS.map((link) => (
             <li key={link.label} className="footer__link-item">
