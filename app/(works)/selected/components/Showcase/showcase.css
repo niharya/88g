@@ -57,18 +57,19 @@
 }
 
 
-/* ── Showcase grid — 6-col CSS Grid with JS-measured row spans ─────── */
-/* 6 columns under the hood. Normal tiles span 2 (one visual third);  */
-/* wide tiles span 3 (one visual half = 1.5 normal tiles). Row height  */
-/* is 8 px, and each slot's `--sc-rowspan` is written by Showcase.tsx  */
-/* after measuring its content height: span = ceil((h + gap) / (row +  */
-/* gap)). `grid-auto-flow: dense` packs short tiles into gaps that    */
-/* wide tiles would otherwise leave.                                    */
+/* ── Showcase grid — 9-col CSS Grid with JS-measured row spans ─────── */
+/* 9 columns under the hood. Each slot's column span is set per-piece  */
+/* via `--sc-cols-d` (desktop, 9-col) / `--sc-cols-t` (tablet, 3-col)  */
+/* on inline style, written by Showcase.tsx from `piece.cols` (1..9).  */
+/* Row height is 8 px, and each slot's `--sc-rowspan` is written by    */
+/* Showcase.tsx after measuring content height:                        */
+/*   span = ceil((h + gap) / (row + gap)).                              */
+/* `grid-auto-flow: dense` packs short tiles into gaps that taller or  */
+/* wider tiles would otherwise leave behind.                            */
 /*                                                                      */
-/* Trade vs the older CSS-multi-column model: fractional widths are    */
-/* now possible (wide = 1.5×), but the layout depends on JS measure   */
-/* and can leave orphan whitespace next to wide tiles when neighbours */
-/* can't pack in tightly.                                              */
+/* Canonical spans on the 9-col grid: 3 (third), 6 (two-thirds = hero),*/
+/* 9 (full). Off-canonical values (4, 5, 7, 8) work but leave more     */
+/* orphan whitespace for the packer to handle.                          */
 
 .sc-grid {
   --sc-gap: 36px;
@@ -77,7 +78,7 @@
   position: relative;
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   grid-auto-rows: var(--sc-row);
   grid-auto-flow: dense;
   gap: var(--sc-gap);
@@ -89,13 +90,11 @@
   /* for any tile we author here, low enough that the first paint isn't */
   /* a wall of empty rows before the JS measurement runs.                */
   grid-row: span var(--sc-rowspan, 30);
+  /* Column span comes from `piece.cols`. Default 3 (one-third).        */
+  /* The tablet block below swaps in `--sc-cols-t` (3-col grid);        */
+  /* mobile drops everything to a single column.                        */
+  grid-column: span var(--sc-cols-d, 3);
 }
-/* Normal = 2 of 6 (one visual third). Wide = 4 of 6 (two visual thirds  */
-/* = exactly 2 normal tiles wide). The 4-not-3 width is what makes the  */
-/* packing clean: any row sums cleanly — wide + normal = 4 + 2 = 6, and */
-/* three normals = 2 + 2 + 2 = 6. No 1-col orphans, no awkward gaps.    */
-.sc-slot--normal { grid-column: span 2; }
-.sc-slot--wide   { grid-column: span 4; }
 
 /* When a piece is focused, siblings dim. They sit BELOW the backdrop so   */
 /* clicking them goes through the backdrop first (which closes the focus). */
@@ -277,17 +276,27 @@
   position: relative;
   display: block;
   cursor: pointer;
+  /* Random per-mount rotation between -1° and +1° (set by ShowcasePiece */
+  /* via inline style). Tiles read as loose sheets on the mat, not a    */
+  /* uniform grid. Hover and active straighten to 0°.                    */
+  transform: rotate(var(--sc-tile-rotate, 0deg));
   transition:
     transform var(--dur-settle) var(--ease-paper),
     opacity var(--dur-slide) var(--ease-paper),
     filter var(--dur-slide) var(--ease-paper);
 }
 
-/* Hover no longer lifts the whole tile — the media stays anchored to    */
-/* its top so the only visible motion comes from the caption row (the    */
-/* dot grows from 11 → 20 px, which naturally widens the row). This      */
-/* trades the previous tile-wide translateY(-3px) for a calmer hover    */
-/* read where the artefact stays put and only the caption reacts.        */
+/* Hover straightens the tile to 0° (no lift) — the sheet settles flat   */
+/* under the cursor while the caption row reacts.                        */
+.sc-piece:hover:not(.is-active) {
+  transform: rotate(0deg);
+}
+
+/* Press feedback — brief nudge down so the tile responds to the click. */
+.sc-piece:not(.is-active):active {
+  transform: rotate(0deg) translateY(1px);
+  transition: transform var(--dur-instant) var(--ease-snap);
+}
 
 /* Active tile reads as the focused artefact. Sits above the dismiss      */
 /* backdrop (z 50) so its own clicks (dot, switch, controls) work and    */
@@ -295,7 +304,7 @@
 .sc-piece.is-active {
   position: relative;
   z-index: 60;
-  transform: translateY(-12px) scale(1.025);
+  transform: rotate(0deg) translateY(-12px) scale(1.025);
   cursor: default;
 }
 
@@ -349,7 +358,11 @@
 .sc-media--framed {
   background: var(--mat-bg);
   border: 1px solid var(--grey-800);
-  box-shadow: 0 1px 0 rgba(20, 20, 20, 0.04);
+  /* Resting shadow — tight 1 px offset, sheet-on-mat. Matches the      */
+  /* settle-phase shadow in CLAUDE.md's section reveal choreography.    */
+  box-shadow:
+    0 1px 0 rgba(20, 20, 20, 0.05),
+    0 2px 6px -4px rgba(20, 20, 20, 0.16);
 }
 
 /* Per-tile corner-radius overrides. Each artefact gets its own outer    */
@@ -382,19 +395,21 @@
   border: none;
 }
 
+/* Hover lift — sheet rises off the mat. Wider, deeper, more diffuse.  */
 .sc-piece:hover .sc-media--framed {
   box-shadow:
-    0 1px 0 rgba(20, 20, 20, 0.06),
-    0 12px 24px -12px rgba(20, 20, 20, 0.14);
+    0 2px 0 rgba(20, 20, 20, 0.06),
+    0 16px 28px -10px rgba(20, 20, 20, 0.22);
 }
 
-/* Active framed tile gets a deeper lift shadow. Plain (frameless) tiles    */
-/* stay shadowless on focus — the cards/posters read fully transparent and */
-/* sit on the bench directly, without an implied tile rectangle behind.    */
+/* Active framed tile gets the deepest lift shadow. Plain (frameless)     */
+/* tiles stay shadowless on focus — the cards/posters read fully          */
+/* transparent and sit on the bench directly, without an implied tile     */
+/* rectangle behind.                                                       */
 .sc-piece.is-active .sc-media--framed {
   box-shadow:
-    0 2px 0 rgba(20, 20, 20, 0.05),
-    0 24px 36px -16px rgba(20, 20, 20, 0.20);
+    0 3px 0 rgba(20, 20, 20, 0.06),
+    0 28px 44px -14px rgba(20, 20, 20, 0.28);
 }
 
 
@@ -435,6 +450,11 @@
   letter-spacing: 0.02em;
   color: var(--grey-320);
   line-height: 1;
+  /* Lock the row to the active-dot height (20 px) so the dot can grow  */
+  /* from 11 → 20 px on hover without lifting the row's baseline. The   */
+  /* growth then reads as a sideways push only — the cat/src/year text  */
+  /* shifts right; nothing shifts down.                                  */
+  min-height: 20px;
   /* Hard-clip at the tile boundary so any caption that wants to extend  */
   /* past the column width gets ellipsized rather than overlapping the  */
   /* next tile's content in the masonry grid.                            */
@@ -471,26 +491,51 @@
   color: var(--sc-dotc);
 }
 
+/* Press state on the plus circle — squashes briefly when clicked so  */
+/* the affordance reads as a real button. Mirrors the tile's own      */
+/* press feedback above.                                               */
+.sc-cap__dot:active {
+  transform: scale(0.92);
+  background: color-mix(in srgb, var(--sc-dotc) 14%, var(--mat-bg));
+}
+
 .sc-cap__dot-glyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* cat is short and never truncates — it carries the meaning of the     */
-/* artefact (Interaction / Wayfinding / etc.) and shouldn't ellipsize. */
-.sc-cap__cat {
+/* type is short and never truncates — it carries the meaning of the   */
+/* artefact (Layout Design / Pattern / etc.) and shouldn't ellipsize.  */
+.sc-cap__type {
   color: var(--grey-320);
   white-space: nowrap;
   flex-shrink: 0;
+  text-decoration: underline transparent;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur-fast) var(--ease-snap);
+}
+/* Underline the type (the "main title line" of the caption) on hover.*/
+/* The line stays put — only the dot expands and pushes it right; the */
+/* underline crossfades in under it.                                   */
+.sc-piece:hover .sc-cap__type {
+  text-decoration-color: var(--grey-320);
+}
+/* Press feedback on the caption text — shifts a hair down with the   */
+/* tile so the click registers across the whole row.                  */
+.sc-piece:not(.is-active):active .sc-cap__type,
+.sc-piece:not(.is-active):active .sc-cap__project,
+.sc-piece:not(.is-active):active .sc-cap__year {
+  color: var(--grey-160);
 }
 .sc-cap__sep {
   color: var(--grey-640);
   flex-shrink: 0;
 }
-/* src is the truncation target — gets the remaining space and          */
-/* ellipsizes if the column can't fit it.                                */
-.sc-cap__src {
+/* project is the truncation target — gets the remaining space and    */
+/* ellipsizes if the column can't fit it.                              */
+.sc-cap__project {
   color: var(--grey-560);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -536,6 +581,20 @@
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+/* Per-piece extras slot — empty by default. Per-piece renderers (e.g.   */
+/* PaymasterAuditController) portal their own controls into this <div>  */
+/* via ExtraControlsContext. The shell doesn't know who consumes it.    */
+.sc-controls__extras {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+/* When no consumer portals into the slot, collapse it so it doesn't    */
+/* leave a phantom gap in the inline-flex row of .sc-controls.           */
+.sc-controls__extras:empty {
+  display: none;
 }
 
 /* Pause/play button — promoted to shared PauseButton primitive.          */
@@ -603,36 +662,33 @@
   /* Toss distance — how far the note rises/drops/slides before landing.    */
   /* Lives on the element so retuning is one edit; all four keyframe       */
   /* variants below read it.                                                */
-  --sc-toss-d: 40px;
+  --sc-toss-d: 28px;
 
   position: absolute;
   width: min(360px, 92vw);
   background: var(--mat-bg);
   border: 1px solid var(--grey-880);
   padding: var(--space-16) var(--space-20);
+  /* Lifted shadow — matches the active tile's lift so the index card    */
+  /* reads as having been tossed onto the bench at the same height as   */
+  /* the focused artefact next to it.                                    */
   box-shadow:
-    0 1px 0 rgba(20, 20, 20, 0.04),
-    0 8px 16px -8px rgba(20, 20, 20, 0.18);
+    0 3px 0 rgba(20, 20, 20, 0.06),
+    0 24px 36px -14px rgba(20, 20, 20, 0.26);
   z-index: 45;
   cursor: default;
   transform-origin: 50% 0;
-  animation: sc-note-toss var(--dur-settle) var(--ease-paper) both;
+  /* Snappier toss — dur-slide + ease-snap (tab-tier) so the card lands  */
+  /* inside attention rather than gliding in. Index cards thrown onto a */
+  /* desk arrive fast.                                                  */
+  animation: sc-note-toss var(--dur-slide) var(--ease-snap) both;
 }
 
-/* Note-side variants. Default = bottom; each sets a different anchor edge */
-/* + transform-origin so the toss keyframe lands in the right direction.    */
-.sc-piece--note-bottom .sc-note {
-  top: calc(100% + 12px);
-  left: 50%;
-  transform-origin: 50% 0;
-  animation-name: sc-note-toss-up;
-}
-.sc-piece--note-top .sc-note {
-  bottom: calc(100% + 12px);
-  left: 50%;
-  transform-origin: 50% 100%;
-  animation-name: sc-note-toss-down;
-}
+/* Note-side variants. Two placements only — left or right of the tile  */
+/* frame on desktop / tablet. Mobile renders the index card as a docked */
+/* bottom sheet via ShowcaseBottomSheet (singleton, portal to body), so */
+/* the in-tile `.sc-note` doesn't render below the mobile breakpoint    */
+/* and no `--note-bottom` / `--note-top` placement is needed.            */
 /* Horizontal placements — note hugs the tile's top edge with a small    */
 /* 4 px nudge down so the card top sits just inside the frame's top      */
 /* line, not flush against it (which read as taped-on). The toss         */
@@ -650,16 +706,6 @@
   animation-name: sc-note-toss-right;
 }
 
-@keyframes sc-note-toss-up {
-  from { opacity: 0; transform: translate(-50%, var(--sc-toss-d)) rotate(0deg); }
-  60%  { opacity: 1; }
-  to   { opacity: 1; transform: translate(-50%, 0) rotate(var(--sc-note-rotate, 0deg)); }
-}
-@keyframes sc-note-toss-down {
-  from { opacity: 0; transform: translate(-50%, calc(-1 * var(--sc-toss-d))) rotate(0deg); }
-  60%  { opacity: 1; }
-  to   { opacity: 1; transform: translate(-50%, 0) rotate(var(--sc-note-rotate, 0deg)); }
-}
 @keyframes sc-note-toss-left {
   from { opacity: 0; transform: translate(var(--sc-toss-d), 0) rotate(0deg); }
   60%  { opacity: 1; }
@@ -675,8 +721,30 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--space-12);
 }
+/* Close button — base = hidden. Mobile bottom-sheet variant reveals it. */
+.sc-note__close {
+  display: none;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--grey-800);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--grey-320);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+.sc-note__close:hover { background: var(--grey-880); color: var(--grey-160); }
+.sc-note__close:active { transform: scale(0.92); }
 .sc-note__title {
   font-family: var(--font-display);
   font-size: 20px;
@@ -690,17 +758,28 @@
 .sc-note__no {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.04em;
+  /* Sentence-case mono tracking — matches .sc-note__link and the caption */
+  /* row (.sc-cap). Caps mono labels (.sc-note__tag) use 0.08em — a       */
+  /* deliberately different tier for short uppercase labels.              */
+  letter-spacing: 0.02em;
+  /* Per-piece dot tint — set by SpecNote on the .sc-note element. The   */
+  /* serial number, the link, and the hint pill all read from --sc-dotc */
+  /* so the three accents share one colour per piece.                    */
+  color: var(--sc-dotc);
 }
 .sc-note__rule {
   height: 1px;
   background: var(--grey-880);
-  margin: 12px 0;
+  margin: var(--space-12) 0;
 }
 .sc-note__line {
   display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 12px;
+  /* 72 px tag column (var(--space-72)) — fits "What is it" (the longest */
+  /* current label at 10 px mono caps with 0.08em letter-spacing). 56 px */
+  /* would clip it. Shorter labels ("Notice") still align cleanly to    */
+  /* the same baseline.                                                  */
+  grid-template-columns: var(--space-72) 1fr;
+  gap: var(--space-12);
   align-items: start;
 }
 .sc-note__tag {
@@ -709,7 +788,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--grey-560);
-  padding-top: 2px;
+  padding-top: var(--space-2);
 }
 .sc-note__txt {
   margin: 0;
@@ -721,28 +800,59 @@
 .sc-note__foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 2px;
+  /* Single foot element ("…from {project} ↗" link or plain credit)     */
+  /* docks to the right edge — the eye lands on the project name as the */
+  /* closing beat of the card. Was space-between when the foot also     */
+  /* held a work-tag on the left; with that gone, flex-end is the right */
+  /* anchor.                                                            */
+  justify-content: flex-end;
+  gap: var(--space-12);
+  padding-top: var(--space-2);
 }
-.sc-note__work {
+/* Plain-text credit — used when piece.href is omitted (the project IS  */
+/* this site or otherwise unlinkable). Same mono caption typography as  */
+/* the linked variant, just no chevron / no link colour.                */
+.sc-note__credit {
   font-family: var(--font-mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 11px;
+  letter-spacing: 0.02em;
   color: var(--grey-400);
 }
 .sc-note__link {
+  position: relative;          /* anchor for .sc-note__link-hint pill */
   display: inline-flex;
   align-items: center;
   gap: var(--space-4);
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.02em;
-  color: var(--terra-720);
+  /* Per-piece dot tint — see .sc-note__no comment. Link, hint pill,    */
+  /* and the chevron icon all inherit `currentColor` from this.         */
+  color: var(--sc-dotc);
   text-decoration: none;
   cursor: pointer;
+  transition: translate var(--dur-instant) var(--ease-snap);
 }
+/* Press state — 1 px paper-tag press-down. Matches the NavMarker /     */
+/* footer link idiom (translateY on active). The icon's own            */
+/* translateX(3px) scale below stacks on top for a bit of extra      */
+/* "click happened" weight.                                              */
+.sc-note__link:active {
+  translate: 0 1px;
+}
+
+/* Hover underline on the label — crossfade transparent → currentColor.*/
+/* Same idiom as the caption row's category underline (.sc-cap__type). */
+.sc-note__link-label {
+  text-decoration: underline transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color var(--dur-fast) var(--ease-snap);
+}
+.sc-note__link:hover .sc-note__link-label {
+  text-decoration-color: currentColor;
+}
+
 .sc-note__link-icon {
   transition: transform var(--dur-fast) var(--ease-snap);
 }
@@ -751,6 +861,40 @@
 }
 .sc-note__link:active .sc-note__link-icon {
   transform: translateX(3px) scale(0.95);
+}
+
+/* "opens in new tab" hint pill — sits to the LEFT of the link, hidden */
+/* by default, fades + slides in on hover. Mirrors the archive panel's */
+/* .ap-entry__hint recipe (mono 10 px, 1 px border, 4 px radius,       */
+/* pointer-events: none). Positioned ABSOLUTELY so the link's text     */
+/* doesn't shift right when the pill appears — the pill floats into   */
+/* the empty space to its left.                                         */
+.sc-note__link-hint {
+  position: absolute;
+  right: calc(100% + var(--space-8));
+  top: 50%;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-880);
+  border-radius: 4px;
+  color: var(--sc-dotc);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  /* Translate combines vertical centering (-50%) with a small slide-in */
+  /* offset (-4 px) that resolves to 0 on hover.                         */
+  translate: -4px -50%;
+  transition:
+    opacity var(--dur-fast) var(--ease-snap),
+    translate var(--dur-fast) var(--ease-snap);
+}
+.sc-note__link:hover .sc-note__link-hint {
+  opacity: 1;
+  translate: 0 -50%;
 }
 
 
@@ -1211,14 +1355,13 @@
   transition: transform var(--dur-settle) var(--ease-paper);
 }
 
-/* Slot 1 = front. Slots 2–4 fan up-and-left from there. The whole stack */
+/* Slot 1 = front. Slots 2–3 fan up-and-left from there. The whole stack */
 /* is nudged right (translateX adjusted by +6% across all slots) so the  */
 /* front poster sits a touch right of tile centre — leaves more visual  */
 /* room for the fanned-out backs on the left.                            */
 .sc-poster--slot-1 { transform: translate(-44%,  -50%) rotate(0deg);   }
 .sc-poster--slot-2 { transform: translate(-51%,  -54%) rotate(-3deg);  }
 .sc-poster--slot-3 { transform: translate(-58%,  -58%) rotate(-6deg);  }
-.sc-poster--slot-4 { transform: translate(-65%,  -62%) rotate(-9deg);  }
 
 
 /* ── Dual — chip + gauge ─────────────────────────────────────────────────── */
@@ -1243,10 +1386,10 @@
   padding: 4px 10px;
   border: 1px solid var(--mint-560);
   border-radius: 999px;
-  background: var(--mint-80, #DCF0E1);
+  background: var(--mint-80);
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--mint-720, #018236);
+  color: var(--mint-720);
 }
 .sc-chip__dot {
   width: 6px;
@@ -1311,14 +1454,18 @@
 /* ── Responsive ─────────────────────────────────────────────────────────── */
 
 @media (min-width: 768px) and (max-width: 1023px) and (min-height: 501px) {
-  /* Tablet — 4-col grid (each normal tile = 2 of 4, wide tile = 4 of */
-  /* 4). Wide tiles become full-width hero rows since 1.5 of 2 isn't a */
-  /* clean integer ratio.                                               */
+  /* Tablet — 3-col grid. Preserves the desktop thirds rhythm exactly: */
+  /* a desktop "third" (cols 3) becomes a tablet "third" (1 of 3); a   */
+  /* desktop "two-thirds hero" (cols 6) becomes a tablet "two-thirds   */
+  /* hero" (2 of 3); "full" (cols 9) stays full. Each slot reads       */
+  /* `--sc-cols-t`, pre-computed by Showcase.tsx as                   */
+  /* `max(1, ceil(cols / 3))`.                                          */
   .sc-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .sc-slot--normal { grid-column: span 2; }
-  .sc-slot--wide   { grid-column: span 4; }
+  .sc-slot {
+    grid-column: span var(--sc-cols-t, 1);
+  }
   .sc-prelude {
     grid-template-columns: 1fr;
   }
@@ -1332,8 +1479,8 @@
     --sc-gap: 24px;
     grid-template-columns: 1fr;
   }
-  .sc-slot--normal,
-  .sc-slot--wide {
+  /* Mobile — every slot spans the single column regardless of cols. */
+  .sc-slot {
     grid-column: span 1;
   }
   .sc-prelude {
@@ -1341,7 +1488,48 @@
     gap: var(--space-24);
   }
   .sc-prelude__header { padding-top: 0; }
-  .sc-note {
-    width: calc(100vw - 48px);
-  }
+
+}
+
+/* ── Bottom-sheet variant (mobile only) ─────────────────────────────── */
+/* The index card is rendered through a React Portal into document.body */
+/* (see ShowcasePiece) as `.sc-note.sc-note--sheet`. Because it lives at */
+/* the body level it can't be trapped by any transformed ancestor in     */
+/* the tile tree — `position: fixed` resolves cleanly against the        */
+/* viewport. Lives outside the mobile @media block above on purpose:     */
+/* the sheet skin only gets the modifier class on mobile (activeSide =   */
+/* 'bottom' is only ever set on mobile in ShowcasePiece), so scoping it  */
+/* by class is enough — no media query needed. Body scroll is locked    */
+/* while the sheet is up (ShowcasePiece useEffect).                     */
+.sc-note.sc-note--sheet {
+  position: fixed;
+  inset: auto 0 0 0;          /* docked: bottom/left/right flush, no radius */
+  width: 100vw;
+  max-width: 100vw;
+  max-height: 75vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--mat-bg);
+  border: none;
+  border-top: 1px solid var(--grey-880);
+  border-radius: 0;
+  padding: var(--space-20) var(--space-20)
+           calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -16px 40px -8px rgba(20, 20, 20, 0.30);
+  /* Sits above .sc-backdrop (50) and the active piece (60). Portal at  */
+  /* body level means no ancestor stacking context interferes.          */
+  z-index: 70;
+  transform-origin: 50% 100%;
+  animation: sc-sheet-rise var(--dur-slide) var(--ease-snap) both;
+}
+/* Close button is the explicit dismiss affordance on the sheet (the   */
+/* tile's plus-dot is off-screen-ish when scrolled up; the × on the     */
+/* sheet is what the thumb reaches for).                                */
+.sc-note--sheet .sc-note__close {
+  display: inline-flex;
+}
+
+@keyframes sc-sheet-rise {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
 }

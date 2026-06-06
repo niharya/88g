@@ -21,10 +21,28 @@
 // DOM order is `PIECES` (by `num`, 1 → 10). `grid-auto-flow: dense`
 // can reshuffle the visual order to fill gaps.
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { PIECES, type Piece } from './data'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { PIECES, type Piece, type ShowcaseDot } from './data'
 import ShowcasePiece from './ShowcasePiece'
+import ShowcaseBottomSheet from './ShowcaseBottomSheet'
+import { MOBILE_BP, isMobileViewport } from './responsive'
 import './showcase.css'
+
+// Six-color palette used for the per-load random dot shuffle. Grey is
+// intentionally excluded — no piece currently authors `dot: 'grey'`
+// and the dim tone reads as "muted" rather than as an accent.
+const DOT_PALETTE: ShowcaseDot[] = ['blue', 'terra', 'olive', 'orange', 'yellow', 'mint']
+
+// Fisher-Yates shuffle — O(n) uniformly random permutation. Same idiom
+// used by Footer's startooth row and the PosterStack deck.
+function shuffle<T>(arr: T[]): T[] {
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
 
 // Row height + gap, mirrored from showcase.css so the JS measurement
 // matches the layout exactly. If you change them in CSS, change them
@@ -32,13 +50,9 @@ import './showcase.css'
 const ROW_HEIGHT_PX = 8
 const GAP_PX = 36
 const MOBILE_GAP_PX = 24
-const MOBILE_BP = '(max-width: 767px), (max-height: 500px)'
 
 function measureSpans(grid: HTMLElement) {
-  const isMobile =
-    typeof window !== 'undefined' &&
-    window.matchMedia(MOBILE_BP).matches
-  const gap = isMobile ? MOBILE_GAP_PX : GAP_PX
+  const gap = isMobileViewport() ? MOBILE_GAP_PX : GAP_PX
   const slots = grid.querySelectorAll<HTMLElement>('.sc-slot')
   slots.forEach((slot) => {
     // Measure the slot's first child (the .sc-piece) — the slot itself
@@ -56,6 +70,17 @@ function measureSpans(grid: HTMLElement) {
 export default function Showcase() {
   const gridRef = useRef<HTMLDivElement | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+  // Reactive isMobile — the bottom sheet should mount/unmount when the
+  // viewport crosses the breakpoint (e.g. devtools rotation, orientation
+  // change, real resize). matchMedia.addEventListener handles all three.
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_BP)
+    setIsMobile(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
   const [toggles, setToggles] = useState<Record<string, string>>(() => {
     const t: Record<string, string> = {}
     for (const p of PIECES) {
@@ -63,6 +88,31 @@ export default function Showcase() {
     }
     return t
   })
+
+  // Per-page-load dot shuffle. SSR / first client paint uses the authored
+  // `piece.dot`; on mount we roll a fresh distribution and the dots,
+  // serial numbers, links, hint pills, switch tints — every consumer of
+  // `--sc-dotc` — swap to the new colour in one re-render.
+  //
+  // Distribution: pad DOT_PALETTE to PIECES.length so every palette
+  // colour appears at least ⌊10/6⌋ = 1 time. Repeats are unavoidable at
+  // 10 pieces × 6 colours; padding then shuffling guarantees full
+  // palette coverage rather than letting pure random skip a colour.
+  const [dotMap, setDotMap] = useState<Record<string, ShowcaseDot> | null>(null)
+  useEffect(() => {
+    const padded: ShowcaseDot[] = []
+    while (padded.length < PIECES.length) padded.push(...DOT_PALETTE)
+    const rolled = shuffle(padded).slice(0, PIECES.length)
+    setDotMap(Object.fromEntries(PIECES.map((p, i) => [p.id, rolled[i]])))
+  }, [])
+
+  // Effective pieces — authored data + per-load dot override. Recomputed
+  // when the dot map is set (once, after mount). Computed inline rather
+  // than memoized: PIECES is a constant, the spread is cheap, and Showcase
+  // already re-renders on activeId/toggle changes.
+  const piecesWithDots: Piece[] = dotMap
+    ? PIECES.map((p) => ({ ...p, dot: dotMap[p.id] ?? p.dot }))
+    : PIECES
 
   // ── Row-span measurement pass ─────────────────────────────────────────
   // rAF-debounced so bursts of ResizeObserver + window resize trigger
@@ -155,19 +205,46 @@ export default function Showcase() {
   const setToggle = (id: string, k: string) =>
     setToggles((t) => ({ ...t, [id]: k }))
 
-  const slotClass = (p: Piece) =>
-    `sc-slot sc-slot--${p.width === 'wide' ? 'wide' : 'normal'}`
+  // Per-piece column spans → CSS custom properties on the slot.
+  //   `--sc-cols-d` = desktop span on the 9-col grid (raw 1..9 value).
+  //   `--sc-cols-t` = tablet span on the 3-col grid. The formula
+  //                   `max(1, ceil(cols / 3))` preserves proportions —
+  //                   a desktop "third" (cols 3) becomes a tablet
+  //                   "third" (1 of 3), a "two-thirds" (6) stays a
+  //                   "two-thirds" (2 of 3), and "full" (9) stays full.
+  //                   Off-canonical desktop values (4, 5, 7, 8) still
+  //                   land in the right bucket — 4/5 → 2/3 tablet,
+  //                   7/8 → 3/3 (full row).
+  // Mobile drops all of this — every slot spans the single column,
+  // handled by the CSS media query directly.
+  const slotStyle = (p: Piece): CSSProperties => {
+    const cols = p.cols ?? 3
+    return {
+      ['--sc-cols-d' as string]: cols,
+      ['--sc-cols-t' as string]: Math.max(1, Math.ceil(cols / 3)),
+    }
+  }
 
   return (
     <section
       className={`sc-grid${activeId ? ' is-dimming' : ''}`}
       ref={gridRef}
     >
-      {PIECES.map((p) => (
-        <div className={slotClass(p)} key={p.id}>
+      {piecesWithDots.map((p) => (
+        <div className="sc-slot" style={slotStyle(p)} key={p.id}>
           <ShowcasePiece
             piece={p}
             active={activeId === p.id}
+            /* When ANY tile is open, non-active video tiles pause —      */
+            /* the focused artefact is the read; ambient motion behind   */
+            /* the dim should quiet down. ShowcasePiece OR's this with   */
+            /* its own paused state before passing to PieceMedia.        */
+            anyActive={activeId !== null}
+            /* On mobile the active tile only scrolls into view — its    */
+            /* index card is rendered by ShowcaseBottomSheet below. On   */
+            /* desktop the tile renders its own SpecNote inline beside  */
+            /* the frame. ShowcasePiece reads this to decide which.     */
+            isMobile={isMobile}
             onSelect={setActiveId}
             toggleVal={toggles[p.id]}
             onToggle={setToggle}
@@ -180,6 +257,16 @@ export default function Showcase() {
           className="sc-backdrop"
           onClick={() => setActiveId(null)}
           aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile bottom sheet — singleton. Mounted only when something is */}
+      {/* active AND the viewport is mobile. Handles its own portal,      */}
+      {/* scroll-lock, and SpecNote render (variant="sheet").             */}
+      {activeId && isMobile && (
+        <ShowcaseBottomSheet
+          piece={piecesWithDots.find((p) => p.id === activeId)!}
+          onClose={() => setActiveId(null)}
         />
       )}
     </section>

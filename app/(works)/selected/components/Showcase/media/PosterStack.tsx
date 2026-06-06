@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Img } from '../../../../../components/Img'
 
-// PosterStack — four comedy posters in a deck.
+// PosterStack — three comedy posters in a deck, randomized per page load.
 //
 // Interactivity gated on the parent tile's `active` prop:
 //   - inactive: clicks pass through (open the spec note via the tile)
@@ -16,19 +16,37 @@ import { Img } from '../../../../../components/Img'
 type Poster = { src: string; alt: string; border: string }
 
 // Border colours tinted from each poster's content accent (not the raw
-// dominant pixel, which was near-white for three of four and invisible
+// dominant pixel, which was near-white for two of three and invisible
 // against the workbench). Cutting-2 already carries its own printed red
 // rule around the artwork, so its faux border is set to `transparent`
 // to avoid stacking two outlines.
 const POSTERS: Poster[] = [
-  { src: '/images/posters/legal.webp',          alt: 'Comedy poster — Legal',          border: '#c4923a' },
   { src: '/images/posters/falah-faisal.webp',   alt: 'Comedy poster — Falah Faisal',   border: '#b8453a' },
   { src: '/images/posters/cutting-comedy.webp', alt: 'Comedy poster — Cutting Comedy', border: '#3a7a4a' },
   { src: '/images/posters/cutting-2.webp',      alt: 'Comedy poster — Cutting 2',      border: 'transparent' },
 ]
 
+// Fisher-Yates — returns a NEW shuffled array; doesn't mutate POSTERS.
+function shuffle<T>(arr: readonly T[]): T[] {
+  const out = [...arr]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
+}
+
 export default function PosterStack({ active = false }: { active?: boolean }) {
-  const TOTAL = POSTERS.length
+  // Server / first-paint sees POSTERS in authored order — keeps SSR
+  // hydration stable. useEffect after mount swaps in a freshly shuffled
+  // deck, so each page load shows a different front poster while the
+  // cycle interaction stays intact (advance walks the new order).
+  const [deck, setDeck] = useState<Poster[]>(POSTERS)
+  useEffect(() => {
+    setDeck(shuffle(POSTERS))
+  }, [])
+
+  const TOTAL = deck.length
   const [offset, setOffset] = useState(0)
 
   // Reset deck order when the tile loses focus.
@@ -59,7 +77,7 @@ export default function PosterStack({ active = false }: { active?: boolean }) {
       // opens. Active: this wrap captures clicks for the carousel.
       style={!active ? { pointerEvents: 'none' } : undefined}
     >
-      {POSTERS.map((p, i) => {
+      {deck.map((p, i) => {
         const slot = ((i - offset + TOTAL) % TOTAL) + 1
         return (
           <div

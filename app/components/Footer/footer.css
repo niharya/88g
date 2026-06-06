@@ -209,27 +209,21 @@
 
 .footer--default .footer__link:hover,
 .footer--default .footer__link:focus-visible {
-  /* Bg is a random 800-step hue rolled per-hover by JS (sets
-     --hover-color via onMouseEnter). Fallback covers focus-visible
-     entries that bypass the mouseenter handler (keyboard nav). */
-  background-color: var(--hover-color, rgba(255, 255, 255, 0.08));
-  color: var(--grey-960);
+  /* Subtler hover — barely-there white tint on black so the cell      */
+  /* registers without the route-palette fill. The visible reaction    */
+  /* comes from the inner span's underline crossfade (mirrored below). */
+  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--grey-240);
   outline: none;
 }
 
-/* Press state — paper-tag press-down. 1-px translate matches NavMarker's
-   `:active` (see app/components/NavMarker/navmarker.css). Bg switches to
-   the matched 960-step variant (`--active-color`, set in JS alongside
-   --hover-color), so the cell appears to press into the black surface
-   as it depresses. Snap easing, instant duration — same tier as
-   NavMarker. */
+/* Press state — text colour deepens; no translate, no bg shift. The   */
+/* press reads through the type going lighter as the cursor lands.     */
 .footer--default .footer__link:active {
-  background-color: var(--active-color, rgba(0, 0, 0, 0.4));
-  transform: translateY(1px);
+  color: #fff;
   transition:
     background-color var(--dur-instant) var(--ease-snap),
-    color var(--dur-instant) var(--ease-snap),
-    transform var(--dur-instant) var(--ease-snap);
+    color var(--dur-instant) var(--ease-snap);
 }
 
 /* Forward the cell's hover state to the inner span's t-btn1 treatment.

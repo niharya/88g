@@ -1,19 +1,33 @@
 'use client'
 
-import { useId, useLayoutEffect, useRef, useState, type MouseEventHandler } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type MouseEventHandler } from 'react'
 import PieceMedia from './PieceMedia'
-import SpecNote, { DOT_VAR } from './SpecNote'
-import type { Piece } from './data'
+import SpecNote from './SpecNote'
+import { DOT_VAR, type Piece } from './data'
+import { isMobileViewport } from './responsive'
+import { ExtraControlsContext } from './ExtraControlsContext'
 import { Switch } from '../../../../components/Switch'
 import '../../../../components/Switch/switch.css'
 import { PauseButton } from '../../../../components/PauseButton'
 import '../../../../components/PauseButton/pausebtn.css'
-import { DotPager } from '../../../../components/DotPager'
+// DotPager CSS is loaded here even though no consumer in this file
+// renders one directly anymore — PaymasterAuditController portals a
+// DotPager into the extras slot, and component-scoped CSS imports are
+// the established idiom in this route.
 import '../../../../components/DotPager/dotpager.css'
 
 type Props = {
   piece: Piece
   active: boolean
+  /** True when ANY tile on the showcase is active. Non-active video    */
+  /** tiles read this and force-pause so the focused artefact owns the  */
+  /** room.                                                              */
+  anyActive?: boolean
+  /** True when the viewport is below the mobile breakpoint. Set by the  */
+  /** Showcase parent (reactive via matchMedia). The tile uses this to   */
+  /** decide whether to render its own inline SpecNote (desktop) or      */
+  /** delegate that to ShowcaseBottomSheet (mobile, owned by parent).    */
+  isMobile?: boolean
   onSelect: (id: string | null) => void
   toggleVal?: string
   onToggle?: (id: string, key: string) => void
@@ -31,60 +45,56 @@ const Close = () => (
   </svg>
 )
 
-// Paymaster audit has 3 flows that the page chip cycles through. Lift the
-// index here so the chip (inside the controls bar) can drive it and the
-// audit component renders the matching slide.
-const PAYMASTER_FLOW_COUNT = 3
-
 export default function ShowcasePiece({
   piece,
   active,
+  anyActive,
+  isMobile,
   onSelect,
   toggleVal,
   onToggle,
 }: Props) {
   const [paused, setPaused] = useState(false)
-  const [flowIndex, setFlowIndex] = useState(0)
-  const cycleFlow = () => setFlowIndex((i) => (i + 1) % PAYMASTER_FLOW_COUNT)
   const switchId = useId()
+  // Portal slot for per-piece controls (e.g. the paymaster page chip).
+  // Held in state (not just a ref) so the Provider re-renders when the
+  // slot's <div> attaches and downstream consumers can portal into it.
+  const [extrasEl, setExtrasEl] = useState<HTMLDivElement | null>(null)
 
-  // The spec-note side is decided at activation:
-  //   • Desktop / tablet — measure the tile's column position in the
-  //     masonry grid. Left third → note opens to the right; middle and
-  //     right thirds → note opens to the left. Snug beside the parent.
-  //   • Mobile (1-col stack) — note always opens BELOW the tile, and the
-  //     tile scrolls to the top of the viewport so the tile + the note
-  //     read as a single read-this-now unit instead of forcing the user
-  //     to chase the note down the page.
+  // The spec-note side is decided at activation (DESKTOP ONLY): measure
+  // the tile's column position in the masonry grid. Left third → note
+  // opens to the right; middle/right thirds → note opens to the left.
+  // On mobile the bottom-sheet variant is owned by ShowcaseBottomSheet
+  // at the Showcase parent — this tile only scrolls itself into view.
   const pieceRef = useRef<HTMLDivElement | null>(null)
-  const [activeSide, setActiveSide] = useState<'left' | 'right' | 'bottom'>('right')
+  const [activeSide, setActiveSide] = useState<'left' | 'right'>('right')
+
+  // Random toss rotation between -1° and +1° per mount — mirrors the    */
+  // Sheet `--place-rotate` idiom so tiles read as loose sheets on the  */
+  // mat, not a uniform grid. Set in useEffect to avoid SSR mismatch.   */
+  useEffect(() => {
+    const el = pieceRef.current
+    if (!el) return
+    const deg = (Math.random() * 2 - 1).toFixed(2)
+    el.style.setProperty('--sc-tile-rotate', `${deg}deg`)
+  }, [])
   useLayoutEffect(() => {
     if (!active) return
     const el = pieceRef.current
     if (!el) return
 
-    // Same media query as `.sc-grid` mobile breakpoint in showcase.css —
-    // OR'd with landscape-phone clause per docs/responsive.md.
-    const isMobile =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(max-width: 767px), (max-height: 500px)').matches
-
-    if (isMobile) {
-      setActiveSide('bottom')
-      // Defer the scroll one frame so the .is-active class has applied
-      // and the tile's translateY lift is committed — otherwise the
-      // smooth-scroll target measures the pre-lift position and lands
-      // ~12 px short of the viewport top.
+    if (isMobileViewport()) {
+      // Mobile activation = scroll the tile to the top of the viewport
+      // with 24 px of breathing room. The bottom sheet (rendered by the
+      // Showcase parent) takes the lower half of the view from there.
       requestAnimationFrame(() => {
-        // Offset so the tile clears the top marker strip and the chapter
-        // tab; mirrors the same 72 px offset used in /biconomy Flows on
-        // notes-open.
         const top = el.getBoundingClientRect().top + window.scrollY - 24
         window.scrollTo({ top, behavior: 'smooth' })
       })
       return
     }
 
+    // Desktop / tablet — pick the side the inline SpecNote should open on.
     const grid = el.closest('.sc-grid') as HTMLElement | null
     const gridRect = grid?.getBoundingClientRect()
     const tileRect = el.getBoundingClientRect()
@@ -135,7 +145,7 @@ export default function ShowcasePiece({
       className={classes}
       onClick={select}
       role="group"
-      aria-label={`${piece.title} — ${piece.cat}`}
+      aria-label={`${piece.title} — ${piece.type}`}
       style={{
         // CSS uses --dotc for the caption dot colour.
         ['--sc-dotc' as string]: DOT_VAR[piece.dot],
@@ -151,66 +161,62 @@ export default function ShowcasePiece({
         className={`sc-media${piece.frame ? ' sc-media--framed' : ' sc-media--plain'}`}
         style={{ aspectRatio: String(piece.aspect) }}
       >
-        <PieceMedia
-          piece={piece}
-          toggleKey={toggleVal}
-          paused={paused}
-          active={active}
-          flowIndex={flowIndex}
-        />
+        <ExtraControlsContext.Provider value={extrasEl}>
+          <PieceMedia
+            piece={piece}
+            toggleKey={toggleVal}
+            /* Force-pause video tiles in two cases:                       */
+            /*   1. user toggled the local pause control                   */
+            /*   2. another tile on the showcase is the focused one        */
+            /*      (anyActive && !active) — quiets ambient motion behind  */
+            /*      the dim so the read sits cleanly on the active tile.   */
+            paused={paused || (!!anyActive && !active)}
+            active={active}
+          />
 
-        {(piece.toggle && altKey) || (piece.video && !piece.toggle) || piece.kind === 'paymaster' ? (
-          <div className="sc-controls">
-            {piece.video && (
-              /* Pause/play for any video tile. Sits to the left of the   */
-              /* switch when both are present (Ecochain); stands alone on */
-              /* video-only tiles (Furrmark, Subway). Shared PauseButton  */
-              /* primitive (app/components/PauseButton).                  */
-              <PauseButton
-                paused={paused}
-                onToggle={() => setPaused((v) => !v)}
-                onClick={(e) => e.stopPropagation()}
-              />
-            )}
-            {piece.toggle && altKey && (
-              <div
-                className="sc-switch"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Switch
-                  id={switchId}
-                  checked={toggleVal === piece.toggle.opts[1]?.k}
-                  onCheckedChange={() => onToggle?.(piece.id, altKey)}
-                  ariaLabel={`Toggle ${piece.toggle.opts.map((o) => o.label).join(' / ')}`}
+          {(piece.toggle && altKey) || piece.video ? (
+            <div className="sc-controls">
+              {piece.video && (
+                /* Pause/play for any video tile. Sits left of the switch */
+                /* when both are present; stands alone on video-only tiles.*/
+                <PauseButton
+                  paused={paused}
+                  onToggle={() => setPaused((v) => !v)}
+                  onClick={(e) => e.stopPropagation()}
                 />
-                <label htmlFor={switchId} className="sc-switch__label">
-                  {activeLabel}
-                </label>
-              </div>
-            )}
-            {piece.kind === 'paymaster' && (
-              /* Page chip — same height as the switch, dots row inside.   */
-              /* Entire chip clickable; cycles 1 → 2 → 3 → 1 through the  */
-              /* paymaster flows. Shared DotPager primitive — tint comes  */
-              /* via the `.sc-pagechip` scope hook below in showcase.css. */
-              <DotPager
-                className="sc-pagechip"
-                count={PAYMASTER_FLOW_COUNT}
-                activeIndex={flowIndex}
-                onAdvance={cycleFlow}
-                onClick={(e) => e.stopPropagation()}
-                ariaLabel={`Flow ${flowIndex + 1} of ${PAYMASTER_FLOW_COUNT}`}
-              />
-            )}
-          </div>
-        ) : null}
+              )}
+              {piece.toggle && altKey && (
+                <div
+                  className="sc-switch"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Switch
+                    id={switchId}
+                    checked={toggleVal === piece.toggle.opts[1]?.k}
+                    onCheckedChange={() => onToggle?.(piece.id, altKey)}
+                    ariaLabel={`Toggle ${piece.toggle.opts.map((o) => o.label).join(' / ')}`}
+                  />
+                  <label htmlFor={switchId} className="sc-switch__label">
+                    {activeLabel}
+                  </label>
+                </div>
+              )}
+              {/* Per-piece extras slot. PaymasterAuditController portals  */}
+              {/* its page chip into this <div> via ExtraControlsContext;  */}
+              {/* tiles with no extras leave it empty. The tile shell      */}
+              {/* doesn't know which pieces use it.                         */}
+              <div ref={setExtrasEl} className="sc-controls__extras" />
+            </div>
+          ) : null}
+        </ExtraControlsContext.Provider>
 
       </div>
 
       {/* Desktop note placement — lives inside .sc-frame so left/right    */}
       {/* anchors to the frame edges (not the piece, which also contains   */}
-      {/* the caption row below).                                          */}
-      {active && activeSide !== 'bottom' && <SpecNote piece={piece} />}
+      {/* the caption row below). Skipped on mobile; the bottom sheet is   */}
+      {/* rendered once by Showcase as a singleton.                        */}
+      {active && !isMobile && <SpecNote piece={piece} />}
       </div>
 
       <div className="sc-cap">
@@ -222,16 +228,12 @@ export default function ShowcasePiece({
         >
           <span className="sc-cap__dot-glyph">{active ? <Close /> : <Plus />}</span>
         </button>
-        <span className="sc-cap__cat">{piece.cat}</span>
+        <span className="sc-cap__type">{piece.type}</span>
         <span className="sc-cap__sep">·</span>
-        <span className="sc-cap__src">{piece.src}</span>
+        <span className="sc-cap__project">{piece.project}</span>
         <span className="sc-cap__year">{piece.year}</span>
       </div>
 
-      {/* Mobile note placement — lives OUTSIDE .sc-frame so its           */}
-      {/* `top: calc(100% + 12px)` anchors to the bottom of the entire    */}
-      {/* tile (including the caption row), not just the media frame.     */}
-      {active && activeSide === 'bottom' && <SpecNote piece={piece} />}
     </div>
   )
 }

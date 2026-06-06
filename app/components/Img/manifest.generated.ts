@@ -374,13 +374,6 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1722,
     "hasAlpha": true
   },
-  "/images/posters/legal.webp": {
-    "dominantColor": "rgb(232, 232, 248)",
-    "thumbHash": "MQiKDAIPoKx5l3is9VeHj3aYsKKJR3aaBA==",
-    "width": 1225,
-    "height": 1726,
-    "hasAlpha": true
-  },
   "/images/rr/north-star-bg.webp": {
     "dominantColor": "rgb(232, 232, 216)",
     "thumbHash": "tgiCAoAeU5RApnWrv6b5mmdnlnhwaAo=",

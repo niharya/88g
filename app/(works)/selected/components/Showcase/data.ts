@@ -1,11 +1,11 @@
 // Showcase pieces — 10 from the visuals brief.
 //
 // Order in this array drives the DOM/masonry order. Each tile carries an
-// authored aspect, an optional toggle/video spec, an optional `noteSide`
-// (where the spec note appears so it doesn't get clipped), and a
-// `selfInteractive` flag for tiles that own their own click interaction
-// (RR card-stack fan, poster carousel) and opt out of the focus + spec
-// note model entirely.
+// authored aspect, an optional toggle/video spec, a `cols` integer (its
+// 9-col grid span), and copy fields that feed the caption row and the
+// index card. The spec note's placement is decided at runtime by
+// ShowcasePiece (desktop: measure column → pick left/right) and by
+// ShowcaseBottomSheet (mobile: singleton bottom sheet), not by data.
 
 export type ShowcaseDot =
   | 'blue'
@@ -15,6 +15,24 @@ export type ShowcaseDot =
   | 'yellow'
   | 'mint'
   | 'grey'
+
+// Color mapping for `dot` — used by ShowcasePiece (caption dot tint,
+// switch tint via --sc-dotc) and SpecNote (serial number, link, hint
+// pill — all set from --sc-dotc on the note element). Lives here next
+// to ShowcaseDot rather than in SpecNote so the tile shell doesn't
+// reach back through the spec note for a data-level token map.
+//
+// Every tone uses the 560 step now. Grey kept at 640 — the only tone
+// not in a 560 swatch family — but no piece currently uses it.
+export const DOT_VAR: Record<ShowcaseDot, string> = {
+  blue:   'var(--blue-560)',
+  terra:  'var(--terra-560)',
+  olive:  'var(--olive-560)',
+  orange: 'var(--orange-560)',
+  yellow: 'var(--yellow-560)',
+  mint:   'var(--mint-560)',
+  grey:   'var(--grey-640)',
+}
 
 export type PieceKind =
   | 'cardstack'
@@ -33,18 +51,20 @@ export type ToggleSpec = {
   opts: { k: string; label: string }[]
 }
 
-/** Where the spec note appears relative to the focused tile. */
-export type NoteSide = 'top' | 'right' | 'bottom' | 'left'
-
 export type Piece = {
   id: string
   num: number
   kind: PieceKind
   title: string
   short?: string
-  cat: string
+  /** Categorical label rendered in the caption row and as the index-card  */
+  /** type signal (e.g. "Layout Design", "Game Interface", "Pattern").     */
+  type: string
   dot: ShowcaseDot
-  src: string
+  /** Parent project / source. Single noun phrase ("Rug Rumble",           */
+  /** "Biconomy", "My sketchbook"). No `· /path` suffix — the project      */
+  /** name is what reads, the route lives in `href`.                        */
+  project: string
   year: string
   /** width / height of the media box */
   aspect: number
@@ -54,29 +74,46 @@ export type Piece = {
   toggle?: ToggleSpec
   /** autoplay video tile (gif/video) */
   video?: boolean
-  /** href to the case study, if any */
+  /** Link target for the index-card foot ("…from {project} ↗"). Empty    */
+  /** string '' renders the link with no destination (placeholder while    */
+  /** URLs get sourced). Omit entirely for pieces that should render the   */
+  /** foot as plain text credit (currently: subway, startooth).            */
   href?: string
-  /** Where the spec note appears relative to the tile. Default 'bottom'. */
-  noteSide?: NoteSide
-  /** Width across the underlying 6-column grid. `normal` = 2 of 6 (1 of
-   *  3 visual cols), `wide` = 3 of 6 (1.5 of 3 visual cols). Defaults to
-   *  `normal` when omitted. Used by Showcase.tsx to set `grid-column:
-   *  span N` on the slot.
+  /** Width across the underlying 9-column grid. Integer 1..9. Defaults
+   *  to 3 (one-third) when omitted. Two canonical values cover almost
+   *  every piece:
+   *    • 3 → one-third (default, breathing room for product UI and
+   *      portrait pieces)
+   *    • 6 → two-thirds (hero — paymaster, ecochain)
+   *  9 is full-width — rare. Off-canonical values (4, 5, 7, 8) work
+   *  but leave more orphan gaps for the dense packer to fill.
+   *
+   *  Showcase.tsx writes two CSS custom properties per slot:
+   *    --sc-cols-d = cols (desktop, 9-col grid)
+   *    --sc-cols-t = max(1, ceil(cols / 3)) (tablet, 3-col grid)
+   *  The tablet formula preserves proportions — a third stays a third,
+   *  a two-thirds stays a two-thirds. On mobile every slot spans the
+   *  single column.
    */
-  width?: 'normal' | 'wide'
-  why: string
-  outcome: string
-  work: string
+  cols?: number
+  /** Index-card body — one-line description of the artefact ("A series  */
+  /** showing how a custom playing-card layout evolved").                 */
+  whatIs: string
+  /** Index-card body — one-line "what to pay attention to" ("How         */
+  /** information is chunked out for easy scanning").                    */
+  notice: string
 }
 
 // DOM order = reading order; visual position is determined by the
 // grid-auto-flow: dense packer.
 //
-// .sc-grid is a 6-column CSS Grid with JS-measured row spans (see
+// .sc-grid is a 9-column CSS Grid with JS-measured row spans (see
 // Showcase.tsx for the full mechanism + ANOMALIES.md → "Layout idiom").
-// Normal tiles span 2 of 6 (one visual third); wide tiles span 4 of 6
-// (two visual thirds). Heights come from each tile's authored aspect
-// ratio, measured at runtime into --sc-rowspan per slot.
+// Each piece carries a `cols` integer (1..9) that becomes its
+// grid-column span; default 3 (one-third). Canonical values are 3
+// (third) and 6 (two-thirds = hero). Heights come from each tile's
+// authored aspect ratio, measured at runtime into --sc-rowspan per
+// slot.
 //
 // Order below is by `num` (1 → 10) — the narrative sequence Nihar uses
 // when walking through the work. With grid-auto-flow: dense the visual
@@ -89,101 +126,92 @@ export const PIECES: Piece[] = [
     id: 'cardstack',
     num: 1,
     kind: 'cardstack',
-    title: 'Evolution of Card',
-    cat: 'Interaction',
+    title: 'Evolution of RR Card',
+    type: 'Layout Design',
     dot: 'blue',
-    src: 'Rug Rumble · /rr',
-    year: '2023',
+    project: 'Rug Rumble',
+    year: '2024',
     // 1.6 (up from 4/3 ≈ 1.33) — tile is wider/shorter so the empty
     // headroom above the fan is trimmed. Cards anchor at bottom: 6 % so
     // shortening the tile removes the top whitespace, not the cards.
     aspect: 1.6,
     frame: false,
     href: '/rr',
-    noteSide: 'top',
-    why: 'The card had to survive from flat tile to a dealt hand.',
-    outcome: 'Each iteration earned its place in the final fan.',
-    work: 'Interaction design',
+    whatIs: 'A series showing how a custom playing-card layout evolved',
+    notice: 'How information is chunked out for easy scanning',
   },
   {
     id: 'furrmark',
-    num: 2,
+    num: 7,
     kind: 'furrmark',
     title: 'Furrmark',
-    cat: 'Motion',
+    type: 'Identity',
     dot: 'yellow',
-    src: 'Identity · loop',
-    year: '2025',
+    project: 'Aleyr',
+    year: '2021',
     // Source video is 998 × 668 (1.494) — baked in so first paint matches  */
     // the video's natural ratio (no letterbox flash on load).               */
     aspect: 998 / 668,
     frame: true,
     video: true,
-    noteSide: 'bottom',
-    why: 'A wordmark had to feel alive without a single illustration.',
-    outcome: 'The loop became the brand’s signature across every reel.',
-    work: 'Brand motion',
+    href: 'https://niharbhagat.com/work/aleyr/',
+    whatIs: 'A brandmark for a pet care brand',
+    notice: 'How it skips the usual cat-and-dog caricatures to express your love for your pet',
   },
   {
     id: 'subway',
     num: 3,
     kind: 'subway',
-    title: 'Subway-inspired Site Nav',
+    title: 'Site-Nav',
     short: 'Site Nav',
-    cat: 'Wayfinding',
+    type: 'Wayfinding UI',
     dot: 'olive',
-    src: 'nihar.works · /',
-    year: '2025',
+    project: 'This site',
+    year: '2026',
     // Source video is 880 × 600 (1.467) — baked in so first paint matches
     // the video's natural ratio.
     aspect: 880 / 600,
     frame: true,
     video: true,
-    href: '/',
-    noteSide: 'bottom',
-    why: 'Visitors kept missing how the portfolio’s pages connected.',
-    outcome: 'Wayfinding clicked once routes read as a transit line.',
-    work: 'Information design',
+    // href intentionally omitted — the "project" IS this very site, so the
+    // index-card foot renders as plain credit text, not a link.
+    whatIs: 'A navigation marker that works as a menu toggle + page title',
+    notice: 'How the Project and Chapter markers snap satisfyingly',
   },
   {
     id: 'multiverse',
     num: 5,
     kind: 'multiverse',
-    title: 'Multiverse Poster',
-    cat: 'Poster',
+    title: 'Multiverse',
+    type: 'Design Intervention',
     dot: 'terra',
-    src: 'Biconomy',
-    year: '2024',
+    project: 'Biconomy',
+    year: '2023',
     // Tile aspect matches the image natural exactly (1684 × 2382), so
     // object-fit: cover shows the full poster with no crop and no
     // letterbox on any edge — the artwork's own margins are what you see.
     aspect: 1684 / 2382,
     frame: false,
     href: '/biconomy',
-    /* `left` clips off the viewport at narrow widths when the tile lands  */
-    /* in column 1. `top` is safe regardless of column placement.          */
-    noteSide: 'top',
-    why: 'Created to call attention to the operation within silos.',
-    outcome: 'We began looping each other in more intentionally.',
-    work: 'Design intervention',
+    whatIs: 'A poster revealing silos within the workplace',
+    notice: 'How the copy and metaphor just hint at the issue instead of shouting about it',
   },
   {
     id: 'paymaster',
     num: 4,
     kind: 'paymaster',
-    title: 'Paymaster — Before / After',
+    title: 'Paymaster',
     short: 'Paymaster',
-    cat: 'UX Audit',
+    type: 'Developer Dashboard',
     dot: 'orange',
-    src: 'Biconomy · /biconomy',
+    project: 'Biconomy',
     year: '2024',
     // Source files are 2979 × 1692 — set tile aspect to match exactly so   */
     // object-fit cover doesn't crop any UI off the edges.                  */
     aspect: 2979 / 1692,
     frame: true,
     href: '/biconomy',
-    noteSide: 'top',
-    width: 'wide',
+    cols: 6,
     toggle: {
       defaultKey: 'before',
       opts: [
@@ -191,19 +219,18 @@ export const PIECES: Piece[] = [
         { k: 'after', label: 'After Audit' },
       ],
     },
-    why: 'The paymaster flow hid three quiet failure points.',
-    outcome: 'The redesign resolved each one before launch.',
-    work: 'UX audit',
+    whatIs: 'A DevX comparison before and after applying a UX Audit',
+    notice: 'How the content stays the same and only the layout changes across the before and after',
   },
   {
     id: 'startooth',
     num: 6,
     kind: 'startooth',
     title: 'Startooth Pattern',
-    cat: 'Pattern',
-    dot: 'grey',
-    src: 'nihar.works · marks',
-    year: '2025',
+    type: 'Pattern',
+    dot: 'yellow',
+    project: 'My sketchbook',
+    year: '2026',
     // Source image is 1100 × 1375 (0.80). Baked in so first paint
     // matches the image's natural ratio.
     aspect: 1100 / 1375,
@@ -212,24 +239,22 @@ export const PIECES: Piece[] = [
     // image tiles (interface, paymaster). Avoids the plain-tile border
     // overlapping the image edge.
     frame: true,
-    noteSide: 'top',
-    why: 'The personal mark needed a tileable companion.',
-    outcome: 'A surface that signals authorship without shouting.',
-    work: 'Pattern study',
+    // href intentionally omitted — index-card foot renders as plain credit.
+    whatIs: 'My take on the classic Houndstooth',
+    notice: 'How the trapezoids are sliced by diamonds and stars to form edible barfis',
   },
   {
     id: 'interface',
-    num: 7,
+    num: 2,
     kind: 'interface',
-    title: 'Interface',
-    cat: 'Product UI',
+    title: 'Interface-RR',
+    type: 'Game Interface',
     dot: 'terra',
-    src: 'Rug Rumble · /rr',
-    year: '2023',
+    project: 'Rug Rumble',
+    year: '2024',
     aspect: 16 / 10,
     frame: true,
     href: '/rr',
-    noteSide: 'bottom',
     toggle: {
       defaultKey: 'clean',
       opts: [
@@ -237,62 +262,59 @@ export const PIECES: Piece[] = [
         { k: 'map', label: 'UI Map' },
       ],
     },
-    why: 'Players couldn’t parse the table at a glance mid-match.',
-    outcome: 'Labelling the regions cut new-player confusion sharply.',
-    work: 'Product design',
+    whatIs: 'A vitals gauge for a PvP game',
+    notice: 'How the health bar separators make it easy to read health at a glance',
   },
   {
     id: 'posters',
     num: 8,
     kind: 'posters',
     title: 'Posters',
-    cat: 'Poster',
+    type: 'Posters',
     dot: 'terra',
-    src: 'Series · print',
-    year: '2024',
+    project: 'Mic Testing',
+    year: '2017',
     // 0.80 (down from 0.82) — gives ~4 px more height at a 1-col width so
     // the front poster's bottom-edge text isn't clipped by .sc-media's
     // overflow-hidden.
     aspect: 0.80,
     frame: false,
-    noteSide: 'top',
-    why: 'A launch wall needed three ideas, not one busy sheet.',
-    outcome: 'One idea per sheet kept the series legible across the room.',
-    work: 'Print system',
+    href: 'https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection',
+    whatIs: 'Posters for social-media marketing of open mics',
+    notice: 'The Swiss Grid running through them',
   },
   {
     id: 'dual',
     num: 9,
     kind: 'dual',
-    title: 'Job Chip + Status Gauge',
+    title: 'Job Chip',
     short: 'Components',
-    cat: 'Components',
+    type: 'Interface',
     dot: 'mint',
-    src: 'Connektion · system',
-    year: '2025',
+    project: 'Connektion',
+    year: '2021',
     aspect: 2.4,
     frame: false,
-    noteSide: 'top',
-    why: 'Status was scattered across mismatched components.',
-    outcome: 'A chip and its gauge now report from one source.',
-    work: 'Design systems',
+    href: 'https://niharbhagat.com/work/connektion/',
+    whatIs: 'Status indicators for tracking job stages',
+    notice: 'How each stage reads at a glance through the length of the progress bar',
   },
   {
     id: 'ecochain',
     num: 10,
     kind: 'ecochain',
     title: 'Ecochain UI',
-    cat: 'Product UI',
+    type: 'Interface',
     dot: 'mint',
-    src: 'Ecochain · product',
-    year: '2025',
+    project: 'Ecochain',
+    year: '2019',
     // Updated Ecochain clips are 4:3-ish (~1194 × 896 ≈ 1.33). Baked in   */
     // so the tile sizes deterministically without a first-paint flash.    */
     aspect: 1194 / 896,
     frame: true,
     video: true,
-    noteSide: 'top',
-    width: 'wide',
+    href: 'https://slangbusters.com/work/ecochain/',
+    cols: 6,
     toggle: {
       defaultKey: 'interface',
       opts: [
@@ -300,8 +322,7 @@ export const PIECES: Piece[] = [
         { k: 'icons', label: 'Status icons' },
       ],
     },
-    why: 'Emissions data felt abstract until it started to move.',
-    outcome: 'A live trend made the dashboard worth checking daily.',
-    work: 'Product design',
+    whatIs: 'Interface for a textile trading platform',
+    notice: 'How buying and selling functions are grouped left and right',
   },
 ]

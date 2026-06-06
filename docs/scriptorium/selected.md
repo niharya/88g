@@ -217,96 +217,96 @@ Pinned to the bottom of the initial viewport (via `.selected-firstview` 100svh w
 
 ## Showcase — pieces (10) {#showcase-pieces}
 
-Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Showcase/data.ts) → `PIECES`. Each piece carries: title, category, source, year, plus the spec-note copy (Why / Outcome / work line) shown when the tile is opened.
+Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Showcase/data.ts) → `PIECES`. Each piece carries: title, type, project, year, plus the spec-note copy (`What is it` / `Notice`, plus a `…from {project} ↗` foot link) shown when the tile is opened. Pieces below are listed in `num` order (DOM/reading order, 1 → 10).
 
-### 01 · Cardstack (Evolution of Card) {#showcase-cardstack}
+### 01 · Cardstack (Evolution of RR Card) {#showcase-cardstack}
 
-> "Evolution of Card" / "Interaction" / "Rug Rumble · /rr" / "2023"
+> "Evolution of RR Card" / "Layout Design" / "Rug Rumble" / "2024"
 
-> "The card had to survive from flat tile to a dealt hand."  *(Why)*
-> "Each iteration earned its place in the final fan."  *(Outcome)*
-> "Interaction design"  *(work)*
+> "A series showing how a custom playing-card layout evolved"  *(What is it)*
+> "How information is chunked out for easy scanning"  *(Notice)*
+> "…from Rug Rumble ↗"  *(foot link → `/rr`)*
 
-### 02 · Furrmark {#showcase-furrmark}
+### 02 · Interface-RR (Rug Rumble vitals gauge) {#showcase-interface}
 
-> "Furrmark" / "Motion" / "Identity · loop" / "2025"
-
-> "A wordmark had to feel alive without a single illustration."  *(Why)*
-> "The loop became the brand's signature across every reel."  *(Outcome)*
-> "Brand motion"  *(work)*
-
-### 03 · Subway-inspired Site Nav {#showcase-subway}
-
-> "Subway-inspired Site Nav" *(short label: "Site Nav")* / "Wayfinding" / "nihar.works · /" / "2025"
-
-> "Visitors kept missing how the portfolio's pages connected."  *(Why)*
-> "Wayfinding clicked once routes read as a transit line."  *(Outcome)*
-> "Information design"  *(work)*
-
-### 04 · Multiverse Poster {#showcase-multiverse}
-
-> "Multiverse Poster" / "Poster" / "Biconomy" / "2024"
-
-> "Created to call attention to the operation within silos."  *(Why)*
-> "We began looping each other in more intentionally."  *(Outcome)*
-> "Design intervention"  *(work)*
-
-### 05 · Paymaster (UX Audit) {#showcase-paymaster}
-
-> "Paymaster — Before / After" *(short label: "Paymaster")* / "UX Audit" / "Biconomy · /biconomy" / "2024"
-
-> Toggle labels (on-tile control): "Before Audit" / "After Audit"
-
-> "The paymaster flow hid three quiet failure points."  *(Why)*
-> "The redesign resolved each one before launch."  *(Outcome)*
-> "UX audit"  *(work)*
-
-### 06 · Posters (comedy series) {#showcase-posters}
-
-> "Posters" / "Poster" / "Series · print" / "2024"
-
-> "A launch wall needed three ideas, not one busy sheet."  *(Why)*
-> "One idea per sheet kept the series legible across the room."  *(Outcome)*
-> "Print system"  *(work)*
-
-Poster alt text — [`Showcase/media/PosterStack.tsx`](../../app/(works)/selected/components/Showcase/media/PosterStack.tsx):
-> "Comedy poster — Legal" / "Comedy poster — Falah Faisal" / "Comedy poster — Cutting Comedy" / "Comedy poster — Cutting 2"
-
-### 07 · Interface (Rug Rumble UI) {#showcase-interface}
-
-> "Interface" / "Product UI" / "Rug Rumble · /rr" / "2023"
+> "Interface-RR" / "Game Interface" / "Rug Rumble" / "2024"
 
 > Toggle labels (on-tile control): "Clean" / "UI Map"
 
-> "Players couldn't parse the table at a glance mid-match."  *(Why)*
-> "Labelling the regions cut new-player confusion sharply."  *(Outcome)*
-> "Product design"  *(work)*
+> "A vitals gauge for a PvP game"  *(What is it)*
+> "How the health bar separators make it easy to read health at a glance"  *(Notice)*
+> "…from Rug Rumble ↗"  *(foot link → `/rr`)*
 
-### 08 · Startooth (Pattern) {#showcase-startooth}
+### 03 · Site-Nav (portfolio nav marker) {#showcase-subway}
 
-> "Startooth Pattern" / "Pattern" / "nihar.works · marks" / "2025"
+> "Site-Nav" *(short label: "Site Nav")* / "Wayfinding UI" / "This site" / "2026"
 
-> "The personal mark needed a tileable companion."  *(Why)*
-> "A surface that signals authorship without shouting."  *(Outcome)*
-> "Pattern study"  *(work)*
+> "A navigation marker that works as a menu toggle + page title"  *(What is it)*
+> "How the Project and Chapter markers snap satisfyingly"  *(Notice)*
+> "…from This site"  *(foot — plain credit text; no link, this site IS the project)*
 
-### 09 · Dual (Job Chip + Status Gauge) {#showcase-dual}
+### 04 · Paymaster (UX Audit) {#showcase-paymaster}
 
-> "Job Chip + Status Gauge" *(short label: "Components")* / "Components" / "Connektion · system" / "2025"
+> "Paymaster" / "Developer Dashboard" / "Biconomy" / "2024"
 
-> "Status was scattered across mismatched components."  *(Why)*
-> "A chip and its gauge now report from one source."  *(Outcome)*
-> "Design systems"  *(work)*
+> Toggle labels (on-tile control): "Before Audit" / "After Audit"
+
+> "A DevX comparison before and after applying a UX Audit"  *(What is it)*
+> "How the content stays the same and only the layout changes across the before and after"  *(Notice)*
+> "…from Biconomy ↗"  *(foot link → `/biconomy`)*
+
+### 05 · Multiverse (poster) {#showcase-multiverse}
+
+> "Multiverse" / "Design Intervention" / "Biconomy" / "2023"
+
+> "A poster revealing silos within the workplace"  *(What is it)*
+> "How the copy and metaphor just hint at the issue instead of shouting about it"  *(Notice)*
+> "…from Biconomy ↗"  *(foot link → `/biconomy`)*
+
+### 06 · Startooth (Pattern) {#showcase-startooth}
+
+> "Startooth Pattern" / "Pattern" / "My sketchbook" / "2026"
+
+> "My take on the classic Houndstooth"  *(What is it)*
+> "How the trapezoids are sliced by diamonds and stars to form edible barfis"  *(Notice)*
+> "…from My sketchbook"  *(foot — plain credit text; no link, sketchbook isn't routable)*
+
+### 07 · Furrmark {#showcase-furrmark}
+
+> "Furrmark" / "Identity" / "Aleyr" / "2021"
+
+> "A brandmark for a pet care brand"  *(What is it)*
+> "How it skips the usual cat-and-dog caricatures to express your love for your pet"  *(Notice)*
+> "…from Aleyr ↗"  *(foot link → `https://niharbhagat.com/work/aleyr/`)*
+
+### 08 · Posters (Mic Testing series) {#showcase-posters}
+
+> "Posters" / "Posters" / "Mic Testing" / "2017"
+
+> "Posters for social-media marketing of open mics"  *(What is it)*
+> "The Swiss Grid running through them"  *(Notice)*
+> "…from Mic Testing ↗"  *(foot link → `https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection`)*
+
+Poster alt text — [`Showcase/media/PosterStack.tsx`](../../app/(works)/selected/components/Showcase/media/PosterStack.tsx). Three posters, shuffled per page load:
+> "Comedy poster — Falah Faisal" / "Comedy poster — Cutting Comedy" / "Comedy poster — Cutting 2"
+
+### 09 · Job Chip (Connektion components) {#showcase-dual}
+
+> "Job Chip" *(short label: "Components")* / "Interface" / "Connektion" / "2021"
+
+> "Status indicators for tracking job stages"  *(What is it)*
+> "How each stage reads at a glance through the length of the progress bar"  *(Notice)*
+> "…from Connektion ↗"  *(foot link → `https://niharbhagat.com/work/connektion/`)*
 
 ### 10 · Ecochain UI {#showcase-ecochain}
 
-> "Ecochain UI" / "Product UI" / "Ecochain · product" / "2025"
+> "Ecochain UI" / "Interface" / "Ecochain" / "2019"
 
 > Toggle labels (on-tile control): "Interface" / "Status icons"
 
-> "Emissions data felt abstract until it started to move."  *(Why)*
-> "A live trend made the dashboard worth checking daily."  *(Outcome)*
-> "Product design"  *(work)*
+> "Interface for a textile trading platform"  *(What is it)*
+> "How buying and selling functions are grouped left and right"  *(Notice)*
+> "…from Ecochain ↗"  *(foot link → `https://slangbusters.com/work/ecochain/`)*
 
 ## Showcase — RR card captions (cardstack tile, inside `Showcase/media/CardstackFan.tsx`) {#showcase-cardstack-captions}
 
@@ -329,5 +329,6 @@ Five card iterations. Caption renders below the selected card.
 - Entry meta string is templated: `"{role} • {company} • {year}"` rendered via separate spans; the bullet `•` comes from the `&bull;` HTML entity.
 - Year labels around the timeline bars use `Q4&bull;25` literal markup; preserved here as "Q4•25".
 - Archive entries link to external `niharbhagat.com` / `slangbusters.com` URLs.
-- Showcase Why / Outcome lines are paired (asked + answered). Tone is plain, past-tense, no marketing voice. When you rewrite, keep both ≤ 12 words.
+- Showcase `What is it` / `Notice` lines are a curatorial pair — a one-line description of the artefact + a one-line "what to pay attention to." Tone is plain, sentence case, **no trailing fullstop**. Keep each line short enough to fit on two lines at the card's 360 px width.
 - Per-piece `num` (catalogue number "No. 01" — "No. 10") shows in the spec note. Source of truth is `num` in `data.ts`.
+- Index-card foot: `"…from {project}"` — rendered as a link (with `IconExternalLink`) when `href` is defined, plain text when `href` is omitted (currently: Site-Nav, Startooth — both reference unlinkable sources).

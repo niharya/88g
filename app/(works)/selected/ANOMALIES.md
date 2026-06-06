@@ -14,18 +14,24 @@ The `/selected` page is a single vertical flow:
 
 Route-local under [app/(works)/selected/components/Showcase/](app/(works)/selected/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Timeline tile wrapper is `TimelineTile.tsx`. Data lives in `data.ts`. Page composition is `Prelude.tsx` → `HintRow.tsx` → `Showcase.tsx`, all rendered by `SelectedContent.tsx`.
 
-### Layout idiom — 6-col CSS Grid with JS-measured row spans
-- `.sc-grid` is a single CSS Grid: `grid-template-columns: repeat(6, minmax(0, 1fr))`, `grid-auto-rows: 8 px` (`--sc-row`), `grid-auto-flow: dense`, `gap: 36 px` (`--sc-gap`).
+### Layout idiom — 9-col CSS Grid with JS-measured row spans
+- `.sc-grid` is a single CSS Grid: `grid-template-columns: repeat(9, minmax(0, 1fr))`, `grid-auto-rows: 8 px` (`--sc-row`), `grid-auto-flow: dense`, `gap: 36 px` (`--sc-gap`).
 - Each slot's `--sc-rowspan` is written by `Showcase.tsx` after measuring the slot's first child: `span = ceil((h + gap) / (row + gap))`. The slot itself is constrained by the last-written span, so the measurement reads `slot.firstElementChild` — measuring the slot directly is a chicken-and-egg trap.
-- The measurement pass is rAF-debounced. Re-triggers: ResizeObserver on each slot AND on the grid container itself (so a container-width change from a parent layout shift re-fires — per-slot observers only catch slot content-height changes), window resize, the `activeId` change (the `.is-active` translateY + scale changes rendered height), and `<img>` load events (LQIP → real bytes can change perceived height for unframed/cropped media).
+- The measurement pass is rAF-debounced. Re-triggers: ResizeObserver on each slot AND on the grid container itself, window resize, `activeId` change (the `.is-active` translateY + scale changes rendered height), and `<img>` load events (LQIP → real bytes can change perceived height for unframed/cropped media).
 - Constants `ROW_HEIGHT_PX = 8`, `GAP_PX = 36`, `MOBILE_GAP_PX = 24` in `Showcase.tsx` mirror the CSS tokens; if you change `--sc-row` or `--sc-gap`, change them here too.
-- **Wide tiles span 4 of 6, not 3.** Earlier in the layout's life wide = 3, which left 1-col orphans (4-col rows of `3+2=5` or `3+3=6`). At 4, the math packs cleanly — `wide + normal = 4+2 = 6` and `normal+normal+normal = 2+2+2 = 6`, no orphan column ever.
-- **Tile width** is `width: 'normal' | 'wide'` on the `Piece` type. Normal tiles span 2 of 6 columns (one visual third); wide tiles span 4 of 6 (two visual thirds = 2× a normal tile). Currently wide: `paymaster` + `ecochain`. To change, edit the `width` field in `data.ts`.
+- **Per-piece column span** is `cols: 1..9` on the `Piece` type (`data.ts`). Default is 3 (one-third). Two canonical values:
+  - **3** → one-third (default; most pieces)
+  - **6** → two-thirds (hero — currently `paymaster` and `ecochain`)
+  - 9 is full-width (rare). Off-canonical values (4, 5, 7, 8) work but leave more orphan whitespace.
+- **Showcase.tsx writes two CSS custom properties** per slot via `slotStyle`:
+  - `--sc-cols-d` = raw `cols` value (desktop, 9-col grid).
+  - `--sc-cols-t` = `max(1, ceil(cols / 3))` (tablet, 3-col grid). The formula preserves proportions — a desktop "third" stays a tablet "third", a "two-thirds hero" stays a "two-thirds hero".
+  - `.sc-slot { grid-column: span var(--sc-cols-d, 3) }` on desktop; the tablet @media block swaps to `--sc-cols-t`; mobile drops everything to `span 1`. No modifier classes — span is data-driven via inline style.
 - **Responsive collapse**:
-  - Tablet (768–1023, min-height 501): grid drops to 4 columns. Normal tiles span 2, wide tiles span 4 (full-width hero row).
-  - Mobile (≤767 or ≤500h): grid drops to 1 column. Normal + wide both span 1. `--sc-gap` reduces to 24 px (mirror constant `MOBILE_GAP_PX = 24`).
-- `grid-auto-flow: dense` packs short tiles into gaps that wide tiles would otherwise leave. Visual order can deviate from DOM order; reading-order DOM in `PIECES` is by `num` (1 → 10).
-- Trade vs the older CSS-multi-column model: fractional widths (1.5×) are possible here, but layout depends on JS measurement and can leave orphan whitespace next to wide tiles when neighbours can't pack in tightly.
+  - Tablet (768–1023, min-height 501): grid drops to **3 columns**. Each slot uses its `--sc-cols-t` value, preserving the thirds rhythm proportionally (`3 → 1`, `6 → 2`, `9 → 3`).
+  - Mobile (≤767 or ≤500h): grid drops to 1 column. Every slot spans 1 regardless of `cols`. `--sc-gap` reduces to 24 px (mirror constant `MOBILE_GAP_PX = 24`).
+- `grid-auto-flow: dense` packs short tiles into gaps that wider tiles would otherwise leave. Visual order can deviate from DOM order; reading-order DOM in `PIECES` is by `num` (1 → 10).
+- **Trade-off with 9-col**: no clean two-up (`4 + 5 = 9` is asymmetric; `4.5` isn't an integer). If you ever want two equal pieces side-by-side filling a row, this grid can't do it. The trade is editorial-thirds composition in exchange for losing halves.
 
 ### Prelude
 - `.sc-prelude` is a 2-column grid: `1fr 608px`. Copy LEFT, Timeline RIGHT. On tablet/mobile it collapses to 1 column.
@@ -38,35 +44,54 @@ Route-local under [app/(works)/selected/components/Showcase/](app/(works)/select
 - **Do not** rename `.selected-mat` without auditing both `selected.css` and `showcase.css` — multiple media-query overrides reference it.
 
 ### Click + focus interaction
-- Click any tile (or its caption dot) → tile gets `.is-active`, lifts via `translateY(-12px) scale(1.025)`, siblings dim to `opacity 0.30 / saturate 0.6`, and `SpecNote` renders absolutely on the side declared by `piece.noteSide` (`top` | `bottom` | `left` | `right`, default `bottom`).
+- Click any tile (or its caption dot) → tile gets `.is-active`, lifts via `translateY(-12px) scale(1.025)`, siblings dim to `opacity 0.30 / saturate 0.6`. On desktop / tablet, `SpecNote` renders inline beside the frame on the side decided at activation by `ShowcasePiece` (column-position measurement → `left` or `right`). On mobile, `SpecNote` is rendered once by `ShowcaseBottomSheet` as a singleton portal at `document.body` (see §"Index card placement rule" below).
 - **Active tile click triggers the tile's primary affordance**: switch tiles (Paymaster, Ecochain, Interface) flip the switch; video tiles (Furrmark, Ecochain) play/pause; everything else is no-op. Close happens via the dot's `×` glyph, Esc, or the backdrop.
 - Dimmed siblings get `position: relative; z-index: 30` so they sit above the backdrop (z 20) and stay clickable — clicking one switches focus to that piece.
 - **Focus trap**: while a tile is open, Tab cycles inside its caption dot + switch + note link instead of escaping to the next tile. Esc still closes.
 - **No magnifying cursors** — default `pointer` on the body, `default` on the active tile. The cardstack tile's media has its own click handler (expand fan) that `stopPropagation`s so it doesn't open the spec note; the caption row click bubbles up and opens the note as normal.
 
 ### Spec note (`.sc-note`)
-- Per-piece `noteSide` controls which keyframe variant fires (`sc-note-toss-up/down/left/right`). Each variant translates by `--sc-toss-d` (40 px default) and settles with a per-mount random rotation `--sc-note-rotate` between -2° and +2°.
-- Duration `--dur-settle` (0.5 s), easing `--ease-paper`. Square corners, 1 px `--grey-880` border, tight shadow.
-- The link to the case study uses `IconChevronRight` from the shared icons folder. Pieces without `href` suppress the link entirely (currently: furrmark, posters, dual, ecochain, startooth — startooth excluded because `/marks` lives outside the `(works)/` shell and would need `CrossShellVeil` wiring).
+- **Desktop animation.** Two horizontal toss keyframes only (`sc-note-toss-left` / `sc-note-toss-right`) — the desktop placement is always one of those two sides. Each variant translates by `--sc-toss-d` (28 px default) and settles with a per-mount random rotation `--sc-note-rotate` between −2° and +2°. Duration `--dur-slide` (0.3 s, snappier than the previous 0.5 s settle), easing `--ease-snap`. Square corners, 1 px `--grey-880` border, lifted shadow that matches the active tile's lift.
+- **Per-piece colour cascade.** SpecNote sets `--sc-dotc: DOT_VAR[piece.dot]` inline on `.sc-note` (needed because the mobile portal breaks the inheritance chain from `.sc-piece`). The serial number, link text, link icon, and the "opens in new tab" hint pill all read `color: var(--sc-dotc)` — three accents on one tint per piece.
+- **Foot link**: `…from {project} ↗` with `IconExternalLink` (size 14), `target="_blank" rel="noopener noreferrer"`. On hover, the label's underline crossfades transparent → currentColor, the chevron shifts 2 px right, and a left-floating `.sc-note__link-hint` paper pill ("opens in new tab", mat-bg, 1 px `--grey-880` border, 4 px radius) fades + slides in. On `:active` the whole link translates down 1 px. Pieces without `href` (currently only **subway** and **startooth** — subway's project IS this site, startooth's project is the author's sketchbook) render `.sc-note__credit` as plain text instead of a link.
 
 ### Index card (spec note) placement rule — IMPORTANT
-The `.sc-note` no longer reads `piece.noteSide` for its side at runtime. Side is chosen at activation by `ShowcasePiece.tsx` based on viewport class + grid column:
+The `.sc-note` no longer reads `piece.noteSide` for its side at runtime. Two distinct rendering paths split by viewport, **owned by different components**:
 
-1. **Mobile** (`max-width: 767px` OR `max-height: 500px`, same media query as the 1-col `.sc-grid`):
-   - `activeSide = 'bottom'`.
-   - The tile smooth-scrolls so its top sits 24 px below the viewport top (one `requestAnimationFrame` deferral so the `.is-active` translateY lift commits before measuring).
-   - The note renders **OUTSIDE** the `.sc-frame` wrapper (after `.sc-cap`) so `top: calc(100% + 12px)` resolves against the bottom of the entire tile (media + caption), not the media frame alone. Together the tile and the note read as one read-this-now unit.
+1. **Mobile** (`max-width: 767px` OR `max-height: 500px`, single source `responsive.ts` → `MOBILE_BP`):
+   - The note is rendered by **`ShowcaseBottomSheet`**, a *singleton* mounted once by `Showcase.tsx` when `activeId && isMobile`. Each tile does NOT render its own SpecNote on mobile.
+   - The sheet portals through `createPortal` into `document.body`, so `position: fixed` resolves against the viewport — not against any transformed ancestor in the tile tree (the random tile rotation creates a containing block that would otherwise trap a fixed-position child).
+   - SpecNote renders with `variant="sheet"` → `.sc-note--sheet` CSS skin: `inset: auto 0 0 0`, `width: 100vw`, no border-radius, edge-to-edge, slides up via `sc-sheet-rise`.
+   - The sheet owns its own **body scroll-lock** for its lifetime (sets `document.body.style.overflow = 'hidden'`, restores previous value on unmount). ShowcasePiece does NOT lock scroll.
+   - On activation, ShowcasePiece (still per-tile) scrolls itself so its top sits 24 px below the viewport top — that's the only mobile-activation work it does. One `requestAnimationFrame` deferral lets layout settle before measuring.
+   - Showcase tracks `isMobile` as reactive state via `matchMedia.addEventListener('change')`, so rotation / orientation / devtools resize mounts and unmounts the sheet correctly.
 
-2. **Desktop / tablet** — measure the tile's center horizontally inside `.sc-grid`:
-   - Center in the **left third** → `activeSide = 'right'` (note opens to the right of the tile).
+2. **Desktop / tablet** — note rendered inline by **`ShowcasePiece`**. Side measured at activation:
+   - Center in the **left third** of `.sc-grid` → `activeSide = 'right'` (note opens to the right of the tile).
    - Center in the **middle or right third** → `activeSide = 'left'` (note opens to the left).
-   - The note renders **INSIDE** the `.sc-frame` wrapper around `.sc-media`. This is the explicit FRAME anchor: `top: 4 px`, `left: calc(100% + 12 px)` (or `right: ...`), `transform-origin` set to the open-toward corner. Anchoring to `.sc-frame` (not `.sc-piece`) keeps the note pinned to the media frame's geometry — never offset by the `.sc-cap` row below or by future caption growth. The 4 px nudge keeps it just inside the frame's top edge so it reads as snug, not taped flush.
+   - The note renders **INSIDE** the `.sc-frame` wrapper around `.sc-media`. Anchored at `top: 4 px`, `left/right: calc(100% + 12 px)`, `transform-origin` set to the open-toward corner. Anchoring to `.sc-frame` (not `.sc-piece`) keeps the note pinned to the media frame's geometry — never offset by the `.sc-cap` row below.
+   - Toss keyframes `sc-note-toss-left` / `sc-note-toss-right` bring the card in from the open direction with a per-mount random ±2° settle.
 
-3. **Column placement is dynamic** because `.sc-grid` is a 6-column CSS Grid with `grid-auto-flow: dense` — a tile's visual column depends on its width-spec + the dense packer fitting it next to neighbours, not on its DOM index. The measurement uses `getBoundingClientRect()` against the closest `.sc-grid` ancestor, run inside a `useLayoutEffect` keyed on `active`.
+3. **Column placement is dynamic** because `.sc-grid` is a 9-column CSS Grid with `grid-auto-flow: dense` — a tile's visual column depends on its `cols` integer + the dense packer fitting it next to neighbours, not on its DOM index. The measurement uses `getBoundingClientRect()` against the closest `.sc-grid` ancestor, run inside a `useLayoutEffect` keyed on `active`.
 
-4. **Toss keyframes** are still per side (`sc-note-toss-left/right/up/down`) and bring the card in from the open direction with a per-mount random ±2° settle.
+If you change which container owns which path, update both `ShowcaseBottomSheet.tsx` and `ShowcasePiece.tsx` together; don't split the responsibility across files.
 
-If you change which container the note lives in, also update the corresponding placement CSS (`.sc-piece--note-{left,right,bottom}`) and re-verify both the desktop frame anchor and the mobile below-tile flow.
+### Per-piece controls slot (`ExtraControlsContext`)
+ShowcasePiece's `.sc-controls` bar composes pause + switch + a per-piece **extras slot** (`.sc-controls__extras`). Per-piece renderers that need their own inline control (currently: `PaymasterAuditController` → page chip) consume `ExtraControlsContext` and `createPortal` their control into the slot. The tile shell does NOT know which pieces have extras. State for those extras (e.g. paymaster's `flowIndex`) lives in the per-piece controller, never on the generic shell. The slot collapses (`:empty { display: none }`) when no consumer is portaling, so the inline-flex row stays tight on tiles that have no extras.
+
+### Random per-mount values — three independent rolls
+Three patterns roll fresh values on every page load. Each is documented here so future sessions don't mistake them for bugs:
+
+1. **`--sc-tile-rotate` — per-tile rotation, −1° to +1°.** Set in `ShowcasePiece.tsx` via a `useEffect` that writes the CSS custom property on the `.sc-piece` element on mount. Hover and active states override the rotation back to `0deg` so the tile straightens under cursor; the resting state shows the random angle. SSR-safe because the effect runs only client-side (the SSR paint is `rotate(0deg)` from the var default).
+2. **Per-page-load dot shuffle.** `Showcase.tsx` `dotMap` state, populated once via `useEffect` from a 6-tone palette (`['blue', 'terra', 'olive', 'orange', 'yellow', 'mint']` — grey excluded). The shuffle pads the palette to `PIECES.length` (10 entries) so every colour appears at least once, then Fisher-Yates shuffles. The mapped piece flows through `piecesWithDots`, and `DOT_VAR[piece.dot]` cascades to every consumer of `--sc-dotc` (caption dot, switch tint, page chip, index card serial number + link + hint pill). First client paint uses authored dots; the effect's `setDotMap` swaps to the rolled distribution on the next render — a sub-100 ms colour flash on cold load. **Do not move this to `useMemo(initial state)` — that would run on the server and break hydration.**
+3. **PosterStack deck shuffle.** `media/PosterStack.tsx` keeps `POSTERS` (3 entries, authored order) as the SSR baseline + first-paint state, then Fisher-Yates shuffles into local state in `useEffect`. First paint shows the authored order's index-0 poster on top; the post-effect render shows the rolled deck's index-0 poster on top. The deck is otherwise stable for the session — `advance()` cycles the rolled order on click.
+
+All three patterns deliberately accept a SSR → client value swap; none of them depend on the SSR value visually because the swap completes within one frame of hydration.
+
+**`--sc-note-rotate` is a fourth random roll**, documented in §"Spec note" above. It uses `useMemo`, not `useEffect` — `Math.random()` runs during render. This is hydration-safe **only because** `SpecNote` is rendered conditionally on `active`, which is `false` on every tile during SSR. If a future change starts rendering `SpecNote` unconditionally (e.g. for animation pre-warming), the `useMemo` will need to move to `useEffect` to avoid a hydration mismatch on the rotation value.
+
+### Pause-when-any-tile-active rule
+`Showcase` passes `anyActive={activeId !== null}` to every `ShowcasePiece`. Each tile ORs this with its local pause state and the inverted self-active flag — `paused || (anyActive && !active)` — before passing to `PieceMedia`. Result: opening any tile pauses every OTHER video tile across the grid. Ambient motion quiets under the dim so the focused artefact owns the room.
 
 ### Scroll cue → Showcase, pinned via `.selected-firstview`
 - `.selected-firstview` is a wrapper around `selected-layout` + `.sc-cue` in `page.tsx`, given `min-height: calc(100svh - var(--workbench-pad-y) * 2)` + `display: flex; flex-direction: column;`. The `.sc-cue` has `margin-top: auto`, which pushes it to the bottom of the wrapper — i.e. the bottom of the visible workbench content area in the initial viewport.

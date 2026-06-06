@@ -9,8 +9,7 @@ import type { Piece } from './data'
 import VideoSlot from './media/VideoSlot'
 import CardstackFan from './media/CardstackFan'
 import PosterStack from './media/PosterStack'
-import PaymasterAudit from './media/PaymasterAudit'
-import { PAYMASTER_FLOWS } from './media/paymasterFlows'
+import PaymasterAuditController from './media/PaymasterAuditController'
 import { Placeholder, UiMapPlaceholder, DualPlaceholder } from './media/Misc'
 
 type Props = {
@@ -20,11 +19,9 @@ type Props = {
   paused?: boolean
   /** Tile is the focused/active one — internal interactions unlock. */
   active?: boolean
-  /** Current flow index for the paymaster audit (0..N-1). */
-  flowIndex?: number
 }
 
-export default function PieceMedia({ piece, toggleKey, paused, active, flowIndex = 0 }: Props) {
+export default function PieceMedia({ piece, toggleKey, paused, active }: Props) {
   switch (piece.kind) {
     case 'cardstack':
       return <CardstackFan active={active} />
@@ -55,12 +52,10 @@ export default function PieceMedia({ piece, toggleKey, paused, active, flowIndex
       )
 
     case 'paymaster':
-      return (
-        <PaymasterAudit
-          flowIndex={flowIndex}
-          showAfter={toggleKey === 'after'}
-        />
-      )
+      // Per-piece state (flowIndex, cycle) lives in the controller, not
+      // in the tile shell. The controller portals its page chip into
+      // ShowcasePiece's `.sc-controls__extras` slot via context.
+      return <PaymasterAuditController showAfter={toggleKey === 'after'} />
 
     case 'multiverse':
       return (
