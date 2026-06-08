@@ -1,11 +1,43 @@
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { readdir, writeFile, stat } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
+import {
+  inferTier,
+  tierIsCrisp,
+} from './lib/compression-tier.mjs'
 
 const ROOT = path.resolve('public')
+const SOURCE_ROOT = path.resolve('_source/images')
+const PUBLIC_IMAGES_ROOT = path.resolve('public/images')
 const OUT_FILE = path.resolve('app/components/Img/manifest.generated.ts')
 const RASTER = new Set(['.jpg', '.jpeg', '.png', '.webp', '.avif'])
+
+// Derive the `lossless` manifest flag for a public/images/foo/bar.webp by
+// finding the matching source under _source/images/foo/bar.{png,jpg,jpeg}
+// and reading its tier via the shared `inferTier`. The flag drives the Img
+// primitive's serve-quality default — crisp source → q100, lossy source →
+// q90 — so the two compression layers are coordinated automatically.
+//
+// If no master exists (legacy webp authored before this pipeline, or an
+// asset outside public/images/), we conservatively assume `lossless: true`
+// so existing assets don't suddenly drop to q90 on the next deploy. The
+// flag becomes accurate once the asset gets a master in _source/.
+function inferLosslessFlagFor(absPath) {
+  if (!absPath.startsWith(PUBLIC_IMAGES_ROOT + path.sep)) return true
+  const rel = path.relative(PUBLIC_IMAGES_ROOT, absPath)
+  const stem = rel.replace(/\.webp$/i, '')
+  for (const ext of ['.png', '.jpg', '.jpeg']) {
+    const candidate = path.join(SOURCE_ROOT, `${stem}${ext}`)
+    if (existsSync(candidate)) {
+      const tier = inferTier(candidate)
+      return tierIsCrisp(tier)
+    }
+  }
+  // No master found — assume crisp so legacy assets stay sharp on serve.
+  return true
+}
 // Walk the whole public/ tree so any raster under public/images/, public/marks/, etc.
 // is picked up automatically. Non-photo rasters (og, apple-touch-icon) get entries
 // but never get consumed — harmless overhead.
@@ -42,7 +74,8 @@ async function processOne(abs) {
   const thumbHash = Buffer.from(hashBytes).toString('base64')
 
   const meta = await img.metadata()
-  return [src, { dominantColor, thumbHash, width: meta.width, height: meta.height, hasAlpha }]
+  const lossless = inferLosslessFlagFor(abs)
+  return [src, { dominantColor, thumbHash, width: meta.width, height: meta.height, hasAlpha, lossless }]
 }
 
 const files = await walk(ROOT)
@@ -58,6 +91,13 @@ export type ImageManifestEntry = {
   width: number
   height: number
   hasAlpha: boolean
+  /**
+   * True when the source master was encoded losslessly (or near-losslessly)
+   * — i.e. the encoder preserved edges and text. Drives <Img>'s default
+   * quality prop: lossless → 100, lossy → 90. See
+   * scripts/lib/compression-tier.mjs.
+   */
+  lossless: boolean
 }
 
 export const imageManifest: Record<string, ImageManifestEntry> = ${JSON.stringify(manifest, null, 2)}

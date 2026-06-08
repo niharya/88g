@@ -4,6 +4,9 @@
 // Pulled out of PieceMedia.tsx so React Fast Refresh stops choking on
 // helper-after-export hoisting.
 
+import { JobChipStack } from './JobChipStack'
+import LifecycleGauge from './LifecycleGauge'
+
 export function Placeholder({ label, sub }: { label: string; sub: string }) {
   return (
     <div className="sc-placeholder">
@@ -26,21 +29,15 @@ export function UiMapPlaceholder() {
   )
 }
 
+// Connektion specimens — JobChipStack + LifecycleGauge sit directly on
+// the workbench, side-by-side. No pane wrappers; each artefact self-
+// frames (the chip on its light card, the gauge inside its dark frame).
+// See showcase.css `.sc-dual` for the tile geometry that holds them.
 export function DualPlaceholder() {
   return (
     <div className="sc-dual">
-      <div className="sc-dual__pane">
-        <span className="sc-chip">
-          <span className="sc-chip__dot" />
-          job · syncing
-        </span>
-      </div>
-      <div className="sc-dual__pane">
-        <svg viewBox="0 0 60 60" className="sc-gauge" aria-hidden="true">
-          <circle cx="30" cy="30" r="22" className="sc-gauge__track" />
-          <circle cx="30" cy="30" r="22" className="sc-gauge__fill" />
-        </svg>
-      </div>
+      <JobChipStack />
+      <LifecycleGauge />
     </div>
   )
 }

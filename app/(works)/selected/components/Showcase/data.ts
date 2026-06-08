@@ -7,31 +7,38 @@
 // ShowcasePiece (desktop: measure column → pick left/right) and by
 // ShowcaseBottomSheet (mobile: singleton bottom sheet), not by data.
 
+// Four-tone palette — narrowed from six (olive/yellow dropped) +
+// removed the unused grey. Anchored to the brand's four primaries so
+// every piece reads in-system. The per-page-load shuffle distributes
+// these four across the 10 pieces (see Showcase.tsx `DOT_PALETTE`).
 export type ShowcaseDot =
   | 'blue'
   | 'terra'
-  | 'olive'
   | 'orange'
-  | 'yellow'
   | 'mint'
-  | 'grey'
 
 // Color mapping for `dot` — used by ShowcasePiece (caption dot tint,
 // switch tint via --sc-dotc) and SpecNote (serial number, link, hint
 // pill — all set from --sc-dotc on the note element). Lives here next
 // to ShowcaseDot rather than in SpecNote so the tile shell doesn't
 // reach back through the spec note for a data-level token map.
-//
-// Every tone uses the 560 step now. Grey kept at 640 — the only tone
-// not in a 560 swatch family — but no piece currently uses it.
 export const DOT_VAR: Record<ShowcaseDot, string> = {
   blue:   'var(--blue-560)',
   terra:  'var(--terra-560)',
-  olive:  'var(--olive-560)',
   orange: 'var(--orange-560)',
-  yellow: 'var(--yellow-560)',
   mint:   'var(--mint-560)',
-  grey:   'var(--grey-640)',
+}
+
+// Deeper companion to DOT_VAR — same tones at the 720 step. Consumed
+// inside SpecNote only (serial, link label + icon, hint pill, and the
+// note's border). The tile's caption dot, Switch tint, and DotPager
+// still read DOT_VAR (560) so the closed tile reads soft while the
+// opened note reads deep — a deliberate two-tier cascade per piece.
+export const DOT_VAR_DEEP: Record<ShowcaseDot, string> = {
+  blue:   'var(--blue-720)',
+  terra:  'var(--terra-720)',
+  orange: 'var(--orange-720)',
+  mint:   'var(--mint-720)',
 }
 
 export type PieceKind =
@@ -131,14 +138,17 @@ export const PIECES: Piece[] = [
     dot: 'blue',
     project: 'Rug Rumble',
     year: '2024',
-    // 1.6 (up from 4/3 ≈ 1.33) — tile is wider/shorter so the empty
-    // headroom above the fan is trimmed. Cards anchor at bottom: 6 % so
-    // shortening the tile removes the top whitespace, not the cards.
-    aspect: 1.6,
+    // 1.4 (down from 1.6) — bumped to make room for the scaled-up
+    // cardstack (cards 34% wide as of v0.93+) without click-spread
+    // (scale 1.18 + lift -8%) clipping past the tile's overflow-hidden
+    // top edge. The bottom anchor (`bottom: 6%`) is unchanged; the tile
+    // just gains ~37 px of vertical headroom for the selected card to
+    // breathe into.
+    aspect: 1.4,
     frame: false,
     href: '/rr',
     whatIs: 'A series showing how a custom playing-card layout evolved',
-    notice: 'How information is chunked out for easy scanning',
+    notice: 'Notice how information is chunked out for easy scanning',
   },
   {
     id: 'furrmark',
@@ -146,7 +156,7 @@ export const PIECES: Piece[] = [
     kind: 'furrmark',
     title: 'Furrmark',
     type: 'Identity',
-    dot: 'yellow',
+    dot: 'orange',
     project: 'Aleyr',
     year: '2021',
     // Source video is 998 × 668 (1.494) — baked in so first paint matches  */
@@ -156,7 +166,7 @@ export const PIECES: Piece[] = [
     video: true,
     href: 'https://niharbhagat.com/work/aleyr/',
     whatIs: 'A brandmark for a pet care brand',
-    notice: 'How it skips the usual cat-and-dog caricatures to express your love for your pet',
+    notice: 'Notice how it skips the usual cat-and-dog caricatures to express your love for your pet',
   },
   {
     id: 'subway',
@@ -165,7 +175,7 @@ export const PIECES: Piece[] = [
     title: 'Site-Nav',
     short: 'Site Nav',
     type: 'Wayfinding UI',
-    dot: 'olive',
+    dot: 'mint',
     project: 'This site',
     year: '2026',
     // Source video is 880 × 600 (1.467) — baked in so first paint matches
@@ -176,7 +186,7 @@ export const PIECES: Piece[] = [
     // href intentionally omitted — the "project" IS this very site, so the
     // index-card foot renders as plain credit text, not a link.
     whatIs: 'A navigation marker that works as a menu toggle + page title',
-    notice: 'How the Project and Chapter markers snap satisfyingly',
+    notice: 'Notice how the project and chapter markers snap satisfyingly',
   },
   {
     id: 'multiverse',
@@ -194,7 +204,7 @@ export const PIECES: Piece[] = [
     frame: false,
     href: '/biconomy',
     whatIs: 'A poster revealing silos within the workplace',
-    notice: 'How the copy and metaphor just hint at the issue instead of shouting about it',
+    notice: 'Notice how the copy and metaphor just hint at the issue instead of shouting about it',
   },
   {
     id: 'paymaster',
@@ -220,7 +230,7 @@ export const PIECES: Piece[] = [
       ],
     },
     whatIs: 'A DevX comparison before and after applying a UX Audit',
-    notice: 'How the content stays the same and only the layout changes across the before and after',
+    notice: 'Notice how the content stays the same and only the layout changes across the before and after',
   },
   {
     id: 'startooth',
@@ -228,12 +238,15 @@ export const PIECES: Piece[] = [
     kind: 'startooth',
     title: 'Startooth Pattern',
     type: 'Pattern',
-    dot: 'yellow',
+    dot: 'blue',
     project: 'My sketchbook',
     year: '2026',
-    // Source image is 1100 × 1375 (0.80). Baked in so first paint
-    // matches the image's natural ratio.
-    aspect: 1100 / 1375,
+    // Source image is 1239 × 1549 (~0.80) — a fresh @3× export of the
+    // pattern that gives DPR=3 Retina devices a true 3× while still
+    // supplying the 2× variant via downsampling. Aspect matches the
+    // prior 1100 × 1375 master to a rounding error, so tile dimensions
+    // don't shift.
+    aspect: 1239 / 1549,
     // Framed treatment (was false) — gives the image a proper 1 px
     // grey-800 hairline and mat-bg behind it, consistent with the other
     // image tiles (interface, paymaster). Avoids the plain-tile border
@@ -241,7 +254,7 @@ export const PIECES: Piece[] = [
     frame: true,
     // href intentionally omitted — index-card foot renders as plain credit.
     whatIs: 'My take on the classic Houndstooth',
-    notice: 'How the trapezoids are sliced by diamonds and stars to form edible barfis',
+    notice: 'Notice how the trapezoids are sliced by diamonds and stars to form edible barfis',
   },
   {
     id: 'interface',
@@ -252,8 +265,17 @@ export const PIECES: Piece[] = [
     dot: 'terra',
     project: 'Rug Rumble',
     year: '2024',
-    aspect: 16 / 10,
-    frame: true,
+    // Source image is 683 × 534 (≈ 1.28) — focused gauges + Peace Treaty
+    // card frame. Tile aspect matched exactly so object-fit: cover doesn't
+    // crop edges. The /rr deep-dive page uses a different, wider frame
+    // (rr-interface-desktop.webp) — keep these two views distinct.
+    aspect: 683 / 534,
+    // Frameless: the image's artefacts (YOU panel, Peace Treaty card)
+    // already self-frame, and the source has transparent ground around
+    // them, so a tile container reads as a tray around something that
+    // doesn't need one. The plain-tile default hairline is suppressed
+    // by `.sc-interface-fill` on the inner wrapper (see showcase.css).
+    frame: false,
     href: '/rr',
     toggle: {
       defaultKey: 'clean',
@@ -263,25 +285,7 @@ export const PIECES: Piece[] = [
       ],
     },
     whatIs: 'A vitals gauge for a PvP game',
-    notice: 'How the health bar separators make it easy to read health at a glance',
-  },
-  {
-    id: 'posters',
-    num: 8,
-    kind: 'posters',
-    title: 'Posters',
-    type: 'Posters',
-    dot: 'terra',
-    project: 'Mic Testing',
-    year: '2017',
-    // 0.80 (down from 0.82) — gives ~4 px more height at a 1-col width so
-    // the front poster's bottom-edge text isn't clipped by .sc-media's
-    // overflow-hidden.
-    aspect: 0.80,
-    frame: false,
-    href: 'https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection',
-    whatIs: 'Posters for social-media marketing of open mics',
-    notice: 'The Swiss Grid running through them',
+    notice: 'Notice how the health bar separators make it easy to read health at a glance',
   },
   {
     id: 'dual',
@@ -293,11 +297,42 @@ export const PIECES: Piece[] = [
     dot: 'mint',
     project: 'Connektion',
     year: '2021',
-    aspect: 2.4,
+    // cols 3 + aspect 1.1 — the tile holds both natural-size specimens
+    // (260×162 JobChipStack + 138×115 LifecycleGauge) stacked
+    // VERTICALLY: chip on top, gauge below, centered horizontally with
+    // ~32 px gap. Tile dims 413 × 375 give ~33 px vertical breathing
+    // room above and below the stack. Back to a canonical 3-col span —
+    // no more orphan cols. See `.sc-dual` rule in showcase.css for the
+    // flex-direction: column setup.
+    cols: 3,
+    aspect: 1.1,
     frame: false,
     href: 'https://niharbhagat.com/work/connektion/',
     whatIs: 'Status indicators for tracking job stages',
-    notice: 'How each stage reads at a glance through the length of the progress bar',
+    notice: 'Notice how each stage reads at a glance through the length of the progress bar',
+  },
+  {
+    id: 'posters',
+    num: 8,
+    kind: 'posters',
+    title: 'Posters',
+    type: 'Posters',
+    dot: 'terra',
+    project: 'Mic Testing',
+    year: '2017',
+    // 0.70 (down from 0.80) — bumped to give the poster fan vertical
+    // room. The slot-4 transform translates the back poster up by 62%
+    // of its own height; with the rotation extending its bounding
+    // rectangle further, the top corners were clipping past the tile's
+    // overflow-hidden top edge. Taller tile pushes the fan down (since
+    // posters anchor at `top: 50%`) so corners clear. Bonus: tile
+    // height now 590 vs ecochain 648 in row 4 — heights closer, row
+    // reads more balanced.
+    aspect: 0.70,
+    frame: false,
+    href: 'https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection',
+    whatIs: 'Posters for social-media marketing of open mics',
+    notice: 'Notice the Swiss Grid running through them',
   },
   {
     id: 'ecochain',
@@ -323,6 +358,6 @@ export const PIECES: Piece[] = [
       ],
     },
     whatIs: 'Interface for a textile trading platform',
-    notice: 'How buying and selling functions are grouped left and right',
+    notice: 'Notice how buying and selling functions are grouped left and right',
   },
 ]

@@ -31,10 +31,14 @@ export default function PieceMedia({ piece, toggleKey, paused, active }: Props) 
       // Figma later (per user). For v1 we show the clean screenshot only;
       // the UI-map state is a placeholder dashed overlay above the same image.
       return (
-        <div className="sc-media-fill">
+        // .sc-interface-fill marker — picked up by the plain-tile-border
+        // exclusion in showcase.css so this frameless tile doesn't get
+        // the default 1 px hairline. The artefacts inside the image
+        // (YOU panel, Peace Treaty card) carry their own framing.
+        <div className="sc-media-fill sc-interface-fill">
           <Img
-            src="/images/rr/rr-interface-desktop.webp"
-            alt="Rug Rumble table interface"
+            src="/images/rr/rr-interface-frame.webp"
+            alt="Rug Rumble battle interface — gauges and Peace Treaty card"
             fill
             sizes="(max-width: 767px) 90vw, 40vw"
           />
@@ -61,7 +65,7 @@ export default function PieceMedia({ piece, toggleKey, paused, active }: Props) 
       return (
         <div className="sc-multiverse">
           <Img
-            src="/images/biconomy/multiverse_poster.webp"
+            src="/images/biconomy/_diagrams/multiverse_poster.webp"
             alt="Biconomy Multiverse launch poster"
             fill
             sizes="(max-width: 767px) 90vw, 25vw"
@@ -70,13 +74,19 @@ export default function PieceMedia({ piece, toggleKey, paused, active }: Props) 
       )
 
     case 'startooth':
+      // Cards SVG sits on top of the tile's framed background, which is
+      // recolored to the dark Startooth ground (#311700) via
+      // `.sc-piece--startooth .sc-media` in showcase.css. Vector
+      // everywhere — no raster, no AVIF re-encode loss. The framed
+      // tile's border + shadow continue to apply because we kept
+      // `frame: true` on the piece.
       return (
-        <div className="sc-media-fill">
-          <Img
-            src="/images/startooth/sc-startooth.webp"
+        <div className="sc-startooth-svg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/startooth/sc-startooth-cards.svg"
             alt="Startooth pattern study"
-            fill
-            sizes="(max-width: 767px) 90vw, 25vw"
+            className="sc-startooth-svg__cards"
           />
         </div>
       )
@@ -99,8 +109,8 @@ export default function PieceMedia({ piece, toggleKey, paused, active }: Props) 
     case 'ecochain': {
       const src =
         toggleKey === 'icons'
-          ? '/videos/ecochain/audit-status-icons.mp4'
-          : '/videos/ecochain/interface-introduction.mp4'
+          ? '/videos/ecochain/audit-status-icons.mov'
+          : '/videos/ecochain/interface-introduction.mov'
       const alt =
         toggleKey === 'icons'
           ? 'Ecochain — audit status icons'

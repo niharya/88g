@@ -284,6 +284,35 @@ The only raw `<img>` exceptions are tiny decorative icons where LQIP is wasted (
 
 For weight discipline (max sizes, `.webp` requirement, `npm run optimize-images` workflow), see `docs/performance.md` → "Images".
 
+## Image handling
+
+The whole pipeline is built so that crisp-on-intake stays crisp-on-serve. The two compression layers (intake encoder + `next/image` serve quality) are coordinated automatically via a `lossless` flag in the image manifest — you don't reach for a `quality` prop per usage.
+
+**The contract.**
+
+1. **Vectors are SVG.** Never rasterize SVG-native artwork.
+2. **Raster masters live in `_source/images/`**, at the repo root — *outside* `public/`. Masters never reach a visitor's browser or the deploy bundle. They stay for re-encoding when encoders improve. Scope: photos, externally-authored artwork, screenshots from contexts that change. Figma exports don't need to live here — re-export from the Figma file when you need to re-encode.
+3. **Resolution: 2× is the floor, 3× for high-fidelity edges, 4× never.** `<Img>` + `next/image` handle the density `srcset` automatically *if* the source has the pixels. Don't downscale exports. Picking the multiplier:
+
+   - **2× — default.** Covers DPR=2 Retina screens cleanly (MacBook, iPad, iPhone non-Pro, most Android). DPR=3 devices upscale ~1.3× which is invisible on photographic content. Use for photos, hero shots, anything the eye reads as a subject rather than as edges.
+   - **3× — patterns, illustrations, fine UI artwork.** Pays off where the eye reads pixel-precise edges on iPhone Pro phones (DPR=3). Examples: startooth pattern, brand marks, mockups where rasterized vectors must stay crisp. Costs roughly 2× the disk weight vs 2×; gives DPR=3 devices a true 1080-class variant instead of a 1.3× upscale of the 828w.
+   - **4× — never.** No mainstream device DPR exists above 3, and next/image's default `images.deviceSizes` doesn't include a srcset entry that would consume the extra pixels anyway. Pure disk + transfer bloat with no visible payoff.
+
+   Worked example: a 3-col tile in `/selected` renders 413 px wide on desktop. 2× source ≥ 826 px wide; 3× source ≥ 1239 px wide.
+4. **Compression tier is picked by folder convention** in `_source/`:
+
+   | Path contains      | Tier             | Encoder                                                          | Use for                                                          |
+   |--------------------|------------------|------------------------------------------------------------------|------------------------------------------------------------------|
+   | `/_photos/`        | lossy            | `sharp.webp({ quality: 88, effort: 6, smartSubsample: true })`   | Photographs, rich gradients                                      |
+   | `/_diagrams/`      | full lossless    | `sharp.webp({ lossless: true, effort: 6 })`                      | Large flat-colour fields where near-lossless can introduce banding |
+   | _(anything else)_  | **near-lossless** _(default)_ | `sharp.webp({ nearLossless: true, quality: 60, effort: 6 })` | UI / screenshots / anything with text                            |
+
+   Defaulting to near-lossless biases toward crisp; opt into lossy only when the asset is genuinely a photo. Single source of truth: `scripts/lib/compression-tier.mjs`.
+5. **One command to add an image:** drop the PNG/JPEG under `_source/images/<route>/...`, mirroring the target layout under `public/images/<route>/...`, then run `npm run optimize-images`. The script walks `_source/`, picks the encoder by path, and writes the `.webp` under `public/`. Sources stay. Then `npm run lqip` (or `npm run build`, which runs it via `prebuild`) regenerates the LQIP + `lossless` manifest.
+6. **`<Img>` only.** Authors don't write raw `<img>`, don't reach for `next/image` directly. `<Img>` reads the manifest's `lossless` flag and sets `quality` for you: lossless / near-lossless → 100, lossy → 90. Override via the `quality` prop only when there's a reason (typically a true-photo thumbnail where you'll never see the artefacts).
+7. **`sizes` is still your job.** `<Img>` can't infer it. Author it correctly so `next/image` serves the right srcset entry at the right DPR. Explicit `width` + `height` props are a valid alternative to `sizes` when render dimensions are fixed and known at request time.
+8. **Existing assets:** the `lossless` flag conservatively defaults to `true` for any manifest entry without a master in `_source/`. Existing crisp-source webp files keep serving at q100. Lossy-on-intake legacy files don't get worse on serve; bringing them through the new pipeline is a separate (future) re-encode pass.
+
 ## Not using
 
 Tailwind, shadcn/Radix, state libraries, Storybook, MDX, test frameworks. TransitionSlot stays on Framer Motion (not View Transitions API) — it's load-bearing and works.

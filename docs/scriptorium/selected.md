@@ -198,17 +198,16 @@ Pinned to the bottom of the initial viewport (via `.selected-firstview` 100svh w
 
 ## Showcase — HeaderBlock {#showcase-header}
 
-> "nihar.works · selected visuals"
-> — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) eyebrow
-
 > "Visuals"
 > — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) title
 
-> "A flatlay of the work — interfaces, posters, motion, and marks, laid out on one bench. Click any piece to lift it and read the note."
+> "A selection of interfaces, posters, and marks, laid out for a visual treat."
 > — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) sub
 
-> "pieces · one bench"
+> "pieces"
 > — [`HeaderBlock.tsx`](../../app/(works)/selected/components/Showcase/HeaderBlock.tsx) countlabel (preceded by the live count, currently `10`)
+
+_(The eyebrow row "nihar.works · selected visuals" and the "one bench" qualifier on the countlabel were removed v0.93+. Header + hint now collapsed to one unit visually — single divider between them.)_
 
 ## Showcase — HintRow {#showcase-hint}
 
@@ -224,7 +223,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > "Evolution of RR Card" / "Layout Design" / "Rug Rumble" / "2024"
 
 > "A series showing how a custom playing-card layout evolved"  *(What is it)*
-> "How information is chunked out for easy scanning"  *(Notice)*
+> "Notice how information is chunked out for easy scanning"  *(Notice)*
 > "…from Rug Rumble ↗"  *(foot link → `/rr`)*
 
 ### 02 · Interface-RR (Rug Rumble vitals gauge) {#showcase-interface}
@@ -234,7 +233,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > Toggle labels (on-tile control): "Clean" / "UI Map"
 
 > "A vitals gauge for a PvP game"  *(What is it)*
-> "How the health bar separators make it easy to read health at a glance"  *(Notice)*
+> "Notice how the health bar separators make it easy to read health at a glance"  *(Notice)*
 > "…from Rug Rumble ↗"  *(foot link → `/rr`)*
 
 ### 03 · Site-Nav (portfolio nav marker) {#showcase-subway}
@@ -242,7 +241,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > "Site-Nav" *(short label: "Site Nav")* / "Wayfinding UI" / "This site" / "2026"
 
 > "A navigation marker that works as a menu toggle + page title"  *(What is it)*
-> "How the Project and Chapter markers snap satisfyingly"  *(Notice)*
+> "Notice how the project and chapter markers snap satisfyingly"  *(Notice)*
 > "…from This site"  *(foot — plain credit text; no link, this site IS the project)*
 
 ### 04 · Paymaster (UX Audit) {#showcase-paymaster}
@@ -252,7 +251,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > Toggle labels (on-tile control): "Before Audit" / "After Audit"
 
 > "A DevX comparison before and after applying a UX Audit"  *(What is it)*
-> "How the content stays the same and only the layout changes across the before and after"  *(Notice)*
+> "Notice how the content stays the same and only the layout changes across the before and after"  *(Notice)*
 > "…from Biconomy ↗"  *(foot link → `/biconomy`)*
 
 ### 05 · Multiverse (poster) {#showcase-multiverse}
@@ -260,7 +259,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > "Multiverse" / "Design Intervention" / "Biconomy" / "2023"
 
 > "A poster revealing silos within the workplace"  *(What is it)*
-> "How the copy and metaphor just hint at the issue instead of shouting about it"  *(Notice)*
+> "Notice how the copy and metaphor just hint at the issue instead of shouting about it"  *(Notice)*
 > "…from Biconomy ↗"  *(foot link → `/biconomy`)*
 
 ### 06 · Startooth (Pattern) {#showcase-startooth}
@@ -268,7 +267,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > "Startooth Pattern" / "Pattern" / "My sketchbook" / "2026"
 
 > "My take on the classic Houndstooth"  *(What is it)*
-> "How the trapezoids are sliced by diamonds and stars to form edible barfis"  *(Notice)*
+> "Notice how the trapezoids are sliced by diamonds and stars to form edible barfis"  *(Notice)*
 > "…from My sketchbook"  *(foot — plain credit text; no link, sketchbook isn't routable)*
 
 ### 07 · Furrmark {#showcase-furrmark}
@@ -276,7 +275,7 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > "Furrmark" / "Identity" / "Aleyr" / "2021"
 
 > "A brandmark for a pet care brand"  *(What is it)*
-> "How it skips the usual cat-and-dog caricatures to express your love for your pet"  *(Notice)*
+> "Notice how it skips the usual cat-and-dog caricatures to express your love for your pet"  *(Notice)*
 > "…from Aleyr ↗"  *(foot link → `https://niharbhagat.com/work/aleyr/`)*
 
 ### 08 · Posters (Mic Testing series) {#showcase-posters}
@@ -284,18 +283,18 @@ Source of truth: [`Showcase/data.ts`](../../app/(works)/selected/components/Show
 > "Posters" / "Posters" / "Mic Testing" / "2017"
 
 > "Posters for social-media marketing of open mics"  *(What is it)*
-> "The Swiss Grid running through them"  *(Notice)*
+> "Notice the Swiss Grid running through them"  *(Notice)*
 > "…from Mic Testing ↗"  *(foot link → `https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection`)*
 
-Poster alt text — [`Showcase/media/PosterStack.tsx`](../../app/(works)/selected/components/Showcase/media/PosterStack.tsx). Three posters, shuffled per page load:
-> "Comedy poster — Falah Faisal" / "Comedy poster — Cutting Comedy" / "Comedy poster — Cutting 2"
+Poster alt text — [`Showcase/media/PosterStack.tsx`](../../app/(works)/selected/components/Showcase/media/PosterStack.tsx). Four posters, shuffled per page load:
+> "Comedy poster — Falah Faisal" / "Comedy poster — Cutting Comedy" / "Comedy poster — Cutting 2" / "Comedy poster — The Gong Show"
 
 ### 09 · Job Chip (Connektion components) {#showcase-dual}
 
 > "Job Chip" *(short label: "Components")* / "Interface" / "Connektion" / "2021"
 
 > "Status indicators for tracking job stages"  *(What is it)*
-> "How each stage reads at a glance through the length of the progress bar"  *(Notice)*
+> "Notice how each stage reads at a glance through the length of the progress bar"  *(Notice)*
 > "…from Connektion ↗"  *(foot link → `https://niharbhagat.com/work/connektion/`)*
 
 ### 10 · Ecochain UI {#showcase-ecochain}
@@ -305,7 +304,7 @@ Poster alt text — [`Showcase/media/PosterStack.tsx`](../../app/(works)/selecte
 > Toggle labels (on-tile control): "Interface" / "Status icons"
 
 > "Interface for a textile trading platform"  *(What is it)*
-> "How buying and selling functions are grouped left and right"  *(Notice)*
+> "Notice how buying and selling functions are grouped left and right"  *(Notice)*
 > "…from Ecochain ↗"  *(foot link → `https://slangbusters.com/work/ecochain/`)*
 
 ## Showcase — RR card captions (cardstack tile, inside `Showcase/media/CardstackFan.tsx`) {#showcase-cardstack-captions}

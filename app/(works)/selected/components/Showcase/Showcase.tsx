@@ -28,10 +28,12 @@ import ShowcaseBottomSheet from './ShowcaseBottomSheet'
 import { MOBILE_BP, isMobileViewport } from './responsive'
 import './showcase.css'
 
-// Six-color palette used for the per-load random dot shuffle. Grey is
-// intentionally excluded — no piece currently authors `dot: 'grey'`
-// and the dim tone reads as "muted" rather than as an accent.
-const DOT_PALETTE: ShowcaseDot[] = ['blue', 'terra', 'olive', 'orange', 'yellow', 'mint']
+// Four-color palette used for the per-load random dot shuffle. Pinned
+// to the brand's four primaries (blue, terra, orange, mint); olive,
+// yellow, and grey were dropped — the four-tone family reads more
+// in-system, and the per-piece colour cascade (caption dot → switch →
+// spec note) stays anchored to a tight palette per load.
+const DOT_PALETTE: ShowcaseDot[] = ['blue', 'terra', 'orange', 'mint']
 
 // Fisher-Yates shuffle — O(n) uniformly random permutation. Same idiom
 // used by Footer's startooth row and the PosterStack deck.

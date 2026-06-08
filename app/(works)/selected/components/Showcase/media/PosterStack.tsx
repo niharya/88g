@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Img } from '../../../../../components/Img'
 
-// PosterStack — three comedy posters in a deck, randomized per page load.
+// PosterStack — four comedy posters in a deck, randomized per page load.
 //
 // Interactivity gated on the parent tile's `active` prop:
 //   - inactive: clicks pass through (open the spec note via the tile)
@@ -13,17 +13,23 @@ import { Img } from '../../../../../components/Img'
 // When inactive, `pointer-events: none` on the wrap lets clicks reach
 // the parent tile so the spec note opens.
 
-type Poster = { src: string; alt: string; border: string }
+// Each poster carries its own aspect ratio so the deck visibly mixes
+// formats — three A-series print posters (~0.707) plus one IG-story
+// vertical (gong, 0.5625). Read by `.sc-poster` via the `--poster-
+// aspect` CSS var set inline (see showcase.css).
+type Poster = { src: string; alt: string; border: string; aspect: number }
 
 // Border colours tinted from each poster's content accent (not the raw
 // dominant pixel, which was near-white for two of three and invisible
-// against the workbench). Cutting-2 already carries its own printed red
+// against the workbench). cutting-2 already carries its own printed red
 // rule around the artwork, so its faux border is set to `transparent`
-// to avoid stacking two outlines.
+// to avoid stacking two outlines. gong is on a saturated orange ground
+// — a neutral grey-800 hairline reads cleanest against the workbench.
 const POSTERS: Poster[] = [
-  { src: '/images/posters/falah-faisal.webp',   alt: 'Comedy poster — Falah Faisal',   border: '#b8453a' },
-  { src: '/images/posters/cutting-comedy.webp', alt: 'Comedy poster — Cutting Comedy', border: '#3a7a4a' },
-  { src: '/images/posters/cutting-2.webp',      alt: 'Comedy poster — Cutting 2',      border: 'transparent' },
+  { src: '/images/posters/falah-faisal.webp', alt: 'Comedy poster — Falah Faisal',     border: '#b8453a',     aspect: 1357 / 1920 },
+  { src: '/images/posters/cutting-1.webp',    alt: 'Comedy poster — Cutting Comedy',   border: '#3a7a4a',     aspect: 1190 / 1684 },
+  { src: '/images/posters/cutting-2.webp',    alt: 'Comedy poster — Cutting 2',        border: 'transparent', aspect: 1080 / 1528 },
+  { src: '/images/posters/gong.webp',         alt: 'Comedy poster — The Gong Show',    border: '#4a2a1a',     aspect: 1080 / 1920 },
 ]
 
 // Fisher-Yates — returns a NEW shuffled array; doesn't mutate POSTERS.
@@ -83,7 +89,15 @@ export default function PosterStack({ active = false }: { active?: boolean }) {
           <div
             key={p.src}
             className={`sc-poster sc-poster--slot-${slot}`}
-            style={{ zIndex: TOTAL - slot + 1, borderColor: p.border }}
+            style={{
+              zIndex: TOTAL - slot + 1,
+              borderColor: p.border,
+              // Per-poster aspect ratio — consumed by `.sc-poster`'s
+              // `aspect-ratio: var(--poster-aspect)`. Lets the three
+              // print posters and the gong IG-story sit at their true
+              // shapes inside the same fanned stack.
+              ['--poster-aspect' as string]: String(p.aspect),
+            }}
           >
             <Img
               src={p.src}
