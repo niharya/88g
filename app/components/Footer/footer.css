@@ -123,18 +123,14 @@
   align-items: center;
   gap: 4px;
   /* Touch target padding — taps anywhere in this padded box hit the   */
-  /* link, not just the 14 × 14 icons.                                 */
+  /* link, not just the 14 × 14 icons. No background or radius — the   */
+  /* hover/press reaction lives on the icons themselves (rotation +    */
+  /* 1px press nudge), matching the rectangle-free footer link cells. */
   padding: var(--space-8);
   margin: calc(var(--space-8) * -1);  /* compensate so layout doesn't shift */
-  border-radius: 6px;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    background var(--dur-fast) var(--ease-snap),
-    transform var(--dur-instant) var(--ease-snap);
-}
-.footer__startooths:hover {
-  background: var(--grey-880);
+  transition: transform var(--dur-instant) var(--ease-snap);
 }
 .footer__startooths:active {
   transform: translateY(1px);
@@ -194,10 +190,7 @@
   padding: var(--space-24) var(--space-12);
   color: inherit;
   text-decoration: none;
-  background-color: transparent;
-  transition:
-    background-color var(--dur-fast) var(--ease-snap),
-    color var(--dur-fast) var(--ease-snap);
+  transition: color var(--dur-fast) var(--ease-snap);
 }
 
 .footer--default .footer__link-label {
@@ -209,21 +202,18 @@
 
 .footer--default .footer__link:hover,
 .footer--default .footer__link:focus-visible {
-  /* Subtler hover — barely-there white tint on black so the cell      */
-  /* registers without the route-palette fill. The visible reaction    */
-  /* comes from the inner span's underline crossfade (mirrored below). */
-  background-color: rgba(255, 255, 255, 0.04);
+  /* Object-level reaction only: text colour brightens, the inner span's
+     underline crossfades dotted → solid (mirrored below). No background
+     overlay — the rectangle hover tint was overpowering the subtler
+     type-level state. */
   color: var(--grey-240);
   outline: none;
 }
 
-/* Press state — text colour deepens; no translate, no bg shift. The   */
-/* press reads through the type going lighter as the cursor lands.     */
+/* Press state — text whitens. No translate, no bg shift. */
 .footer--default .footer__link:active {
   color: #fff;
-  transition:
-    background-color var(--dur-instant) var(--ease-snap),
-    color var(--dur-instant) var(--ease-snap);
+  transition: color var(--dur-instant) var(--ease-snap);
 }
 
 /* Forward the cell's hover state to the inner span's t-btn1 treatment.

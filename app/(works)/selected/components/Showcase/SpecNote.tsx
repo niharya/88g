@@ -39,7 +39,10 @@ export default function SpecNote({
   /** at document.body by ShowcasePiece).                                */
   variant?: 'card' | 'sheet'
 }) {
-  const num = String(piece.num).padStart(2, '0')
+  // Index-card foot-end label: was zero-padded serial (`01`..`10`),
+  // now the year of the piece. The narrative `num` still lives in data
+  // for future referencing — it just no longer renders here.
+  const footLabel = piece.year
   // Random toss rotation between -1° and +1°. New value per mount so each
   // open feels physical, like the note was tossed onto the workbench.
   // Matched to the tile's own range (ShowcasePiece sets --sc-tile-rotate
@@ -132,7 +135,7 @@ export default function SpecNote({
         {/* fades in to take its place. The pill is omitted when there's   */}
         {/* no link to hint at.                                            */}
         <span className="sc-note__foot-end">
-          <span className="sc-note__no">{num}</span>
+          <span className="sc-note__no">{footLabel}</span>
           {piece.href !== undefined && (
             <span className="sc-note__hint" aria-hidden="true">
               opens in new tab

@@ -122,34 +122,14 @@ export type Piece = {
 // authored aspect ratio, measured at runtime into --sc-rowspan per
 // slot.
 //
-// Order below is by `num` (1 → 10) — the narrative sequence Nihar uses
-// when walking through the work. With grid-auto-flow: dense the visual
-// placement can re-shuffle to fill gaps next to wide tiles, so the
-// on-screen column of any tile depends on its neighbours' widths, not
-// strictly on its DOM index.
+// DOM order below sequences tiles by *layout priority* (left → right,
+// top → bottom roughly): num 7, 4, 3, 1, 6, 2, 5, 10, 9, 8. Order is
+// tentative — `grid-auto-flow: dense` reshuffles visual placement to
+// fill gaps next to wide tiles, so DOM index is a hint, not a guarantee.
+// `num` is preserved on each entry as the stable narrative serial for
+// referencing; it no longer controls display order.
 
 export const PIECES: Piece[] = [
-  {
-    id: 'cardstack',
-    num: 1,
-    kind: 'cardstack',
-    title: 'Evolution of RR Card',
-    type: 'Layout Design',
-    dot: 'blue',
-    project: 'Rug Rumble',
-    year: '2024',
-    // 1.4 (down from 1.6) — bumped to make room for the scaled-up
-    // cardstack (cards 34% wide as of v0.93+) without click-spread
-    // (scale 1.18 + lift -8%) clipping past the tile's overflow-hidden
-    // top edge. The bottom anchor (`bottom: 6%`) is unchanged; the tile
-    // just gains ~37 px of vertical headroom for the selected card to
-    // breathe into.
-    aspect: 1.4,
-    frame: false,
-    href: '/rr',
-    whatIs: 'A series showing how a custom playing-card layout evolved',
-    notice: 'Notice how information is chunked out for easy scanning',
-  },
   {
     id: 'furrmark',
     num: 7,
@@ -167,44 +147,6 @@ export const PIECES: Piece[] = [
     href: 'https://niharbhagat.com/work/aleyr/',
     whatIs: 'A brandmark for a pet care brand',
     notice: 'Notice how it skips the usual cat-and-dog caricatures to express your love for your pet',
-  },
-  {
-    id: 'subway',
-    num: 3,
-    kind: 'subway',
-    title: 'Site-Nav',
-    short: 'Site Nav',
-    type: 'Wayfinding UI',
-    dot: 'mint',
-    project: 'This site',
-    year: '2026',
-    // Source video is 880 × 600 (1.467) — baked in so first paint matches
-    // the video's natural ratio.
-    aspect: 880 / 600,
-    frame: true,
-    video: true,
-    // href intentionally omitted — the "project" IS this very site, so the
-    // index-card foot renders as plain credit text, not a link.
-    whatIs: 'A navigation marker that works as a menu toggle + page title',
-    notice: 'Notice how the project and chapter markers snap satisfyingly',
-  },
-  {
-    id: 'multiverse',
-    num: 5,
-    kind: 'multiverse',
-    title: 'Multiverse',
-    type: 'Design Intervention',
-    dot: 'terra',
-    project: 'Biconomy',
-    year: '2023',
-    // Tile aspect matches the image natural exactly (1684 × 2382), so
-    // object-fit: cover shows the full poster with no crop and no
-    // letterbox on any edge — the artwork's own margins are what you see.
-    aspect: 1684 / 2382,
-    frame: false,
-    href: '/biconomy',
-    whatIs: 'A poster revealing silos within the workplace',
-    notice: 'Notice how the copy and metaphor just hint at the issue instead of shouting about it',
   },
   {
     id: 'paymaster',
@@ -231,6 +173,47 @@ export const PIECES: Piece[] = [
     },
     whatIs: 'A DevX comparison before and after applying a UX Audit',
     notice: 'Notice how the content stays the same and only the layout changes across the before and after',
+  },
+  {
+    id: 'subway',
+    num: 3,
+    kind: 'subway',
+    title: 'Site-Nav',
+    short: 'Site Nav',
+    type: 'Wayfinding UI',
+    dot: 'mint',
+    project: 'This site',
+    year: '2026',
+    // Source video is 880 × 600 (1.467) — baked in so first paint matches
+    // the video's natural ratio.
+    aspect: 880 / 600,
+    frame: true,
+    video: true,
+    // href intentionally omitted — the "project" IS this very site, so the
+    // index-card foot renders as plain credit text, not a link.
+    whatIs: 'A navigation marker that works as a menu toggle + page title',
+    notice: 'Notice how the project and chapter markers snap satisfyingly',
+  },
+  {
+    id: 'cardstack',
+    num: 1,
+    kind: 'cardstack',
+    title: 'Evolution of RR Card',
+    type: 'Layout Design',
+    dot: 'blue',
+    project: 'Rug Rumble',
+    year: '2024',
+    // 1.4 (down from 1.6) — bumped to make room for the scaled-up
+    // cardstack (cards 34% wide as of v0.93+) without click-spread
+    // (scale 1.18 + lift -8%) clipping past the tile's overflow-hidden
+    // top edge. The bottom anchor (`bottom: 6%`) is unchanged; the tile
+    // just gains ~37 px of vertical headroom for the selected card to
+    // breathe into.
+    aspect: 1.4,
+    frame: false,
+    href: '/rr',
+    whatIs: 'A series showing how a custom playing-card layout evolved',
+    notice: 'Notice how information is chunked out for easy scanning',
   },
   {
     id: 'startooth',
@@ -265,27 +248,64 @@ export const PIECES: Piece[] = [
     dot: 'terra',
     project: 'Rug Rumble',
     year: '2024',
-    // Source image is 683 × 534 (≈ 1.28) — focused gauges + Peace Treaty
-    // card frame. Tile aspect matched exactly so object-fit: cover doesn't
-    // crop edges. The /rr deep-dive page uses a different, wider frame
-    // (rr-interface-desktop.webp) — keep these two views distinct.
-    aspect: 683 / 534,
-    // Frameless: the image's artefacts (YOU panel, Peace Treaty card)
-    // already self-frame, and the source has transparent ground around
-    // them, so a tile container reads as a tray around something that
-    // doesn't need one. The plain-tile default hairline is suppressed
-    // by `.sc-interface-fill` on the inner wrapper (see showcase.css).
+    // Live scene canvas is 548 × 560 (~0.98:1) — the autoplay artefact
+    // scales to the tile width via container-query scaling in
+    // rr-interface.css. Canvas is taller than the card so the card
+    // exits cleanly upward and re-enters cleanly downward without
+    // clipping mid-body.
+    aspect: 548 / 560,
+    // Frameless: the scene's artefacts (You panel, Peace Treaty card)
+    // self-frame and sit directly on the workbench. The plain-tile
+    // hairline is suppressed for this kind via a `:has(.sc-rr-scene)`
+    // exclusion in showcase.css.
     frame: false,
     href: '/rr',
-    toggle: {
-      defaultKey: 'clean',
-      opts: [
-        { k: 'clean', label: 'Clean' },
-        { k: 'map', label: 'UI Map' },
-      ],
-    },
     whatIs: 'A vitals gauge for a PvP game',
     notice: 'Notice how the health bar separators make it easy to read health at a glance',
+  },
+  {
+    id: 'multiverse',
+    num: 5,
+    kind: 'multiverse',
+    title: 'Multiverse',
+    type: 'Design Intervention',
+    dot: 'terra',
+    project: 'Biconomy',
+    year: '2023',
+    // Tile aspect matches the image natural exactly (1684 × 2382), so
+    // object-fit: cover shows the full poster with no crop and no
+    // letterbox on any edge — the artwork's own margins are what you see.
+    aspect: 1684 / 2382,
+    frame: false,
+    href: '/biconomy',
+    whatIs: 'A poster revealing silos within the workplace',
+    notice: 'Notice how the copy and metaphor just hint at the issue instead of shouting about it',
+  },
+  {
+    id: 'ecochain',
+    num: 10,
+    kind: 'ecochain',
+    title: 'Ecochain UI',
+    type: 'Interface',
+    dot: 'mint',
+    project: 'Ecochain',
+    year: '2019',
+    // Updated Ecochain clips are 4:3-ish (~1194 × 896 ≈ 1.33). Baked in   */
+    // so the tile sizes deterministically without a first-paint flash.    */
+    aspect: 1194 / 896,
+    frame: true,
+    video: true,
+    href: 'https://slangbusters.com/work/ecochain/',
+    cols: 6,
+    toggle: {
+      defaultKey: 'interface',
+      opts: [
+        { k: 'interface', label: 'Interface' },
+        { k: 'icons', label: 'Status icons' },
+      ],
+    },
+    whatIs: 'Interface for a textile trading platform',
+    notice: 'Notice how buying and selling functions are grouped left and right',
   },
   {
     id: 'dual',
@@ -333,31 +353,5 @@ export const PIECES: Piece[] = [
     href: 'https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection',
     whatIs: 'Posters for social-media marketing of open mics',
     notice: 'Notice the Swiss Grid running through them',
-  },
-  {
-    id: 'ecochain',
-    num: 10,
-    kind: 'ecochain',
-    title: 'Ecochain UI',
-    type: 'Interface',
-    dot: 'mint',
-    project: 'Ecochain',
-    year: '2019',
-    // Updated Ecochain clips are 4:3-ish (~1194 × 896 ≈ 1.33). Baked in   */
-    // so the tile sizes deterministically without a first-paint flash.    */
-    aspect: 1194 / 896,
-    frame: true,
-    video: true,
-    href: 'https://slangbusters.com/work/ecochain/',
-    cols: 6,
-    toggle: {
-      defaultKey: 'interface',
-      opts: [
-        { k: 'interface', label: 'Interface' },
-        { k: 'icons', label: 'Status icons' },
-      ],
-    },
-    whatIs: 'Interface for a textile trading platform',
-    notice: 'Notice how buying and selling functions are grouped left and right',
   },
 ]

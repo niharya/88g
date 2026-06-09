@@ -4,6 +4,7 @@ import MarkerSlot from '../../components/nav/MarkerSlot'
 import NavMarker from '../../components/NavMarker'
 import AboutCard from './components/AboutCard'
 import SelectedContent from './components/SelectedContent'
+import FirstView from './components/FirstView'
 import ShowcaseSection from './components/Showcase/ShowcaseSection'
 import NiharHomeLink from '../../components/NiharHomeLink'
 import SlideInOnNav from '../../components/SlideInOnNav'
@@ -31,11 +32,20 @@ export default function SelectedPage() {
         selector=".selected-workbench"
         className="selected-workbench--slide-in"
       />
-      {/* First viewport — AboutCard + Timeline panel up top, scroll cue */}
-      {/* pinned to the bottom of the initial 100svh so the hand-off to  */}
-      {/* the Showcase reads without scrolling.                          */}
-      <div className="selected-firstview">
-        <div className="selected-layout">
+      {/* First viewport — AboutCard + Timeline panel up top, Showcase  */}
+      {/* cue pinned a few px below the mat panel. The FirstView client */}
+      {/* wrapper owns the click-to-glide handler and the measured      */}
+      {/* `--sc-cue-top` var that anchors the cue to the mat's bottom.   */}
+      <FirstView>
+        <div
+          className="selected-layout"
+          // Contract with FirstView: the stage element provides the
+          // horizontal rails (left + right) for the Showcase cue. The
+          // mat carries `data-cue-v-anchor` for the vertical position.
+          // If this attribute moves, update CUE_H_ANCHOR_SELECTOR in
+          // FirstView.tsx.
+          data-cue-h-anchor
+        >
           {/* Nav markers — docked together, positioned above the mat */}
           <div className="selected-nav-row">
             <MarkerSlot position="left" measure={false}>
@@ -57,17 +67,7 @@ export default function SelectedPage() {
           <AboutCard />
           <SelectedContent />
         </div>
-
-        <div className="sc-cue" aria-hidden="true">
-          <div className="sc-cue__rule" />
-          <div className="sc-cue__row">
-            <span className="material-symbols-rounded sc-cue__arrow">
-              arrow_downward
-            </span>
-            <span className="sc-cue__label">Showcase</span>
-          </div>
-        </div>
-      </div>
+      </FirstView>
 
       {/* Showcase — appended below the first viewport. The hint row +    */}
       {/* 10-tile bento grid live here; HeaderBlock above them carries   */}

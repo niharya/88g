@@ -10,7 +10,8 @@ import VideoSlot from './media/VideoSlot'
 import CardstackFan from './media/CardstackFan'
 import PosterStack from './media/PosterStack'
 import PaymasterAuditController from './media/PaymasterAuditController'
-import { Placeholder, UiMapPlaceholder, DualPlaceholder } from './media/Misc'
+import RrInterfaceScene from './media/RrInterface/Scene'
+import { Placeholder, DualPlaceholder } from './media/Misc'
 
 type Props = {
   piece: Piece
@@ -27,22 +28,13 @@ export default function PieceMedia({ piece, toggleKey, paused, active }: Props) 
       return <CardstackFan active={active} />
 
     case 'interface':
-      // Toggle pair: clean ↔ UI map overlay. Real overlay asset comes from
-      // Figma later (per user). For v1 we show the clean screenshot only;
-      // the UI-map state is a placeholder dashed overlay above the same image.
+      // Live Rug Rumble scene — foreign artefact with its own design
+      // language. The tile is framed (data.ts), so the standard hairline
+      // + mat-bg wrap around the scene. Pauses with the grid's
+      // anyActive contract via the `paused` prop.
       return (
-        // .sc-interface-fill marker — picked up by the plain-tile-border
-        // exclusion in showcase.css so this frameless tile doesn't get
-        // the default 1 px hairline. The artefacts inside the image
-        // (YOU panel, Peace Treaty card) carry their own framing.
-        <div className="sc-media-fill sc-interface-fill">
-          <Img
-            src="/images/rr/rr-interface-frame.webp"
-            alt="Rug Rumble battle interface — gauges and Peace Treaty card"
-            fill
-            sizes="(max-width: 767px) 90vw, 40vw"
-          />
-          {toggleKey === 'map' && <UiMapPlaceholder />}
+        <div className="sc-media-fill">
+          <RrInterfaceScene paused={paused} />
         </div>
       )
 

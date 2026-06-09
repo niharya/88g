@@ -47,16 +47,33 @@
 /* the workbench's top + bottom padding) so the .sc-cue at the bottom  */
 /* (margin-top: auto) pins to the bottom of the initial visible        */
 /* viewport, not 100 svh past the workbench's top padding.              */
+/* `position: relative` hosts the absolutely-positioned `.sc-cue` (the */
+/* Showcase divider, positioned via measured CSS vars). No longer a    */
+/* flex column — that was left over from when the cue used `margin-   */
+/* top: auto` to dock to the bottom. With the cue now absolute and    */
+/* with `.selected-layout` using `max-width + margin-inline: auto` for */
+/* horizontal centering, flex would actively interfere (`margin-      */
+/* inline: auto` on a flex item along the cross-axis collapses the    */
+/* item to its content width — and `.selected-layout`'s children are  */
+/* all absolutely-positioned, so its intrinsic width is 0).            */
 .selected-firstview {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   min-height: calc(100svh - (var(--workbench-pad-y) * 2));
   width: 100%;
 }
 
+/* Design canvas — `.selected-layout` is the centered stage that hosts */
+/* the absolutely-positioned AboutCard, nav-row, and mat. Capped at    */
+/* the authored canvas width (1224 px: mat.left 536 + mat.width 688)   */
+/* and centered in the workbench so the whole first-view group + the   */
+/* showcase grid below sit balanced on wide viewports instead of       */
+/* left-anchored to the workbench padding. Below ~1352 px viewport     */
+/* (where 1224 + 2×workbench-pad-x stops fitting) max-width caps to    */
+/* 100% and tablet/mobile take over via the media queries below.       */
 .selected-layout {
   position: relative;
-  width: 100%;
+  max-width: 1224px;
+  margin-inline: auto;
   min-height: 777px;
 }
 
@@ -88,7 +105,13 @@
 
 .selected-nav-row {
   position: absolute;
-  left: 560px;
+  /* Tracks the mat: nav-row's left edge = mat.left + 24px. With the    */
+  /* mat anchored at `right: 0` width 688, mat.left = stage.width - 688, */
+  /* so nav-row's left = stage.width - 688 + 24 = stage.width - 664.    */
+  /* Expressed as calc(100% - 664px) so it stays attached to the mat as */
+  /* the stage shrinks. (Was `left: 560px` — fixed pixel, drifted off   */
+  /* the mat on narrow viewports.)                                        */
+  left: calc(100% - 664px);
   top: 10px;
   z-index: 20;
   display: flex;
@@ -110,7 +133,10 @@
 
 .about-card-p {
   position: absolute;
-  left: 24px;
+  /* left: 0 (was 24px) — pulled flush to the stage's left edge so the */
+  /* card lines up with the Showcase content rail below (the stage's   */
+  /* left edge is the canonical left rail for the route).               */
+  left: 0;
   top: 88px;
   border: 2px solid var(--mint-100);
   padding: var(--space-48);
@@ -183,7 +209,12 @@
 
 .selected-mat {
   position: absolute;
-  left: 536px;
+  /* Anchored to the stage's *right* edge (was `left: 536px`, a fixed   */
+  /* pixel offset from the left). With the right anchor, the mat tracks */
+  /* the stage's right rail as the stage shrinks — the gap between      */
+  /* AboutCard (anchored at `left: 0`) and the mat closes naturally on   */
+  /* narrower viewports instead of the mat drifting past the rail.       */
+  right: 0;
   top: 24px;
   width: 688px;
   border: 2px solid var(--mint-100);
@@ -209,7 +240,13 @@
   pointer-events: none;
 }
 
-/* Now dot */
+/* Now dot — shape varies by time of day. The 16×16 box is constant so the
+   timeline alignment is fixed; what changes is what gets painted inside.
+   Morning: clip to a top-half dome (sun above horizon).
+   Afternoon: full disk (sun overhead).
+   Evening: a same-color pseudo-element offset to the top-right carves a
+   bite out of the disk, leaving a crescent opening to the bottom-left.
+   The carve paints in --mat-bg so it dissolves into the mat surface. */
 .selected-tl__dot {
   position: absolute;
   left: 143px;
@@ -218,6 +255,21 @@
   height: 16px;
   background: var(--yellow-240);
   border-radius: 8px;
+}
+
+.selected-tl__dot--morning {
+  clip-path: inset(0 0 50% 0);
+}
+
+.selected-tl__dot--evening::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mat-bg);
 }
 
 .selected-tl__label-now {

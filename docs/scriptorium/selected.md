@@ -329,5 +329,5 @@ Five card iterations. Caption renders below the selected card.
 - Year labels around the timeline bars use `Q4&bull;25` literal markup; preserved here as "Q4•25".
 - Archive entries link to external `niharbhagat.com` / `slangbusters.com` URLs.
 - Showcase `What is it` / `Notice` lines are a curatorial pair — a one-line description of the artefact + a one-line "what to pay attention to." Tone is plain, sentence case, **no trailing fullstop**. Keep each line short enough to fit on two lines at the card's 360 px width.
-- Per-piece `num` (catalogue number "No. 01" — "No. 10") shows in the spec note. Source of truth is `num` in `data.ts`.
+- Per-piece `year` (e.g. "2024", "2021") shows in the spec note's foot-end, replacing the earlier zero-padded catalogue serial ("No. 01" — "No. 10"). The `num` field is retained on each entry in `data.ts` as a stable narrative serial for cross-referencing, but no longer renders.
 - Index-card foot: `"…from {project}"` — rendered as a link (with `IconExternalLink`) when `href` is defined, plain text when `href` is omitted (currently: Site-Nav, Startooth — both reference unlinkable sources).

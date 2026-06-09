@@ -15,7 +15,15 @@ export default function SelectedContent() {
   }, [])
 
   return (
-    <section className={`selected-mat mat${archiveOpen ? ' selected-mat--archive-open' : ''}`}>
+    <section
+      className={`selected-mat mat${archiveOpen ? ' selected-mat--archive-open' : ''}`}
+      // Contract with FirstView: this element's bottom edge anchors the
+      // Showcase cue's vertical position. Horizontal rails come from the
+      // stage (data-cue-h-anchor on .selected-layout). If this attribute
+      // moves, update CUE_V_ANCHOR_SELECTOR in FirstView.tsx. Class
+      // names are styling; data-* is the cross-component wiring.
+      data-cue-v-anchor
+    >
       <Timeline isArchiveOpen={archiveOpen} onArchiveToggle={handleToggle} />
       <ArchivePanel isOpen={archiveOpen} />
     </section>

@@ -115,9 +115,17 @@
 /* archive is open), so the showcase naturally lands underneath. A generous  */
 /* top margin separates the two movements; the showcase reads as its own.    */
 
+/* Capped at the same authored canvas width as `.selected-layout` and  */
+/* centered in the workbench, so the showcase grid + header sit on the */
+/* same left/right rails as the first-view cards above. The divider's  */
+/* anchor measurements (AboutCard's left + mat's right) already pin   */
+/* the divider to those rails, so the whole column reads as one        */
+/* centered stage.                                                      */
 .sc-section {
   position: relative;
   margin-top: var(--space-80, 80px);
+  max-width: 1224px;
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
 }
@@ -131,11 +139,56 @@
 /* Mono caption + dotted underline use the same idiom as the chapter-   */
 /* marker labels.                                                        */
 
+/* Rendered as a <button> by FirstView (click → glide to                */
+/* #showcase-dock under --ease-paper). Resets default button chrome    */
+/* so the cue reads as a hairline + label, not a chip. Hover slightly  */
+/* warms the label / arrow color to acknowledge interactivity without  */
+/* breaking the understated rule + caps idiom.                          */
+/*                                                                       */
+/* Positioning is in normal flow — `margin-top: auto` pushes the cue   */
+/* to the bottom of the .selected-firstview flex column wrapper (whose */
+/* min-height is `calc(100svh - 2 * var(--workbench-pad-y))`), so the  */
+/* cue lands at the bottom of the visible workbench content area on    */
+/* first paint without leaving the layout. As the reader scrolls, the  */
+/* cue scrolls away with the rest of the page — no sticky, no fixed,   */
+/* no portal.                                                            */
 .sc-cue {
-  margin-top: auto;
-  padding-top: var(--space-32);
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 0;
+  margin: 0;
+  padding: var(--space-32) 0 0;
+  display: block;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  /* Anchored to `.selected-firstview` (position: relative). Three CSS */
+  /* vars written by FirstView.tsx via ResizeObserver on the AboutCard  */
+  /* (data-cue-left-anchor) and the mat (data-cue-anchor):              */
+  /*   --sc-cue-top   → mat's bottom edge  (+ var(--space-12) below it) */
+  /*   --sc-cue-left  → AboutCard's left edge                            */
+  /*   --sc-cue-right → mat's right edge                                 */
+  /* Fallback values keep the cue sensible if the vars never get        */
+  /* written (e.g. anchor markup changes and the JS bails out).         */
+  position: absolute;
+  top:   calc(var(--sc-cue-top, 100%) + var(--space-12));
+  left:  var(--sc-cue-left, 0);
+  right: var(--sc-cue-right, 0);
+}
+.sc-cue:hover .sc-cue__label,
+.sc-cue:hover .sc-cue__arrow,
+.sc-cue:focus-visible .sc-cue__label,
+.sc-cue:focus-visible .sc-cue__arrow {
+  color: var(--grey-200);
+}
+.sc-cue:focus-visible {
+  outline: 1px solid var(--grey-600);
+  outline-offset: 4px;
 }
 .sc-cue__rule {
+  display: block;
   width: 100%;
   height: 1px;
   background: var(--grey-880);
@@ -360,7 +413,7 @@
 /* Thin grey border on plain tiles too, EXCEPT the cardstack and poster   */
 /* stack — those two read as loose paper artefacts on the bench, where a */
 /* hairline frame would feel like a tile box around them.                 */
-.sc-media--plain:not(:has(.sc-cardfan)):not(:has(.sc-poster-stack)):not(:has(.sc-dual)):not(:has(.sc-interface-fill)) {
+.sc-media--plain:not(:has(.sc-cardfan)):not(:has(.sc-poster-stack)):not(:has(.sc-dual)):not(:has(.sc-rr-scene)) {
   border: 1px solid var(--grey-800);
 }
 .sc-media--framed {
@@ -377,7 +430,6 @@
 /* radius so the family reads as authored, not uniform. Inner controls   */
 /* (switches, pause, page chip, etc.) keep their own 8 px family radius. */
 .sc-piece--cardstack  .sc-media { border-radius: 0; }
-.sc-piece--interface  .sc-media { border-radius: 6px; }
 .sc-piece--paymaster  .sc-media { border-radius: 10px; }
 .sc-piece--ecochain   .sc-media { border-radius: 8px; }
 .sc-piece--startooth  .sc-media {
@@ -1091,24 +1143,6 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--grey-560);
-}
-
-
-/* UI map overlay (placeholder) — dashed accent regions over a clean image */
-.sc-ui-map {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  animation: sc-fade-in var(--dur-fast) var(--ease-snap) both;
-}
-.sc-ui-map__zone {
-  position: absolute;
-  border: 1.5px dashed var(--terra-560);
-  background: rgba(205, 134, 7, 0.06);
-}
-@keyframes sc-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
 }
 
 

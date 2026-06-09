@@ -8,7 +8,7 @@
 import { motion } from 'framer-motion'
 import NavMarker from '../../../components/NavMarker'
 import ProjectCard from './ProjectCard'
-import { getGreeting } from '../../../lib/greeting'
+import { getGreeting, getGreetingStage } from '../../../lib/greeting'
 import { useCrossShellNav } from '../../../components/CrossShellVeil'
 
 
@@ -65,9 +65,10 @@ export default function Timeline({ isArchiveOpen, onArchiveToggle }: TimelinePro
 
   return (
     <div className="selected-tl">
-      {/* Now dot */}
+      {/* Now dot — shape mirrors time of day: morning semicircle (sun on
+          horizon), afternoon full circle, evening crescent moon. */}
       <motion.div
-        className="selected-tl__dot"
+        className={`selected-tl__dot selected-tl__dot--${getGreetingStage()}`}
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ ...SPRING_POP, delay: D.dot }}

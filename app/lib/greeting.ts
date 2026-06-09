@@ -10,3 +10,12 @@ export function getGreeting(): string {
   if (h >= 12 && h < 17) return 'Good afternoon'
   return 'Good evening'
 }
+
+export type GreetingStage = 'morning' | 'afternoon' | 'evening'
+
+export function getGreetingStage(): GreetingStage {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'morning'
+  if (h >= 12 && h < 17) return 'afternoon'
+  return 'evening'
+}

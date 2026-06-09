@@ -99,11 +99,31 @@ All three patterns deliberately accept a SSR → client value swap; none of them
 ### Pause-when-any-tile-active rule
 `Showcase` passes `anyActive={activeId !== null}` to every `ShowcasePiece`. Each tile ORs this with its local pause state and the inverted self-active flag — `paused || (anyActive && !active)` — before passing to `PieceMedia`. Result: opening any tile pauses every OTHER video tile across the grid. Ambient motion quiets under the dim so the focused artefact owns the room.
 
-### Scroll cue → Showcase, pinned via `.selected-firstview`
-- `.selected-firstview` is a wrapper around `selected-layout` + `.sc-cue` in `page.tsx`, given `min-height: calc(100svh - var(--workbench-pad-y) * 2)` + `display: flex; flex-direction: column;`. The `.sc-cue` has `margin-top: auto`, which pushes it to the bottom of the wrapper — i.e. the bottom of the visible workbench content area in the initial viewport.
-- The `-2× workbench-pad-y` math matters: the workbench has padding-top + padding-bottom (both `--workbench-pad-y`, 48 px desktop) and we want the wrapper to fit *between* them, not extend past. Without the subtraction, the cue ends ~96 px below the fold.
-- `100svh` (small viewport height) is intentional — on mobile, browser chrome shrinks the viewport, and `100vh` would push the cue under the URL bar.
-- The `ShowcaseSection` follows the cue and uses its own `margin-top` to start the visuals grid below. The cue is the only thing that lives in the firstview wrapper besides the layout block — don't accidentally hoist HeaderBlock or HintRow into the wrapper or the math breaks.
+### Scroll cue → Showcase, anchored to the mat
+- `.selected-firstview` is rendered by `FirstView.tsx` (client; formerly `FirstViewSnap` — name stuck around from an earlier auto-snap pass). It wraps `selected-layout` + the `.sc-cue` button, given `position: relative` + `min-height: calc(100svh - var(--workbench-pad-y) * 2)`. The relative-positioning context is what hosts the absolutely-positioned cue.
+- **The cue is `position: absolute`** with `top: calc(var(--sc-cue-top, 100%) + var(--space-12))`, `left: var(--sc-cue-left, 0)`, `right: var(--sc-cue-right, 0)`. All three vars are written by `FirstView` via `ResizeObserver`. Result: cue sits a few px below the mat, with left + right edges pinned to the **stage's** edges (`.selected-layout` — the canonical canvas rail). ResizeObserver picks up archive open/close (mat grows by ~470 px) and any reflow automatically.
+- **Two anchor elements opt in via `data-*` attributes** — class names are styling, `data-*` is the cross-component wiring contract:
+  - `data-cue-v-anchor` on the mat `<section>` in `SelectedContent.tsx` → vertical (top).
+  - `data-cue-h-anchor` on the stage `<div>` in `page.tsx` → horizontal (left + right).
+  - If either attribute moves to a different element, update `CUE_V_ANCHOR_SELECTOR` / `CUE_H_ANCHOR_SELECTOR` in `FirstView.tsx`. Missing anchors → cue falls back to spanning the full wrapper at `top: 100%`.
+- **Why the horizontal anchor is the stage, not AboutCard.** AboutCard has a Framer Motion spring entrance — measuring it captured stale mid-flight positions, and `ResizeObserver` doesn't fire for transform changes. The stage doesn't animate, so the cue's horizontal rails are deterministic. AboutCard itself sits at the stage's left edge (`left: 0`), so they coincide visually — but the *anchor* is the stage, which is the honest contract.
+- **`SHOWCASE_DOCK_ID` is exported from `FirstView`** and imported by `ShowcaseSection`. Single source of truth — renaming the id in one place can't silently break the click-glide.
+- The cue is a real `<button>`. Click → `scrollGlide` to `#${SHOWCASE_DOCK_ID}` under `--ease-paper`, minus `--workbench-pad-y` so the section header lands a breathing-room below viewport top instead of pasted to the edge. CSS resets default button chrome; the rule + caps label render unchanged.
+- The earlier sticky / fixed / portal attempts all lifted the cue out of the page's stacking context and felt overlaid rather than docked. The absolute-against-the-wrapper + measured-anchor pattern is the smallest thing that gives the user "in the layout, but a few px below the mat" without any of those side effects.
+- There is **no auto/dominance snap** on this route. An earlier pass wired `useDominanceSnap` on `ShowcaseSection`; the auto-pull felt unrequested and messy in this context, so hand-off is click-only. Don't reintroduce it without explicit ask.
+- The `ShowcaseSection` follows `FirstView` and uses its own `margin-top` to start the visuals grid below. The cue is the only thing that lives in the firstview wrapper besides the layout block — don't accidentally hoist HeaderBlock or HintRow into the wrapper.
+
+### `.selected-layout`'s `min-height: 777px` is a first-view canvas floor, not a cue anchor
+The 777 px (and the `--archive-open` 1249 px variant) used to size the wrapper so the cue, when it was in flex flow with `margin-top: auto`, landed at a predictable bottom. The cue is now absolute-positioned against `.selected-firstview` and anchored to the mat via `--sc-cue-top` — the layout's min-height no longer controls cue placement. It still sizes the visible first-view canvas (the area the cards + mat sit on), so don't "clean it up" by removing it: the AboutCard and nav-row are absolutely-positioned inside `.selected-layout`, and without a min-height the layout would collapse to 0. Read the value as **"how much vertical canvas the first view reserves,"** not as part of any cue arithmetic.
+
+### Centered design canvas (`.selected-layout` + `.sc-section` at `max-width: 1224px`)
+`/selected` was authored against a 1224 px design canvas (mat at `left: 536px` + `width: 688px`). For a long time `.selected-layout` was `width: 100%`, so on viewports wider than the authored canvas the whole first-view group sat anchored to the workbench's left padding with the surplus space dumped on the right — visually "stuck to the left." Same for `.sc-section` and the showcase grid.
+
+Fix: both `.selected-layout` (first-view stage) and `.sc-section` (showcase stage) are capped at `max-width: 1224px` and centered with `margin-inline: auto`. The whole column — cards, mat, divider, showcase grid — sits on the same centered rails on wide viewports. Below ~1352 px (where `1224 + 2×workbench-pad-x` stops fitting) the max-width caps to 100% and tablet/mobile media queries (already authored) take over.
+
+**Residual ~16 px asymmetry by design.** AboutCard sits at `left: 24px` inside `.selected-layout`, so the group's *visual* left edge is 24 px inside the stage's left edge while the mat hugs the stage's right edge flush. After centering the stage in the workbench, that 24 px shows up as ~16 px asymmetry between left-of-AboutCard and right-of-mat (16 not 24 because the inner offset partially absorbs into rounding + viewport math). Preserved per CLAUDE.md's "preserve authored values" — fixing it would mean shifting AboutCard's authored `left`, not the stage. The divider follows automatically via the data-anchor measurements.
+
+**`.selected-firstview` is no longer a flex column.** Removing flex was a precondition for the centering fix: `margin-inline: auto` on a flex-column item along the cross-axis collapses the item to its content width, and `.selected-layout`'s children are all absolutely-positioned (intrinsic width = 0). The flex was a leftover from when the cue used `margin-top: auto` to dock; with the cue now absolute and measured-anchor-driven, flex served no purpose.
 
 ### Per-tile kind class hook (`.sc-piece--{piece.kind}`)
 - `ShowcasePiece.tsx` emits a `sc-piece--${piece.kind}` class on every tile. This is the targeting hook for **per-kind visual overrides** in `showcase.css` — corner radius, border on/off, video object-position. Used by:
@@ -173,8 +193,8 @@ All three patterns deliberately accept a SSR → client value swap; none of them
 - The HeaderBlock JSX shed the eyebrow row (`"nihar.works · selected visuals"`) and the `"one bench"` qualifier on the count label. The unused `.sc-header__eyebrow` / `.sc-header__eyebrow-dot` CSS rules are kept for revert-friendliness.
 
 ### Frameless-tile border exclusion list
-- The `.sc-media--plain:not(:has(.sc-cardfan)):not(:has(.sc-poster-stack)):not(:has(.sc-dual)):not(:has(.sc-interface-fill)))` rule maintains a per-tile-kind opt-out list for the default 1 px hairline border.
-- `.sc-interface-fill` was added v0.93+ when the /selected interface tile flipped to `frame: false` (the source image self-frames the YOU panel + Peace Treaty card on the workbench dark ground). The marker class on the inner wrapper in `PieceMedia.tsx` triggers the exclusion. The per-kind `.sc-piece--interface .sc-media { border: none }` override is now redundant but kept as belt-and-suspenders.
+- The `.sc-media--plain:not(:has(.sc-cardfan)):not(:has(.sc-poster-stack)):not(:has(.sc-dual)):not(:has(.sc-rr-scene))` rule maintains a per-tile-kind opt-out list for the default 1 px hairline border.
+- `.sc-rr-scene` is the exclusion for the /selected interface tile — it stays `frame: false` because the live Rug Rumble scene's artefacts (You panel + Peace Treaty card) self-frame on the workbench. The `:has()` selector reads the scene's own root class instead of a marker class on the wrapper — same effect, one fewer class to keep in sync. See "Rug Rumble interface scene" below for the live-scene component.
 
 ### Startooth — vector composition (v0.93+)
 - The startooth tile renders **vector SVG** (not the prior raster PNG). The cards artwork is a single SVG at `public/images/startooth/sc-startooth-cards.svg` (~340 KB, the Figma export). The dark ground (`#311700`) is provided by a per-kind CSS override on `.sc-piece--startooth .sc-media { background: #311700 }` rather than embedded in the SVG — keeps the bg tunable from one CSS line.
@@ -194,8 +214,37 @@ All three patterns deliberately accept a SSR → client value swap; none of them
 - **Video / GIF badge** is a paper pill (mat-bg + 1 px grey-880 + mono caps), not a dark UI chip.
 
 ### Helper file split (Fast Refresh)
-- Per-renderer helpers live in their own files under `media/`: `VideoSlot.tsx`, `CardstackFan.tsx`, `PosterStack.tsx`, `Misc.tsx` (Placeholder + UiMapPlaceholder + DualPlaceholder). `PieceMedia.tsx` is a thin switch that delegates.
+- Per-renderer helpers live in their own files under `media/`: `VideoSlot.tsx`, `CardstackFan.tsx`, `PosterStack.tsx`, `Misc.tsx` (Placeholder + DualPlaceholder), `RrInterface/` (live Rug Rumble scene — see next section). `PieceMedia.tsx` is a thin switch that delegates.
 - This was a fix for a recurring React Fast Refresh trap: helper function declarations defined *after* the default-exported component in the same module produced `ReferenceError: X is not defined` at runtime even though tsc passed. Splitting kills the pattern. If you add a new renderer, **make it its own file under `media/`**.
+
+### Rug Rumble interface scene (`media/RrInterface/`)
+The `interface` piece renders a live, autoplaying Rug Rumble battle scene — a foreign artefact with its own design language. **Don't normalize it to portfolio tokens.** Treat it the way you'd treat embedded third-party artwork: keep its hex values, fonts, easings, and radii sealed inside its folder.
+
+- **Folder layout:** `Scene.tsx` (orchestrator + autoplay loop), `StatsPanel.tsx`, `CardPanel.tsx`, `PeaceTreatyCard.tsx`, `paths.ts` (verbatim SVG path data from the Figma export), `masks.ts` (verbatim data-URI mask SVGs), `fonts.ts` (next/font/google declarations), `rr-interface.css` (the scene wrapper + canvas only — everything else is inline style because every value is bespoke Figma).
+- **Source provenance:** ported from `/reference/rr-interface-3x/rr-health-gauge/` (Figma Make export). The reference bundle ships shadcn/Radix/MUI/Tailwind/canvas-confetti and 60+ unused files — none of that came across. Only what the scene actually renders.
+- **Tailwind → inline style.** The source was Tailwind v4 with bracketed values (`gap-[7.898px]`, `bg-[#13182c]`). Converted directly to inline `style={{ ... }}` because every value is one-off bespoke Figma export. No hover/focus states exist in this scene, so loss of CSS pseudo-classes doesn't matter. Don't refactor these to classes — there's nothing to gain.
+- **Doubled px values.** The source authored the scene at 1× and wrapped it in `transform: scale(2)` at the App level. Both the wrapper and the scale are dropped during port; every px value in the JSX is the doubled value (e.g. `padding: 12.416` not `6.208`). The canvas renders at intrinsic **548 × 560 px**.
+- **transform: scale() on the canvas — documented exception.** The crafted-lite ban on `transform: scale()` for whole authored canvases (`docs/responsive.md`) does not apply here. This is a *foreign* embedded artefact at fixed intrinsic dimensions; the scale is the embedding mechanism, not a responsive shortcut. The canvas is held at 548 × 560 and scaled to the tile width via `scale(calc(100cqw / 548px))` in `rr-interface.css`. Tile `aspect` in `data.ts` (`548 / 560`) matches so the artefact fills without letterbox or crop. The container query needs the wrapper's `container-type: inline-size` — don't remove it.
+- **Three mirrored values that must change together.** Five places encode the canvas width/height. If you change one, change them all:
+  1. `rr-interface.css` `.sc-rr-scene__canvas { width: 548px; height: 560px }`
+  2. `rr-interface.css` `transform: scale(calc(100cqw / 548px))` — the divisor is the canvas width literal
+  3. `data.ts` interface piece `aspect: 548 / 560`
+  4. `CardPanel.tsx` `playing`/`default` `y: -480` — chosen so the card fully clears the canvas top with margin (`(560 + 360) / 2 = 460`, plus a 20 px safety margin)
+  5. The 360 in (4) is the card's own intrinsic height — `PeaceTreatyCard.tsx` border + content sums to 355.43 px. Treat 360 as the locked card height.
+- **`contain: layout paint` is load-bearing.** The wrapper's `contain: layout paint` is what prevents the scaled canvas from painting outside the tile bounds — the scale visually exceeds the wrapper's layout box during card-exit, and without containment the artwork would bleed into siblings on the workbench. Don't drop it.
+- **Class name `.sc-rr-scene` is a cross-file contract.** Three files agree on the name:
+  - `rr-interface.css:4` (the wrapper's own class)
+  - `Scene.tsx` (the JSX className)
+  - `showcase.css` `:not(:has(.sc-rr-scene))` (frameless-tile border exclusion list)
+  Renaming the wrapper breaks the hairline suppression silently — the tile gains a 1 px border with no other symptom.
+- **`motion/react` → `framer-motion`.** Source used the renamed `motion` package; we already have `framer-motion`. Same API surface. If `motion/react` reappears in a re-port, swap it.
+- **Fonts: `next/font/google`, not local.** Gluten (weight 600) and Playpen Sans (weights 400/600/700). Both are integral to the design language and absent from our stack. CLAUDE.md prefers `next/font/local` for the portfolio's five primary fonts; this is a scoped exception for a foreign component. `next/font/google` downloads the woff2 at build time and serves it from the local Next.js asset path — no runtime fetch to `fonts.googleapis.com`, so the external-link ban isn't violated. Variable mode keeps the public surface to two CSS custom properties (`--font-rr-gluten`, `--font-rr-playpen`) applied only to `.sc-rr-scene`. **Don't promote these fonts to globals.css** — they belong to one tile.
+- **Pause contract.** `Scene.tsx` consumes the `paused` prop from `PieceMedia.tsx`. The Showcase grid's "anyActive pauses every other video tile" rule applies here too — when any other tile is focused, the loop tears down at the next checkpoint via `aliveRef`. When `paused` flips back to `false`, the `useEffect`'s dependency triggers a fresh loop start.
+- **`aliveRef` re-arm is load-bearing.** The autoplay effect sets `aliveRef.current = true` at the *top of the effect body*, before calling `run()`. The cleanup sets it `false`. If a future "simplification" removes the re-arm assuming it's redundant, the second un-pause never starts — the previous cleanup left the ref `false` and `run()`'s `while (aliveRef.current)` never enters. Keep the explicit re-arm.
+- **`tickHealth()` is fire-and-forget — don't add `await`.** Inside the playing phase, `tickHealth()` ticks the health number down by 1 every 160 ms × 4 = 640 ms, concurrent with the rest of the loop's card-animation phases (120 ms hold → 520 ms exit → 200 ms gone → 1500 ms cooldown). Adding `await` would serialize the 640 ms of ticks against the card phases and desynchronize the choreography. The dangling promise observes the shared `aliveRef` and bails cleanly when `paused` flips.
+- **`prefers-reduced-motion` is reactive *and* extends to the idle bob.** Scene watches the media query via `addEventListener('change')` so it reacts to OS-level toggle mid-session. When `reducedMotion === true`, the autoplay loop never starts AND `CardPanel` receives the flag, which suppresses the `idle` phase's `y: [0, -10, 0]` keyframes (substitutes static `y: 0`). The flag is reactive, so flipping the OS setting during a session re-arms the loop or pauses to the static pose without a remount.
+- **Ghost border colour.** The `gone`/`cooldown` placeholder ring is `2px solid #CCCCCC` (grey-800 hex inlined, not the portfolio CSS var) with opacity pulse `0.6 → 1 → 0.6`. This is the only foreign-component colour that intentionally borrows the portfolio's neutral scale — readability of the "card slot" on the workbench mat required it. Kept inline so the scene stays sealed.
+- **Toggle removed.** The static-image era had a `clean / UI Map` toggle that overlaid a `UiMapPlaceholder`. With the live scene as the proof, the toggle and the placeholder were dropped. If a future UI-map state returns, it has to be designed against the moving scene, not the still frame.
 
 ---
 
@@ -338,6 +387,22 @@ Single dots:     left: 148
 Archive toggle:  left: 133, top: 645
 Archive panel:   left: 148, top: 685
 ```
+
+---
+
+## Now dot — time-of-day shapes
+
+The Now dot's painted shape mirrors the greeting stage from `app/lib/greeting.ts` (`getGreetingStage()`). The 16×16 box and `left: 143, top: 64` position are **constant** across all three stages so the timeline alignment never moves — what changes is what's painted inside the box.
+
+- **Morning** (`selected-tl__dot--morning`) — `clip-path: inset(0 0 50% 0)` clips the bottom half of the disk, leaving a top-half dome (sun above horizon). The dome's flat bottom lands at `y = 72`, aligning to the "Now" label's vertical center as a horizon line.
+- **Afternoon** (`selected-tl__dot--afternoon`) — no modifier rule by design; the base `.selected-tl__dot` IS the afternoon shape (full 16×16 yellow disk). Don't add an empty `.selected-tl__dot--afternoon {}` rule "for symmetry" — the modifier class is inert by intent.
+- **Evening** (`selected-tl__dot--evening`) — a `::before` pseudo-element offset `-2px / -2px` at the top-right, sized `14×14` with `border-radius: 50%`, painted in `var(--mat-bg)`, carves a bite out of the disk and leaves a crescent opening to the bottom-left.
+
+**Load-bearing details:**
+- The crescent carve color is `var(--mat-bg)`, **not transparent**. If the dot is ever placed over a surface that isn't `--mat-bg`, the crescent will paint the wrong color and the bite will be visible as a rectangle of the wrong shade. The dot lives inside `.selected-tl` which sits over the workbench mat, so this currently holds.
+- The crescent geometry — `-2px / -2px` offset and `14×14` carve diameter — is tuned for the crescent's visual thinness. Don't tweak without checking the silhouette.
+- Stage selection inlines `getGreetingStage()` in JSX render (matching the existing pattern of `getGreeting()` next to it). Both share the same minor SSR/CSR hour mismatch risk if server timezone differs from client — accepted as inherited behavior, not a new concern.
+- Mobile inheritance: the mobile reposition of `.selected-tl__dot` (`selected.css` mobile block) doesn't restate the modifier rules; the morning `clip-path` and evening `::before` carry through because both are geometry-relative to the dot's box, not to absolute coordinates.
 
 ---
 

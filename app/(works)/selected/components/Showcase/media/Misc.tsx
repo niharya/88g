@@ -16,19 +16,6 @@ export function Placeholder({ label, sub }: { label: string; sub: string }) {
   )
 }
 
-export function UiMapPlaceholder() {
-  // Dashed accent regions overlaid on the rr interface — placeholder until
-  // the real UI-map artwork is dropped in from Figma.
-  return (
-    <div className="sc-ui-map" aria-hidden="true">
-      <span className="sc-ui-map__zone" style={{ left: '4%', top: '6%', width: '92%', height: '12%' }} />
-      <span className="sc-ui-map__zone" style={{ left: '4%', top: '22%', width: '62%', height: '54%' }} />
-      <span className="sc-ui-map__zone" style={{ left: '68%', top: '22%', width: '28%', height: '54%' }} />
-      <span className="sc-ui-map__zone" style={{ left: '4%', top: '80%', width: '92%', height: '14%' }} />
-    </div>
-  )
-}
-
 // Connektion specimens — JobChipStack + LifecycleGauge sit directly on
 // the workbench, side-by-side. No pane wrappers; each artefact self-
 // frames (the chip on its light card, the gauge inside its dark frame).

@@ -11,8 +11,13 @@ export default function AboutCard() {
   return (
     <motion.div
       className="about-card-p"
-      initial={{ opacity: 0, x: -20, rotate: -1.5 }}
-      animate={{ opacity: 1, x: 0, rotate: 0 }}
+      // Entrance: opacity + a small rotate-to-rest spring. Was `x: -20`
+      // (slide-in from the left), which made sense when the card had
+      // 24 px of inset inside the stage to slide into. With AboutCard
+      // now flush at the stage's left rail (`left: 0`), a leftward
+      // slide briefly puts the card outside the canvas — dropped.
+      initial={{ opacity: 0, rotate: -1.5 }}
+      animate={{ opacity: 1, rotate: 0 }}
       transition={SPRING}
     >
       <div className="about-card-p__text">
