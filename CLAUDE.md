@@ -12,10 +12,9 @@ Read it at the start of every session. Do not drift from it without explicit ins
 * **`docs/responsive.md`** + **`docs/responsive-playbook.md`** — full responsive rules and shape-by-shape decision tree
 * **`docs/vocabulary.md`** — design-language ↔ code-identifier mapping
 * **`docs/performance.md`** — full performance-hygiene reference (fonts, images, icons, motion tokens)
-* **`docs/token-rhythm.md`** / **`docs/padding-rhythm.md`** — duration-tier and spacing-rhythm guides; the hand-authored-legitimacy lists live here
+* **`docs/rhythm.md`** — token + spacing rhythm guide; the hand-authored-legitimacy lists live here
 * **`docs/reader-critique-prompt.md`** — human-run three-reader copy critique
 * **`docs/scriptorium/`** — verbatim copy reference, one file per route. See [`docs/scriptorium/README.md`](./docs/scriptorium/README.md). Don't edit copy here; edit the source. `/prepush` flags drift. Head-tag copy (titles, descriptions, OG, Twitter, JSON-LD, OG image alts) lives in `meta.md` only — per-route mds catalog reading-copy that renders inside the page
-* **`docs/claude/memory.md`** — durable project identity memory
 * **`COLOPHON.md`** — origins, credits, historical sources
 
 Older routes (`/biconomy`, `/rr`, `/selected`) predate `DESIGN.md`; their intent is captured in the case-study copy itself.
