@@ -1,0 +1,41 @@
+# /biconomy — protective digest
+
+Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-loads whenever files under `app/(works)/biconomy/` are touched.
+
+**Archive:** [`./ANOMALIES.md`](./ANOMALIES.md) — full rationale, what-breaks, and rejected approaches. This digest is the seatbelt; the archive is the manual. Read the archive section before structurally changing anything an item below names.
+
+**Maintenance:** every new ANOMALIES entry gets a one-line item here in the same commit; every retired entry removes its item. The `/release` census checks this pairing.
+
+## Don't-touch digest
+
+- Flows title/toggle swap: keep `AnimatePresence mode="popLayout"` (never "wait") keyed on `currentSlide` (never showAfter/animationKey), keep the `.flows__title-group` flex wrapper, and don't harmonize the enter/exit timings to the image materialize — the stagger is intentional.
+- Two documented off-token easings stay: `.flows__ba-switch-thumb` `cubic-bezier(0,1,0.31,1.05)` and `.ba__note-pointer:hover` `cubic-bezier(0.3,1.3,0.5,1)` — never normalize to `--ease-paper`/`--ease-snap`.
+- Demos figma video pair: the ±1° tilt assumes exactly two nth-children; `.demos__video-frame` and `.demos__video-player` must keep matched 24px radii; the inner `<video>` keeps `tabIndex={-1}` because the whole item is one `<button>`.
+- Both shadow systems must coexist on surfaces — the `.section-reveal` CSS entrance shadow and Sheet.tsx's scroll-linked inline boxShadow; removing either breaks entrance or reading state.
+- Dominance-snap tuning is calibrated (idleMs 2000 / topProximityPx 80 / glide / dockOffsetPx 2); only the first chapter gets `snapIdleMs=100` — never extend it to interior chapters, never drop the proximity gate.
+- API slide images use `<Img fill>` + `object-fit: contain` — switching to intrinsic exposes the frame's black bezel; `.api__trailing-img` is intentionally intrinsic (different case).
+- Two shadows are off the elevation ladder by design: `.api__card-frame`'s upward backlight and the api-card hairline; any new biconomy shadow uses the ladder first.
+- The `?hud=1` authoring HUD is a retained artifact: don't remove it, keep its native-pointer drag path, keep the 403 production guard on the hud-capture API route, keep the literal `__hudAllCaptures` localStorage key.
+- Flows standby→active: keep the spring's `bounce: 0.35`, keep navTranslateX and leftTranslateX on the same single spring, and `isActive` must flip at activeT's midpoint — flipping at completion leaves both layouts pointer-interactive.
+- Reciprocal hover (Flows↔BeforeAfter): keep BOTH `:hover` and `.is-hovered` as chip activators, keep the lift rotation binary ±2° (not continuous), keep the `var(--lift-rotate, 0deg)` fallback.
+- The closing `.sa__trailing-sticker` is a three-frame rolodex (recap mechanism), not a static image — don't strip it back; BiconomyChip stays out of `ROLODEX_FRAMES`.
+- Web3-abstractor tooltip: keep sticker z-index 2 / tooltip z-index 1 inside the positioned wrap, and the -120px start translate — both make it emerge from under the sticker.
+- NavPill stays route-local despite two consumers — promotion counts routes, not call sites.
+- Photostack: rotations seed once on mount via useEffect (no re-roll on cycle; zero-array initial avoids hydration mismatch), NO transitions on the z-swap, no fixed frame, mobile size caps target `.img__inner` not the wrapper, and click-forward + arrow-bidirectional semantics both stay.
+- BiconomyChip dice: no debounce on re-click, keep `overflow: visible`, marks use `currentColor` fill, keep the Multiverse motion.div blur wrapper around the chip row.
+- The tweet-card hover chain runs through `:has(.tweet-card:hover)` on `.api__tweet-col` — renaming `.tweet-card` silently breaks the label animation.
+- API slider lock-steps: `SLOT_OFFSETS` deepest value === slider-inner 32px padding; mobile caption margin cancels that same padding; caption min-height reserves 4 lines; never use Framer keyframe arrays on the cards (teleport-then-settle bug).
+- API palette: both grey sheets stay desaturated with `--shadow-flat`; `outline-offset: -8px` makes the tweet label's padding-left and hint's margin-right load-bearing — change all three in lock-step or not at all.
+- Flows mobile gates: keep `transform: none !important` on `.flows__header-left` and `.flows__nav`, and `--active-t: 1 !important` on `.flows` — these neutralize Framer inline styles; removing any half drifts the layout.
+- Mobile notes accordions (BIPs + Flows): never re-add a CSS max-height transition without a measured-scrollHeight JS hook, keep `flex: 0 0 auto` on the content, keep the arrow rotations as-is (the current CSS is correct; old comments lied).
+- BIPs desktop rail: don't restore `height: 100%` on the rail or `max-height: 600px` on the content (produces an empty stripe); the rail centers against the iframe.
+- `display: contents` is load-bearing for mobile reorder on `.bips__notion-wrap`, `.flows__main`, and `.flows__header` — adding any box property to these wrappers in the mobile scope breaks the interleaving.
+- Demos tabs: DOM stays radio/label triples + trailing disabled span (mobile reorder is CSS `order` only — reordering JSX breaks desktop); keep `margin-top: -1px` on row-2 labels; never restore the desktop media-row padding or the tilts inside the mobile scroll strip.
+- Demos web tab: the Figma iframe mounts only when `isMobile === false` (explicit — the `null` first paint must never mount it) and keeps `loading="lazy"`. Intro deliberately initialises `false`, Demos `null` — do not unify.
+- Intro: the surface's 48px inner padding is load-bearing (24px was reverted); open-travel `animate.x` is -50% desktop / -60% mobile with SSR default false; the mobile expand pill stays inside `.intro__surface` with IconHighlighter (not ExpandToggle).
+- Flows mobile snap-on-open: ref stays on `.flows__header-left` (not `.flows`), 72px top offset, fires on open only, behind the mobile matchMedia gate.
+- `#1DA1F2` stays hardcoded — a brand citation, not a token candidate, until a second consumer appears.
+- Any re-exported UI flow scan must be flattened onto `#181818` (the dashboard's own surface tone) as lossless webp before commit; the multiverse and sa/notes webps keep their authored transparency.
+- Multiverse mobile: the useScroll-driven dissolve/blur motion is untouched by the static-value overrides, and the before/after captions stay centered (left-flush was reverted).
+- No `transform: scale()` on any authored biconomy canvas and no `!important` outside the two named gates — BIPs is className-driven and needs neither.
+- Mat overflow on ux-audit/demos is fixed by layout adjustment, never by removing the `.mat` `overflow: clip` containment rule.

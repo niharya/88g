@@ -8,6 +8,43 @@ Living document. Entries are added as new reusable pieces are built; a sweep wil
 
 File-path links resolve from repo root on GitHub. This file isn't rendered by the site.
 
+**How to read this file: grep for the entry name and read only that entry.** Never read the whole catalog — the index below is the cheap always-available map; the deep notes load per entry.
+
+---
+
+## Index
+
+- **Caption** (`.t-caption`) — globals.css; one-class caption treatment; consumers: four /biconomy caption sites.
+- **NavMarker** — `app/components/NavMarker/`; the shell behind every Chapter/Project/Exit/landing marker; consuming layouts MUST import navmarker.css; consumers: nav cluster, landing, /selected, /shape-of-product, /privacy, NotFound/Error.
+- **Img** — `app/components/Img/`; the ONE image primitive (LQIP + materialize + next/image); run `npm run lqip` after adding images.
+- **Fonts** — `app/layout.tsx` + `app/fonts/`; five next/font/local faces as `--font-*` tokens; NEVER redeclare `--font-*` in globals.css.
+- **Rail** — `app/(works)/rr/components/Rail.tsx`; stateless tuck-push-reveal drawer shell; rr-local; consumers: NoteRail, RulesRail.
+- **Sheet** — `app/components/Sheet.tsx`; paper chapter container (three-phase reveal, scroll-linked card glide, opt-in snap); every works route.
+- **useReveal** — `app/components/useReveal.ts`; one-shot `.revealed` intersection hook paired with `.section-reveal` CSS.
+- **Nav cluster** — `app/components/nav/`; docked-nav system; import from the barrel only; READ its CLAUDE.md/ANOMALIES.md before touching; every works route + /marks + /selected.
+- **SlideInOnNav** — `app/components/SlideInOnNav.tsx`; sessionStorage-flag directional entrance between / and /selected.
+- **PaperFilter** — `app/components/PaperFilter.tsx`; global SVG defs; render exactly once per document.
+- **Icons** — `app/components/icons/`; hand-rolled SVGs with animatable internal paths; currentColor.
+- **ExpandToggle** — `app/components/ExpandToggle/`; expand/collapse glyph; consumers: landing pill-btn, /rr Intro.
+- **Page boot mark (startooth)** — `app/layout.tsx` + globals.css; font-gate hold mark; per-route recolor via `:root:has()` blocks.
+- **Small utils** — `app/lib/greeting.ts`, `app/lib/titleCase.ts`.
+- **useExpand** — `app/lib/useExpand.ts`; non-modal overlay hook (`is-overlay-open` body class pauses dominance-snap); consumers: /rr Intro + Outcome.
+- **scrollGlide** — `app/lib/scrollGlide.ts`; singleton rAF scroll tween under `--ease-paper`; consumers: /marks + useDominanceSnap.
+- **useDominanceSnap** — `app/components/hooks/useDominanceSnap.ts`; scroll-idle section snap; consumers: /marks sections, Sheet (biconomy + rr).
+- **Tab-switch motion tokens** — `app/lib/motion.ts`; `TAB_*` constants + `TAB_EASE` (mirrors `--ease-snap`); consumers: /rr Cards, /biconomy Demos.
+- **Cruise spring** — `app/lib/motion.ts` `CRUISE_SPRING`; deliberate ~12% overshoot (documented deviation); consumers: /rr Outcome ticker, /marks autoScroll.
+- **Train Marquee** — `app/(works)/rr/components/Outcome.tsx`; hover-brake/spring-start marquee; rr-local.
+- **MarkerTicket** — `app/components/MarkerTicket/`; postage-stamp infoCard ornament; consumers: /biconomy + /rr MarkerInfoCard.
+- **Monostamp** — `app/components/Monostamp.tsx`; monospace stamp chip; NO transitions on it, ever; consumers: /biconomy BeforeAfter, landing chips + form pills, NavMarker wipHint.
+- **CaptionTag** — `app/components/CaptionTag/`; museum-label caption docked to viewport bottom; consumer: landing startooth caption.
+- **Sticker** — `app/components/Sticker.tsx`; printed-and-pressed family shell; consumers: /biconomy ×4, /selected ProjectCard, LabelSticker.
+- **LabelSticker** — `app/components/LabelSticker/`; text sticker composing Sticker; consumer: /shape-of-product ActorStickers.
+- **NiharHomeLink** — `app/components/NiharHomeLink/`; fixed "Nihar" back-to-landing marker; consumers: /selected, /shape-of-product.
+- **CrossShellVeil** — `app/components/CrossShellVeil/`; veil bridge for cross-layout navigations; BOTH halves required; never combine with TransitionSlot.
+- **Footer** — `app/components/Footer/`; site colophon, two variants; (works) layout + landing.
+- **RR GameBoard** — `app/(works)/rr/components/game/`; playable game module; NOT promoted (needs `.route-rr` token cascade); consumers: /rr Mechanics, 404 page.
+- **Promotion candidates** — pre-staged "maybe" entries (Paginator, gradient recipe, HeroCard, blue note card) so second-consumer promotion is fast.
+
 ---
 
 ## Entry format
@@ -167,7 +204,7 @@ The paper chapter container used by every works route. Renders a `section.sheet.
 - **Section ID comes from `chapter.id`.** The sheet's own `id` attribute is used as a scroll target by `ChapterMarker` and by hash navigation. Don't rename without checking ChapterMarker consumers.
 - **Random micro-rotation is set on mount, not re-rolled.** A `rotationRef` holds `±1.5°` for the scroll-linked card glide, and each non-nav-sled child gets its own `--place-rotate` CSS custom property (also `±1.5°`) via `querySelectorAll(':scope > :not(.nav-sled)')`. These are stable per mount — navigating away and back re-rolls them, which is intended (each visit settles differently).
 - **Scroll-linked card placement is inline-styled, not CSS-classed.** The first `.surface` in the sheet receives per-frame `transform` and `boxShadow` writes from `useMotionValueEvent` on `scrollYProgress`. Endpoint shadow matches `--shadow-flat` exactly so the card reads flat at rest. Do not try to move this to CSS — values are lerped.
-- **Three-phase reveal is choreography, not independent transitions.** Phase 1 (mat glide 0.8s), Phase 2 (content settle 0.7s + `--place-rotate`), Phase 3 (nav-sled dock 0.5s) are tuned as a set. Changing one phase's duration without the others breaks the cascade. The odd-valued durations (0.7, 0.9) are deliberate and sit outside the `--dur-*` tier vocabulary.
+- **Three-phase reveal is choreography, not independent transitions.** Mats are loose sheets in a stack; scrolling browses through them. **Phase 1 — mat glides in:** 32px upward travel, opacity + transform both on `--dur-glide` — a loose mat sliding to rest against the previous one. **Phase 2 — content placed:** children settle with a random micro-rotation (`±1.5°` via `--place-rotate`) and a shadow that shrinks from lifted (diffuse, 8px offset) to resting (tight, 1px); `--dur-glide`, staggered +0.15s after the mat. **Phase 3 — nav-sled docks:** `--dur-settle`, staggered +0.25s. All three on `--ease-paper`. The phases are tuned as a set — changing one duration without the others breaks the cascade. Routes can customise travel/timing per sheet via the `--reveal-y` / `--reveal-delay` fallback custom properties without patching globals.
 - **`useReveal` needs a ref on the element that should receive `.revealed`.** Sheet passes its own `sectionRef`. If children need their own one-shot reveals, they import `useReveal` separately.
 - **`snap?: boolean` opts the sheet into dominance-snap.** Defaults `false`. When true, Sheet calls `useDominanceSnap(sectionRef, { topProximityPx: 80, idleMs: snapIdleMs, glideDurationMs: 800, dockOffsetPx: 2 })` so the chapter glide-docks on scroll-idle when its top edge is within 80px of the viewport top. /biconomy passes `snap` for all chapters; /rr passes it for everything except Mechanics (the pinned-scroll scene must run untouched). See each route's ANOMALIES → "Chapter dominance-snap" for the calibration rationale.
 - **`snapIdleMs?: number` overrides the scroll-idle window.** Defaults `2000` so brief reading pauses do not trigger a snap. Both /biconomy and /rr pass `100` for the FIRST chapter only (`i === 0` in page.tsx) so the route lands docked from frame zero rather than two seconds in. Interior chapters keep the 2s default — a short idle there would yank readers during reading pauses. See each route's ANOMALIES → "First-chapter idleMs override".
