@@ -1,6 +1,6 @@
 # Scriptorium — marks
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/marks/page.tsx`, `app/marks/components/*.tsx`, `app/marks/data/marks.ts`
 

@@ -1,6 +1,6 @@
 # Scriptorium — shared
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/layout.tsx`, `app/components/Footer/Footer.tsx`, `app/components/NiharHomeLink/NiharHomeLink.tsx`, `app/components/nav/ExitMarker.tsx`, `app/(works)/ShellNav.tsx`
 

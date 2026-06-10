@@ -32,7 +32,7 @@ Every copy fragment has three things:
 2. **A file:line link** for jumping to source (`page.tsx:42` → `../../app/.../page.tsx#L42`).
 3. **A stable anchor** on the section heading (`{#hero-headline}`) that survives line-number drift.
 
-Anchors are the long-lived references. Line numbers will go stale the moment you edit — that's a known cost. The `/prepush` check (see below) catches drift and prompts a refresh.
+Anchors are the long-lived references. Line numbers will go stale the moment you edit — that's a known cost. The `/release` check (see below) catches drift and prompts a refresh.
 
 ## Anchor convention
 
@@ -48,7 +48,7 @@ When linking to a fragment from elsewhere (anomalies, design docs, plans), prefe
 
 1. **Don't paraphrase, normalize, or "clean up" copy** in these files. The point is that they match the source verbatim. If the source uses `'` rather than `’`, the entry uses `'`.
 2. **Don't edit copy here to change the site.** Edit the source file. The Scriptorium is downstream.
-3. **Update after copy changes.** When a copy edit lands, refresh the affected route's MD. `/prepush` will flag drift candidates.
+3. **Update after copy changes.** When a copy edit lands, refresh the affected route's MD. `/release` (Phase A scriptorium-drift check) will flag drift candidates.
 4. **No subfolders.** Keep this folder flat. New routes get a new file, not a new directory.
 5. **Templated copy** (e.g. `{mark.name}, {mark.year}`) is shown as a template — placeholders preserved, not interpolated.
 6. **Randomized or generated copy** (arrays the site picks from per-load) is enumerated; the randomization is noted in the file's "Notes" section.
@@ -71,4 +71,4 @@ When linking to a fragment from elsewhere (anomalies, design docs, plans), prefe
 
 - [`LIBRARY.md`](../../LIBRARY.md) — catalog of shared *primitives* (this is the equivalent for *words*)
 - [`docs/vocabulary.md`](../vocabulary.md) — design-language ↔ code-identifier mapping
-- `.claude/skills/prepush/SKILL.md` — pre-push hygiene check that flags copy drift
+- `.claude/skills/release/SKILL.md` — the push ritual; its Phase A scriptorium-drift check flags copy drift (`/prepush` is a deprecated alias)

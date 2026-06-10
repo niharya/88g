@@ -21,6 +21,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# private — job-search material, never publish to this PUBLIC repo
+_resume-skill/
+
 # claude — ignore everything except tracked agents/skills/policy
 .claude/*
 !.claude/agents/

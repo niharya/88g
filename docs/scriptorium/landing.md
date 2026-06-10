@@ -1,6 +1,6 @@
 # Scriptorium — landing
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/page.tsx`, `app/lib/greeting.ts`
 

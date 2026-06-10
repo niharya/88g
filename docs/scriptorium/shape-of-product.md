@@ -1,6 +1,6 @@
 # Scriptorium — shape-of-product
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/shape-of-product/page.tsx`, `app/shape-of-product/components/*.tsx`
 

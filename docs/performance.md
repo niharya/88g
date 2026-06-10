@@ -131,7 +131,7 @@ The five `--dur-*` tokens (`instant` / `fast` / `slide` / `settle` / `glide`) li
 
 ## How regressions get caught
 
-`/prepush` (the pre-push hygiene skill) scans the branch diff before any push and flags:
+`/release` (the push ritual; `/prepush` is a deprecated alias for its check-only mode) scans the branch diff before any push and flags:
 
 - New `.woff2` added without `next/font/local` wiring
 - New raw `.png`/`.jpg` over 400 KB committed without `.webp` conversion

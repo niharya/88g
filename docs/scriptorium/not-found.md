@@ -1,6 +1,6 @@
 # Scriptorium — not-found (404)
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/not-found.tsx`, `app/components/NotFoundContent.tsx`
 
