@@ -19,14 +19,21 @@ Only when it matters:
 
 ## Where to write
 
+Enumerate destinations with Glob `**/ANOMALIES.md` (exclude `.claude/worktrees/` and `reference/`) — never trust a hardcoded list. Current map:
+
 | Scope | File |
 |-------|------|
 | /rr only | `app/(works)/rr/ANOMALIES.md` |
 | /biconomy only | `app/(works)/biconomy/ANOMALIES.md` |
 | /selected only | `app/(works)/selected/ANOMALIES.md` |
+| /marks only | `app/marks/ANOMALIES.md` |
+| /shape-of-product only | `app/shape-of-product/ANOMALIES.md` |
+| Landing (`app/page.tsx` + `app/landing.css`) | `app/_landing/ANOMALIES.md` |
 | Nav / shared components | `app/components/nav/ANOMALIES.md` |
 | Multiple routes | Add to each affected route's ANOMALIES.md |
 | Project-wide | Memory file via memory system |
+
+Anchor entries by selector / symbol / comment-header — never by line number (every line-number cite in the repo has drifted). Don't restate numeric values the code owns; name the token or constant and where it lives.
 
 ## How to write notes
 

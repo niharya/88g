@@ -22,7 +22,8 @@ const SPRING_PILL = { type: 'spring' as const, duration: 0.4, bounce: 0.15 }
 // Phase 1: Pre-bar (Now dot → top dots → blue bar start)
 // Phase 2: During blue bar growth (train formula)
 //   delay = barBlue.start + ((el.top - bar.top) / bar.height) × spring.duration
-//   bar: top 184, height 389, start 0.50, spring 0.5s
+//   bar geometry lives in selected.css (.selected-tl__bar-blue); the D values
+//   below are the absolute results of the formula, not derived live
 // Phase 3: Post-bar (sequential, ~0.04s gaps)
 //
 const D = {

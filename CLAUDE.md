@@ -11,6 +11,9 @@ Read it at the start of every session. Do not drift from it without explicit ins
 * **Per-route `ANOMALIES.md`** — load-bearing wiring, don't-touch items. **Read before editing the route**
 * **`docs/responsive.md`** + **`docs/responsive-playbook.md`** — full responsive rules and shape-by-shape decision tree
 * **`docs/vocabulary.md`** — design-language ↔ code-identifier mapping
+* **`docs/performance.md`** — full performance-hygiene reference (fonts, images, icons, motion tokens)
+* **`docs/token-rhythm.md`** / **`docs/padding-rhythm.md`** — duration-tier and spacing-rhythm guides; the hand-authored-legitimacy lists live here
+* **`docs/reader-critique-prompt.md`** — human-run three-reader copy critique
 * **`docs/scriptorium/`** — verbatim copy reference, one file per route. See [`docs/scriptorium/README.md`](./docs/scriptorium/README.md). Don't edit copy here; edit the source. `/prepush` flags drift. Head-tag copy (titles, descriptions, OG, Twitter, JSON-LD, OG image alts) lives in `meta.md` only — per-route mds catalog reading-copy that renders inside the page
 * **`docs/claude/memory.md`** — durable project identity memory
 * **`COLOPHON.md`** — origins, credits, historical sources
@@ -98,20 +101,20 @@ All motion in the portfolio follows a paper-physical language. Things glide, set
 ### Rules
 
 1. **One easing curve.** `--ease-paper: cubic-bezier(0.5, 0, 0.2, 1)` — confident start, long gentle deceleration. Used for section reveals, page transitions, and all CSS transitions. Defined in `globals.css`, mirrored as `EASE` in `TransitionSlot.tsx`.
-2. **Long durations.** 0.5–0.9s range. Nothing should feel fast or urgent.
+2. **Long durations.** Reveals and transitions sit in the upper `--dur-settle` / `--dur-glide` tiers. Nothing should feel fast or urgent.
 3. **No bounce, no overshoot.** Springs may be used for dampened settle only (bounce: 0). Never elastic. (Documented deviations exist — the train ticker overshoot, the Flows nav settle — and live in their route ANOMALIES.md.)
 4. **Native scroll.** No smooth-scroll libraries, no scroll hijacking. The browser's physics stay in control.
 5. **Scroll-mapped transforms where useful.** `useScroll` + `useTransform` + `useSpring` for elements that respond to scroll position — not just trigger-on-intersection.
 6. **Tab/micro-interaction tier.** Tab switches and quick UI reactions use `--ease-snap` (`cubic-bezier(0.45, 0, 0.15, 1)`) at 0.1–0.2s — a separate, snappier tier that exists because a tapped tab must resolve inside attention. This is the only documented deviation from rules 1 and 2. Do not unify with `--ease-paper`. The CSS token `--ease-snap` is mirrored in JS as `TAB_EASE` in `app/lib/motion.ts` — keep them in sync. See `LIBRARY.md` → "Tab-switch motion tokens".
-7. **Use tokens, not raw values.** Durations come from `--dur-instant` (0.1s), `--dur-fast` (0.2s), `--dur-slide` (0.3s), `--dur-settle` (0.5s), `--dur-glide` (0.8s). Easings come from `--ease-paper` or `--ease-snap`. New values imply a new tier — flag before authoring.
+7. **Use tokens, not raw values.** Durations come from the five `--dur-*` tokens (`instant` / `fast` / `slide` / `settle` / `glide`). Their values live in `globals.css` — the single source of truth; do not restate the numbers in docs. Easings come from `--ease-paper` or `--ease-snap`. New values imply a new tier — flag before authoring.
 
 ### Section reveal choreography
 
 Mats are loose sheets in a stack. Scrolling browses through them.
 
-* **Phase 1 — mat glides in.** Translates 32px upward, opacity 0.7s / transform 0.8s. Feels like a mat sliding to rest against the previous one.
-* **Phase 2 — content placed.** Objects on the mat settle with a random micro-rotation (±1.5°, truly random per visit) and a shadow that shrinks as they land. Shadow goes from lifted (diffuse, 8px offset) to resting (tight, 1px offset). 0.7s, staggered 0.15s after mat.
-* **Phase 3 — nav-sled docks.** Chapter marker settles last. 0.5s, staggered 0.25s after mat.
+* **Phase 1 — mat glides in.** Translates 32px upward; opacity and transform both ride `--dur-glide`. Feels like a mat sliding to rest against the previous one.
+* **Phase 2 — content placed.** Objects on the mat settle with a random micro-rotation (±1.5°, truly random per visit) and a shadow that shrinks as they land. Shadow goes from lifted (diffuse, 8px offset) to resting (tight, 1px offset). `--dur-glide`, staggered 0.15s after mat.
+* **Phase 3 — nav-sled docks.** Chapter marker settles last. `--dur-settle`, staggered 0.25s after mat.
 
 All three phases use `--ease-paper`.
 
@@ -147,7 +150,7 @@ Core principles:
 
 Full reference: [`docs/performance.md`](./docs/performance.md). Read it before adding fonts, images, or icons.
 
-* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'swap'` with an explicit `fallback` chain. Do **not** redeclare `--font-*` in `globals.css :root` — next/font sets the variables on `<html>` to hashed family names. A **bounded font-gate** holds top-level surfaces (`.landing`, `.workbench`, `.route-marks`, `.route-sop`) at `opacity: 0` until `document.fonts.ready` resolves *or* an **800 ms cap** fires (whichever first); the startooth `.page-boot` mark is visible during the hold. The uncapped 3-second font-gate is **banned**. `display: 'block'` is **banned**. External `<link>` to `fonts.googleapis.com` for the five primary fonts is **banned**.
+* **Fonts:** `next/font/local` only, `.woff2` in `app/fonts/`, `display: 'swap'` with an explicit `fallback` chain. Do **not** redeclare `--font-*` in `globals.css :root` — next/font sets the variables on `<html>` to hashed family names. A **bounded font-gate** holds top-level surfaces (`.landing`, `.workbench`, `.route-marks`, `.route-sop`) at `opacity: 0` until `document.fonts.ready` resolves *or* a **1000 ms JS cap** fires (whichever first; a 1500 ms pure-CSS failsafe in `globals.css` backs both); the startooth `.page-boot` mark is visible during the hold. The uncapped 3-second font-gate is **banned**. `display: 'block'` is **banned**. External `<link>` to `fonts.googleapis.com` for the five primary fonts is **banned**.
 * **Icons:** Material Symbols is subsetted to a fixed icon list (~1.1 MB, down from 5.1 MB). Adding a new icon requires re-subsetting per the doc. Don't replace the file with the full font.
 * **Images:** All content imagery uses `<Img>`. Every raster in `public/images/` is `.webp`. Raw images over ~400 KB must be optimized via `npm run optimize-images` before commit.
 * **Motion tokens:** `--dur-*` values are post-v0.55 tuned for snap. Don't drift back without intent — inline a duration in component CSS for one-off cases instead.

@@ -19,15 +19,16 @@ workbench chrome.
 Consequences:
 
 - `app/marks/layout.tsx` is standalone — no 8px viewport frame, no workbench
-  padding, no `TransitionSlot`, no `ProjectMarker`. Only the `ExitMarker`
-  is reused.
+  padding, no `TransitionSlot`, no `ProjectMarker`. The EXIT affordance is
+  the route-local `MarksExitMarker`, **not** the shared `ExitMarker` (see
+  the CrossShellVeil section below).
 - `app/(works)/ShellNav.tsx` and `app/(works)/TransitionSlot.tsx` have **no**
   `marks` wiring and should stay that way. If a future pass needs `/marks` to
   participate in the works transition choreography, that's a re-architecture
   (moving the route back under `(works)/`), not a one-line addition.
-- `nav.css` is imported directly from the marks layout because it used to come
-  from the works shared layout. Keep that import if EXIT marker / `.nav-icon`
-  styles are touched.
+- `nav.css` **and** `navmarker.css` are imported directly from the marks
+  layout because they used to come from the works shared layout. Keep both
+  imports if EXIT marker / `.nav-icon` / nav-marker styles are touched.
 
 ---
 
@@ -94,8 +95,9 @@ Essay reading order is encoded by array order: divider (Furrmark/Aleyr) →
 wordmarks (Codezeros, Slangbusters, Beringer) → glyphs (Ecochain, Kilti).
 Reordering the array re-lays the Essay preview row.
 
-Source SVGs ship in `app/marks/_source/` (underscore prefix — Next.js App
-Router ignores it at routing time). Temporary — removed once the route ships.
+Source SVGs live in `app/marks/_source/` (underscore prefix — Next.js App
+Router ignores it at routing time). Kept as the in-repo source archive for
+the six marks.
 
 ---
 
@@ -125,7 +127,8 @@ Router ignores it at routing time). Temporary — removed once the route ships.
 
 ## scrollGlide — singleton rAF tween
 
-`lib/scrollGlide.ts` is the route's paper-physics programmatic scroller, used
+`app/lib/scrollGlide.ts` (shared — see `LIBRARY.md`) is the paper-physics
+programmatic scroller, used here
 by `MarksTitle.handleActivate` (grid-back), `Essay` preview-click jumps, and
 `MarkSection.advanceToNextMark` slide-wrap. Do not replace calls with
 `window.scrollTo({ behavior: 'smooth' })` — the browser's smooth-scroll
@@ -142,8 +145,8 @@ the singleton produces a tug-of-war.
 ## Title reel-roll runs below motion vocabulary
 
 `.marks-title` `:hover` color (0.3s), `.marks-title__cell` width (0.4s), and
-`.marks-title__slot` transform (0.4s) sit below the 0.5–0.9s "paper" range
-in CLAUDE.md. The reel-roll is intentionally mechanical — it reads as a
+`.marks-title__slot` transform (0.4s) sit below the paper tier
+(`--dur-settle` / `--dur-glide`) mandated by CLAUDE.md. The reel-roll is intentionally mechanical — it reads as a
 shutter/reel on a film projector, not a settle. Longer durations turn it
 into a slow morph that fights the scroll-driven pace. Keep as-is.
 
@@ -253,9 +256,10 @@ two-level split is what fixes the snap.
 
 ## Dominance-based landing-snap (not CSS scroll-snap)
 
-`components/hooks/useDominanceSnap.ts` is the shared scroll-idle snap
-engine consumed by every full-viewport section — `MarkSection`,
-`BlankSection`, and `HeroClone`. On 150ms scroll idle, if the section's
+`app/components/hooks/useDominanceSnap.ts` (shared) is the scroll-idle snap
+engine consumed here by every full-viewport section — `MarkSection`,
+`BlankSection`, and `HeroClone` — and elsewhere by the shared `Sheet.tsx`
+and `app/lib/useExpand.ts`. On 150ms scroll idle, if the section's
 visibility ratio is ≥ 0.72 (DOMINANCE_RATIO) AND it isn't already docked
 (|rect.top| > SNAPPED_TOL_PX = 2), glide to the section top via
 `scrollGlide(--dur-settle)`.
@@ -312,8 +316,9 @@ users keep scroll-linked reveals and get no auto-glide; a refactor must
 preserve both halves.
 
 Constants live at the top of `useDominanceSnap.ts` (`IDLE_MS`,
-`DOMINANCE_RATIO`, `SNAPPED_TOL_PX`). Changing them affects all three
-consumers.
+`DOMINANCE_RATIO`, `SNAPPED_TOL_PX`). Changing them reaches well beyond
+`/marks` — the shared `Sheet.tsx` (every works route) and `useExpand.ts`
+consume the same engine.
 
 ---
 
@@ -440,11 +445,12 @@ Load-bearing constants in `autoScroll.ts`:
   after return.
 - `FIRST_MARK_ID = 'furrmark'` — intro hand-off target. If the first
   mark is ever reordered in `data/marks.ts`, update this constant.
-- `VEIL_FADE_IN_MS = 900` — outro fade-to-opaque duration. Fade-out is
-  700 ms and lives in CSS (`.marks-outro-veil` transition-duration). The
-  asymmetry is deliberate: fade-in needs a firm landing on opaque before
-  teleport; fade-out rides over a 1500 ms hero-hold so it can breathe
-  faster without rushing the reveal.
+- `VEIL_FADE_IN_MS = 900` — outro fade-to-opaque duration. **It must match
+  the CSS `--marks-veil-in` token**; the fade-out duration is CSS-only via
+  `--marks-veil-out` (`.marks-outro-veil` transition). The in/out asymmetry
+  is deliberate: fade-in needs a firm landing on opaque before teleport;
+  fade-out rides over the hero-hold so it can breathe faster without
+  rushing the reveal.
 
 Reduced-motion contract: `startAutoScroll()` short-circuits entirely
 under `prefers-reduced-motion: reduce` regardless of mode. Readers keep
@@ -564,25 +570,23 @@ the veil subscription.
 
 ---
 
-## Essay overlaps the Hero by design (`-60svh` margin)
+## Essay geometry is HeroText's anchor — don't move it casually
 
-`.marks-essay` in `marks.css` (around line 358) sets
-`margin-top: -60svh; padding: 32px 0 180px`. The essay's top sits ~40svh
-from the page top — well inside the 100svh Hero's viewport. It is **not**
-parked below the hero at rest.
+`.marks-essay` in `marks.css` starts below the Hero (`margin-top: 0`,
+`min-height: 100svh`) with a deliberately reduced top padding so it enters
+view sooner than the original 144px lead-in. The Hero is a watermark
+behind the reading field — it reads through via `--hero-recede`, not via
+physical overlap. An earlier `-60svh` overlap composition was tried and
+retired; do not reintroduce a negative `margin-top`.
 
-This is load-bearing for `HeroText.tsx`'s two-stage `--hero-recede`. Both
+The geometry is load-bearing for `HeroText.tsx`'s two-stage
+`--hero-recede` (see "HeroText two-stage fade + veil-lock" above). Both
 stages are anchored to `.marks-essay`'s `getBoundingClientRect()`:
 Stage A: `tA = (vh - rect.top) / (vh * 0.4)`;
 Stage B: `tB = (vh - rect.bottom) / (vh * 0.6)`.
-Moving the essay up means the recede engages almost immediately on page
-entry — that is the whole point of the change. Reverting `margin-top` to
-0 silently delays the recede until after the hero has fully passed.
-
-Don't normalize the negative margin away. The Hero is a watermark behind
-the reading field — peeking through it is intentional. Older notes about
-"retired peeking" referred to a different hero behavior that no longer
-applies; ignore them.
+Changing the essay's `margin-top`, top padding, or `min-height` shifts
+*when* the recede engages — treat any essay-geometry change as a HeroText
+change and re-verify the watermark hand-off on the live route.
 
 ---
 

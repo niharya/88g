@@ -35,18 +35,18 @@ Scan **added or modified CSS lines** in the diff for hardcoded values that shoul
 - Hex colors (`#[0-9a-f]{3,8}`) or `rgb(…)`/`rgba(…)` outside the ladder — should use `var(--tone-*)`, `var(--grey-*)`, `var(--orange-*)`, or the four `--shadow-*` tokens.
 - `font-family:` with a quoted name (e.g. `'Fraunces'`, `'Google Sans Flex'`, `'Material Symbols Rounded'`) — should use `var(--font-display|body|ui|mono|symbols)`.
 - `transition:` or `animation:` with an easing function literal (`cubic-bezier(…)`, `ease-in-out`, etc.) that isn't `var(--ease-paper)` — flag unless it's a documented deviation the file comments justify.
-- Durations outside the 0.5–0.9s motion-vocabulary range without comment — flag, don't reject.
+- Duration literals instead of the `--dur-*` tokens (values live in `globals.css`, the single source of truth) without a justifying comment — flag, don't reject.
 
 Only flag if the hardcoded value is **net-new** in the diff. Pre-existing hardcoded values are out of scope unless touched.
 
 ### 3. Component reuse / promotion
 
-**If** the diff touched any file under `app/(works)/*/components/`:
+**If** the diff touched any file under a route-local components dir (`app/(works)/*/components/`, `app/marks/components/`, `app/shape-of-product/`):
 
 - For each touched route-local component, check whether a similarly-named or similarly-behaving file exists in another route or in `app/components/`. Heuristics:
   - Same filename across routes (e.g. `NoteRail.tsx` in both `/rr` and `/biconomy`).
   - Same domain word (rail, card, pill, stamp, marquee) across routes.
-- If a cross-route twin exists, flag as ⚠: "candidate for promotion to `app/components/<Name>/` — two routes now use this pattern." Offer to follow the promotion loop (see CLAUDE.md → "Refining a component — the loop").
+- If a cross-route twin exists, flag as ⚠: "candidate for promotion to `app/components/<Name>/` — two routes now use this pattern." Offer to follow the promotion loop (see CLAUDE.md → "Component refinement loop").
 
 **If** the diff added new files under `app/components/` (the shared layer):
 - Check `LIBRARY.md` at repo root — does an entry for this primitive exist with the correct code paths?
@@ -94,7 +94,7 @@ Based on what the diff touched, offer relevant agents — one-line, as ↳ sugge
 - Touched tone-carrying copy, headlines, UI text, or route narrative → `portfolio-guardian`
 - Touched CSS under `@media`, added/changed responsive patterns → `responsive-guardian`
 - Touched layout, motion, or CSS-heavy component files → `frontend-craft`
-- Touched any `app/(works)/*/components/` without reading that route's `ANOMALIES.md` → `route-auditor`
+- Touched files in any ANOMALIES-bearing area (`app/(works)/*`, `app/marks/`, `app/shape-of-product/`, `app/components/nav/`, or `app/page.tsx`/`app/landing.css` — covered by `app/_landing/ANOMALIES.md`) without reading that ANOMALIES.md → `route-auditor`
 - Surfaced an anomaly candidate in check 4 → `anomaly-librarian`
 
 Do not suggest an agent unless there's a diff-based reason.
@@ -105,7 +105,7 @@ Do not suggest an agent unless there's a diff-based reason.
 
 - Check for bounces or overshoots without a comment or ANOMALIES.md entry documenting why.
 - Check that new transitions use `var(--ease-paper)` or the `EASE` constant.
-- Check that durations fall in 0.5–0.9s unless there's a reason.
+- Check that durations come from the `--dur-*` tokens (or `app/lib/motion.ts` constants) unless there's a reason.
 
 Flag ⚠ for each deviation without a comment trail.
 
@@ -123,8 +123,8 @@ Reference: `docs/performance.md`. Run these checks **only if** the diff touches 
 **Fonts (touched `app/fonts/` or font config in `app/layout.tsx`):**
 - Any new `.woff2` added without a corresponding `localFont(...)` block in `layout.tsx`?
 - Any new external `<link>` to `fonts.googleapis.com` (or any CDN) reintroduced into `layout.tsx`?
-- Any reintroduction of the `font-gate` script or `.fonts-ready` / `.page-boot` CSS hooks?
-- Any `display:` value other than `'block'` on a new `localFont`?
+- Any `display:` value other than `'swap'`, or a missing `fallback` chain, on a new `localFont`? (`display: 'block'` is banned — see `docs/performance.md` → "Fonts".)
+- Any change to the **bounded** font-gate that removes or raises its release cap in `layout.tsx`, or gates a new surface without the `.page-boot` boot mark? (The bounded gate is sanctioned; an *uncapped* gate is banned.)
 - `app/fonts/MaterialSymbolsRounded-normal.woff2` size jumped above ~1.3 MB? (May indicate the full font was committed.)
 
 Flag each as ⚠ with the file and the proposed fix per `docs/performance.md` → "Fonts" / "Material Symbols icons".

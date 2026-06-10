@@ -26,8 +26,10 @@ built for case-study reading — viewport frame, chapter markers, transition
 choreography. `/marks` is a reel, not a case study. Inheriting the workbench
 chrome would fight the material.
 
-The only `(works)` primitive reused is the `ExitMarker`. Everything else is
-route-local.
+Nothing from the `(works)` shell is reused directly — the EXIT affordance is
+the route-local `MarksExitMarker` riding the shared `CrossShellVeil`
+primitive, and the layout imports the shared `nav.css` / `navmarker.css`
+styles. Everything else is route-local.
 
 ---
 
@@ -39,16 +41,18 @@ The route is three layouts stacked into one continuous reel:
 Hero             (title moment — full-bleed, pre-dock)
 Essay            (editorial intro + preview rows of the six marks)
 Mark view × 6    (the primitive — one canonical composition, six instances)
-Blank            (100vh pure-black void — calm beat before the restart)
-Hero clone       (100vh hero palette — identical paint to the real Hero)
+Blank            (100svh pure-black void — calm beat before the restart)
+Hero clone       (100svh hero palette — identical paint to the real Hero)
                  (on dock, scrollTo(0, 0); reader is back at the real Hero)
 ```
 
-The title (`MarksTitle`) is a persistent `h1` that spans the whole route,
-driven by scrollY. It scales from a hero moment at the top (120px, ~37vh) into
-a docked marker (24px, `top: --marker-top`) as the reader scrolls past Hero, then
-re-expands inside each mark section as a per-section title (reel-roll ping-pong
-between two slots, direction following scroll).
+The title system is **two cooperating elements**, not one morphing element —
+this split is a don't-touch decision documented in ANOMALIES. `HeroText` owns
+the big hero presentation at the top and fades to a watermark as the essay
+scrolls over it (via `--hero-recede`); `MarksTitle` is the always-docked
+marker (`top: --marker-top`) that fades in as the hero recedes and carries the
+per-section title inside each mark (reel-roll ping-pong between two slots,
+direction following scroll).
 
 ### The three layouts
 
@@ -107,9 +111,11 @@ All three run on `--ease-paper`.
 
 ## Auto-advance (the showcase timer)
 
-The reel advances itself. `useShowcaseTimer` fires `onWrap` every `slideMs`
-(default 4s per slide) while the section is dominant. The timer pauses on
-interaction and resumes after `idleResumeMs` (24s) of user inactivity. It also
+The reel advances itself. `useShowcaseTimer` fires `onWrap` after each
+slide's dwell (`slideMs`, with per-slide video overrides) while the section
+is dominant. The timer pauses on interaction and resumes after
+`idleResumeMs` of user inactivity — defaults live in
+`useShowcaseTimer.ts`, not here. It also
 pauses when the tab is hidden (`visibilitychange`) and respects
 `prefers-reduced-motion`.
 
@@ -139,7 +145,7 @@ not fight the reader's intent.
 
 ## Infinite loop
 
-At the bottom of the reel, two 100vh canvases — `BlankSection` and
+At the bottom of the reel, two 100svh canvases — `BlankSection` and
 `HeroClone` — close the loop using the clone-and-teleport pattern borrowed
 from slider libraries (Embla, Swiper, keen-slider):
 
@@ -151,10 +157,9 @@ from slider libraries (Embla, Swiper, keen-slider):
    docks every other mark), `HeroClone` fires a `scrollTo(0, 0)` — an
    instant, invisible jump back to the real Hero.
 
-Three pieces of continuity make the teleport imperceptible: Background
-paints the hero palette on both sides, `MarksTitle` reads "big hero" at
-both anchors via a `distToNearestHero` helper (not `scrollY` directly),
-and the destination at `y=0` looks pixel-identical to the clone at dock.
+Two pieces of continuity make the teleport imperceptible: Background
+paints the hero palette on both sides of the jump, and the destination at
+`y=0` looks pixel-identical to the clone at dock.
 
 Because the teleport lands at `y=0`, the reader can't scroll up from the
 real Hero (the browser has nothing above) — the reel only goes forward,
@@ -166,8 +171,8 @@ are documented in ANOMALIES.
 ## Motion vocabulary
 
 The route follows the portfolio-wide paper-physical vocabulary (`--ease-paper`,
-0.5–0.9s range, no bounce) with two documented exceptions, both tracked in
-ANOMALIES:
+the `--dur-*` token tiers, no bounce) with two documented exceptions, both
+tracked in ANOMALIES:
 
 - **Reel-roll** (title cells) — sits below paper durations (0.3–0.4s) because
   it reads as a shutter/reel, not a settle.
@@ -211,14 +216,8 @@ Desktop is the canonical composition; mobile is a reading fallback, not a
 second authored design.
 
 Documented mobile decisions (why values are what they are) live in ANOMALIES
-under "Responsive anomalies". The short version:
-
-- Title scale uses a breakpoint-scoped linear formula, not `clamp()`, because
-  the dock interpolation is a derived product of scroll progress × size range.
-- Essay preview rows flip to `flex-direction: column` with a 48px gap.
-- Blank + Hero-clone stay at 100vh on every viewport — they are dominance
-  candidates, so shrinking them would break the wrap-on-dock fire window.
-- No tucked marker — `MarksTitle` is the nav and already docks at any viewport.
+under "Responsive anomalies" — that section is canonical, and this file
+deliberately does not restate its values.
 
 ---
 

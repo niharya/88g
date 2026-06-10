@@ -20,10 +20,10 @@ don't token it. If only (2) is true, it's a **one-off** with a single reader;
 leave it inline.
 
 This is why `--rr-card-shadow-rest` is a token — four consumers, all meant
-to move together when the "rug" feel is tuned. And it's why
-`box-shadow: 0 8px 20px rgba(0,0,0,0.06)` in
-[globals.css:534](app/globals.css:534) is **not** a token — one consumer, the
-Phase-2 reveal, which is choreographed as a single animation.
+to move together when the "rug" feel is tuned. And it's why the lifted
+shadow on the Phase-2 reveal (`globals.css`, the
+`.section-reveal > :not(.nav-sled)` rule) is **not** a token — one
+consumer, choreographed as a single animation.
 
 ---
 
@@ -55,13 +55,16 @@ than rewriting `rgba()`. Doesn't need a new token, doesn't lose provenance.
 
 Five tiers, nothing else at the baseline:
 
-| Token | Value | When to reach |
-|---|---|---|
-| `--dur-instant` | 100ms | Hover text-underline dissolve, nav-arrow frame ticks |
-| `--dur-fast` | 200ms | Tab switches, micro UI reactions |
-| `--dur-slide` | 300ms | Dims, filter fades, opacity ease-outs |
-| `--dur-settle` | 500ms | Section reveals, card landings, paper glides |
-| `--dur-glide` | 800ms | Long scene beats, cross-fade transitions |
+| Token | When to reach |
+|---|---|
+| `--dur-instant` | Hover text-underline dissolve, nav-arrow frame ticks |
+| `--dur-fast` | Tab switches, micro UI reactions |
+| `--dur-slide` | Dims, filter fades, opacity ease-outs |
+| `--dur-settle` | Section reveals, card landings, paper glides |
+| `--dur-glide` | Long scene beats, cross-fade transitions |
+
+Values live in the `--dur-*` block in `app/globals.css` — the single source
+of truth; this doc deliberately does not restate them.
 
 **Anything between two tiers is a decision, not a value.** If you catch
 yourself typing `0.35s` or `240ms`, stop and pick a tier. The tier vocabulary
@@ -138,9 +141,10 @@ under "off-ladder shadows."
 
 ### Radius
 
-**No tokens currently.** Values cluster at `4 / 8 / 18 / 24` (px). See
-cluster 8 in the findings doc for the proposal. Until tokens exist, keep
-radii consistent within a route rather than matching across routes.
+**No tokens currently.** Values cluster at `4 / 8 / 18 / 24` (px). A
+radius-token proposal was sketched in an earlier audit but never landed.
+Until tokens exist, keep radii consistent within a route rather than
+matching across routes.
 
 ### Spacing
 

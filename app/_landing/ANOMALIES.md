@@ -10,10 +10,10 @@ Read this before touching the expand choreography or anything in the secondary s
 
 The landing has two logical groups of cards, and their entrance/exit motion must stay in separate idioms:
 
-- **Group A — hero-tucked.** `about-short`, `about-long`. These live *inside* the hero's mental frame in the default state and tuck out on expand (hero-glide keyframes). They share the hero's random micro-rotation vocabulary.
+- **Group A — hero-tucked.** `about-short`, `about-long`. These live *inside* the hero's mental frame in the default state and tuck out on expand via `top`/`transform` **transitions** (the `hero-glide-*` keyframes are mount-entrance only — not expand choreography). No random rotation exists anywhere in Group A; that system was removed.
 - **Group B — secondary stack.** `spectrum`, `about-practice`, `contact` (in DOM order; see "Group B order" below). These live *below* the hero in the expanded state only. In the default state they are opacity 0 with a small upward `translateY(-var(--stack-settle))` offset and `pointer-events: none`. On expand, they settle from above into place.
 
-**Do not mix idioms.** Do not apply Group A's hero-tuck keyframes to Group B cards, and do not apply Group B's opacity-fade-settle to Group A. `about-practice` is part of Group B, not an extension of `about-long`, even though the copy continues.
+**Do not mix idioms.** Do not apply Group A's hero-tuck transitions to Group B cards, and do not apply Group B's opacity-fade-settle to Group A. `about-practice` is part of Group B, not an extension of `about-long`, even though the copy continues.
 
 ### Choreography tokens
 
@@ -51,6 +51,8 @@ This pattern is what gives Group B its "settle from above" read. A card that dro
 ## Expanded-state transition timing
 
 Group B cards transition `top`, `opacity`, and `transform` on expand. All three use `var(--dur-slide)` with `var(--ease-paper)`, delayed by `--stack-stagger-start` (+ cascade offset per card). Do not stagger these three properties against each other within a single card — they must move as one.
+
+**Documented mobile deviation (spectrum only).** The mobile block puts spectrum's `transform` on `--dur-settle` with a +0.12s extra delay while `top`/`opacity` stay on the base beat. Shipped and authored — don't "fix" it to match the desktop rule, and don't copy the stagger to other cards.
 
 ## Form-open height bump
 
@@ -90,11 +92,15 @@ The mobile `.about-card` rule already uses `var(--space-24)` padding all around,
 
 ### About-long copy is centered
 
-`.about-card--long .about-card__text` is `text-align: center` — three single-line discipline rows (or two-line, in row 3's case) read as a centered list of authored typographic units, with each chip sitting inline after its anchor word. This was a deliberate move *away* from right-edge chip docking; an earlier ledger composition right-aligned the chips, which read as "paying too much attention to the numbers." Don't propose tabular right-alignment again without re-checking that design intent.
+`.about-card--long .about-card__text` is `text-align: center` — a lead paragraph (`.about-card__lead`, added v0.89) above three discipline rows (row 3 wraps to two lines) reads as a centered list of authored typographic units, with each chip sitting inline after its anchor word. This was a deliberate move *away* from right-edge chip docking; an earlier ledger composition right-aligned the chips, which read as "paying too much attention to the numbers." Don't propose tabular right-alignment again without re-checking that design intent.
 
 ### "Growth experiments" is a single typographic unit on row 3
 
 `app/page.tsx` wraps the words "growth experiments" in a `<span style={{ whiteSpace: 'nowrap' }}>` inside row 3 of about-long. This is load-bearing for the wrap shape: with the wrap, line 1 breaks after "and" and line 2 reads "growth experiments [3y]" — keeping the two words together feels like one verbal cluster. Without the wrap, "growth" lands at the end of line 1 and "experiments" sits alone on line 2 next to the chip. Don't remove this `nowrap` span when editing the copy; if you replace "growth experiments" with a different phrase, decide whether the new phrase wants the same treatment.
+
+### Collapsed about-long tuck differs per viewport (v0.90)
+
+The desktop collapsed state lifts about-long **above** the hero top (`top: calc(var(--hero-top) - 20px)`) and scales it to `0.82`, so the card's center aligns with the hero's center and the scaled height fits inside the hero's bounds — the card grew with the v0.89 lead paragraph and the old recipe let it peek out from behind the hero. Mobile keeps the original recipe (`top: var(--hero-top)`, `scale(0.9)`). Both offsets are hand-tuned against the current copy (the inline comment in `landing.css` carries the math); if the card's content changes, re-measure. Don't unify the two viewports' collapsed recipes.
 
 ### Mobile about-short — divider hidden, padding dropped
 

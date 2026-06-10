@@ -7,8 +7,9 @@ when an architectural decision changes — not on every edit.
 
 This is the **global** nav module: `ChapterMarker`, `ProjectMarker`, `ExitMarker`,
 `MarkerSlot`, `useDockedMarker`, `nav.css`. Used by every long-form project route.
-Treat changes here as load-bearing for both `/biconomy` and `/rr` (and any future
-route).
+Treat changes here as load-bearing for **every consumer**: `/biconomy`, `/rr`,
+`/marks` (imports `nav.css` + `navmarker.css` from its layout), and `/selected`
+(MarkerSlot + NavMarker consumers) — plus any future route.
 
 For project-level rules see `CLAUDE.md`. For route-specific consumers see
 `app/<route>/ANOMALIES.md`.
@@ -33,11 +34,11 @@ When `.chapter-nav.is-docked` (or `.chapter-nav--open`) lands on the chapter mar
 - Uses descendant (not child) selector between `.project-marker` and `.nav-marker--project` because `MarkerSlot` wraps the NavMarker in a positioning div — a `>` child combinator would miss the marker.
 - Flyout items (`.nav-marker--flyout`) are excluded on purpose (they live in the tray, not against the mat).
 - Inks inherit from the base role rules (project: `--grey-720`, chapter: `--grey-640`). Only the shell changes — don't override content colour in the docked rule.
-- The previous implementation painted the shell with a randomized `/noise-bg.png` crop via a `::before` layer + `--nm-noise-*` custom properties. That approach was removed when the fill was unified across the project/chapter pair; `/noise-bg.png` is no longer consumed by NavMarker (still used elsewhere — search before deleting the asset).
+- The previous implementation painted the shell with a randomized `/noise-bg.png` crop via a `::before` layer + `--nm-noise-*` custom properties. That approach was removed when the fill was unified across the project/chapter pair; `/noise-bg.png` is no longer consumed by NavMarker — or by anything else (the last sweep found no live consumer; the file still ships in `public/` as a delete candidate).
 
-## `ProjectMarker` scrolls to top on click
+## `ProjectMarker` click — two modes
 
-`ProjectMarker` is rendered as `as="button"` through `NavMarker` and wires `onClick` to `window.scrollTo({ top: 0, behavior: 'smooth' })` — clicking the project name in the left nav returns to the project's start. This replaced the previous inert `as="div"` rendering; the wrapping `.project-marker` class (from `MarkerSlot`) is unchanged, so every existing `.project-marker`-targeted selector (nav.css halving, navmarker.css docked fill, route CSS overrides) keeps working. One visible consequence: on `/biconomy` and `/rr` the project marker now shows the primitive's default hover + :active fills, which it didn't before.
+`ProjectMarker` is rendered as `as="button"` through `NavMarker` with two click modes: with no `infoCard` prop, `onClick` runs `window.scrollTo({ top: 0, behavior: 'smooth' })` — clicking the project name returns to the project's start; with an `infoCard`, the click toggles the card instead and does **not** scroll (the scroll lives only in the no-infoCard branch of `ProjectMarker.tsx`). This replaced the previous inert `as="div"` rendering; the wrapping `.project-marker` class (from `MarkerSlot`) is unchanged, so every existing `.project-marker`-targeted selector (nav.css halving, navmarker.css docked fill, route CSS overrides) keeps working. One visible consequence: on `/biconomy` and `/rr` the project marker now shows the primitive's default hover + :active fills, which it didn't before.
 
 ---
 
@@ -50,8 +51,8 @@ When `.chapter-nav.is-docked` (or `.chapter-nav--open`) lands on the chapter mar
 | `ChapterMarker.tsx` | Two modes: **dynamic** (full docked behavior via `useDockedMarker`) and **static** (inert marker, no hooks). Dynamic requires `containerRef` prop. |
 | `ProjectMarker.tsx` | Content-only — renders icon + name. No positioning or measurement (handled by MarkerSlot). |
 | `ExitMarker.tsx` | Fixed right marker linking to /selected. Not wrapped in MarkerSlot (uses its own `.exit-marker` positioning). |
-| `Sheet.tsx` | `'use client'` — creates `useRef` for the `<section>`, passes to ChapterMarker as `containerRef`. Also calls `useReveal` for scroll-triggered section entrance. |
-| `useReveal.ts` | Hook — one-shot IntersectionObserver, adds `.revealed` to a ref'd element. Gates itself behind `.transitioning` removal to avoid fighting TransitionSlot. |
+| `Sheet.tsx` *(lives one level up, at `app/components/`)* | `'use client'` — creates `useRef` for the `<section>`, passes to ChapterMarker as `containerRef`. Also calls `useReveal` for scroll-triggered section entrance. |
+| `useReveal.ts` *(lives at `app/components/`)* | Hook — one-shot IntersectionObserver, adds `.revealed` to a ref'd element. Gates itself behind `.transitioning` removal to avoid fighting TransitionSlot. |
 
 ---
 
@@ -85,7 +86,7 @@ change:
 - **`ResizeObserver`** — marker content size changes (font load, text swap).
 - **`IntersectionObserver`** — visibility transitions (shell going from
   `display: none` → visible on route change).
-- **`matchMedia` on the 767 and 1023 breakpoints** — the marker's fixed
+- **`matchMedia` on `'(max-width: 767px), (max-height: 500px)'` and `'(max-width: 1023px)'`** — the marker's fixed
   `left` is driven by `--workbench-pad-x`, which changes at those media
   queries. The marker moves horizontally without resizing; ResizeObserver
   misses it. The matchMedia listener catches the crossing.
@@ -136,8 +137,10 @@ overrides.
 The sled converts viewport-based `--project-marker-right` to sheet-relative coords:
 
 ```css
-left: calc(var(--project-marker-right) - (var(--workbench-pad-x) - var(--sheet-bleed) + 2px));
+left: calc(var(--project-marker-right, calc(var(--workbench-pad-x) + 128px)) - (var(--workbench-pad-x) - var(--sheet-bleed) + 2px));
 ```
+
+(The inner fallback covers first paint before MarkerSlot's ResizeObserver publishes `--project-marker-right`.)
 
 The `2px` = sheet border width (from `--sheet-border`). The workbench has no
 layout border (the `::before` viewport frame is a fixed overlay with
@@ -150,7 +153,8 @@ and `--sheet-bleed` at their desktop values. The sled formula consumed stale
 tokens on narrow viewports and landed in the wrong place.
 
 Fix: the responsive blocks now override the tokens themselves inside `:root`
-(see `globals.css` lines ~401 and ~416), and `.workbench` is re-declared to
+(the tablet/mobile token-override blocks in `globals.css` — search
+`--workbench-pad-x`), and `.workbench` is re-declared to
 consume `var(--workbench-pad-y) var(--workbench-pad-x)`. The sled formula
 works untouched on all breakpoints because it always reads from live tokens.
 
@@ -382,8 +386,7 @@ block legitimately overrides it inline (8px → 4px).
 - `.section-reveal` class on Sheet — consumed by globals.css and by TransitionSlot
 - `.transitioning` on `.workbench` — the contract between TransitionSlot and useReveal
 - The two-span title markup in `ChapterMarker` (full + optional short) and the `:has()` swap rule in `nav.css` — both required for per-chapter mobile labels
-- The `useState` + `useEffect` pattern in `NavMarker`'s `useNoiseCrop` — moving `Math.random()` into render causes SSR/client hydration mismatch
-- The `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)` scope on the mat-fill rule in `navmarker.css` — widening it to flyouts pours noise into the tray items
+- The `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)` scope on the mat-fill rule in `navmarker.css` — widening it to flyouts pours the mat fill into the tray items
 
 ---
 

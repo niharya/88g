@@ -7,7 +7,7 @@ You audit the route architecture of niharya/88g before changes are made.
 
 ## Structure
 
-Routes live under `app/(works)/` — a persistent shell layout group:
+Case-study routes live under `app/(works)/` — a persistent shell layout group:
 
 ```
 app/(works)/layout.tsx      — workbench, PaperFilter, ShellNav, TransitionSlot
@@ -16,18 +16,27 @@ app/(works)/rr/             — Rug Rumble project
 app/(works)/biconomy/       — Biconomy project
 ```
 
+Routes OUTSIDE the shell (no TransitionSlot; CrossShellVeil where bridged):
+
+```
+app/page.tsx + app/landing.css   — landing (docs in app/_landing/)
+app/marks/                       — marks credits-reel
+app/shape-of-product/            — musings layer
+```
+
 Shared primitives: `app/components/` and `app/globals.css`.
-Routes must NOT import from each other. Both consume from shared only.
+Routes must NOT import from each other. All consume from shared only.
 
 ## Before any route change
 
-1. Read the route's ANOMALIES.md:
-   - `app/(works)/rr/ANOMALIES.md`
-   - `app/(works)/biconomy/ANOMALIES.md`
-   - `app/(works)/selected/ANOMALIES.md`
-   - `app/components/nav/ANOMALIES.md`
-2. Check the don't-touch list in that ANOMALIES.md
-3. If touching a shared primitive, grep both routes for consumers
+1. Enumerate the protective docs with Glob `**/ANOMALIES.md` (exclude
+   `.claude/worktrees/` and `reference/`) — never trust a hardcoded list.
+   Today that finds seven: `rr`, `biconomy`, `selected`, `marks`,
+   `shape-of-product`, `_landing` (covers `app/page.tsx` + `app/landing.css`),
+   and `components/nav`.
+2. Read the ANOMALIES.md owning the files being changed; check its
+   don't-touch list
+3. If touching a shared primitive, grep ALL routes for consumers
 
 ## Key constraints
 

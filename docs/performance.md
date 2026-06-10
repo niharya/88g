@@ -19,12 +19,12 @@ one was, at some point, a real regression that took a real user-visible hit.
 - `fallback: [...]` arrays carry the system fallback chain (e.g. `system-ui`, `-apple-system`) on every `localFont()` call. next/font uses these to generate a metric-adjusted fallback face, minimising layout shift on swap.
 - `preload: true` only on fonts used by the **landing page** (Fraunces, Google Sans, Google Sans Flex). Others (`code`, `symbols`) get `preload: false` so they don't bloat the landing critical path.
 - `globals.css` **must not** redeclare the `--font-*` variables in `:root`. next/font sets them on `<html>` to hashed family names that scope the generated `@font-face` rules — redeclaring with literal names (`'Fraunces'`, `'Google Sans'`, …) detaches the cascade from the loaded woff2 files. Pages then fall back to whatever's installed locally, which on mobile is nothing — system serif/sans-serif renders. This was the v0.56 → v0.58 mobile-fonts regression.
-- **Bounded font gate (v0.59).** Top-level surfaces (`.landing`, `.workbench`, `.route-marks`) carry `opacity: 0` until `<html>` gains the `.fonts-ready` class. The gate script in `app/layout.tsx` adds the class either when `document.fonts.ready` resolves or when an **800 ms cap** fires — whichever first. The startooth `.page-boot` mark is sibling to the gated surfaces and remains visible during the hold. Result: typography fonts almost always finish within 800 ms and the page reveals with real fonts (no FOUT); on slow connections, the cap releases the page within 1 second and Material Symbols continues to load in the background. The cap is also the implicit filter that stops the gate from waiting on the 1.18 MB symbol font.
+- **Bounded font gate (v0.59).** Top-level surfaces (`.landing`, `.workbench`, `.route-marks`, `.route-sop`) carry `opacity: 0` until `<html>` gains the `.fonts-ready` class. The gate script in `app/layout.tsx` adds the class either when `document.fonts.ready` resolves or when a **1000 ms JS cap** fires — whichever first; a **1500 ms pure-CSS failsafe animation** in `globals.css` backs both paths in case the script never runs. The startooth `.page-boot` mark is sibling to the gated surfaces and remains visible during the hold. Result: typography fonts almost always finish within the cap and the page reveals with real fonts (no FOUT); on slow connections, the cap releases the page and Material Symbols continues to load in the background. The cap is also the implicit filter that stops the gate from waiting on the 1.18 MB symbol font.
 
 **Banned:**
 
 - `display: 'block'` on any primary font. It hides text for up to 3 s; on slow mobile that's a blank page. The v0.56 attempt to use `'block'` to "prevent FOUT" produced 3-second blanks and Material-Symbols ligature words flashing in as fallback text. `'swap'` + the bounded gate is the right answer.
-- An **uncapped** JS font-gate that holds the page at `opacity: 0` until `document.fonts.ready` (the pre-v0.56 behaviour with a 3 s ceiling). The current gate is bounded at 800 ms — do not raise the cap past ~1000 ms. Past 1 s users start to wonder.
+- An **uncapped** JS font-gate that holds the page at `opacity: 0` until `document.fonts.ready` (the pre-v0.56 behaviour with a 3 s ceiling). The current gate is bounded at 1000 ms — do not raise the JS cap (the CSS failsafe sits at 1500 ms behind it). Past 1 s users start to wonder.
 - External `<link rel="stylesheet">` to Google Fonts for **the five primary fonts** (display, body, ui, mono, symbols). DNS lookup + two-stage waterfall + non-deterministic timing.
 - Redeclaring `--font-display` / `--font-body` / `--font-ui` / `--font-mono` / `--font-symbols` in `globals.css` (see contract above).
 
@@ -110,17 +110,7 @@ These aren't absolute — a careful 400 KB hero is fine. But anything north of *
 
 ## Motion tokens
 
-Current values in `globals.css`:
-
-```
---dur-instant: 0.1s
---dur-fast:    0.15s   (was 0.2s pre-v0.55)
---dur-slide:   0.2s    (was 0.3s)
---dur-settle:  0.35s   (was 0.5s)
---dur-glide:   0.5s    (was 0.8s)
-```
-
-These were tuned **down** during the v0.55 perf pass for snappier perceived performance, while staying within the paper-physical motion language (CLAUDE.md → "Motion vocabulary").
+The five `--dur-*` tokens (`instant` / `fast` / `slide` / `settle` / `glide`) live in `globals.css` — **the token block there is the single source of truth for values; this doc deliberately does not restate them** (restated copies have rotted before). They were tuned **down** during the v0.55 perf pass for snappier perceived performance, while staying within the paper-physical motion language (CLAUDE.md → "Motion vocabulary").
 
 **The contract:**
 

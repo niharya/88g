@@ -35,7 +35,7 @@ The archive timeline is a vertical strip of colored bars, year labels, and entry
 | mint      | Slangbusters | Creative Director | 2018–20 | Long, contains aleyr/olive/codezeros |
 
 All five archive projects use page-local tokens in `selected.css` under `.selected-workbench`, derived from actual brand hex values with a primary/secondary color system:
-- Primary hue → `-100` (bg), `-800` (text/borders), `-960` (dark borders)
+- Primary hue → light fill (`-100`, or `-80` for mint), `-800` (text; also the standalone Connektion bar's border), `-960` (borders on the mint bar and the nested bars). The `-800`/`-960` border mix is shipped and deliberate — read `selected.css` for the per-bar choice.
 - Secondary hue → `-240` (hover bar fill)
 
 Token origins: Connektion teal #01F2F5, Aleyr purple #723CC5 / pink #FF5581, Ecochain green #4CB400 / off-white, Codezeros orange-red #FF4B3F / golden #F9A12E.
@@ -51,11 +51,11 @@ All values are multiples of **4px** or **8px**.
 | Token | Value | Usage |
 |-------|-------|-------|
 | Number-to-bar-edge | 4px | Year label to its corresponding bar edge |
-| Bar gap | 16px | Space between non-touching bars |
+| Bar gap | 16px minimum | Space between non-touching bars (the shipped yellow→mint gap is 23px — authored; preserve) |
 | Entry spacing | 88px | Vertical distance between entry tops |
 | Title height | 36px | Fixed height of `.ap-entry__title` (2-line max) |
 | Dot cluster gap | 8px | Between dots in the dot clusters |
-| Nested bar height | 16px | Small marker for nested projects |
+| Nested bar height | 20px | Small marker for nested projects |
 
 ### Position math
 
@@ -78,7 +78,7 @@ meta_center = entry.top + title_height(36) + half_meta_height(10) = entry.top + 
 - Year at TOP of bar: `bar.top = year_center - 6(half_label) - 4(padding)` = `year_center - 10`
 - Year at BOTTOM of bar: `bar.bottom = year_center + 6 + 4` = `year_center + 10`
 
-**Bar gap**: bottom of bar N to top of bar N+1 = 16px.
+**Bar gap**: bottom of bar N to top of bar N+1 = 16px minimum (shipped yellow→mint is 23px — preserve shipped values).
 
 ### Current positions
 
@@ -123,7 +123,7 @@ All positions relative to `.selected-tl` (which is the full mat area).
 ```
 Now dot:         left: 143, top: 64, 16×16
 Now label:       left: 139 (4px gap to dot left), top: 72, anchor: right-center
-Greeting:        left: 163 (4px gap from dot right), top: 64
+Greeting:        left: 163 (4px gap from dot right), top: 72
 
 Top dots:        left: 148, top: 92   (12px gap below dot bottom 80)
 Blue bar:        left: 148, top: 126, h: 374, bottom: 500
@@ -152,25 +152,15 @@ Archive panel:   left: 148, top: 685
 
 ### Year labels (both timelines)
 
-System monospace stack for even digit widths:
-```
-font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
-font-size: 11px;
-font-weight: 600;
-letter-spacing: -0.3px;
-```
+`var(--font-mono)` — Google Sans Code via next/font (the system mono stack is only its fallback chain) — at 11px / 600 / -0.3px letter-spacing, for even digit widths.
 
 ### Meta / role text (archive entries + project cards)
 
-Uses h5 weight via Google Sans Flex variable axes:
-```
-font-weight: 640;
-font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
-```
+Uses the shared `.t-h5` utility (`globals.css`), applied via JSX — the Google Sans Flex variable-axis values live in that one shared rule, not inline in this route.
 
 ### Now label
 
-Same monospace stack as year labels. Anchored right (`transform: translate(-100%, -50%)`).
+Same `--font-mono` token as year labels. Anchored right (`transform: translate(-100%, -50%)`).
 
 ---
 
@@ -199,14 +189,16 @@ Labels maintain 4px clearance to adjacent elements:
 
 Two custom Lucide-geometry SVG icons with CSS-only hover animations. Both are hand-rolled (not imported from `lucide-react`), using the same pattern: a named inner class (`<path>` or `<g>`) gets `translate` on parent hover, `0.3s ease-in-out`.
 
-**IconExternalLink** (`components/IconExternalLink.tsx`) — archive entries. Arrow group slides diagonally:
+Both icons were promoted to the shared layer — they live at `app/components/icons/` (`IconExternalLink.tsx`, `IconChevronRight.tsx`; see `LIBRARY.md`). The hover rules stay route-local in `selected.css`:
+
+**IconExternalLink** — archive entries. Arrow group slides diagonally:
 ```css
 a.ap-entry:hover .icon-ext .icon-ext-arrow { translate: 2px -2px; }
 ```
 
-**IconChevronRight** (`components/IconChevronRight.tsx`) — project cards. Chevron path nudges right:
+**IconChevronRight** — project cards. Chevron path nudges right, gated on the stale-hover guard:
 ```css
-.project-card:hover .project-card__arrow .icon-chevron-shaft { translate: 3px 0; }
+.project-card[data-armed="true"]:hover .project-card__arrow .icon-chevron-shaft { translate: 3px 0; }
 ```
 
 Arrow color inherits from variant: `--terra-720` (Terra) / `--blue-800` (Blue), set on `.project-card__arrow`.
@@ -217,7 +209,7 @@ Material Symbols remains for non-animated icons (nav markers, archive toggle).
 
 ## Pending migration — `.ap-entry__hint` → `<Monostamp>`
 
-The "Opens in new tab" hint pill on archive entries ([selected.css:705-734](selected.css:705)) is the
+The "Opens in new tab" hint pill on archive entries (the `.ap-entry__hint` block in `selected.css`) is the
 original instance of the shell pattern that has been promoted to
 `app/components/Monostamp.tsx` — monospace text, paper-cream fill, hairline
 border, tone-colored ink. The second consumer (note-pointer stamps in
@@ -411,8 +403,8 @@ meta_center = new_entry.top + 46
 For the bar:
 - If year at top: `bar.top = year_center - 10`
 - If year at bottom: `bar.bottom = year_center + 10`
-- Maintain 16px gap from adjacent non-nested bars
-- Nested bars: 16px height, positioned within parent bar's range
+- Maintain at least a 16px gap from adjacent non-nested bars (match the shipped neighbours)
+- Nested bars: 20px height, positioned within parent bar's range
 
 ### 3. Update CSS (`selected.css`)
 
@@ -420,7 +412,7 @@ Add under each section:
 - `.ap-entry--{color} { top: __px; }` — entry position
 - `.ap-entry--{color} .ap-entry__meta { color: var(--{color}-800); }` — meta color
 - `.selected-ap-year--{id} { top: __px; color: var(--{color}-800); }` — year label(s)
-- `.selected-ap-bar--{id} { top: __px; height: __px; background: var(--{color}-100); border: 1px solid var(--{color}-800); }` — bar
+- `.selected-ap-bar--{id} { top: __px; height: __px; background: var(--{color}-100); border: 1px solid var(--{color}-960); }` — bar (match the shipped bars: nested/mint use `-960`; only the standalone Connektion bar uses `-800`)
 
 Add hover group:
 ```css
@@ -477,8 +469,10 @@ color: var(--{project}-800);  /* themed text */
 ## Responsive anomalies (mobile ≤767px)
 
 The first responsive pass on `/selected` introduced several structural constraints
-that are not obvious from reading the code. Mobile changes begin at
-`selected.css` line ~842; tablet overrides begin at line ~1178.
+that are not obvious from reading the code. Mobile changes live in the
+`@media (max-width: 767px), (max-height: 500px)` blocks of `selected.css`;
+tablet overrides in the `(min-width: 768px) and (max-width: 1023px)` block
+(search the queries — line numbers drift).
 
 ### `.selected-archive-panel` is a **sibling** of `.selected-tl`, not a child
 
@@ -550,7 +544,7 @@ Implications:
 
 ### Responsive copy pattern — two sibling spans with CSS display toggling
 
-`Timeline.tsx` lines 252–253 render both copies:
+`Timeline.tsx` renders both copies (search `archive-toggle-label`):
 
 ```tsx
 <span className="... archive-toggle-label--desktop">Works from the previous portfolio</span>
@@ -570,7 +564,7 @@ into more routes.
 `.ap-entry__hint` (the "opens in new tab" pill) and the push-apart translation
 on entry hover are both turned off in the mobile block because touch devices
 don't have persistent hover. The hover highlights (`:has(:hover)` rules) are
-explicitly reverted via `filter: none` / `background: revert`. Don't assume
+explicitly reverted via `filter: none`. Don't assume
 these work on touch; they're desktop-only embellishments.
 
 ## Stale-hover gate — `data-armed` on ProjectCard

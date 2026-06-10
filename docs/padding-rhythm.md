@@ -2,7 +2,7 @@
 
 A short usage guide for the existing `--space-*` scale. Tightly scoped to **within-element** decisions: how to space content *inside* a card, pill, list, or rail. Cross-component spacing and section rhythm are out of scope here.
 
-This doc is **descriptive of what already works** plus a **prescriptive default** for the cases the audit flagged as drift. It does not propose new tokens. The scale lives at [globals.css:117–134](app/globals.css:117).
+This doc is **descriptive of what already works** plus a **prescriptive default** for the cases the audit flagged as drift. It does not propose new tokens. The scale lives in the `--space-*` block in `app/globals.css`.
 
 ```
 --space-2:   2px      micro
@@ -48,7 +48,7 @@ Live examples:
 
 The default within-element gap. Use when in doubt. Reads as "deliberately close, but not joined." Padding for an inner card sitting inside an outer ring. Tab inner padding-x. Inset hairline offset on rails (matches the outer ring's perceived border thickness). Padding-top for a dashed-link affordance below a paragraph.
 
-This is the tier that the audit's drift candidates F1, F2, and F3 should land on (the current `10px` and `4px 6px` Flows values).
+This is the tier that the Flows drift values flagged by the original audit (`10px` and `4px 6px`) should land on.
 
 Live examples:
 - `.rr-note-rail { padding: 8px }` — terra outer ring around the inner content card ([rr.css:730](app/(works)/rr/rr.css:730))

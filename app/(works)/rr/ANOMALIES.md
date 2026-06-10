@@ -11,7 +11,7 @@ For project-level rules see `CLAUDE.md`.
 
 ## Mechanics scene — scroll-bound mat split
 
-Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (Phase 2 block, ~line 1185).
+Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (the "Phase 2 — Mechanics" comment block — search the header, line numbers drift).
 
 ### Sticky scene pattern
 - `.rr-mech-scene` is **200vh** tall; `.rr-mech-stage` is `position: sticky; height: 100vh`.
@@ -37,7 +37,7 @@ Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (Ph
 
 ### Spring follower
 - Pipeline: `useScroll → useTransform([HOLD, 1] → [0,1]) → useSpring → useMotionValueEvent → CSS var`.
-- `HOLD = 0.15`: the first 15% of scroll is a dead zone so the user reads the centered mat before anything moves.
+- `HOLD` (in `Mechanics.tsx`, currently 0.08): the first slice of scroll is a dead zone so the user reads the centered mat before anything moves.
 - `useSpring` uses the `duration`/`bounce` API (not stiffness/mass) — easier to tune by feel.
 - The spring still chases scrollYProgress, so the choreography remains 100% scroll-bound. The spring just adds lag + overshoot.
 
@@ -64,7 +64,7 @@ Intro, Cards, and Outcome opt in to `useDominanceSnap` via `<Sheet snap>` in [pa
 
 ## Global nav coupling — `[data-arrow-target]`
 
-Lives in `app/components/nav/useDockedMarker.ts:53-54`.
+Lives in `app/components/nav/useDockedMarker.ts` (the `[data-arrow-target]` query — search the attribute, line numbers drift).
 
 - ChapterMarker's rotating arrow normally points at the sheet's visual center.
 - That breaks for sections with a pinned scroll scene (like Mechanics): the section is taller than the viewport, so the section center is always off-screen and the arrow points at nothing useful.
@@ -155,7 +155,7 @@ Things we tried, removed, and should not bring back without revisiting the origi
 
 ## Cards section — shader + grid stacking
 
-Lives in `app/(works)/rr/components/Cards.tsx` + `app/(works)/rr/components/RugShader.tsx` + `app/(works)/rr/rr.css` (~line 908).
+Lives in `app/(works)/rr/components/Cards.tsx` + `app/(works)/rr/components/RugShader.tsx` + `app/(works)/rr/rr.css` (the Cards section block).
 
 ### `overflow: clip`, not `hidden`
 - `#cards.mat` uses `overflow: clip` to contain the shader within the mat boundary.
@@ -222,7 +222,8 @@ about.
 
 ### If you touch this, re-check:
 - Mat height. The secondary mat is 100vh; its absolute height changes with
-  the browser viewport. `-150px` must still land the hand past mat-bottom.
+  the browser viewport. The negative `bottom` offset must still land the
+  hand past mat-bottom.
 - `.rr-story-card--mechanics` vertical position. Currently `top: calc(50%
   - 344px)`. Raising the card lifts the hand with it — `bottom` may need to
   grow more negative.
@@ -456,16 +457,16 @@ One documented carve-out exists: **`.route-rr .nav-sled { left }`** — see the 
 
 ### Mechanics — rails: tab peeks past board's right edge; opens onto board
 
-The scroll-bound 200vh mat split is unbound on mobile: scene height goes `auto`, `useScroll`-driven progress is inert, primary and secondary mats stack as flow siblings. Rails (`.rr-rules-rail`, `.rr-note-rail`) keep their desktop content and click-to-flip behavior, but the closed and open transforms are rewritten in CSS so the visible rest position has the rail body tucked under the board with only the tab peeking past the board's right edge:
+The scroll-bound 200vh mat split is unbound on mobile: scene height goes `auto`, `useScroll`-driven progress is inert, primary and secondary mats stack as flow siblings. Rails (`.rr-rules-rail`, `.rr-note-rail`) keep their desktop content and click-to-flip behavior, but the open transforms are swapped to mobile-specific **inline** values (`OPEN_TRANSFORM_MOBILE` in each consumer — see "Mobile open transforms live inline, not in CSS" above) so the visible rest position has the rail body tucked under the board with only the tab peeking past the board's right edge:
 
 - **Closed**: both rails sit at their natural desktop positions (`translateX(0)`); the body lies under the board (board is z:4, rails default z), and the tab — which protrudes past the rail body's right edge — is the only visible element. Game board is `position: relative; z-index: 4`; tabs are `z-index: 6` so they remain tappable above the scorecard.
 - **Open**: rules slides `translateX(-50px)` so the panel lands on top of the board; note slides `translateX(0)` (already in position). Both promote to `z-index: 5` when `.is-open`.
 
-The inline-style transform set by the React component is beaten with `!important`. Transition is `transform 0.95s var(--ease-paper)` — same easing token as everything else, longer duration for the rail-glide feel.
+Transforms are **not** overridden in CSS — that approach stalled inside `.rr-mech-family` (see above); the inline transform channel stays authoritative. CSS keeps only the z-index ladder and the `transition: transform var(--dur-glide) var(--ease-paper)` timing, which applies to the inline transform changes just like on desktop.
 
 Stacking ladder is local and tight (board:4 / rail-open:5 / tab:6). Adding any new positioned sibling under `.rr-mech-family` should explicitly land outside this band or the closed-state tuck breaks.
 
-Two JS affordances are gated off by `window.matchMedia('(max-width: 767px)')` — both in `Mechanics.tsx`/`RulesRail.tsx`:
+Two JS affordances are gated off by `window.matchMedia('(max-width: 767px), (max-height: 500px)')` — both in `Mechanics.tsx`/`RulesRail.tsx`:
 
 - **Rules first-visit auto-open** (1s delay). Skipped on mobile — competes with initial scroll. On mobile the first click on the rail treats firstVisit as "open + mark seen" in one tap, not "dismiss then re-open" (otherwise the user would have to click twice).
 - **End-of-game auto-scroll** to the secondary mat. Skipped on mobile — there is no scroll-bound split to advance to; primary and secondary are sibling blocks, so the scroll jump hijacks the user's position.
@@ -569,7 +570,7 @@ Click-to-expand is disabled on mobile (`.rr-rules-inner { pointer-events: none }
 - `.is-split` visibility gate on the secondary mat
 - The fixed 678px width of both mats (this is what makes the desktop choreography feel natural)
 - `#mechanics::after { display: none }`
-- The `?? sheet` fallback in `ChapterMarker.tsx`
+- The `?? sheet` fallback in `useDockedMarker.ts`
 - `rect.top + window.scrollY` (not `offsetTop`) in `handleGameOver`
 - `overflow: clip` on `.mat` base class — `hidden` breaks ChapterMarker sticky
 - `#cards.mat { background-image: none }` + `#cards::before` grid — z-index control over shader
@@ -652,21 +653,19 @@ Don't replace the IntersectionObserver with a scroll listener or a useScroll pro
 
 ---
 
-## Mechanics card button-press pulse — perspective lives on `.rr-mat--secondary`
+## Mechanics card button-press pulse — shared keyframe, snap tier
 
 Lives in `app/(works)/rr/rr.css` + `app/(works)/rr/components/StoryCard.tsx`.
 
-The story↔structure tab toggle on the mechanics card runs a button-press feedback pulse: the whole card briefly recedes on the z-axis and comes back. Implementation:
+The story↔structure tab toggle on the mechanics card runs a button-press feedback pulse via the **shared `card-press` keyframe in `globals.css`** (also consumed by the landing spectrum and the biconomy SA stack):
 
-- **`.rr-mat--secondary { perspective: 800px }`** — this is the load-bearing constraint. Perspective only resolves a child's `translateZ` as actual depth when no intermediate ancestor flattens the 3D coordinate space. Default `transform-style: flat` means each ancestor without `preserve-3d` collapses 3D back to a flat plane.
+- The keyframe animates the standalone `scale` property (1 → 0.98 → 1) so it composes with `useMatSettle`'s scroll-driven transforms and the toggle's `rotate:`. Do not rewrite it as `transform: scale()` — that channel is owned elsewhere.
 
-  The card's chain is `.rr-mech-stage → .rr-mat--secondary → .rr-story-card--mechanics`. Putting perspective on `.rr-mech-stage` (one level too high) leaves `.rr-mat--secondary` flattening the 3D — the keyframe animates the `translate` value but the visual depth never renders. Perspective on the card's **direct parent** is the only place it actually shows. If you ever move the card under a deeper container, move perspective with it.
+- It runs on the snap tier (`animation: card-press var(--dur-fast) var(--ease-snap)`) — tactile and quick, the right register for a tab-switch micro-interaction. Do not promote it to the paper tier; a slow press stops reading as feedback.
 
-- **`rr-card-press` keyframe** animates the standalone `translate:` property (not `transform:`) so it composes with `useMatSettle`'s scroll-driven scale and the toggle's `rotate:`. Recede peak is `translateZ(-16px)` at the 45% keyframe — visually ~2% scale (perspective math: `800/(800+16) = 0.98`). Subtle by design — a press feedback, not a shove.
+- **React-driven trigger**: a `useEffect` on `isStructure` adds `is-pressing` to the card and removes it after a 220ms timeout (the `--dur-fast` window plus margin). First render skips via a ref (`isFirstRenderRef`) so the card doesn't pulse on mount. Cleanup clears the timeout and removes the class so a rapid re-toggle restarts the keyframe cleanly.
 
-- **React-driven trigger**: a `useEffect` on `isStructure` adds `is-pressing` to the card and removes it after a 460ms timeout. The timeout = animation duration (`--dur-settle` 425ms) + 35ms margin. First render skips via a ref (`isFirstRenderRef`) so the card doesn't pulse on mount. Cleanup clears the timeout and removes the class so a rapid re-toggle restarts the keyframe cleanly.
-
-Do not raise the keyframe peak past ~`-32px` — past ~5% scale the press stops reading as feedback and starts reading as a depth swap. Do not lower the perspective value below ~600px — too sharp a perspective makes the recede look like a tilt instead of a press.
+An earlier implementation used `perspective: 800px` on `.rr-mat--secondary` with a `translateZ` recede keyframe; it was replaced by the shared scale keyframe. Do not resurrect the 3D version — the shared keyframe is the canonical press vocabulary across routes.
 
 ---
 
@@ -694,7 +693,7 @@ The dotted underline beneath "only test" and the dotted S-curve down to North St
 
 ## Rules-rail vertical tab — t-btn1 underline suppressed
 
-`.rr-rules-rail__tab-inner` (rr.css ~line 728) uses `t-btn1` typography but explicitly resets `text-decoration: none` and `::after { display: none }`. Reason: the tab uses `writing-mode: vertical-lr` to rotate the "Rules" label 90° along the rail's right edge, and under that mode `t-btn1`'s dotted underline AND its `::after` solid-bar both render along the rotated right edge — they read as a stray vertical line in the corner of the rail, not as an underline.
+`.rr-rules-rail__tab-inner` (rr.css) uses `t-btn1` typography but explicitly resets `text-decoration: none` and `::after { display: none }`. Reason: the tab uses `writing-mode: vertical-lr` to rotate the "Rules" label 90° along the rail's right edge, and under that mode `t-btn1`'s dotted underline AND its `::after` solid-bar both render along the rotated right edge — they read as a stray vertical line in the corner of the rail, not as an underline.
 
 This is a documented opt-out from `t-btn1`'s decoration, scoped tight to the vertical-text element.
 
