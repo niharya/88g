@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prepare": "git config core.hooksPath .githooks || true",
     "prebuild": "node scripts/generate-image-manifest.mjs",
     "build": "next build",
     "start": "next start",
     "lqip": "node scripts/generate-image-manifest.mjs",
-    "optimize-images": "node scripts/optimize-images.mjs"
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "census": "node scripts/doc-census.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

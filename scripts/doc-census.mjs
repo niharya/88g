@@ -49,6 +49,12 @@ walk(APP, (p) => {
   else if (p.endsWith('/CLAUDE.md')) digests.push(p)
   else if (p.endsWith('/page.tsx')) pages.push(p)
 })
+// Family nodes also live under docs/ (e.g. docs/scriptorium/CLAUDE.md — a
+// pure contract pointer). Include them so headers and links get checked.
+const DOCS = join(ROOT, 'docs')
+if (existsSync(DOCS)) walk(DOCS, (p) => {
+  if (p.endsWith('/CLAUDE.md')) digests.push(p)
+})
 
 // ── 1. Pairing: archive ⇒ digest ──────────────────────────────────────────
 for (const a of anomalies) {

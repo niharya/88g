@@ -29,7 +29,7 @@ The docs are a tree. Every node knows its parent; the trunk discovers its branch
 * New anomaly → archive entry **and** digest line, same commit (the anomaly-librarian agent's job).
 * A code change that invalidates a doc claim fixes the doc in the same change.
 * Anchors are selectors/symbols/comment-headers — never line numbers. Docs never restate values the code owns; name the token and where it lives (`globals.css` is the source of truth for all token values).
-* `node scripts/doc-census.mjs` is the roll-call — run by `/release` on every push: digests paired with archives, no orphan routes, family headers present, links resolving.
+* `node scripts/doc-census.mjs` (or `npm run census`) is the roll-call: digests paired with archives, no orphan routes, family headers present, links resolving. Run by `/release`, and **enforced by a git `pre-push` hook** (`.githooks/pre-push`, wired via `core.hooksPath` on `npm install`) so a manual push can't ship a broken family — bypass only with `git push --no-verify`.
 
 ## Hard rules
 

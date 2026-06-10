@@ -2,6 +2,7 @@
 # Doc-family hook — image-pipeline reminder. The LQIP manifest goes stale
 # silently when assets under public/ change (dev falls back to raw <img>
 # with only a console warning).
+command -v jq >/dev/null 2>&1 || exit 0   # fail open if jq is absent
 input=$(cat)
 path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
 case "$path" in
