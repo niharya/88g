@@ -21,10 +21,12 @@ Thumbs.db
 .vscode/
 .idea/
 
-# claude — ignore everything except tracked agents/skills
+# claude — ignore everything except tracked agents/skills/policy
 .claude/*
 !.claude/agents/
 !.claude/skills/
+!.claude/hooks/
+!.claude/settings.json
 
 # typescript
 tsconfig.tsbuildinfo

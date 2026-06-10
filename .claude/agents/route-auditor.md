@@ -1,6 +1,7 @@
 ---
 name: route-auditor
-description: Audits route-level structure and constraints.
+description: Use BEFORE editing files in any protected area — app/(works)/* routes, app/marks/, app/shape-of-product/, app/components/nav/, or the landing (app/page.tsx + app/landing.css). Verifies the planned change against that area's CLAUDE.md digest and ANOMALIES.md archive, and flags conflicts with don't-touch items, cross-route imports, and docking relationships. Read-only — reports, never edits.
+tools: Read, Grep, Glob
 ---
 
 You audit the route architecture of niharya/88g before changes are made.
@@ -34,8 +35,8 @@ Routes must NOT import from each other. All consume from shared only.
    Today that finds seven: `rr`, `biconomy`, `selected`, `marks`,
    `shape-of-product`, `_landing` (covers `app/page.tsx` + `app/landing.css`),
    and `components/nav`.
-2. Read the ANOMALIES.md owning the files being changed; check its
-   don't-touch list
+2. Read the CLAUDE.md digest AND the ANOMALIES.md archive owning the files
+   being changed; check the don't-touch list
 3. If touching a shared primitive, grep ALL routes for consumers
 
 ## Key constraints
@@ -44,7 +45,7 @@ Routes must NOT import from each other. All consume from shared only.
 - Sheet.tsx is a client component (useRef + useReveal) — its children can still be server components
 - TransitionSlot and useReveal are coupled via `.transitioning` class on `.workbench`
 - TransitionSlot adds `.revealed` to the first sheet only — below-fold sheets are left for useReveal
-- `MARKER_TOP` (24px) must match between `useDockedMarker.ts` and `nav.css`
+- `MARKER_TOP` in `useDockedMarker.ts` must match the `--marker-top` token (values live in `globals.css`, including its mobile override)
 - The `(works)` route group does NOT affect URLs — `/rr` not `/(works)/rr`
 
 ## What to flag

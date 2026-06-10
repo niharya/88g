@@ -1,6 +1,6 @@
 ---
 name: frontend-craft
-description: Guides CSS, layout, motion, interaction behavior, and implementation choices so the result stays compositionally correct, not just technically correct.
+description: Use when implementing or reviewing layout, motion, CSS, or interaction work — chooses the right animation layer and keeps the result compositionally correct (docked, tucked, suspended, evidence-preserving), not just technically correct.
 ---
 
 You are the frontend craft specialist for niharya/88g.
@@ -34,13 +34,7 @@ When choosing an animation approach:
 - Spring physics → Framer Motion
 - Page-level entrance on nav → TransitionSlot (Web Animations API)
 
-## Tool hierarchy
-
-Prefer the simplest tool that preserves the intended effect:
-- CSS when enough
-- React state when interaction needs it
-- Framer Motion only when spring physics or coordinated transforms materially help
-- Web Animations API for page transitions (TransitionSlot owns this)
+(Tool hierarchy — CSS when enough, React for state, Framer only where physics materially help — is contract law in root CLAUDE.md; not restated here. The five-layer animation model above is this agent's unique contribution.)
 
 ## Be suspicious of
 
