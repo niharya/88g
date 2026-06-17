@@ -265,6 +265,194 @@
 }
 
 
+/* ── The ticket ("BROWSE IN TWO WAYS") ────────────────────────────────────── */
+/* Resting state here; Phase 4 morphs it into a pinned navbar. The per-state
+   values (padding, title size, divider height, close width, etc.) are set
+   inline by Ticket.tsx — like the prototype's renderVals — so this file owns
+   only structure + the transitions, all on our --ease-paper / --dur-* tiers
+   (the design's cubic-bezier(.65,0,.35,1) maps to --ease-paper). */
+.bench-ticket-slot {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 460px;
+  margin: clamp(56px, 7vh, 92px) auto 0;
+}
+
+.bench-ticket {
+  background: var(--terra-80);
+  border: 1.5px solid var(--terra-240);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 12px 28px -4px rgba(0, 0, 0, 0.16);
+  padding: 7px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bench-ticket__frame {
+  position: relative;
+  height: 100%;
+  border: 1px solid var(--terra-160);   /* border-color overridden inline on morph */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition:
+    padding var(--dur-glide) var(--ease-paper),
+    border-color var(--dur-settle) var(--ease-paper);
+}
+
+.bench-ticket__eyebrow {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  justify-content: center;
+  transition:
+    max-height var(--dur-glide) var(--ease-paper),
+    opacity var(--dur-settle) var(--ease-paper),
+    margin var(--dur-glide) var(--ease-paper),
+    transform var(--dur-glide) var(--ease-paper);
+}
+.bench-ticket__eyebrow-rule { height: 1px; width: 56px; }
+.bench-ticket__eyebrow-rule--l {
+  background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%);
+}
+.bench-ticket__eyebrow-rule--r {
+  background: linear-gradient(90deg, var(--terra-240) 0%, rgba(226, 184, 119, 0) 100%);
+}
+.bench-ticket__eyebrow-label {
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--terra-720);
+  white-space: nowrap;
+}
+
+.bench-ticket__tabs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  align-items: center;
+  width: 100%;
+}
+
+.bench-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    padding var(--dur-glide) var(--ease-paper);
+}
+.bench-tab:hover {
+  background: color-mix(in srgb, var(--terra-560) 14%, transparent);
+}
+
+.bench-tab__title {
+  font-family: var(--font-display), serif;
+  font-variation-settings: 'WONK' 1;
+  letter-spacing: -0.4px;
+  line-height: 1.05;
+  transition: font-size var(--dur-glide) var(--ease-paper);
+}
+.bench-tab__title--swap {
+  position: relative;
+  display: inline-block;
+}
+.bench-tab__ink {
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  transition:
+    color var(--dur-slide) var(--ease-snap),
+    text-decoration-color var(--dur-slide) var(--ease-snap),
+    opacity var(--dur-slide) var(--ease-snap);
+}
+.bench-tab__ink--alt {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.bench-tab__sub {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--terra-720);
+  transition:
+    max-height var(--dur-glide) var(--ease-paper),
+    opacity var(--dur-settle) var(--ease-paper),
+    margin-top var(--dur-glide) var(--ease-paper);
+}
+.bench-tab:hover .bench-tab__sub {
+  text-decoration: underline solid var(--terra-720);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* Perforated divider + diamond bead */
+.bench-perf {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 18px;
+}
+.bench-perf__line {
+  display: block;
+  width: 4px;
+  background-repeat: repeat-y;
+  background-position: center;
+  transition: height var(--dur-glide) var(--ease-paper);
+}
+.bench-perf__bead {
+  position: absolute;
+  background: var(--terra-80);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--terra-560);
+  transition: opacity var(--dur-settle) var(--ease-paper);
+}
+
+/* Close ✕ — hidden when resting, arrives as the bar forms (Phase 4) */
+.bench-ticket__close {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--terra-560);
+  transition:
+    width var(--dur-glide) var(--ease-paper),
+    opacity var(--dur-settle) var(--ease-paper),
+    color var(--dur-instant) var(--ease-snap);
+}
+.bench-ticket__close:hover { color: var(--terra-960); }
+
+
 /* ── Entrance: slide in from the right when arriving from landing ──────────── */
 /* Landing sits to the bench's left in the mental model. SlideInOnNav adds the
    class on mount; the card + marker carry the lateral slide. */

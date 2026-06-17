@@ -4,7 +4,7 @@ import './bench.css'
 import SlideInOnNav from '../../components/SlideInOnNav'
 import { pinyon } from './fonts'
 import BenchExitMarker from './components/Essay/BenchExitMarker'
-import InvitationCard from './components/Essay/InvitationCard'
+import BenchEssay from './components/Essay/BenchEssay'
 
 export const metadata: Metadata = {
   title: 'Selected Work',
@@ -34,7 +34,7 @@ export default function BenchPage() {
           of the card; Phase 6 mounts the work panel (Timeline / Showcase). */}
       <div className="bench-stage">
         <BenchExitMarker />
-        <InvitationCard />
+        <BenchEssay />
       </div>
     </div>
   )
