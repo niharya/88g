@@ -87,6 +87,7 @@ export default function Ticket({
               type="button"
               className="bench-tab"
               onClick={onLongform}
+              aria-current={cond && lfActive ? 'true' : undefined}
               style={{ padding: cond ? '6px 8px' : '13px 12px 13px 22px' }}
             >
               <div className="bench-tab__title" style={{ fontSize: titleFont }}>
@@ -119,6 +120,7 @@ export default function Ticket({
               type="button"
               className="bench-tab"
               onClick={onVisual}
+              aria-current={cond && visActive ? 'true' : undefined}
               style={{ padding: cond ? '6px 8px' : '13px 22px 13px 12px' }}
             >
               <div className="bench-tab__title bench-tab__title--swap" style={{ fontSize: titleFont }}>

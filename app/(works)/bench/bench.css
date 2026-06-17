@@ -231,6 +231,16 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  /* Calm ambient drift — the design's 9s linear wave, slowed to a barely-there
+     16s so it reads as light catching the ink, not motion competing for
+     attention. Ambient by intent (below the interaction tiers); gated on
+     reduced motion below. */
+  animation: bench-current 16s linear infinite;
+}
+
+@keyframes bench-current {
+  from { background-position: 0% 50%; }
+  to   { background-position: 200% 50%; }
 }
 
 .bench-poem--second {
@@ -241,6 +251,9 @@
     var(--blue-800) 0%, var(--blue-720) 25%, var(--blue-800) 50%,
     var(--blue-720) 75%, var(--blue-800) 100%
   );
+  /* a touch slower + offset so the two stanzas don't pulse in unison */
+  animation-duration: 19s;
+  animation-delay: -6s;
 }
 
 
@@ -563,4 +576,19 @@
 
   /* Tighter ticket on small screens. */
   .bench-ticket-slot { margin-top: clamp(40px, 6vh, 64px); }
+}
+
+
+/* ── Reduced motion ────────────────────────────────────────────────────────── */
+/* The morph + scroll glide are gated in JS (useBenchMorph snaps to end-states);
+   this covers the CSS-driven ambient gradient + the entrance slide. */
+@media (prefers-reduced-motion: reduce) {
+  .bench-poem,
+  .bench-poem--second {
+    animation: none;
+  }
+  .bench-workbench--slide-in .bench-exit,
+  .bench-workbench--slide-in .bench-card {
+    animation: none;
+  }
 }
