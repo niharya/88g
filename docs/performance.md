@@ -44,42 +44,58 @@ Case-study routes can load decorative fonts via `next/font/local` in their own l
 
 ## Material Symbols icons
 
+**The registry is the single source of truth: [`app/lib/icons.ts`](../app/lib/icons.ts) → `ICON_NAMES`.** Everything hangs off that list — usage is type-checked against it, the subset is built from it, and a check fails the push if they drift. This replaced the hand-maintained list that broke three times in one session (`keyboard_arrow_*`, then `play_circle`/`pause_circle`) — each a grep that missed a usage pattern.
+
 **The contract:**
 
-- Material Symbols is **subsetted**. The current `app/fonts/MaterialSymbolsRounded-normal.woff2` contains only the glyphs needed for the icons listed below, plus the `wght` and `FILL` variation axes. Down from 5.1 MB (full font) to ~1.1 MB.
-- Adding a new icon requires re-subsetting and replacing the file. You cannot just use a new ligature name — the glyph won't be in the font.
+- **Use icons only through the typed paths**, so an icon not in the registry is a *compile error*: `<MaterialIcon name="…">` ([app/components/MaterialIcon.tsx](../app/components/MaterialIcon.tsx)) for spans, or NavMarker's `icon` prop. Never hand-write a `.material-symbols-rounded` (or route-local symbol-font) span — that's how icons escaped the inventory.
+- **The shipped font is a ~4.5 KB subset** — `app/fonts/MaterialSymbolsRounded-subset.woff2` — built **from `ICON_NAMES`** by `npm run icons`, with the `FILL` + `wght` axes. (Source font kept, non-shipping, at `scripts/material-symbols-source.woff2`; full font is 5+ MB.) It's **`preload: true`** so it loads inside the page-gate window — icons are ready at reveal, no raw-ligature flash.
+- **Enforced:** `npm run icons:check` ([scripts/check-icons.mjs](../scripts/check-icons.mjs), pure Node) compares the registry to `app/fonts/icon-manifest.json` (written by the build) and fails if they diverge. The **pre-push hook runs it** — a stale subset blocks the push.
+- **Ligature-only, no codepoints.** The glyphs have no `cmap` codepoints, so they're reachable only via GSUB ligatures; the build resolves name→glyph and subsets **with closure OFF** ([scripts/icon_subset.py](../scripts/icon_subset.py)) — a naive `--text` subset balloons to 787 KB (the closure drags in the whole 3,200-icon library).
+- **One exception:** `close` is consumed only by a CSS `content: 'close'` ligature (the /rr NoteRail mobile swap), which can't be typed. It lives in `ICON_NAMES` (so the subset has it) but its single use isn't compiler-enforced — flagged in `icons.ts`.
 
-**Currently subsetted icons (13):**
+**Adding an icon:**
 
-```
-add               arrow_back        arrow_downward    arrow_drop_down
-arrow_forward     arrow_upward      article           category
-collapse_content  emergency_home    expand_content    info
-title
-```
+1. Add its Material Symbols Rounded ligature name to `ICON_NAMES` in `app/lib/icons.ts`.
+2. Use it via `<MaterialIcon name="…">` or a NavMarker `icon` prop (TypeScript confirms it's in the registry).
+3. `npm run icons` to rebuild the subset + manifest (needs Python + `fonttools`/`brotli`). `npm run icons:check` (and the pre-push hook) then pass.
 
-**Re-subsetting flow (when you need a new icon):**
-
-1. Add the new icon name to the list above.
-2. Compute the unique character set from all icon names: `echo "<icons>" | tr ' ' '\n' | fold -w1 | sort -u | tr -d '\n'`.
-3. Fetch the subset CSS from Google Fonts:
-   ```
-   https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:wght,FILL@100..700,0..1&text=<chars>&display=swap
-   ```
-4. Extract the `https://fonts.gstatic.com/...` font URL from the CSS.
-5. Download with the right headers (Google Fonts rejects bare curl):
-   ```
-   curl -sLA "Mozilla/5.0 (...Chrome/120.0.0.0...)" \
-     -H "Sec-Fetch-Dest: font" -H "Sec-Fetch-Mode: cors" \
-     -H "Sec-Fetch-Site: cross-site" -H "Origin: https://fonts.googleapis.com" \
-     -o app/fonts/MaterialSymbolsRounded-normal.woff2 "<font-url>"
-   ```
-6. Verify the file is the expected size (~1 MB with `wght` + `FILL` axes; ~270 KB without any axes).
+**Tally — 15 icons (auto-checked against the registry):** `add` `arrow_back` `arrow_downward` `arrow_drop_down` `arrow_forward` `article` `category` `close` `emergency_home` `info` `keyboard_arrow_down` `keyboard_arrow_up` `pause_circle` `play_circle` `title`. (The registry in `icons.ts` is canonical; this list is a convenience copy.)
 
 **Banned:**
 
-- The full Material Symbols woff2 (5+ MB). Hard "no."
-- Adding `font-variation-settings` for `GRAD` or `opsz` to icons — those axes were dropped from the subset to save weight. Default values render fine at the sizes the portfolio uses (18–24px).
+- Hand-written `.material-symbols-rounded` / symbol-font spans, or NavMarker `icon` strings outside the registry — they bypass the type check and drift the subset.
+- The full Material Symbols woff2 (5+ MB) or the 1.18 MB ligature distribution as a *shipped* asset (the kept source in `scripts/` is a build input, not bundled).
+- Subsetting by `--text` alone (closure → 787 KB) or `--unicodes` (no codepoints → empty).
+- `font-variation-settings` for `GRAD`/`opsz` on icons — not in the subset; `FILL` (info toggle) + `wght` are.
+
+---
+
+## UI font (Google Sans Flex)
+
+**The contract:**
+
+- `--font-ui` (the wide-width label font behind `.t-h5` / `.t-btn1`, nav, chips) is a variable font, **partial-instanced to the axis ranges the CSS actually uses** — not the full designspace. 643 KB → **261 KB**, no visual change.
+- Why: the full 643 KB couldn't load inside the page-gate window on Slow 3G, so the page revealed with the wide font snapping in late. At 261 KB it makes the deadline. (`opsz` deltas dominate the file; holding `opsz` to the used `18–24` instead of the full `6–144` is most of the saving.)
+- **Ranges (must cover every `font-variation-settings` value on `--font-ui`):** `opsz 18–24 · wdth 50–140 · wght 300–900 · GRAD 0–80 · ROND 0–100`. Sweep both literal CSS and `var(--*-font-axes)` custom properties (e.g. `--rr-font-axes`) before tightening — a value outside the range clips silently.
+
+**Re-instancing flow (when a new axis value is needed):**
+
+1. Restore the **original** from git (the working file is already trimmed): `git show <rev>:app/fonts/GoogleSansFlex-variable.woff2 > /tmp/flex-src.woff2`.
+2. Widen the relevant range and re-instance with fontTools (`pyftsubset`'s python):
+   ```python
+   from fontTools.varLib.instancer import instantiateVariableFont
+   from fontTools.ttLib import TTFont
+   f = TTFont("/tmp/flex-src.woff2")
+   instantiateVariableFont(f, {"opsz":(18,24),"wdth":(50,140),"wght":(300,900),"GRAD":(0,80),"ROND":(0,100)}, inplace=True)
+   f.flavor = "woff2"; f.save("app/fonts/GoogleSansFlex-variable.woff2")
+   ```
+3. Verify size + that the wide labels (`wdth 120`) still render wide.
+
+**Banned:**
+
+- Shipping the full-range 643 KB variable font — it misses the gate on slow connections.
+- Pinning an axis the CSS varies (all five are used: `opsz wdth wght GRAD ROND`) — pinning collapses a used distinction. Range-limit, don't pin.
 
 ---
 
@@ -124,7 +140,7 @@ The five `--dur-*` tokens (`instant` / `fast` / `slide` / `settle` / `glide`) li
 
 - **Adding a font.** New `.woff2` in `app/fonts/`, `localFont(...)` in `layout.tsx` with `display: 'swap'` + `fallback`, LIBRARY.md entry. Do **not** redeclare `--font-*` in `globals.css`. No external link. Preload only if landing uses it.
 - **Adding an image.** Drop a `.webp` (or convert immediately) in `public/images/<route>/`. Use `<Img>`. Run `npm run lqip`. If the source was huge, run `npm run optimize-images` first.
-- **Adding an icon.** Add to the icons list above. Re-subset. Replace `MaterialSymbolsRounded-normal.woff2`. Verify size.
+- **Adding an icon.** Add to the icons list above and re-subset from the source font (closure OFF, by glyph name) into `MaterialSymbolsRounded-subset.woff2` — see the re-subsetting flow above. Verify size + ligature resolution.
 - **Touching motion tokens.** Don't, unless you've discussed why with the user. Inline durations in component CSS are fine for one-off cases.
 
 ---

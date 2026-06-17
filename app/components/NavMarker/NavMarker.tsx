@@ -38,6 +38,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import type { Ref } from 'react'
 import Link from 'next/link'
 import Monostamp from '../Monostamp'
+import type { IconName } from '../../lib/icons'
 
 export type NavMarkerRole = 'project' | 'chapter' | 'exit'
 export type NavMarkerTone = 'neutral' | 'terra' | 'mint'
@@ -48,7 +49,10 @@ interface BaseProps {
   role:                NavMarkerRole
   tone?:               NavMarkerTone
   state?:              NavMarkerState
-  icon?:               React.ReactNode | string
+  // String icons are constrained to the registry (app/lib/icons.ts) so a glyph
+  // the subset font won't have is a compile error; non-string ReactNodes (inline
+  // SVG marks like RrSpike, <IconExternalLink>, <img>) are still allowed.
+  icon?:               IconName | Exclude<React.ReactNode, string>
   iconRef?:            Ref<HTMLSpanElement>
   label:               React.ReactNode
   sublabel?:           React.ReactNode

@@ -25,4 +25,16 @@ if ! node "$census"; then
   echo "Fix the family, or bypass for an emergency with: git push --no-verify" >&2
   exit 1
 fi
+
+# Icon roll-call — block a push when the shipped Material Symbols subset is out
+# of sync with the icon registry (app/lib/icons.ts), i.e. a used icon would
+# render as raw ligature text. Pure Node (no font tooling); rebuild with
+# `npm run icons`. See docs/performance.md → "Material Symbols icons".
+icons_check="$repo_root/scripts/check-icons.mjs"
+if [ -f "$icons_check" ] && ! node "$icons_check"; then
+  echo "" >&2
+  echo "pre-push BLOCKED: the icon subset is stale (see check output above)." >&2
+  echo "Run \`npm run icons\` to rebuild it, or bypass with: git push --no-verify" >&2
+  exit 1
+fi
 exit 0

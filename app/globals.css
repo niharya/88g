@@ -319,23 +319,19 @@
   opacity: 1;
 }
 
-/* ── Font gate ───────────────────────────────────────────────────────────
-   Top-level surfaces are held invisible until either
-     (a) the inline script in app/layout.tsx lands `.fonts-ready` on
-         <html> — fires when document.fonts.ready resolves OR its 1000 ms
-         JS cap, whichever first; OR
-     (b) the CSS-only failsafe animation below auto-releases the gate at
-         1500 ms.
-   The failsafe is the bulletproof path: it runs purely from declarative
-   CSS, so a fresh device whose first paint is delayed by CSS-fetch
-   blocking the inline script (scripts after a stylesheet wait for it),
-   hydration pressure, or any environment where the script is late or
-   never runs, will still see the page. Without the failsafe the diamond
-   could appear "stuck" indefinitely on cold-cache first opens.
-
-   Both paths set the same end state (opacity: 1, pointer-events: auto)
-   so the JS path can shortcut the failsafe at any time without conflict.
-   The .page-boot startooth lives outside these gated surfaces. */
+/* ── Page gate ───────────────────────────────────────────────────────────
+   Top-level surfaces are held invisible — behind the .page-boot loader —
+   until the page is actually READY, then revealed. Released by either:
+     (a) the inline script in app/layout.tsx landing `.fonts-ready` on <html>
+         when BOTH `window.load` (above-the-fold images + subresources) AND
+         `document.fonts.ready` have settled, or an 8000 ms cap; OR
+     (b) the CSS-only failsafe animation below auto-releasing at 8000 ms if the
+         script is late or never runs (e.g. blocked behind the stylesheet).
+   The animated loader holds the screen for the whole wait, so a long hold on
+   a slow connection reads as "loading," not frozen — which is why we gate the
+   full payload now, not just fonts (the old 1 s font-only cap revealed a
+   half-loaded page and you watched elements pop in). `fonts-ready` is a legacy
+   class name — it now means "page ready," not just fonts. */
 @keyframes page-gate-failsafe {
   to { opacity: 1; pointer-events: auto; }
 }
@@ -347,7 +343,7 @@
   /* opacity:0 alone does not block events — pointer-events:none does.
      The failsafe animation flips both at the same keyframe. */
   pointer-events: none;
-  animation: page-gate-failsafe 1ms linear 1500ms forwards;
+  animation: page-gate-failsafe 1ms linear 8000ms forwards;
 }
 html.fonts-ready .landing,
 html.fonts-ready .workbench,
@@ -357,7 +353,10 @@ html.fonts-ready .route-sop {
   pointer-events: auto;
   /* Cancel the failsafe so the JS path's transition owns the reveal. */
   animation: none;
-  transition: opacity var(--dur-settle) var(--ease-paper);
+  /* Sequenced handoff: the 80ms delay lets the loader lead its lift-away
+     (page-boot-out below) before the page settles in, so the two don't
+     resolve on the same frame — the abrupt-flip the reveal used to be. */
+  transition: opacity var(--dur-settle) var(--ease-paper) 80ms;
 }
 
 /* ── Skip-to-content link ────────────────────────────────────────────────
@@ -386,9 +385,9 @@ html.fonts-ready .route-sop {
 
 /* ── Page boot — patience mark ───────────────────────────────────────────
    During the gate hold, the page surfaces above are invisible. Instead of
-   showing blank paper, a centered startooth fades in ~200 ms after mount
-   (so fast loads never flash it) and fades out when `.fonts-ready`
-   applies. The mark recolours per route via CSS vars below. */
+   showing blank paper, the StartoothLoader fades in ~120 ms after mount (so
+   fast loads barely flash it) and fades out when `.fonts-ready` applies. The
+   mark recolours per route via CSS vars below. */
 .page-boot {
   position: fixed;
   inset: 0;
@@ -398,56 +397,65 @@ html.fonts-ready .route-sop {
   pointer-events: none;
   z-index: 1;
   opacity: 0;
-  /* Two animations in sequence: in at 200ms, then a CSS-only failsafe
-     fade-out at 1500ms. Pairs with the gate failsafe above so the
-     diamond never outlives the gate when JS is late or never runs.
-     `html.fonts-ready .page-boot` overrides this with the JS path. */
+  /* Two animations: fade in at 120 ms, then a CSS-only failsafe fade-out at
+     8000 ms that matches the gate failsafe above, so the loader never outlives
+     the gate when JS is late or never runs. `html.fonts-ready .page-boot`
+     overrides this with the JS path (fades out the moment the page is ready). */
   animation:
-    page-boot-in var(--dur-slide) var(--ease-paper) 200ms forwards,
-    page-boot-out var(--dur-slide) var(--ease-paper) 1500ms forwards;
+    page-boot-in var(--dur-slide) var(--ease-paper) 120ms forwards,
+    page-boot-out var(--dur-slide) var(--ease-paper) 8000ms forwards;
 }
 
-.page-boot__mark {
-  width: 56px;
-  height: auto;
-  display: block;
+/* Per-route palette — the StartoothLoader inherits these two colours (and,
+   on the twinkle routes, the movement preset). Replaces the old
+   --startooth-stroke / --startooth-fill pair. --loader-lit = the animated
+   line accent (was the stroke); --loader-sticker = the die-cut hull tint
+   (was the fill). The resting base stroke derives from both inside
+   startooth-loader.css. */
+:root {
+  --loader-lit:     var(--blue-560);
+  --loader-sticker: var(--blue-100);
 }
-
-.startooth__diamond {
-  stroke: var(--startooth-stroke, #31abcc);
-  fill: none;
-}
-.startooth__base {
-  stroke: var(--startooth-stroke, #31abcc);
-  fill: var(--startooth-fill, #d9d9d9);
-}
-
 :root:has(.route-biconomy) {
-  --startooth-stroke: var(--blue-560);
-  --startooth-fill: var(--grey-960);
+  --loader-lit:     var(--blue-560);
+  --loader-sticker: var(--blue-100);
 }
 :root:has(.route-rr) {
-  --startooth-stroke: var(--terra-560);
-  --startooth-fill: var(--grey-960);
+  --loader-lit:     var(--terra-560);
+  --loader-sticker: var(--terra-100);
 }
 :root:has(.selected-workbench) {
-  --startooth-stroke: var(--blue-800);
-  --startooth-fill: var(--blue-80);
+  --loader-lit:     var(--blue-800);
+  --loader-sticker: var(--blue-100);
 }
 :root:has(.landing) {
-  --startooth-stroke: #bb4311;
-  --startooth-fill: #d76a36;
+  --loader-lit:     var(--orange-800);
+  --loader-sticker: var(--orange-100);
 }
-/* /marks sits on a black field — startooth stroke goes white, diamond
-   fill picks up the lightest grey token so the mark reads as paper-on-
-   void, matching the Hero palette. The `#fff` and `#000` literals are
-   deliberate: the grey palette tops out at #F5F5F5 (--grey-960) and
-   bottoms at #141414 (--grey-80). Pure-white/-black aren't tokens — do
-   not "fix" these to the nearest grey. */
+/* /marks sits on a black field. Unlike the old solid mark, the loader is
+   line-art on a die-cut hull, so the lines must contrast the hull rather than
+   the page: dark ink on a light paper hull reads as a little sticker pressed
+   onto the void. The #000 field stays. The grey palette tops out at #F5F5F5
+   (--grey-960) and bottoms at #141414; pure black isn't a token — don't
+   "fix" the literal. */
 :root:has(.route-marks) {
-  --startooth-stroke: #ffffff;
-  --startooth-fill: var(--grey-960);
+  --loader-lit:     var(--grey-160);
+  --loader-sticker: var(--grey-960);
   background: #000;
+}
+
+/* Movement per route (pure CSS, no JS on the first-paint path). Trace is the
+   component default (biconomy / rr / selected / fallback); landing and /marks
+   take the quieter twinkle. Setting the preset vars on the boot mount
+   overrides the component default without a prop — the shared layout can't
+   know the route at render time, so CSS owns the choice the same way colour
+   does above. */
+:root:has(.landing) .page-boot .startooth-loader,
+:root:has(.route-marks) .page-boot .startooth-loader {
+  --loader-anim:    sl-pulse;
+  --loader-dur:     2s;
+  --loader-ease:    ease-in-out;
+  --loader-stagger: -0.25;
 }
 
 html.fonts-ready .page-boot {
@@ -459,7 +467,31 @@ html.fonts-ready .page-boot {
 }
 
 @keyframes page-boot-out {
-  to { opacity: 0; }
+  /* The loader doesn't just fade — it lifts a hair off the desk and recedes
+     as it goes, so the handoff reads as the mark being lifted away rather
+     than switched off. Settles on --ease-paper; transform on .page-boot (an
+     overlay with no fixed-position content) so nothing's containing block
+     is affected. */
+  to { opacity: 0; transform: scale(0.96) translateY(-8px); }
+}
+
+/* Mark entrance — the loader grows in from a hair smaller and untwists from
+   -2° to straight, so it reads as a sticker placed from inside the screen
+   rather than fading in flat. Pairs with the container's opacity fade above
+   (same 120 ms delay). Settles on the paper curve — no overshoot, no bounce.
+   Transform lives on the mark, not the full-screen container, so the origin
+   stays tight to the sticker. */
+.page-boot .startooth-loader {
+  animation: page-boot-mark-in var(--dur-slide) var(--ease-paper) 120ms both;
+}
+
+@keyframes page-boot-mark-in {
+  from { transform: scale(0.92) rotate(-2deg); }
+  to   { transform: scale(1) rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-boot .startooth-loader { animation: none; }
 }
 
 /* Shared tactile-press keyframe (consumers in landing.css, rr.css,

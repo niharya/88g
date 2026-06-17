@@ -39,6 +39,8 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **CaptionTag** — `app/components/CaptionTag/`; museum-label caption docked to viewport bottom; consumer: landing startooth caption.
 - **Sticker** — `app/components/Sticker.tsx`; printed-and-pressed family shell; consumers: /biconomy ×4, /selected ProjectCard, LabelSticker.
 - **LabelSticker** — `app/components/LabelSticker/`; text sticker composing Sticker; consumer: /shape-of-product ActorStickers.
+- **StartoothLoader** — `app/components/StartoothLoader/`; the family's passive, SSR-safe member — die-cut sticker loader; shares `--sticker-shadow-lift` (token, not the `.sticker` class); consumer: layout.tsx page-boot.
+- **MaterialIcon** — `app/components/MaterialIcon.tsx`; the one typed way to render a Material Symbols glyph span; `name` constrained to the registry `app/lib/icons.ts` (`ICON_NAMES`/`IconName`); consumers: /biconomy Demos, /rr StoryCard·NoteRail·Intro. NavMarker's `icon` prop is the other typed path. See docs/performance.md → "Material Symbols icons".
 - **NiharHomeLink** — `app/components/NiharHomeLink/`; fixed "Nihar" back-to-landing marker; consumers: /selected, /shape-of-product.
 - **CrossShellVeil** — `app/components/CrossShellVeil/`; veil bridge for cross-layout navigations; BOTH halves required; never combine with TransitionSlot.
 - **Footer** — `app/components/Footer/`; site colophon, two variants; (works) layout + landing.
@@ -104,6 +106,7 @@ The single nav-marker primitive — the shared shell behind every `ChapterMarker
 - **Hover convention is dotted→1px-solid crossfade.** The site-wide `t-btn1` rule in `globals.css` runs the swap via two composed opacity transitions: `text-decoration-color` fades to transparent while a `::after` 1px bar (positioned at `bottom: -2px` to land on the same axis as the rest underline) fades in. Both ride `var(--dur-fast)` (currently 150ms post-v0.56 perf retune) on `var(--ease-snap)` so they crossfade in lockstep. Direct interpolation of `text-decoration-style` / `text-decoration-thickness` isn't reliable across browsers — the pseudo carries the solid state. **Shell-level delegation lives in `navmarker.css`:** `button.nav-marker:hover .t-btn1` (and `:focus-visible`, plus the `a.nav-marker` variants) trigger the same crossfade so the underline swaps when the cursor is anywhere on the marker, not only on the label text. `__exit-label` does NOT use `t-btn1`; it keeps its own bespoke transparent-dotted → currentColor fade in `nav.css`. If you ever change the t-btn1 hover technique, mirror the change in the shell delegation block above so the two rule sets stay in sync.
 - **`iconRef` is forwarded to the icon span** so `useDockedMarker` can rotate the arrow toward the sheet center on every scroll frame. The icon is treated as an arrow when `role === 'chapter' | 'exit'` or `acknowledgeOnClick === 'shake'` — the `nav-arrow` class is added in those cases.
 - **Mobile short labels** live on the consumer via `.nav-marker__title-full` / `.nav-marker__title-short` spans, not on the primitive's `label` prop. `label` accepts `ReactNode` so the consumer can pass both spans as children; see `ChapterMarker`'s `ChapterTitle` helper. This keeps the short-label mechanic where it already lives (nav.css `:has()` rule inside `@media (max-width: 767px)`).
+- **The `icon` prop is registry-typed.** `icon?: IconName | Exclude<React.ReactNode, string>` — a string icon must be a Material Symbols name from `app/lib/icons.ts` (so an unlisted glyph is a compile error), while non-string ReactNodes (inline SVG marks like `RrSpike`, `<IconExternalLink>`, `<img>`) are still allowed. See `MaterialIcon` / docs/performance.md → "Material Symbols icons".
 - What's route-specific (owned by the consumer): icon glyph/element, label text, sublabel, onClick behavior, `wipHint` copy, `state` bookkeeping.
 - What's library-ready: the full primitive. Promoted on first build — there were already four consumer routes the moment it existed.
 
@@ -222,6 +225,7 @@ One-shot scroll-triggered entrance hook. Adds `.revealed` to a target element th
 - [app/globals.css](app/globals.css) — the `.section-reveal` → `.revealed` state transitions. Search for "── Section reveal ──".
 
 **AI notes**
+- **Also waits for the page gate (hard load) — runs first.** Before observing, on a cold load the hook waits for `.fonts-ready` on `<html>` (the page gate set in `layout.tsx`) so a section settles in *as* the page reveals, not behind the invisible opacity-0 gate (IntersectionObserver fires regardless of opacity). Timeout-bounded at 8.5s so the JS-fail / CSS-failsafe path can't strand sections at opacity 0. Client navs (gate already released) skip it. Then the TransitionSlot wait below runs. See `app/components/ANOMALIES.md` → "useReveal waits for the page gate".
 - **Coordinates with TransitionSlot.** If `.workbench` has `.transitioning` (page-level transition in flight), the hook uses a `MutationObserver` to wait for it to clear before setting up the IntersectionObserver. Without this, section reveals fight the page transition and stutter. Hard loads skip this branch (no `.transitioning` class ever gets set).
 - **`once` is implicit.** The hook disconnects the observer after the first intersect and holds a `revealed` ref guard so strict-mode double-mounts don't re-arm it.
 - **`rootMargin: '-60px'`** means the reveal fires slightly before the element reaches the viewport edge, so content is already visible when the transition starts. Don't change without eyes on the page.
@@ -580,6 +584,48 @@ Text-based sticker variant. Composes `<Sticker>` for the family contract (drop-s
 - **Sizing is em-based.** `padding`, `border`, `border-radius`, and the inset perforation are all in `em`s, so changing `font-size` on the face scales the whole sticker proportionally. Consumers control size by setting `font-size` on `.label-sticker__face` via a route-local class.
 - **Routes own placement.** LabelSticker does not own position, scale, or layout. Consumers add a route-local class (passed as `className`) for placement, the same way `/biconomy` consumes `<Sticker>` with `.api__trailing-sticker`.
 - Consumers: `/shape-of-product` ([app/shape-of-product/components/ActorStickers.tsx](app/shape-of-product/components/ActorStickers.tsx)) — three inline stickers (`engineers`, `users`, `protocols`) replacing words in the prose. All three render as the default `pill` shape; `tone` differentiates (`cream` / `orange` / `green`). Per-instance `tilt` is locked to module-level constants, not randomized. Route-local `.sop__actor-slot` wrapper carries the `translateY` offset so the inner Sticker's transform stays free for tilt + hover lift. Click-to-rotate jitter (±2°) comes from the Sticker family contract — unwrapping `clickRotate` is automatic.
+- What's library-ready: the entire API.
+
+---
+
+## StartoothLoader
+
+The sticker family's **passive, SSR-safe member** — the Startooth cluster line-mark drawn on a die-cut sticker hull, animated with one of two pure-CSS movements (`trace` draws the line on/holds/retracts; `twinkle` pulses the facets out of phase). It is the first-paint "patience mark" shown during the font-gate hold. It joins the family by sharing the **material** (the die-cut silhouette + the printed-pressed `--sticker-shadow-lift` token) — **not** the interaction shell. See [Sticker](#sticker) for the family contract it borrows from.
+
+**Where it lives**
+- [app/components/StartoothLoader/StartoothLoader.tsx](app/components/StartoothLoader/StartoothLoader.tsx) — component + `StartoothLoaderProps` (`lit` / `sticker` / `movement` / `size` / `stroke` / `className` / `aria-*`). A **server component** (no `'use client'`) — it must render in the initial HTML and paint before hydration.
+- [app/components/StartoothLoader/startooth-loader.css](app/components/StartoothLoader/startooth-loader.css) — structure, the `sl-trace` / `sl-pulse` keyframes, the movement-preset vars, and the family shadow. Geometry constants (`HULL`, `EDGES`) are inlined in the component.
+- [app/globals.css](app/globals.css) → "Page boot" — the route→appearance mapping: `--loader-lit` / `--loader-sticker` per route + the twinkle preset for the twinkle routes.
+
+**AI notes**
+- **Why it's NOT a `<Sticker>` consumer.** Two independent reasons: (1) `<Sticker>` is `'use client'`, and the patience mark must paint before hydration during the cold-cache font gate — a client subtree can't. (2) A loader is passive; the `.sticker` class ships `cursor: pointer` + hover-lift + `:active` press, which would lie on something the visitor can't touch (it's behind `pointer-events: none` and gone in <1.5s). So it borrows the **shadow token**, not the class. This is the deliberate boundary — don't "promote" it into the `<Sticker>` shell.
+- **Two colour/movement channels, one component.** Primary path (the boot mount in [layout.tsx](app/layout.tsx)) passes **no props**: colour + movement inherit from `--loader-lit` / `--loader-sticker` and the movement-preset vars, which `globals.css` sets per route via `:root:has(.route-*)`. The shared layout renders one loader for every route and can't know the route at render time, so CSS owns the mapping — the same reason the old `--startooth-*` palette was CSS-driven. Override path (Suspense fallbacks, the sticker-lab): the `lit` / `sticker` / `movement` props set the same vars inline — the identical prop→CSS-var pattern `Sticker` uses for `tilt`.
+- **Movement is a 4-var preset.** `--loader-anim` (keyframe name) / `--loader-dur` / `--loader-ease` / `--loader-stagger`. Trace is the component default; twinkle overrides all four. `animation-name: var(--loader-anim)` is what lets CSS (or the `data-movement` attribute) swap the movement without re-authoring the rule. **Watch-item:** choosing the keyframe off `:root:has(.route-marks)` in global CSS is a net-new mechanism (per-route *colour* via `:has()` was already precedent; per-route *movement* is new). It's declarative and sits next to the colour block — but a future reader may not expect the route to pick the animation.
+- **`pathLength={1}` + `stroke-dasharray: 1`.** Normalises every lit path's length to 1 so the dash maths is geometry-independent — trace animates `stroke-dashoffset` (draw-on), twinkle leaves the line solid (dash covers the whole normalised path) and animates opacity instead. Both movements run on the same markup; only the preset differs.
+- **Shadow is the family token, on the hull only.** `.startooth-loader__hull` wears `var(--sticker-shadow-lift)` (the lift step, chosen over rest because the larger scale would read flat at rest). Only the die-cut hull casts — the cluster lines don't. Re-skinning the family shadow re-skins this too; never author a per-consumer shadow here.
+- **`/marks` colour is a deliberate divergence.** The old solid mark was white-on-black; the loader is line-art on a hull, so a literal carry-over (white lines on a near-white hull) would be invisible. `/marks` therefore runs **dark ink (`--grey-160`) on a light paper hull (`--grey-960`)** so it reads as a sticker pressed onto the void. Don't "restore" it to white-on-black.
+- **Hull tint = the route's `-100` ramp step** (`blue-100` / `terra-100` / `orange-100`); the line is the route's accent. The exception is `/marks` (see above). Don't swap the hull to a neutral grey — the light tinted paper is the family look.
+- **Boot entrance** (`page-boot-mark-in` in globals.css) grows the mark from `scale(0.92) rotate(-2deg)` to identity on `--ease-paper` — a settle (no overshoot), so it reads as a sticker placed from inside the screen. It rides on `.page-boot .startooth-loader` (mark, not the full-screen container) and is disabled under reduced motion. Deterministic −2°, not random — first-paint stays JS-free.
+- **Reduced motion** is honored — `prefers-reduced-motion: reduce` shows the mark fully drawn, static, and skips the entrance (the README's contract).
+- Consumer: [layout.tsx](app/layout.tsx) page-boot. Next likely consumer: any route-level `loading.tsx` / Suspense fallback (the reason it's a shared primitive, not inlined).
+- What's library-ready: the entire API.
+
+---
+
+## MaterialIcon
+
+The one typed way to render a Material Symbols glyph as a span. Exists so every icon the site renders is accountable to a single registry — `app/lib/icons.ts` (`ICON_NAMES` + `IconName`) — which the font subset is built from. Using an icon outside the registry is a **compile error**, so a glyph the subset font won't have can't ship (it shipped broken three times before this). The full rationale + build/enforce flow is in `docs/performance.md` → "Material Symbols icons".
+
+**Where it lives**
+- [app/components/MaterialIcon.tsx](app/components/MaterialIcon.tsx) — renders `<span class="material-symbols-rounded">{name}</span>`; `name: IconName`, optional `className` for route-local sizing/colour.
+- [app/lib/icons.ts](app/lib/icons.ts) — the registry (source of truth).
+
+**AI notes**
+- **Two typed paths, no third.** Spans go through `<MaterialIcon>`; NavMarker markers go through its `icon` prop (typed `IconName | Exclude<ReactNode, string>` — string icons must be registry names, non-string ReactNodes like inline SVG marks still allowed). Never hand-write a `.material-symbols-rounded` or route-local symbol-font span — that's exactly how icons escaped the inventory.
+- **The subset is built from the registry**, not from a scan: `npm run icons` (`scripts/icon_subset.py`) resolves each name→glyph and writes the woff2 + `app/fonts/icon-manifest.json`; `npm run icons:check` (`scripts/check-icons.mjs`, pure Node, run by the pre-push hook) fails if the manifest and registry drift. So usage ⊆ registry (compiler) and subset = registry (check) → no silent drift.
+- **`className` composes; the family + `liga` come from `.material-symbols-rounded`.** Route-local classes (e.g. `.rr-switch-pill__icon`, `.demos__play-icon`) supply size/colour and may redundantly set the symbol font — harmless.
+- **One registry entry isn't routed through here:** `close` is a CSS `content` ligature (the /rr NoteRail mobile swap). It's in `ICON_NAMES` for the subset but its use isn't compiler-enforced — the lone documented exception.
+- Consumers: /biconomy Demos (play/pause), /rr StoryCard (info/article), NoteRail (emergency_home), Intro (arrow_drop_down).
 - What's library-ready: the entire API.
 
 ---

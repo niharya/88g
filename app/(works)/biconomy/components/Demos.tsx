@@ -9,6 +9,7 @@ import { AnimatePresence, motion, useInView } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { Img } from '../../../components/Img'
 import Sticker from '../../../components/Sticker'
+import MaterialIcon from '../../../components/MaterialIcon'
 import {
   TAB_TITLE_ENTER,
   TAB_TITLE_VISIBLE,
@@ -293,9 +294,10 @@ export default function Demos() {
                       </div>
                     </div>
                     <p className="demos__caption t-caption">{item.caption}</p>
-                    <span className="demos__play-icon" aria-hidden="true">
-                      {playing[i] ? 'pause_circle' : 'play_circle'}
-                    </span>
+                    <MaterialIcon
+                      name={playing[i] ? 'pause_circle' : 'play_circle'}
+                      className="demos__play-icon"
+                    />
                   </button>
                 ) : (
                   <div key={`${currentDemo}-${i}`} className="demos__image-item">

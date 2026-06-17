@@ -5,6 +5,7 @@ import { motion, animate, useMotionValue, useTransform } from 'framer-motion'
 import type { RoundOutcome } from './game/game-logic'
 import { Scorecard } from './game/Scorecard'
 import { Img } from '../../../components/Img'
+import MaterialIcon from '../../../components/MaterialIcon'
 
 interface StoryCardProps {
   results: RoundOutcome[]
@@ -147,10 +148,10 @@ export default function StoryCard({ results, splitSettled = false }: StoryCardPr
       >
         <span className="rr-switch-pill__knob" aria-hidden="true" />
         <span className="rr-switch-pill__slot rr-switch-pill__slot--top">
-          <span className="material-symbols-rounded rr-switch-pill__icon">info</span>
+          <MaterialIcon name="info" className="rr-switch-pill__icon" />
         </span>
         <span className="rr-switch-pill__slot rr-switch-pill__slot--bottom">
-          <span className="material-symbols-rounded rr-switch-pill__icon">article</span>
+          <MaterialIcon name="article" className="rr-switch-pill__icon" />
         </span>
       </button>
 

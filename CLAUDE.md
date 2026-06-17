@@ -21,7 +21,7 @@ The docs are a tree. Every node knows its parent; the trunk discovers its branch
 * **Archives** — per-area `ANOMALIES.md`: the full protective memory (rationale, what-breaks, rejected approaches). Digests are the seatbelt; archives are the manual. Read the relevant archive section before structural changes.
 * **Catalog** — `LIBRARY.md`: shared primitives. **Grep for the entry name and read only that entry** — never read the whole file. Index at the top.
 * **Specs** — per-route `DESIGN.md` (marks, shape-of-product): intent and philosophy. Older routes capture intent in their case-study copy.
-* **Reference (load on demand per task)** — `docs/responsive.md` (+ `responsive-playbook.md`) before any responsive pass · `docs/performance.md` before fonts/images/icons/motion-token work · `docs/rhythm.md` for token/spacing polish (the hand-authored-legitimacy lists live there) · `docs/vocabulary.md` when translating design language to code identifiers · `docs/scriptorium/` for verbatim copy (downstream-only; head-tag copy lives in `meta.md` only) · `docs/reader-critique-prompt.md` (human-run) · `COLOPHON.md` for origins.
+* **Reference (load on demand per task)** — `docs/responsive.md` (+ `responsive-playbook.md`) before any responsive pass · `docs/performance.md` before fonts/images/icons/motion-token work · `docs/rhythm.md` for token/spacing polish (the hand-authored-legitimacy lists live there) · `docs/navigation-choreography.md` for how the first-paint loader/gate and page-transition motion are organised · `docs/vocabulary.md` when translating design language to code identifiers · `docs/scriptorium/` for verbatim copy (downstream-only; head-tag copy lives in `meta.md` only) · `docs/reader-critique-prompt.md` (human-run) · `COLOPHON.md` for origins.
 
 **Genesis — how the family grows.** A new route joins the court at birth: scaffold its `CLAUDE.md` + `ANOMALIES.md` from `docs/templates/`, fill the family header, add a scriptorium file when it carries copy, and a `DESIGN.md` if it's long-form. No route ships undocumented.
 
@@ -59,7 +59,7 @@ Recompose for mobile; never replicate desktop smaller. Banned: `transform: scale
 
 ## Performance (banned + pointer)
 
-Banned: uncapped font gates; font `display: 'block'`; external Google Fonts links for primary fonts; redeclaring `--font-*` in `globals.css`; the full Material Symbols font; raw multi-MB images. All content imagery via `<Img>` as `.webp`; run `npm run lqip` after adding/replacing images (a hook reminds you). Full reference: `docs/performance.md`.
+Banned: uncapped font gates; font `display: 'block'`; external Google Fonts links for primary fonts; redeclaring `--font-*` in `globals.css`; the full Material Symbols font; hand-written symbol-font spans; raw multi-MB images. Material Symbols icons render only via `<MaterialIcon>` / NavMarker, keyed to the registry `app/lib/icons.ts`; add one with `npm run icons` (the pre-push hook runs `npm run icons:check` and blocks a stale subset). All content imagery via `<Img>` as `.webp`; run `npm run lqip` after adding/replacing images (a hook reminds you). Full reference: `docs/performance.md`.
 
 ## Workflow
 
