@@ -20,7 +20,18 @@ export const metadata: Metadata = {
   },
 }
 
-export default function BenchPage() {
+// `view` is read here (server) rather than via client useSearchParams so the
+// /cases & /showcase rewrites resolve correctly — the rewrite's destination
+// query reaches the server, but the browser URL (and useSearchParams) doesn't
+// carry it. Maps to the morph's active tab; anything else → the resting invite.
+export default async function BenchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>
+}) {
+  const { view } = await searchParams
+  const initialView = view === 'showcase' ? 'vis' : view === 'cases' ? 'lf' : null
+
   return (
     <div className={`bench-workbench ${pinyon.variable}`}>
       <h1 className="sr-only">Works</h1>
@@ -30,11 +41,11 @@ export default function BenchPage() {
         className="bench-workbench--slide-in"
       />
 
-      {/* The invitation essay. Phase 3 mounts the morphing ticket as a child
-          of the card; Phase 6 mounts the work panel (Timeline / Showcase). */}
+      {/* The invitation essay. The ticket morphs into a pinned navbar; the work
+          panel (Timeline / Showcase) mounts beneath in browse mode. */}
       <div className="bench-stage">
         <BenchExitMarker />
-        <BenchEssay />
+        <BenchEssay initialView={initialView} />
       </div>
     </div>
   )

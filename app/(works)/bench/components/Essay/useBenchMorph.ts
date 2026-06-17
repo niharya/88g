@@ -64,12 +64,25 @@ export function useBenchMorph() {
   const geomTransition = () =>
     GEOM_PROPS.map(p => `${p} ${MORPH_MS}ms ${EASE}`).join(',')
 
+  // Reflect the browse state in the URL without a navigation (shareable +
+  // survives reload — page.tsx reads ?view server-side and re-enters browse).
+  const syncUrl = (v: 'cases' | 'showcase' | null) => {
+    if (typeof window === 'undefined') return
+    window.history.replaceState(window.history.state, '', v ? `/bench?view=${v}` : '/bench')
+  }
+  const viewParam = (tab: BenchActive): 'cases' | 'showcase' => (tab === 'lf' ? 'cases' : 'showcase')
+
   const switchTab = useCallback((tab: BenchActive) => {
     setActive(prev => (prev === tab ? prev : tab))
+    syncUrl(viewParam(tab))
   }, [])
 
   // Pin the ticket as a fixed navbar at the top-centre of the viewport.
   const pinTicket = (t: HTMLDivElement, left: number, animate: boolean) => {
+    t.style.position = 'fixed'
+    t.style.zIndex = '200'
+    t.style.margin = '0'
+    t.style.transformOrigin = 'center top'
     t.style.transition = animate ? geomTransition() : 'none'
     t.style.top = NAVBAR_TOP + 'px'
     t.style.left = left + 'px'
@@ -77,11 +90,16 @@ export function useBenchMorph() {
     t.style.height = NAVBAR_H + 'px'
   }
 
-  const openTab = useCallback((tab: BenchActive) => {
+  const openTab = useCallback((tab: BenchActive, opts?: { instant?: boolean; skipUrlSync?: boolean }) => {
     if (view === 'browse') { switchTab(tab); return }
-    const reduce = prefersReducedMotion()
+    // `instant` skips the animation (reduced motion, or a deep-link arriving
+    // already in browse mode — it shouldn't replay the morph). `skipUrlSync`
+    // is for deep-links: the URL is already correct (/showcase, /cases, or
+    // /bench?view=…) — don't clobber a pretty alias back to ?view=.
+    const instant = !!opts?.instant || prefersReducedMotion()
     setView('browse')
     setActive(tab)
+    if (!opts?.skipUrlSync) syncUrl(viewParam(tab))
 
     // Wait for the work panel to mount, then measure the ticket at rest.
     after(MOUNT_MS, () => {
@@ -95,6 +113,16 @@ export function useBenchMorph() {
       slot.style.minHeight = first.height + 'px'     // reserve the resting footprint
       const targetLeft = Math.round((window.innerWidth - NAVBAR_W) / 2)
 
+      const scrollTarget = () =>
+        work ? Math.round(work.getBoundingClientRect().top + window.scrollY) : 0
+
+      if (instant) {
+        setCondensed(true)
+        pinTicket(t, targetLeft, false)
+        window.scrollTo(0, scrollTarget())
+        return
+      }
+
       // Freeze the ticket exactly where it rests, as fixed.
       t.style.transition = 'none'
       t.style.position = 'fixed'
@@ -105,16 +133,6 @@ export function useBenchMorph() {
       t.style.left = first.left + 'px'
       t.style.width = first.width + 'px'
       t.style.height = first.height + 'px'
-
-      const scrollTarget = () =>
-        work ? Math.round(work.getBoundingClientRect().top + window.scrollY) : 0
-
-      if (reduce) {
-        setCondensed(true)
-        pinTicket(t, targetLeft, false)
-        window.scrollTo(0, scrollTarget())
-        return
-      }
 
       // Force the freeze to commit, then condense + glide in lockstep.
       void t.offsetHeight
@@ -150,6 +168,7 @@ export function useBenchMorph() {
       if (Math.abs(delta) > 0.5) window.scrollBy(0, delta)
       setView('invite')
       setClosing(false)
+      syncUrl(null)
     }
 
     after(reduce ? 0 : CLOSE_LEAD_MS, () => {
