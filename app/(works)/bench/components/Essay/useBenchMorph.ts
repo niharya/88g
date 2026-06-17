@@ -108,6 +108,15 @@ export function useBenchMorph() {
       const work = workRef.current
       if (!t || !slot) return
 
+      // Drop any retained WAAPI entrance transform on the transition pane. When
+      // we arrived here via an in-shell client nav, TransitionSlot's entrance
+      // animation finished with fill:both, leaving transform:translateY(0) on
+      // .transition-pane — a non-none transform that makes the pane a containing
+      // block and pins the fixed navbar to it (scrolls away) instead of the
+      // viewport. The animation is already at its identity end-state, so
+      // cancelling it is visually a no-op. (will-change:auto is handled in CSS.)
+      document.querySelector('.transition-pane')?.getAnimations?.().forEach(a => a.cancel())
+
       const first = t.getBoundingClientRect()
       restH.current = first.height
       slot.style.minHeight = first.height + 'px'     // reserve the resting footprint

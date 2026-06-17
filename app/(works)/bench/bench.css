@@ -293,41 +293,25 @@
   transform: translateY(26px);
 }
 
-/* Longform placeholder rows */
-.bench-lf-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--grey-880);
-  padding: 18px 6px;
+/* Longform → Timeline + Archive (SelectedContent). The mat is position:absolute
+   (anchored right:0 width:688), so it needs a sized relative host — `.bench-cases`
+   recreates the old `.selected-layout` context, including the archive-open growth. */
+.bench-cases {
+  position: relative;
+  width: 688px;
+  max-width: 100%;
+  margin-inline: auto;
+  min-height: 729px;
+  transition: min-height var(--dur-slide) var(--ease-paper);
 }
-.bench-lf-row__idx,
-.bench-lf-row__year {
-  font-family: var(--font-mono), monospace;
-  font-size: 12px;
-  color: var(--grey-640);
-}
-.bench-lf-row__title {
-  flex: 1;
-  margin: 0 22px;
-  font-family: var(--font-display), serif;
-  font-variation-settings: 'WONK' 1;
-  font-size: 26px;
-  letter-spacing: -0.5px;
-  color: var(--grey-160);
+.bench-cases:has(.selected-mat--archive-open) {
+  min-height: 1201px;
 }
 
-/* Visual placeholder grid */
-.bench-vis-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-.bench-vis-tile {
-  aspect-ratio: 4 / 3;
-  background: var(--blue-100);
-  border: 1px solid var(--blue-160);
-  border-radius: 4px;
+/* Visual → the Showcase grid in its own 1224 flow section. The work panel
+   already provides the top breathing room, so drop the section's margin-top. */
+.bench-showcase {
+  margin-top: 0;
 }
 
 

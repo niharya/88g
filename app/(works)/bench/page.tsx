@@ -3,7 +3,6 @@ import './selected.css'
 import './bench.css'
 import SlideInOnNav from '../../components/SlideInOnNav'
 import { pinyon } from './fonts'
-import BenchExitMarker from './components/Essay/BenchExitMarker'
 import BenchEssay from './components/Essay/BenchEssay'
 
 export const metadata: Metadata = {
@@ -42,11 +41,9 @@ export default async function BenchPage({
       />
 
       {/* The invitation essay. The ticket morphs into a pinned navbar; the work
-          panel (Timeline / Showcase) mounts beneath in browse mode. */}
-      <div className="bench-stage">
-        <BenchExitMarker />
-        <BenchEssay initialView={initialView} />
-      </div>
+          panel (Timeline / Showcase) mounts beneath in browse mode. BenchEssay
+          owns its own centred stage + the full-width work panel. */}
+      <BenchEssay initialView={initialView} />
     </div>
   )
 }

@@ -1,11 +1,19 @@
 'use client'
 
 // WorkPanel — the browse-mode content revealed beneath the lifted invitation.
-// Phase 4 renders design placeholders so the morph + scroll choreography can
-// be exercised; Phase 6 swaps in the real content (Longform → Timeline +
-// Archive, Visual → the Showcase grid). Top padding clears the pinned navbar.
+//   Longform → SelectedContent (the Timeline + expandable Archive). It's
+//     absolute-positioned (mat anchored right:0 width:688), so it's hosted in
+//     `.bench-cases`, a sized relative wrapper that recreates the old
+//     `.selected-layout` positioning context (incl. archive-open growth).
+//   Visual → the Showcase bento grid, in a flow `.sc-section` (1224, centred).
+//     Per the design decision, the showcase's HeaderBlock is dropped (the
+//     bench card is the intro now); the click/esc HintRow is kept.
+// Top padding clears the pinned navbar.
 
 import type { Ref } from 'react'
+import SelectedContent from '../SelectedContent'
+import Showcase from '../Showcase/Showcase'
+import HintRow from '../Showcase/HintRow'
 import type { BenchActive } from './useBenchMorph'
 
 interface WorkPanelProps {
@@ -14,39 +22,19 @@ interface WorkPanelProps {
   workRef?: Ref<HTMLDivElement>
 }
 
-function LongformPlaceholder() {
-  const rows = [
-    { idx: '01', title: 'Case study placeholder', year: '2024' },
-    { idx: '02', title: 'Case study placeholder', year: '2023' },
-    { idx: '03', title: 'Case study placeholder', year: '2022' },
-  ]
-  return (
-    <div className="bench-lf">
-      {rows.map(r => (
-        <div className="bench-lf-row" key={r.idx}>
-          <span className="bench-lf-row__idx">{r.idx}</span>
-          <span className="bench-lf-row__title">{r.title}</span>
-          <span className="bench-lf-row__year">{r.year}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function VisualPlaceholder() {
-  return (
-    <div className="bench-vis-grid">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div className="bench-vis-tile" key={i} />
-      ))}
-    </div>
-  )
-}
-
 export default function WorkPanel({ active, closing, workRef }: WorkPanelProps) {
   return (
     <div ref={workRef} className={`bench-work${closing ? ' bench-work--closing' : ''}`}>
-      {active === 'lf' ? <LongformPlaceholder /> : <VisualPlaceholder />}
+      {active === 'lf' ? (
+        <div className="bench-cases">
+          <SelectedContent />
+        </div>
+      ) : (
+        <div className="sc-section bench-showcase">
+          <HintRow />
+          <Showcase />
+        </div>
+      )}
     </div>
   )
 }
