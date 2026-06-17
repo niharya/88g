@@ -28,7 +28,7 @@ Load-bearing bits:
 
 ### Flows switch-thumb overshoot (documented deviation)
 
-`biconomy.css:468` — the `.flows__ba-switch-thumb` transitions `transform` with
+The `.flows__ba-switch-thumb` rule in `biconomy.css` transitions `transform` with
 `cubic-bezier(0, 1, 0.31, 1.05)`. The `1.05` final y deliberately overshoots `1`,
 giving the thumb a tiny settle-past-target before landing. This is one of the
 two documented deviations from the "no bounce, no overshoot" rule in `CLAUDE.md`
@@ -37,7 +37,7 @@ two documented deviations from the "no bounce, no overshoot" rule in `CLAUDE.md`
 
 ### Note-pointer bounce (documented deviation)
 
-`biconomy.css:740` — `.ba__note-pointer` uses `0.14s cubic-bezier(0.3, 1.3, 0.5, 1)`
+The `.ba__note-pointer` rule in `biconomy.css` uses `0.14s cubic-bezier(0.3, 1.3, 0.5, 1)`
 with a peak >1 for a dampened springy nudge on hover. Intentional. Same rule:
 do not flatten to paper/snap.
 
@@ -56,7 +56,7 @@ The figma-tab video pair in `.demos__media-row--figma` is load-bearing in three 
 - **ux-audit** — intro surface card extends past the right mat boundary
 - **demos** — header card and text extend past the right mat boundary
 
-These are not regressions — the content was always overflowing, just never visually caught because nothing was containing it. They need layout adjustment during biconomy fine-tuning.
+These were not regressions — the content was always overflowing, just never visually caught because nothing was containing it. Both were addressed in later fine-tuning passes; the entry stays as the record of *why* `.mat` clips. If clipping at a mat edge ever reappears, this is the mechanism.
 
 ### Section reveal shadow vs. scroll-linked shadow
 
@@ -294,8 +294,8 @@ before doing it.
 
 CLAUDE.md motion vocabulary mandates `--ease-paper` everywhere except the tab/micro tier (`--ease-snap`). Two route-local exceptions are intentional and live here so a future polish pass doesn't "fix" them:
 
-- **`.flows__ba-switch-thumb` thumb transform** ([biconomy.css:507](biconomy.css)) — `0.2s cubic-bezier(0, 1, 0.31, 1.05)` with mild overshoot (y=1.05). Ported from the original vanilla reference so the toggle thumb lands with a perceptible but restrained snap. Mirrors the "documented deviation" precedent set by the train ticker overshoot. Justified inline at [biconomy.css:478–480](biconomy.css).
-- **`.ba__note-pointer:hover` lift transform** ([biconomy.css:784](biconomy.css)) — `0.14s cubic-bezier(0.3, 1.3, 0.5, 1)` with stronger overshoot (y=1.3). The note pointers (the orange stamps on the before/after evidence images) want a tactile hover lift rather than a paper-tier settle — they're ornamental UI, not paper. Kept intentionally; do not snap to `--ease-paper` / `--ease-snap`.
+- **`.flows__ba-switch-thumb` thumb transform** (`biconomy.css`, search the selector) — `cubic-bezier(0, 1, 0.31, 1.05)` with mild overshoot (y=1.05). Ported from the original vanilla reference so the toggle thumb lands with a perceptible but restrained snap. Mirrors the "documented deviation" precedent set by the train ticker overshoot. Justified in the inline comment above the rule. (Canonical statement: "Flows switch-thumb overshoot" near the top of this file.)
+- **`.ba__note-pointer:hover` lift transform** (`biconomy.css`, search the selector) — `0.14s cubic-bezier(0.3, 1.3, 0.5, 1)` with stronger overshoot (y=1.3). The note pointers (the orange stamps on the before/after evidence images) want a tactile hover lift rather than a paper-tier settle — they're ornamental UI, not paper. Kept intentionally; do not snap to `--ease-paper` / `--ease-snap`.
 
 If a third overshoot lands in this route, consider whether it's still genuinely route-local or whether the pattern wants a `--ease-bounce-*` token.
 
@@ -313,8 +313,9 @@ that entry before modifying.
 **Known gaps deferred for a second pass** (tracked when relevant, not
 blockers):
 
-- `--biconomy-card-inset-x` token for gutter consistency across chapter
-  surfaces (BIPs / Intro / Demos share an inset but still use literals).
+- ~~`--biconomy-card-inset-x` token for gutter consistency~~ — **landed**:
+  the token is declared at the top of `biconomy.css` and consumed by the
+  chapter surfaces (BIPs / Demos title-header / media rows).
 - Full mat-bleed (Shape 12 left/right) — only the first-mat top bleed
   has been applied.
 - Situational Awareness chip-row / prose spacing audit (only photostack
@@ -468,10 +469,9 @@ the surrounding composition stays legible.
 - **Do not add `!important` to the BIPs mobile block.** Rail state is
   className-driven, so the gate does not apply. If you are reaching for
   `!important`, you are fighting specificity from a different source.
-- **Do not assume other biconomy chapters will follow the BIPs shape.**
-  UX Audit, Flows, Multiverse, Demos, and the API section exercise
-  different shapes (scroll-linked chip layers, before/after media, dense
-  demo grids) and will need their own authored decisions.
+- **Chapters do not share one mobile shape.** UX Audit, Flows, Multiverse,
+  Demos, and the API section each got their own authored pass (documented
+  in the sections below) — don't "unify" them onto the BIPs recipe.
 
 *Reference pass: 19 April 2026 (playbook v1).*
 
@@ -537,8 +537,8 @@ Implementation:
 - Ref on `.flows__header-left` — not on `.flows` — because the
   title row is the anchor the user should land on, not the section
   top.
-- `matchMedia('(max-width: 767px)')` gate — desktop behavior
-  unchanged (rail emerges beside main, no scroll needed).
+- `matchMedia('(max-width: 767px), (max-height: 500px)')` gate — desktop
+  behavior unchanged (rail emerges beside main, no scroll needed).
 - `requestAnimationFrame` wrapper so the class toggle + layout
   reflow complete before `getBoundingClientRect()` measures.
 - `window.scrollTo({ top, behavior: 'smooth' })` — 72px offset
@@ -671,9 +671,9 @@ viewport.
 - Don't reintroduce the tilts behind a media query. If you think
   they should return, revisit the whole scroll-strip shape — the
   two aren't compatible.
-- Title-header cushion (`padding: 20px 128px 0` → `20px 24px 0`) is
-  a literal 24px today. When the `--biconomy-card-inset-x` token
-  lands (plan item #6), swap literals for token. The title itself
+- Title-header cushion: desktop uses
+  `padding: 20px var(--biconomy-card-inset-x) 0` (the token landed);
+  the mobile override is an authored literal. The title itself
   stays centered on mobile (desktop default holds); previous passes
   set `align-items: flex-start` + `text-align: left` here and that
   has been reverted.
@@ -692,8 +692,11 @@ to text.
 **Web tab — Figma proto iframe (desktop only).** Tab 2's content
 is a static `web.webp` on mobile and a live Figma proto iframe on
 desktop. Gating lives in `Demos.tsx` via `matchMedia('(max-width:
-767px), (max-height: 500px)')` with `null` initial state — same
-pattern as `Intro.tsx`. The iframe (~1–2 MB third-party) is too
+767px), (max-height: 500px)')` with `null` initial state —
+**deliberately different from `Intro.tsx`**, which initialises `false`
+(its closed-state x:0 matches SSR, so `false` avoids a hydration
+mismatch; here `null` exists so the iframe can require an explicit
+`=== false`). Do not "unify" the two initial states. The iframe (~1–2 MB third-party) is too
 cramped to operate at 375px and pulls weight without payoff, so
 mobile keeps the screenshot as evidence. The render branch
 (`item.embedUrl && isMobile === false`) checks `=== false`
@@ -717,10 +720,10 @@ from [`app/components/nav/nav.css`](../../components/nav/nav.css) at
 (unused here; "Biconomy" is already short). Route-local addition: hide
 `.nav-marker__year` on mobile so chapter date subtitles like "2022–24"
 don't widen the marker past comfortable at 375px. Mirrors the `/rr` pattern
-at [`rr.css:2810`](../rr/rr.css:2810).
+(`.route-rr .nav-marker__year` in rr.css — search the selector).
 
 **Deferred.** The nav-sled `left` override that `/rr` carries
-([`rr.css:2819`](../rr/rr.css:2819)) is not needed yet — biconomy mats are
+(`.route-rr .nav-sled` mobile rule in rr.css) is not needed yet — biconomy mats are
 not full-bleed (Shape 12 hasn't been applied), so the shared sled formula
 still aligns to the project marker. Revisit when the mat-bleed pass lands.
 
@@ -738,8 +741,8 @@ First chunk of the UX Audit chapter's mobile pass. Three changes:
   horizontal room. On a 375px viewport, `-50%` leaves the cards partly
   covered, but anything past `-60%` throws the blue surface off-screen
   instead of letting it rest adjacent to the green memo cards.
-  `Intro.tsx` reads `matchMedia('(max-width: 767px)')` into an
-  `isMobile` state and feeds `-60%` into Framer's `animate.x` when open.
+  `Intro.tsx` reads `matchMedia('(max-width: 767px), (max-height: 500px)')`
+  into an `isMobile` state and feeds `-60%` into Framer's `animate.x` when open.
   SSR default is `false` — matches the closed-state x:0 so there's no
   hydration mismatch.
 

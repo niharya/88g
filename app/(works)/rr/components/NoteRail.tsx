@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Rail from './Rail'
+import MaterialIcon from '../../../components/MaterialIcon'
 
 const CLOSED_REST_TRANSFORM = 'rotate(1deg)'
 // Matches the board's -12px nudge when rules opens (note stays tucked under
@@ -63,7 +64,7 @@ export default function NoteRail({ playReveal = false, otherOpen = false, onOpen
         type="button"
         aria-label={isOpen ? 'Close note' : 'Open note'}
       >
-        <span className="rr-note-rail__tab-icon material-symbols-rounded" aria-hidden="true">emergency_home</span>
+        <MaterialIcon name="emergency_home" className="rr-note-rail__tab-icon" />
       </button>
 
       {/* Note body — clicking anywhere on the open sheet closes it */}

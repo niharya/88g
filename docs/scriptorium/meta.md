@@ -1,6 +1,6 @@
 # Scriptorium — meta
 
-Verbatim reference for all site metadata — page titles, descriptions, Open Graph blocks, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, and sitemap. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim reference for all site metadata — page titles, descriptions, Open Graph blocks, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, and sitemap. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/selected/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `app/robots.ts`, `app/sitemap.ts`
 

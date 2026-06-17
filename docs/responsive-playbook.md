@@ -232,7 +232,7 @@ auto-scroll-to-end, spring followers).
 
 ```ts
 const isMobile = typeof window !== 'undefined'
-  && window.matchMedia('(max-width: 767px)').matches
+  && window.matchMedia('(max-width: 767px), (max-height: 500px)').matches
 if (!isMobile) { /* desktop-only scroll affordance */ }
 ```
 
@@ -901,7 +901,7 @@ Single reference of what you can reach for in a crafted-lite pass.
 | In-flow chapter marker with per-chapter absolute exception | `.nav-sled` placement per mat | `position: relative; margin-top: var(--space-16)` default; `position: absolute` exception |
 | Horizontal swipe strip (native-mobile content only) | Scanning-focused row of native-authored items | `overflow-x: auto; touch-action: pan-x; overscroll-behavior-x: contain` |
 | Scene unbind | Release scroll-pinned scenes to sibling flow | `height: auto` on scene; drop `position: sticky` on stage |
-| `matchMedia` gate in JS | Disable desktop-only JS affordances on mobile | `window.matchMedia('(max-width: 767px)').matches` at call site |
+| `matchMedia` gate in JS | Disable desktop-only JS affordances on mobile | `window.matchMedia('(max-width: 767px), (max-height: 500px)').matches` at call site |
 | Breakpoint-scoped linear formula | Derived CSS values `clamp()` can't express | `calc(A - B * var(--signal))` inside `@media` |
 | Re-anchored overlay | Decorative bleeds that need new coordinates | new `top`/`left` + new `transform-origin` |
 | Hover-dim chain reset | Undo `:has(:hover)` ambient effects on touch | `filter: none; translate: 0 0` in mobile block |
@@ -976,18 +976,17 @@ for both viewports and just rendered differently.
 Three modes live under one heading. Routes are either in forward-pass
 mode, retrofit-review mode, or reference-only.
 
-### `/biconomy` — forward pass (pending)
+### `/biconomy` — forward pass (complete)
 
-**Mode.** Forward pass. The first crafted-lite pass on `/biconomy` is the
-reference application that accompanies this playbook (BIPs chapter). The
-remaining chapters are not covered. Populate this entry with per-chapter
-notes as each one gets its pass.
+**Mode.** Forward pass, complete. BIPs was the reference application that
+accompanied this playbook; the remaining chapters have since had their own
+authored passes.
 
 **Pass log.**
 
-- BIPs chapter — *populated by the reference pass alongside this playbook*.
-  See [`/biconomy ANOMALIES.md`](../app/(works)/biconomy/ANOMALIES.md) →
-  "Responsive anomalies".
+- All chapters passed. Per-chapter notes live in
+  [`/biconomy ANOMALIES.md`](../app/(works)/biconomy/ANOMALIES.md) →
+  "Responsive anomalies" (canonical — this file does not duplicate them).
 
 ### `/rr` — retrofit-review
 

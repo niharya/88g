@@ -8,7 +8,7 @@
 //
 //   • Runs by default when the page loads.
 //   • Any user interaction pauses it via `pauseForInteraction()`; it
-//     resumes after `idleResumeMs` (default 24s) of no further calls.
+//     resumes after `idleResumeMs` (default 12s) of no further calls.
 //   • Paused when `document.visibilityState === 'hidden'`.
 //   • Disabled under `prefers-reduced-motion: reduce`.
 //

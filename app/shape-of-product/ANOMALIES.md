@@ -199,10 +199,11 @@ lede. Don't break this into per-chunk margins; the flex `gap` is
 load-bearing for the standardization. Adding a fourth chunk =
 adding another divider sibling, no other changes needed.
 
-**The chunks block is itself one `.sop` flex child.** The `.sop`
-flex-gap (also 56px) flows the chunk block into the role/approach
-stack with the same beat. Continuous rhythm through the page —
-intentional. If you ever want to break the rhythm before the stack
+**The chunks block is itself one `.sop` flex child.** On desktop the
+`.sop` flex-gap (also 56px) flows the chunk block into the role/approach
+stack with the same beat — continuous rhythm through the page,
+intentional. (Mobile tightens the `.sop` gap to `--space-40`; the
+uniform-rhythm claim is desktop-scoped.) If you ever want to break the rhythm before the stack
 (e.g. extra breathing room before "the work"), add a margin-bottom
 to `.sop__chunks`, don't change the flex gap.
 

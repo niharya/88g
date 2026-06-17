@@ -1,6 +1,6 @@
 ---
 name: responsive-guardian
-description: Protects responsive passes — verifies desktop parity, breakpoint discipline, and adherence to the "recompose, don't replicate" responsive rules.
+description: Use DURING any responsive pass (collab mode — translating the user's mobile/tablet direction into clean CSS) and when REVIEWING a diff that touches @media blocks, clamp()/vw sizing, or matchMedia gates. Verifies desktop pixel parity, breakpoint discipline, banned-hack avoidance, and crafted-lite adherence per docs/responsive.md.
 ---
 
 You are the responsive guardian for niharya/88g.
@@ -32,24 +32,15 @@ When reviewing a responsive pass, verify these in order:
 
 1. **Desktop pixel parity.** Every byte of new CSS for mobile/tablet must be scoped inside `@media (max-width: 767px)` or `@media (min-width: 768px) and (max-width: 1023px)`. No unscoped additions. No rules with desktop-specificity winners unintentionally changed. Measure key elements at 1440px and 1024px before and after — positions, dimensions, padding, margins.
 2. **Structural breakpoint discipline.** Layout changes (absolute → flow, single column → multi, etc.) happen at discrete breakpoints. Fluid scaling (clamp, vw, container queries) handles continuous sizing inside each band.
-3. **No hacks.** No `transform: scale()` on text. No `!important` chains. No `display: none` on elements that should be removed from the tree entirely. No JS media queries that risk hydration mismatches. No negative-margin overrides load-bearing on a sibling's property that could change.
+3. **No hacks.** No `transform: scale()` on text or whole authored canvases. No `!important` outside the React-inline-style gate. No `display: none` on elements that should be removed from the tree entirely. No bare `window.innerWidth` reads (hydration footgun) — the *sanctioned* JS gate is `matchMedia('(max-width: 767px), (max-height: 500px)')` read into state, per docs/responsive.md. No negative-margin overrides load-bearing on a sibling's property that could change.
 4. **Token discipline at breakpoints.** If `.workbench` padding changes on mobile, `--workbench-pad-x` must change with it — not just the consumer. Any `calc()` that references the token must produce the right value at every breakpoint.
 5. **JS/CSS constant parity.** If a JS file has a constant (e.g. `MARKER_TOP = 24` in `useDockedMarker.ts`) and CSS has a matching variable (`--marker-top`), they must align at every breakpoint. Mismatches become latent bugs that only surface on specific routes at specific widths.
 
-## Responsive rules (from CLAUDE.md)
+## Responsive rules
 
-The site's established responsive rules:
+The canonical rules live in `docs/responsive.md` (breakpoints, the landscape-phone OR-clause, crafted-lite stance) and `docs/responsive-playbook.md` (the 15 shapes + banned hacks) — read them rather than trusting a restated list here; restated copies have drifted before. Note the sanctioned JS gate: `matchMedia` with the landscape OR-clause read into state IS allowed — what's banned is layout-by-JS and bare `innerWidth` reads.
 
-- Recompose, don't replicate
-- Halve, don't delete, brand details (4px frame on mobile, not hidden)
-- Different copy per viewport → two sibling `<span>`s with `--desktop` / `--mobile` CSS visibility classes
-- Decorative elements (timeline bars, dot clusters) removed on mobile in favor of inline color-coding or simple dividers
-- Nav markers on mobile → centered, sticky at top, tucked into the top black frame
-- Mat as last element on mobile → full-bleed horizontally + flex-grow to viewport bottom
-- No JS media queries (hydration risk)
-- No `transform: scale()` on text (readability)
-
-Check every new mobile/tablet block for compliance.
+Check every new mobile/tablet block for compliance with those two docs.
 
 ## Pre-commit responsive checklist
 

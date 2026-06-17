@@ -1,6 +1,6 @@
 # Scriptorium — rr (Rug Rumble)
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/(works)/rr/page.tsx`, `app/(works)/rr/nav/chapters.ts`, `app/(works)/rr/components/*.tsx`, `app/(works)/rr/components/game/GameBoard.tsx`
 

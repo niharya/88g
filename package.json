@@ -1,14 +1,18 @@
 {
   "name": "portfolio",
-  "version": "0.93.0",
+  "version": "0.95.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prepare": "git config core.hooksPath .githooks || true",
     "prebuild": "node scripts/generate-image-manifest.mjs",
     "build": "next build",
     "start": "next start",
     "lqip": "node scripts/generate-image-manifest.mjs",
-    "optimize-images": "node scripts/optimize-images.mjs"
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "census": "node scripts/doc-census.mjs",
+    "icons": "python3 scripts/icon_subset.py",
+    "icons:check": "node scripts/check-icons.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

@@ -1,0 +1,40 @@
+#!/bin/bash
+# Doc-family roll-call — enforced by git, not just by the /release ritual.
+# Blocks a push when the documentation court isn't whole (orphan routes,
+# unpaired digests, missing family headers, dangling links).
+#
+# This makes "the court audits itself on every push" literally true even if
+# a session pushes by hand instead of running /release. Bypass in a genuine
+# emergency with `git push --no-verify`.
+#
+# Wired via core.hooksPath=.githooks (set by `npm install`'s prepare script,
+# or manually: git config core.hooksPath .githooks).
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+census="$repo_root/scripts/doc-census.mjs"
+[ -f "$census" ] || exit 0                      # no census in this tree → nothing to enforce
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-push: node not found — skipping doc census (install node to enforce it)." >&2
+  exit 0                                          # fail open: never block on a missing toolchain
+fi
+
+if ! node "$census"; then
+  echo "" >&2
+  echo "pre-push BLOCKED: the doc family is not whole (see census output above)." >&2
+  echo "Fix the family, or bypass for an emergency with: git push --no-verify" >&2
+  exit 1
+fi
+
+# Icon roll-call — block a push when the shipped Material Symbols subset is out
+# of sync with the icon registry (app/lib/icons.ts), i.e. a used icon would
+# render as raw ligature text. Pure Node (no font tooling); rebuild with
+# `npm run icons`. See docs/performance.md → "Material Symbols icons".
+icons_check="$repo_root/scripts/check-icons.mjs"
+if [ -f "$icons_check" ] && ! node "$icons_check"; then
+  echo "" >&2
+  echo "pre-push BLOCKED: the icon subset is stale (see check output above)." >&2
+  echo "Run \`npm run icons\` to rebuild it, or bypass with: git push --no-verify" >&2
+  exit 1
+fi
+exit 0

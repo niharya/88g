@@ -23,13 +23,14 @@
      Group B — "secondary stack" (about-practice, spectrum, contact, + any
      future card). Sit below Group A. Fade+nudge entrance, not tucked behind
      anything in collapsed state. Spacing between Group B cards is governed
-     by --stack-gap, measured at non-rotated boundaries so the small random
-     rotation on each card can never close the gap. Stagger on expand comes
+     by --stack-gap. Stagger on expand comes
      after Group A has tucked out (--stack-stagger-start).
 
      To add a new Group B card: advance its top by the previous card's height
-     + var(--stack-gap), give it a --<name>-rot custom prop, and set its
-     transition-delay to var(--stack-stagger-start) + N * 0.02s. */
+     + var(--stack-gap), and set its
+     transition-delay to var(--stack-stagger-start) + N * 0.02s.
+     (Per-card random rotation was removed — do not reintroduce --<name>-rot
+     custom props; see app/_landing/ANOMALIES.md.) */
   --hero-top: 178px;
   --hero-h: 240px;
   --projects-top: 414px;
@@ -256,8 +257,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    "slides down out of hero" motion, so the whole about stack reads as one
    continuous unfurl rather than two separate gestures. No scale — scale
    from center reads as UI bloom and fights the paper metaphor here (the
-   card isn't being pulled from under anything, it's being placed). Carries
-   its per-expand random rotation through both states. */
+   card isn't being pulled from under anything, it's being placed). */
 .landing--default .landing__section--about-practice {
   top: var(--practice-top);
   transform: translateX(calc(-50% + 12px)) translateY(calc(-1 * var(--stack-settle)));
@@ -578,8 +578,8 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 }
 
 /* Long card — first paragraph needs to clear the hero's nav pill row when
-   expanded. The card top sits 33px behind the hero bottom (long-top 417 vs
-   hero bottom 450), so the text needs enough top padding to appear below
+   expanded. The card top sits 33px behind the hero's bottom edge
+   (--long-top vs --hero-top + --hero-h), so the text needs enough top padding to appear below
    the nav pill edge while keeping the text close to the nav pill's bottom.
    Horizontal padding is tighter (24) than the standard about-card (32) so
    the discipline rows have enough room for "Studio-building and creative
@@ -605,8 +605,9 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 /* Practice card — the second split sheet. Framed with a terra-560 hairline
    set 4px in from the card edge (the inner margin reads as a traditional
    mat around the text block), and a mild flat shadow so the card feels
-   resting rather than lifted. Random on-load rotation is driven by
-   --practice-rot, set as an inline style from page.tsx on mount. */
+   resting rather than lifted. (The earlier random on-load rotation via
+   --practice-rot was removed — nothing sets it anymore; don't reintroduce
+   it. See app/_landing/ANOMALIES.md.) */
 .about-card--practice {
   position: relative;
   box-shadow: var(--shadow-flat);

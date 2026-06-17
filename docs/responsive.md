@@ -97,7 +97,7 @@ Strips themselves are still sanctioned when the inner content is natively author
 * `/marks` is the **composition quality bar** — built responsive-ready, authored gaps, breakpoint-scoped derived formulas, per-viewport asset decisions. Copy its quality, not its values.
 * `/selected` and `/` are the **retrofit-lite reference implementations** — clean passes under the old stance, broadly compliant with crafted-lite.
 * `/rr` is the **mechanics reference** — scroll unbind, `matchMedia` gate, measured-pair docked markers, React-inline-style conflict discovery. It is *not* a composition reference; its canvas scales predate crafted-lite.
-* `/biconomy` has not had a responsive pass yet. The first crafted-lite application is the BIPs reference alongside the playbook.
+* `/biconomy` has had its crafted-lite pass — BIPs was the reference application that accompanied the playbook; the remaining chapters followed with their own authored passes. Pass notes live in its `ANOMALIES.md` → "Responsive anomalies" (canonical).
 
 ### Don't-do list
 

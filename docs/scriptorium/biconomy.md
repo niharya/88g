@@ -1,6 +1,6 @@
 # Scriptorium — biconomy
 
-Verbatim copy reference. Edit the source files, not this doc — run `/prepush` to surface drift.
+Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
 **Sources:** `app/(works)/biconomy/page.tsx`, `app/(works)/biconomy/nav/chapters.ts`, `app/(works)/biconomy/components/*.tsx`, `app/(works)/biconomy/components/flowSlides.ts`
 

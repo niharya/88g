@@ -3,6 +3,7 @@ import Script from 'next/script'
 import localFont from 'next/font/local'
 import './globals.css'
 import './components/CrossShellVeil/cross-shell-veil.css'
+import { StartoothLoader } from './components/StartoothLoader'
 
 // Font loading strategy
 // ─────────────────────
@@ -38,11 +39,17 @@ const googleSans = localFont({
   preload: true,
 })
 
-// Google Sans Flex — variable font with wdth/wght/GRAD/ROND/opsz axes.
+// Google Sans Flex — variable font with opsz/wdth/wght/GRAD/ROND axes.
 // Required by .t-h5 (wght 640, wdth 120, GRAD 64, ROND 0, opsz 18) and
 // .t-btn1 (wght 720, …) — those font-variation-settings only resolve
-// against this file. Source: Google Fonts, slnt axis pinned to 0,
-// Latin subset, ~628 KB.
+// against this file. Source: Google Fonts, Latin subset. Axis RANGES are
+// partial-instanced down to what the CSS actually uses (opsz 18–24, wdth
+// 50–140, wght 300–900, GRAD 0–80, ROND 0–100) — 643 KB → 261 KB with no
+// visual change, so it loads inside the page-gate window even on Slow 3G
+// (the old 643 KB couldn't, and the page arrived with the wide font snapping
+// in late). Re-instance from the git-original if you need an axis value
+// outside these ranges — see docs/performance.md → "Material Symbols icons"
+// neighbour, "UI font".
 const googleSansFlex = localFont({
   src: './fonts/GoogleSansFlex-variable.woff2',
   variable: '--font-ui',
@@ -62,16 +69,23 @@ const googleSansCode = localFont({
   preload: false,
 })
 
-// Material Symbols: 1.18 MB even subsetted. `swap` so icons briefly show as
-// ligature text on slow mobile rather than blank space — visually noisier
-// for ~1s but never invisible. Long-term plan: migrate to inline SVG icons
-// to remove the icon-font failure mode entirely.
+// Material Symbols — subset to ONLY the 13 ligatures actually used
+// (add, arrow_forward/back/downward, arrow_drop_down, keyboard_arrow_up/down,
+// title, category, info, article, emergency_home, close), built via pyftsubset
+// with layout-closure disabled so the ligature set doesn't drag in the full
+// 3,200-icon library.
+// Result: 4 KB (was 1.18 MB). Because it's tiny AND `preload: true`, it loads
+// well inside the font gate's window — so icons are ready at reveal and never
+// flash as raw ligature text. The FILL + wght axes survive the subset (FILL
+// drives the .nav-marker--project.is-info-open fill; wght the icon weight).
+// To re-subset after adding an icon, see docs/performance.md → "Material
+// Symbols icons" (resolve by glyph name, closure OFF — it's ligature-only).
 const materialSymbols = localFont({
-  src: './fonts/MaterialSymbolsRounded-normal.woff2',
+  src: './fonts/MaterialSymbolsRounded-subset.woff2',
   variable: '--font-symbols',
   display: 'swap',
   weight: '100 700',
-  preload: false,
+  preload: true,
 })
 
 // Site metadata
@@ -155,39 +169,34 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${fraunces.variable} ${googleSans.variable} ${googleSansFlex.variable} ${googleSansCode.variable} ${materialSymbols.variable}`} suppressHydrationWarning>
       <head>
-        {/* Font gate — JS shortcut path. Lands `.fonts-ready` on <html>
-            either when `document.fonts.ready` resolves or when a 1000 ms
-            cap fires. CSS in globals.css consumes the class to fade
-            .landing / .workbench / .route-marks in and the .page-boot
-            diamond out.
+        {/* Page gate — holds every page surface behind the .page-boot loader
+            until the page is actually ready, then reveals. Lands `.fonts-ready`
+            on <html> when BOTH `window.load` (above-the-fold images +
+            subresources) AND `document.fonts.ready` (fonts, incl. the icon
+            subset) have settled — or an 8000 ms cap, the failsafe ceiling so a
+            stalled asset can't trap the page forever. globals.css consumes the
+            class to fade the surfaces in and the loader out.
 
-            This is no longer the only release path. globals.css carries
-            a CSS-only failsafe animation that auto-releases the gate at
-            1500 ms regardless of whether this script runs — see
-            "Font gate" in globals.css. The failsafe exists because
-            stylesheet <link> tags rendered by Next into <head> appear
-            BEFORE this inline script, and per HTML spec a script after
-            a stylesheet is blocked until that stylesheet loads. On
-            cold-cache first opens the JS cap doesn't even start
-            counting until CSS lands; without the failsafe, the diamond
-            can appear stuck. Both paths set the same end state.
+            Why hold-until-ready and not the old 1000 ms font-only cap: on a
+            throttled cold load the short cap revealed a half-loaded page and
+            you watched elements pop in. The animated loader makes a longer hold
+            read as "loading," which is the whole point of having one — so we
+            gate the full payload, not just fonts. The 8 s ceiling is the only
+            hard limit (was 1.5 s). The matching CSS failsafe lives in globals
+            (`page-gate-failsafe` at 8000 ms) so the gate still releases if this
+            script never runs. (`fonts-ready` is a legacy class name — it now
+            means "page ready.") Note: render-blocking CSS already blocks first
+            paint until the bundle loads, so the loader can't paint *earlier*
+            than that without async-loading the CSS — this gate governs how long
+            it HOLDS, which is the part that was broken.
 
-            Why a vanilla <script dangerouslySetInnerHTML> and NOT
-            <Script strategy="beforeInteractive">: in App Router,
-            beforeInteractive Script with inline content does not get
-            inlined as a real <script> tag — it gets queued through
-            self.__next_s.push([...]) and only executes after the async
-            framework scripts process the queue, which can be several
-            seconds on slow connections. A vanilla inline <script>
-            executes during HTML parse, which is what we want for the
-            shortcut path.
-
-            Do not raise the JS cap past 1000 ms (the failsafe is the
-            ceiling, not this). Banned predecessor: the 3-second
-            uncapped gate. */}
+            Vanilla <script dangerouslySetInnerHTML>, NOT <Script
+            beforeInteractive>: in App Router the latter is queued through
+            self.__next_s and runs late; a vanilla inline script registers its
+            load/fonts listeners during HTML parse, which is what we need. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d=false;var r=function(){if(d)return;d=true;document.documentElement.classList.add('fonts-ready');};var c=setTimeout(r,1000);if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){clearTimeout(c);r();});}else{clearTimeout(c);r();}})();`,
+            __html: `(function(){var d=false;var done=function(){if(d)return;d=true;document.documentElement.classList.add('fonts-ready');};var cap=setTimeout(done,8000);var loaded=document.readyState==='complete';var fonts=!(document.fonts&&document.fonts.ready);var go=function(){if(loaded&&fonts){clearTimeout(cap);done();}};if(!loaded){window.addEventListener('load',function(){loaded=true;go();});}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){fonts=true;go();});}go();})();`,
           }}
         />
         {/* Favicon swap — uniform pick across six startooth variants on each
@@ -207,34 +216,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             users jump past the favicon swap script and land on #content
             (the wrapper around route children). Styled in globals.css. */}
         <a className="skip-link" href="#content">Skip to content</a>
-        {/* Patience mark — centered startooth shown during the font-gate
-            hold. Fades in ~200 ms after mount (so fast loads never flash
-            it) and fades out when `.fonts-ready` lands on <html>. Kept
-            inline so each route can recolor via CSS vars
-            (--startooth-stroke / --startooth-fill — see globals.css →
-            "Page boot"). */}
+        {/* Patience mark — the Startooth loader shown while the page gate
+            holds. Fades in ~120 ms after mount (so fast loads barely flash it)
+            and fades out when `.fonts-ready` lands on <html>. A server
+            component so it paints in the initial HTML, before hydration.
+            Structure + per-route colour + movement come from globals.css
+            (--loader-* + the movement preset), so no props are passed here. */}
         <div className="page-boot" aria-hidden="true">
-          <svg
-            className="page-boot__mark"
-            width="83"
-            height="143"
-            viewBox="0 0 83 143"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              className="startooth__diamond"
-              d="M31.5 31.5L41.5 1.5L51.5 31.5L81.5 41.5L51.5 51.5L41.5 101.5L31.5 51.5L1.5 41.5L31.5 31.5Z"
-              strokeWidth="3"
-              strokeLinejoin="round"
-            />
-            <path
-              className="startooth__base"
-              d="M1.5 121.5L41.5 101.5L81.5 121.5L41.5 141.5L1.5 121.5Z"
-              strokeWidth="3"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <StartoothLoader size={150} />
         </div>
         <div id="content">{children}</div>
       </body>

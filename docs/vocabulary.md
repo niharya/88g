@@ -64,9 +64,11 @@ until clicked; opening pushes the parent slightly and reveals the rail's
 content.
 
 - **Visual role:** note/annotation drawer docked to a chapter surface.
-- **Code:** currently route-local — `NoteRail.tsx` + `RulesRail.tsx` in rr,
-  Flows rail in biconomy. Scheduled for promotion to
-  `app/components/Rail/` (see `LIBRARY.md`).
+- **Code:** a stateless `Rail.tsx` shell lives in
+  `app/(works)/rr/components/`, consumed by `NoteRail.tsx` +
+  `RulesRail.tsx`; biconomy's Flows rail remains separate. Still rr-local —
+  promotion to `app/components/Rail/` waits for a true cross-route
+  consumer (see `LIBRARY.md` → Rail).
 
 ## Marker
 
@@ -90,7 +92,7 @@ currently implemented behind a `StoryCard.tsx` component.
 
 ## Typography rule — GoogleSansFlex 12px → `t-h5` / `t-btn1`
 
-The full typography ladder lives in `globals.css:172-241` (seven tiers: `t-h1`, `t-h2`, `t-h5`, `t-p2`, `t-p3`, `t-p4`, `t-btn1`). Two of those — `t-h5` and `t-btn1` — sit on **GoogleSansFlex** at **12px**, with the same `wdth 120 / opsz 18 / GRAD 64 / ROND 0` axes; they differ only in `wght` (640 vs 720) and the link affordances (`t-btn1` adds `text-transform: capitalize` and a dotted underline that crossfades to a solid bar on hover).
+The full typography ladder lives in `globals.css` (seven tiers: `t-h1`, `t-h2`, `t-h5`, `t-p2`, `t-p3`, `t-p4`, `t-btn1`). Two of those — `t-h5` and `t-btn1` — sit on **GoogleSansFlex** at **12px**, with the same `wdth 120 / opsz 18 / GRAD 64 / ROND 0` axes; they differ only in `wght` (640 vs 720) and the link affordances (`t-btn1` adds `text-transform: capitalize` and a dotted underline that crossfades to a solid bar on hover).
 
 **The rule.** Any element whose intent is GoogleSansFlex at 12px must use one of these two classes. Choice is by *role*, not by current weight:
 

@@ -21,10 +21,15 @@ Thumbs.db
 .vscode/
 .idea/
 
-# claude — ignore everything except tracked agents/skills
+# private — job-search material, never publish to this PUBLIC repo
+_resume-skill/
+
+# claude — ignore everything except tracked agents/skills/policy
 .claude/*
 !.claude/agents/
 !.claude/skills/
+!.claude/hooks/
+!.claude/settings.json
 
 # typescript
 tsconfig.tsbuildinfo

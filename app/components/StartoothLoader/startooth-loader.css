@@ -1,0 +1,90 @@
+/* StartoothLoader — the sticker family's passive, SSR-safe member.
+   Structure, motion, and the family shadow live here; the route→appearance
+   mapping (which route is which colour + movement) lives in globals.css next
+   to the old --startooth palette it replaces. See StartoothLoader.tsx. */
+
+.startooth-loader {
+  display: block;
+  /* The hull's drop-shadow extends past the viewBox. */
+  overflow: visible;
+
+  /* Movement preset — a bundle of four vars. Trace is the default; twinkle
+     overrides them. The boot mount lets globals.css set these per route;
+     direct consumers set them via the `movement` prop (data attribute). */
+  --loader-anim:    sl-trace;
+  --loader-dur:     3s;
+  --loader-ease:    var(--ease-paper);
+  --loader-stagger: -0.14;
+}
+
+.startooth-loader[data-movement='trace'] {
+  --loader-anim:    sl-trace;
+  --loader-dur:     3s;
+  --loader-ease:    var(--ease-paper);
+  --loader-stagger: -0.14;
+}
+
+.startooth-loader[data-movement='twinkle'] {
+  --loader-anim:    sl-pulse;
+  --loader-dur:     2s;
+  --loader-ease:    ease-in-out;
+  --loader-stagger: -0.25;
+}
+
+/* 1 — die-cut hull. Wears the standardised sticker lift-shadow so it reads as
+   the same printed-pressed material as the rest of the family. */
+.startooth-loader__hull {
+  fill: var(--loader-sticker, var(--blue-100, #e0ebf7));
+  filter: var(--sticker-shadow-lift);
+}
+
+/* 2 — resting strokes: the accent mixed 38% into the sticker tint, so the
+   mark stays legible between animated sweeps. */
+.startooth-loader__base path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--loader-lit, var(--blue-960, #013b66)) 38%, var(--loader-sticker, var(--blue-100, #e0ebf7)));
+}
+
+/* 3 — lit strokes. pathLength=1 (set in the SVG) normalises every path's
+   length to 1, so `stroke-dasharray: 1` covers the whole path regardless of
+   geometry. Trace animates the dash offset (draw-on); twinkle leaves the line
+   solid and animates opacity. */
+.startooth-loader__lit {
+  fill: none;
+  stroke: var(--loader-lit, var(--blue-960, #013b66));
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation-name: var(--loader-anim);
+  animation-duration: var(--loader-dur);
+  animation-timing-function: var(--loader-ease);
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+/* Stagger the four facets out of phase. The multiplier (--loader-stagger)
+   differs by movement, so the cadence reads distinct per movement. */
+.startooth-loader__lit-group .startooth-loader__lit:nth-of-type(1) { animation-delay: calc(var(--loader-dur) * var(--loader-stagger) * 0); }
+.startooth-loader__lit-group .startooth-loader__lit:nth-of-type(2) { animation-delay: calc(var(--loader-dur) * var(--loader-stagger) * 1); }
+.startooth-loader__lit-group .startooth-loader__lit:nth-of-type(3) { animation-delay: calc(var(--loader-dur) * var(--loader-stagger) * 2); }
+.startooth-loader__lit-group .startooth-loader__lit:nth-of-type(4) { animation-delay: calc(var(--loader-dur) * var(--loader-stagger) * 3); }
+
+@keyframes sl-trace {
+  0%   { stroke-dashoffset: 1; }
+  42%  { stroke-dashoffset: 0; }
+  72%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 1; }
+}
+
+@keyframes sl-pulse {
+  0%, 100% { opacity: 0.12; }
+  50%      { opacity: 1; }
+}
+
+/* Reduced motion — the README's contract: show the mark fully drawn, static. */
+@media (prefers-reduced-motion: reduce) {
+  .startooth-loader__lit {
+    animation: none;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}

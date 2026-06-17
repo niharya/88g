@@ -3171,10 +3171,11 @@
     transition: none;
   }
 
-  /* Rails keep their desktop content + flip-out mechanic. On mobile we only
-     override the open-state transform so the panel lands on top of the game
-     board (desktop value slides it right off-screen on a 375 viewport).
-     Inline-style transform is beaten with !important here.
+  /* Rails keep their desktop content + flip-out mechanic. On mobile the
+     open-state lands the panel on top of the game board (the desktop value
+     slides it right off-screen on a 375 viewport) — but the transform itself
+     is emitted INLINE by RulesRail/NoteRail (OPEN_TRANSFORM_MOBILE), not
+     here; see the next comment block.
      When closed, content must stay clipped behind the board (default z-order).
      When open, rails sit above the board so their tab + content are visible. */
   .route-rr .rr-rules-rail.is-open,

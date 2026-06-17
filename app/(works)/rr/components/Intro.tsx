@@ -27,6 +27,7 @@ import useMatSettle from './useMatSettle'
 import { useExpand } from '../../../lib/useExpand'
 import { Img } from '../../../components/Img'
 import { ExpandToggle } from '../../../components/ExpandToggle'
+import MaterialIcon from '../../../components/MaterialIcon'
 
 // ── Shared motion constants ────────────────────────────────────────────────
 // Single easing curve + base duration — all timings are multiples of DUR
@@ -208,9 +209,7 @@ export default function Intro() {
               aria-hidden="true"
             >
               <span className="rr-constraints-card__toggle-label t-btn1">+3</span>
-              <span className="rr-constraints-card__toggle-icon material-symbols-rounded" aria-hidden="true">
-                arrow_drop_down
-              </span>
+              <MaterialIcon name="arrow_drop_down" className="rr-constraints-card__toggle-icon" />
             </div>
 
             <div className="rr-constraints-card__border rr-constraints-card__border--bottom" />
