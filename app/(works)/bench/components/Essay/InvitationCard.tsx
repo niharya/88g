@@ -51,19 +51,19 @@ export default function InvitationCard({ children }: { children?: ReactNode }) {
 
         {/* Manifesto */}
         <p className="bench-poem">
-          Over the past 10 years, I<br />
-          have made posters, brands,<br />
-          a culture, interfaces, even<br />
+          Over the past 10 years, I{' '}<br />
+          have made posters, brands,{' '}<br />
+          a culture, interfaces, even{' '}<br />
           names and games.
         </p>
 
         <p className="bench-poem bench-poem--second">
-          <span>Behind the scenes, all I have truly done is<br />protected the process:<br /></span>
-          the brief and its refinement,<br />
-          the people and their environment,<br />
-          agendas and budgets,<br />
-          timelines and communication,<br />
-          and any other force that can inhibit or<br />
+          <span>Behind the scenes, all I have truly done is{' '}<br />protected the process:{' '}<br /></span>
+          the brief and its refinement,{' '}<br />
+          the people and their environment,{' '}<br />
+          agendas and budgets,{' '}<br />
+          timelines and communication,{' '}<br />
+          and any other force that can inhibit or{' '}<br />
           support the plant growth.
         </p>
 
@@ -78,7 +78,7 @@ export default function InvitationCard({ children }: { children?: ReactNode }) {
         <div className="bench-closing">
           <span className="bench-closing__eyebrow">One project at a time</span>
           <p className="bench-closing__line">
-            that practice has<br />
+            that practice has{' '}<br />
             become my craft.
           </p>
         </div>
