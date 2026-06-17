@@ -1,14 +1,32 @@
-# /selected — Route Notes
+# /bench — Route Notes
 
-## Overview (v0.94+)
+## Overview (Work Essay redesign) — current
 
-The `/selected` page is a single vertical flow:
-- **AboutCard** — centered intro at the top, in-flow, with an inset hairline frame inside the mint border. Big breath below (`--space-80`).
-- **Prelude** — copy block (left) + Timeline tile (right) side-by-side. The Nihar/Works nav chips are absolute-positioned children of the Timeline column so they sit half-on-top of the mat's top edge.
-- **HintRow** — keycap glyphs explaining the click/esc model. Sits between the Prelude and the masonry with `margin-top: var(--space-64)`.
-- **Showcase grid** — CSS Grid masonry of the 10 tiles below. Timeline is **not** part of this grid; the masonry is its own surface.
+`/bench` (renamed from `/selected`) is the "Work Essay" invitation. Full spec:
+[`./DESIGN.md`](./DESIGN.md). Composition:
+
+- **Desk** (`.bench-workbench`) — recolours the workbench to the pale desk; whisper of mat-noise.
+- **Stage** (`.bench-stage`, 920 centred) — the `+Nihar` marker + the **invitation card**.
+- **Invitation card** (`.bench-card`) — engraved blue broadside: Pinyon watermark, gradient-clipped Fraunces manifesto, filled `--mint-720` startooth crown + divider, script closing. Foots the **ticket**.
+- **Ticket** — "BROWSE IN TWO WAYS", two tabs (Longform / Visual). One element that **morphs** into a pinned top navbar.
+- **Work panel** (full-width sibling, browse mode) — **Longform** → `SelectedContent` (Timeline + Archive, hosted in `.bench-cases`); **Visual** → the Showcase bento (`.sc-section`, HeaderBlock dropped, HintRow kept).
+
+### Morph + shell contract (load-bearing)
+
+- **State machine** `useBenchMorph`: `view` (invite|browse) · `active` (lf|vis) · `condensed` · `closing`. Geometry written imperatively on the ticket node; inner reshape is declarative props on `Ticket`. Open → switch (instant swap) → close (work leads fade+sink, ticket de-condenses onto the descending card, framed landing, seamless fixed→static hand-off). All on `--ease-paper`/`--dur-glide` via `scrollGlide` (lockstep); the prototype's overshoot pop is dropped.
+- **Containing-block traps** (both pin the fixed navbar to an ancestor instead of the viewport, so it scrolls away): (1) `.transition-pane` carries `will-change:transform` (globals.css) → neutralised by `.transition-pane:has(.bench-workbench){will-change:auto}` in bench.css; (2) TransitionSlot's WAAPI entrance leaves `transform:translateY(0)` on the pane (fill:both) → `openTab` cancels the pane's retained animation before measuring; (3) the slide-in entrance uses `backwards` fill so `.bench-card` retains no transform. Don't reintroduce any retained transform on a ticket ancestor.
+- **`?view` ⇄ state**: `page.tsx` reads `view` server-side (the `/cases`,`/showcase` rewrites deliver it as the destination query; client `useSearchParams` doesn't carry it) → `initialView` → deep-link jump. In-shell client nav (case-study EXIT) defers the jump until `.workbench.transitioning` clears; the once-guard is a synchronous ref (Strict-Mode safe). User open/switch/close sync the URL via `history.replaceState` (kept out of history).
+- **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/bench?view=cases` so a case-study exit returns to the Longform timeline, not the resting invite.
+- **Orphaned by the redesign** (no longer rendered; only reference each other; safe to delete after review): `AboutCard`, `FirstView`, `Showcase/ShowcaseSection`, `Showcase/Prelude`, `Showcase/HeaderBlock` + their CSS.
+
+> The pre-redesign "single vertical flow" overview (AboutCard → Prelude → HintRow → Showcase)
+> is **superseded** by the above. The archive sections below (timeline model, spacing math,
+> hover system, showcase grid) still describe the Timeline + Showcase, which now live as the
+> two tab contents.
 
 ---
+
+## Showcase grid
 
 ## Showcase grid
 
