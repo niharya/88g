@@ -8,6 +8,7 @@ import FirstView from './components/FirstView'
 import ShowcaseSection from './components/Showcase/ShowcaseSection'
 import NiharHomeLink from '../../components/NiharHomeLink'
 import SlideInOnNav from '../../components/SlideInOnNav'
+import { pinyon } from './fonts'
 
 export const metadata: Metadata = {
   title: 'Selected Work',
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function SelectedPage() {
   return (
-    <div className="selected-workbench">
+    <div className={`selected-workbench ${pinyon.variable}`}>
       <h1 className="sr-only">Works</h1>
       <SlideInOnNav
         flag="to-bench"
