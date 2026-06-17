@@ -1,0 +1,279 @@
+/* ==========================================================================
+   bench.css — /bench "Work Essay" invitation surface
+
+   The bench is the works hub: an engraved invitation card carrying a short
+   manifesto, footed (Phase 3+) by a morphing ticket whose two tabs reveal the
+   Longform timeline and the Visual showcase. This file owns the desk + card +
+   poem + marks + closing + the +Nihar marker. Tab content keeps using the
+   legacy `.selected-*` / `.sc-*` classes in selected.css / showcase.css.
+
+   Porting note: the design was authored against our token system — the blue
+   ramp matches exactly. The ticket's warm palette is dressed in --terra-* for
+   now (iterate to a --gold-* ramp later); the marks are filled --mint-720,
+   which IS the design's #028634 green. See bench/DESIGN.md for the full map.
+   ========================================================================== */
+
+
+/* ── Desk surface ───────────────────────────────────────────────────────── */
+/* The workbench paper is recoloured to the design's pale desk and the bench
+   fills the content box. The desk reads seamless because the workbench bg and
+   the bench bg are the same value, so the shell's pad-x/y frame the desk
+   rather than cutting a different-coloured border around it. */
+.workbench:has(.bench-workbench) {
+  --workbench-bg: #f2f3ef;        /* design desk surface */
+}
+
+.bench-workbench {
+  position: relative;
+  min-height: calc(100svh - (var(--workbench-pad-y) * 2));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(8px, 4vh, 44px);
+}
+
+/* Paper grain over the desk — reuses the shared mat noise (the design ships a
+   noise-bg.png; ours is equivalent). Sits behind everything on the bench. */
+.bench-workbench::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--mat-noise-url);
+  background-size: 240px 240px;
+  mix-blend-mode: multiply;
+  opacity: 0.12;        /* a whisper of grain — ours is denser than the design's */
+}
+
+/* ── Stage ──────────────────────────────────────────────────────────────── */
+.bench-stage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* ── +Nihar marker (top-left, in-flow above the card) ─────────────────────── */
+/* Reuses NavMarker(role="exit") but, unlike the shell/marks EXIT, it sits in
+   flow on the pale desk in our grey scale (rest --grey-720 → hover --grey-560,
+   a touch darker than the marks white-on-art treatment). Links home. */
+.bench-exit {
+  align-self: flex-start;
+  margin-bottom: 18px;
+}
+
+.bench-exit .nav-marker--exit {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.bench-exit .nav-marker--exit .nav-marker__content {
+  padding: 0;
+  align-items: center;
+  color: var(--grey-720);
+  transition: color var(--dur-fast) var(--ease-snap);
+}
+
+.bench-exit .nav-marker--exit:hover .nav-marker__content,
+.bench-exit .nav-marker--exit:focus-visible .nav-marker__content {
+  color: var(--grey-560);
+}
+
+.bench-exit .nav-marker--exit:hover,
+.bench-exit .nav-marker--exit:focus-visible {
+  background: none;
+}
+
+
+/* ── The invitation card (the "broadside") ────────────────────────────────── */
+.bench-card {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  background-color: var(--blue-80);
+  border: 5px solid var(--blue-800);
+  box-shadow:
+    0 2px 5px rgba(20, 40, 80, 0.10),
+    0 18px 40px -12px rgba(20, 40, 80, 0.28);
+  padding: 60px 68px 76px;
+}
+
+/* Whisper of paper grain on the card (low-opacity overlay rather than a
+   multiply blend, which over our denser noise speckled the blue). */
+.bench-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--mat-noise-url);
+  background-size: 240px 240px;
+  mix-blend-mode: multiply;
+  opacity: 0.10;
+}
+
+/* Engraved double-frame — inner keyline. */
+.bench-card__keyline {
+  position: absolute;
+  inset: 11px;
+  border: 1px solid var(--blue-320);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Watermark — "Product" / "Designer" pushed to the card edges, behind content. */
+.bench-card__watermark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 72px;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(20px, 5vw, 60px);
+  pointer-events: none;
+  font-family: var(--font-pinyon), cursive;
+  font-size: clamp(58px, 9vw, 138px);
+  line-height: 1;
+  color: var(--blue-160);
+  white-space: nowrap;
+}
+
+/* Content column. */
+.bench-card__main {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+
+/* ── Marks (filled mint startooth) + flanking hairlines ───────────────────── */
+.bench-crown {
+  margin: 4px 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.bench-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  width: 100%;
+  max-width: 540px;
+  margin: 56px 0 48px;
+}
+
+.bench-mark {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--mint-720);   /* == design #028634 */
+}
+
+/* Fading hairline rules either side of a mark. The crown uses fixed 46px
+   stubs; the divider uses flex:1 rules that fill the row. */
+.bench-rule {
+  height: 1px;
+}
+.bench-crown .bench-rule { width: 46px; }
+.bench-divider .bench-rule { flex: 1; }
+.bench-rule--l {
+  background: linear-gradient(90deg, rgba(144, 200, 254, 0) 0%, var(--blue-320) 100%);
+}
+.bench-rule--r {
+  background: linear-gradient(90deg, var(--blue-320) 0%, rgba(144, 200, 254, 0) 100%);
+}
+
+
+/* ── Poem ─────────────────────────────────────────────────────────────────── */
+/* Gradient ink clipped to text. Phase 2 renders it static; Phase 8 adds the
+   calm drift (under our motion policy, reduced-motion-gated). A solid colour
+   fallback keeps the text visible where background-clip:text is unsupported. */
+.bench-poem {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  font-weight: 400;
+  font-size: clamp(25px, 2.5vw, 35px);
+  line-height: 1.42;
+  letter-spacing: -0.4px;
+  text-wrap: balance;
+  color: var(--blue-720);
+  background-image: linear-gradient(
+    100deg,
+    var(--blue-720) 0%, var(--blue-560) 25%, var(--blue-720) 50%,
+    var(--blue-560) 75%, var(--blue-720) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bench-poem--second {
+  margin: 76px 0 0;
+  color: var(--blue-800);
+  background-image: linear-gradient(
+    100deg,
+    var(--blue-800) 0%, var(--blue-720) 25%, var(--blue-800) 50%,
+    var(--blue-720) 75%, var(--blue-800) 100%
+  );
+}
+
+
+/* ── Closing ("script" variant) ──────────────────────────────────────────── */
+.bench-closing {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  max-width: 780px;
+  text-align: center;
+}
+
+.bench-closing__eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--blue-560);
+}
+
+.bench-closing__line {
+  margin: 0;
+  font-family: var(--font-pinyon), cursive;
+  font-size: clamp(28px, 4.4vw, 48px);
+  line-height: 1.14;
+  letter-spacing: 0.01em;
+  color: var(--blue-720);
+  text-wrap: balance;
+}
+
+
+/* ── Entrance: slide in from the right when arriving from landing ──────────── */
+/* Landing sits to the bench's left in the mental model. SlideInOnNav adds the
+   class on mount; the card + marker carry the lateral slide. */
+.bench-workbench--slide-in .bench-exit,
+.bench-workbench--slide-in .bench-card {
+  animation: bench-slide-in var(--dur-settle) var(--ease-paper) both;
+}
+
+@keyframes bench-slide-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}

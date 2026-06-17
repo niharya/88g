@@ -158,11 +158,11 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     //    NOTE: This selector is the load-bearing contract between
     //    TransitionSlot and every route's top-level markup. Routes with a
     //    `.sheet` stack (rr, biconomy) expose each sheet's inner content;
-    //    `/selected` uses `.selected-workbench > *`. A fourth route with a
+    //    `/bench` uses `.bench-workbench > *`. A fourth route with a
     //    different top-level class would silently fall through to no
     //    inner-content dim — add its selector here before landing it.
     const ghostContentEls = ghost.querySelectorAll(
-      '.sheet > :not(.nav-sled), .selected-workbench > *'
+      '.sheet > :not(.nav-sled), .bench-workbench > *'
     )
     animateAll(ghostContentEls, [
       { opacity: '1', transform: 'translateY(0)' },

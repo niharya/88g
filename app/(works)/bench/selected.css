@@ -9,7 +9,7 @@
 
 /* ── Route tokens ───────────────────────────────────────────────────────── */
 
-.workbench:has(.selected-workbench) {
+.workbench:has(.bench-workbench) {
   --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
 
   /* Page-local project colors — derived from brand hex values */

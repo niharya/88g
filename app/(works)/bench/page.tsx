@@ -1,14 +1,10 @@
 import type { Metadata } from 'next'
 import './selected.css'
-import MarkerSlot from '../../components/nav/MarkerSlot'
-import NavMarker from '../../components/NavMarker'
-import AboutCard from './components/AboutCard'
-import SelectedContent from './components/SelectedContent'
-import FirstView from './components/FirstView'
-import ShowcaseSection from './components/Showcase/ShowcaseSection'
-import NiharHomeLink from '../../components/NiharHomeLink'
+import './bench.css'
 import SlideInOnNav from '../../components/SlideInOnNav'
 import { pinyon } from './fonts'
+import BenchExitMarker from './components/Essay/BenchExitMarker'
+import InvitationCard from './components/Essay/InvitationCard'
 
 export const metadata: Metadata = {
   title: 'Selected Work',
@@ -24,56 +20,22 @@ export const metadata: Metadata = {
   },
 }
 
-export default function SelectedPage() {
+export default function BenchPage() {
   return (
-    <div className={`selected-workbench ${pinyon.variable}`}>
+    <div className={`bench-workbench ${pinyon.variable}`}>
       <h1 className="sr-only">Works</h1>
       <SlideInOnNav
         flag="to-bench"
-        selector=".selected-workbench"
-        className="selected-workbench--slide-in"
+        selector=".bench-workbench"
+        className="bench-workbench--slide-in"
       />
-      {/* First viewport — AboutCard + Timeline panel up top, Showcase  */}
-      {/* cue pinned a few px below the mat panel. The FirstView client */}
-      {/* wrapper owns the click-to-glide handler and the measured      */}
-      {/* `--sc-cue-top` var that anchors the cue to the mat's bottom.   */}
-      <FirstView>
-        <div
-          className="selected-layout"
-          // Contract with FirstView: the stage element provides the
-          // horizontal rails (left + right) for the Showcase cue. The
-          // mat carries `data-cue-v-anchor` for the vertical position.
-          // If this attribute moves, update CUE_H_ANCHOR_SELECTOR in
-          // FirstView.tsx.
-          data-cue-h-anchor
-        >
-          {/* Nav markers — docked together, positioned above the mat */}
-          <div className="selected-nav-row">
-            <MarkerSlot position="left" measure={false}>
-              <NiharHomeLink />
-            </MarkerSlot>
-            <div className="chapter-nav chapter-nav--static">
-              <NavMarker
-                as="button"
-                role="chapter"
-                icon="arrow_downward"
-                acknowledgeOnClick="shake"
-                label="Works"
-                sublabel="2018-25"
-                aria-label="Works — you are here"
-              />
-            </div>
-          </div>
 
-          <AboutCard />
-          <SelectedContent />
-        </div>
-      </FirstView>
-
-      {/* Showcase — appended below the first viewport. The hint row +    */}
-      {/* 10-tile bento grid live here; HeaderBlock above them carries   */}
-      {/* the Claude Design intro copy.                                   */}
-      <ShowcaseSection />
+      {/* The invitation essay. Phase 3 mounts the morphing ticket as a child
+          of the card; Phase 6 mounts the work panel (Timeline / Showcase). */}
+      <div className="bench-stage">
+        <BenchExitMarker />
+        <InvitationCard />
+      </div>
     </div>
   )
 }
