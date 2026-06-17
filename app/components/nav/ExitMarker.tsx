@@ -1,4 +1,6 @@
-// ExitMarker — fixed right-side exit marker. Links back to the works index.
+// ExitMarker — fixed right-side exit marker. Links back to the works hub
+// (/bench), landing on the Longform browse mode (?view=cases) so a case-study
+// exit returns to the timeline the visitor came from, not the resting invite.
 
 import NavMarker from '../NavMarker'
 
@@ -7,7 +9,7 @@ export default function ExitMarker() {
     <div className="exit-marker">
       <NavMarker
         as="a"
-        href="/selected"
+        href="/bench?view=cases"
         role="exit"
         icon="arrow_downward"
         label="EXIT"

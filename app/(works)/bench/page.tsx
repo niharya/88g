@@ -13,12 +13,12 @@ export const metadata: Metadata = {
   title: 'Selected Work',
   description:
     'Branding, onboarding flows, naming, systems work, infrastructure experiments.',
-  alternates: { canonical: '/selected' },
+  alternates: { canonical: '/bench' },
   openGraph: {
     title: 'Different systems. Same instincts.',
     description:
       'Trying to organize complexity so people can move through it and get somewhere.',
-    url: '/selected',
+    url: '/bench',
     images: ['/og-image.png'],
   },
 }
@@ -28,7 +28,7 @@ export default function SelectedPage() {
     <div className="selected-workbench">
       <h1 className="sr-only">Works</h1>
       <SlideInOnNav
-        flag="to-selected"
+        flag="to-bench"
         selector=".selected-workbench"
         className="selected-workbench--slide-in"
       />

@@ -12,5 +12,23 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['framer-motion'],
   },
+  // The works hub moved from /selected to /bench (the "Work Essay" redesign).
+  // Old inbound links + the prior og:canonical keep resolving via a permanent
+  // redirect.
+  async redirects() {
+    return [
+      { source: '/selected', destination: '/bench', permanent: true },
+    ]
+  },
+  // Pretty, shareable aliases for the bench's two browse modes. Each resolves
+  // to the single bench surface with the view preset — the morph stays one
+  // continuous in-page interaction (the address bar shows ?view= after a
+  // client-side tab switch; these aliases are the entry/share URLs).
+  async rewrites() {
+    return [
+      { source: '/cases',    destination: '/bench?view=cases' },
+      { source: '/showcase', destination: '/bench?view=showcase' },
+    ]
+  },
 }
 export default nextConfig

@@ -12,13 +12,13 @@ import NavMarker from '../../components/NavMarker'
 import { useCrossShellNav } from '../../components/CrossShellVeil'
 
 export default function MarksExitMarker() {
-  const onClick = useCrossShellNav('/selected')
+  const onClick = useCrossShellNav('/bench?view=cases')
 
   return (
     <div className="exit-marker">
       <NavMarker
         as="a"
-        href="/selected"
+        href="/bench?view=cases"
         role="exit"
         icon="arrow_downward"
         label="EXIT"

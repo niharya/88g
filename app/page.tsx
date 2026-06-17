@@ -16,15 +16,15 @@ import './components/NavMarker/navmarker.css'
 import './components/Footer/footer.css'
 import './landing.css'
 
-/* Session flag read by /selected on arrival so it can slide in from the right.
+/* Session flag read by /bench on arrival so it can slide in from the right.
    Paired with the inline slide-in effect inside LandingPage for the reverse
    trip — that effect is inlined rather than using <SlideInOnNav> because the
    landing's root className toggles on expand, and React's className
    reconciliation strips any imperatively-added classes (like SlideInOnNav's)
    on every re-render. Owning the class through React state keeps it stable
    across the expand toggle, avoiding a mid-flight animation restart. */
-const markToSelected = () => {
-  try { sessionStorage.setItem('nav-direction', 'to-selected') } catch { /* non-fatal */ }
+const markToBench = () => {
+  try { sessionStorage.setItem('nav-direction', 'to-bench') } catch { /* non-fatal */ }
 }
 
 const EMAILJS_SERVICE  = 'service_76t20oq'
@@ -524,12 +524,12 @@ export default function LandingPage() {
               />
               <NavMarker
                 as="a"
-                href="/selected"
+                href="/bench"
                 role="chapter"
                 tone="terra"
                 icon="arrow_forward"
                 label="Works"
-                onClick={markToSelected}
+                onClick={markToBench}
                 className="landing-nav-row__works"
               />
             </div>
@@ -585,7 +585,7 @@ export default function LandingPage() {
                   <span className="spectrum__label spectrum__label--right t-h5" style={{ color: palette.rightLabel }}>Application</span>
                   <div className="spectrum__footer">
                     <div className="spectrum__footer-line" />
-                    <Link className="spectrum__link t-btn1" href="/selected" onClick={markToSelected}>My Works</Link>
+                    <Link className="spectrum__link t-btn1" href="/bench" onClick={markToBench}>My Works</Link>
                   </div>
                 </div>
               </div>

@@ -84,7 +84,7 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
   useEffect(() => {
     router.prefetch('/rr')
     router.prefetch('/biconomy')
-    router.prefetch('/selected')
+    router.prefetch('/bench')
   }, [router])
 
   // ── Capture snapshot + scroll during render ──────────────────────────

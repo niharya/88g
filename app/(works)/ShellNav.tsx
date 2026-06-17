@@ -6,7 +6,7 @@
 // current route and toggle visibility.
 //
 // ProjectMarker content cross-fades when navigating between routes.
-// On /selected the shell markers are hidden — that page renders its own docked
+// On /bench the shell markers are hidden — that page renders its own docked
 // nav row with MarkerSlot + ProjectMarker + ChapterMarker(static).
 //
 // Each route owns its own MarkerInfoCard (route-local, content can diverge).
@@ -21,14 +21,14 @@ import BiconomyMarkerInfoCard from './biconomy/components/MarkerInfoCard'
 import RrMarkerInfoCard from './rr/components/MarkerInfoCard'
 
 const segmentNames: Record<string, string> = {
-  selected: 'Nihar',
+  bench: 'Nihar',
   rr: 'Rug Rumble',
   biconomy: 'Biconomy',
 }
 
 export default function ShellNav() {
   const segment = useSelectedLayoutSegment()
-  const isSelected = segment === 'selected'
+  const isBench = segment === 'bench'
   const projectName = segmentNames[segment ?? ''] ?? 'Nihar'
 
   const infoCard =
@@ -37,7 +37,7 @@ export default function ShellNav() {
     undefined
 
   return (
-    <div className={isSelected ? 'shell-nav-hidden' : undefined}>
+    <div className={isBench ? 'shell-nav-hidden' : undefined}>
       <MarkerSlot position="left">
         <AnimatePresence mode="wait">
           <motion.div

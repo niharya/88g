@@ -26,7 +26,7 @@ type BackTarget = {
 }
 
 const TARGETS: Record<string, BackTarget> = {
-  '/selected':  { href: '/selected',  label: 'Works',      tone: 'terra'   },
+  '/bench':     { href: '/bench',     label: 'Works',      tone: 'terra'   },
   '/biconomy':  { href: '/biconomy',  label: 'Biconomy',   tone: 'mint'    },
   '/rr':        { href: '/rr',        label: 'Rug Rumble', tone: 'terra'   },
   '/':          { href: '/',          label: 'Back',       tone: 'neutral' },
