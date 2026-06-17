@@ -1,26 +1,35 @@
 'use client'
 
-// BenchEssay — client owner of the invitation + ticket (+ work panel in
-// Phase 6). Phase 3 renders the ticket resting with no-op handlers; Phase 4
-// replaces the local stubs with the useBenchMorph state machine (view /
-// active / condensed / closing) + imperative ticket geometry + scrollGlide,
-// and Phase 5 syncs it to the ?view search-param.
+// BenchEssay — client owner of the invitation + ticket + work panel.
+// Owns the morph via useBenchMorph (state machine + ticket geometry +
+// scrollGlide lockstep). Phase 5 will sync this to the ?view search-param;
+// Phase 6 replaces WorkPanel's placeholders with the real Timeline / Showcase.
 
 import InvitationCard from './InvitationCard'
 import Ticket from './Ticket'
+import WorkPanel from './WorkPanel'
+import { useBenchMorph } from './useBenchMorph'
 
 export default function BenchEssay() {
-  const noop = () => {}
+  const m = useBenchMorph()
 
   return (
-    <InvitationCard>
-      <Ticket
-        condensed={false}
-        active="lf"
-        onLongform={noop}
-        onVisual={noop}
-        onClose={noop}
-      />
-    </InvitationCard>
+    <>
+      <InvitationCard>
+        <Ticket
+          condensed={m.condensed}
+          active={m.active}
+          onLongform={() => m.openTab('lf')}
+          onVisual={() => m.openTab('vis')}
+          onClose={m.closeTab}
+          slotRef={m.slotRef}
+          ticketRef={m.ticketRef}
+        />
+      </InvitationCard>
+
+      {m.view === 'browse' && (
+        <WorkPanel active={m.active} closing={m.closing} workRef={m.workRef} />
+      )}
+    </>
   )
 }

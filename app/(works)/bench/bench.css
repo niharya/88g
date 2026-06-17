@@ -23,6 +23,15 @@
   --workbench-bg: #f2f3ef;        /* design desk surface */
 }
 
+/* The shared `.transition-pane` carries `will-change: transform` (globals.css),
+   which creates a containing block and would pin the ticket's position:fixed
+   morph to the pane instead of the viewport (the navbar scrolls away). Neutralise
+   it ONLY while the bench is mounted — :has() un-matches the moment a transition
+   swaps in another route, so rr/biconomy keep the will-change hint. */
+.transition-pane:has(.bench-workbench) {
+  will-change: auto;
+}
+
 .bench-workbench {
   position: relative;
   min-height: calc(100svh - (var(--workbench-pad-y) * 2));
@@ -265,6 +274,63 @@
 }
 
 
+/* ── Work panel (browse mode) ─────────────────────────────────────────────── */
+/* Revealed beneath the lifted invitation once a tab opens. Top padding clears
+   the pinned navbar. `closing` leads the reverse choreography (fade + sink)
+   while the panel stays mounted so the page keeps its height. Phase 6 swaps
+   the placeholders for the real Timeline / Showcase. */
+.bench-work {
+  width: 100%;
+  min-height: 100vh;
+  padding: 108px 8px 80px;
+  transition:
+    opacity var(--dur-slide) var(--ease-paper),
+    transform var(--dur-settle) var(--ease-paper);
+  will-change: opacity, transform;
+}
+.bench-work--closing {
+  opacity: 0;
+  transform: translateY(26px);
+}
+
+/* Longform placeholder rows */
+.bench-lf-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--grey-880);
+  padding: 18px 6px;
+}
+.bench-lf-row__idx,
+.bench-lf-row__year {
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  color: var(--grey-640);
+}
+.bench-lf-row__title {
+  flex: 1;
+  margin: 0 22px;
+  font-family: var(--font-display), serif;
+  font-variation-settings: 'WONK' 1;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+  color: var(--grey-160);
+}
+
+/* Visual placeholder grid */
+.bench-vis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.bench-vis-tile {
+  aspect-ratio: 4 / 3;
+  background: var(--blue-100);
+  border: 1px solid var(--blue-160);
+  border-radius: 4px;
+}
+
+
 /* ── The ticket ("BROWSE IN TWO WAYS") ────────────────────────────────────── */
 /* Resting state here; Phase 4 morphs it into a pinned navbar. The per-state
    values (padding, title size, divider height, close width, etc.) are set
@@ -456,9 +522,13 @@
 /* ── Entrance: slide in from the right when arriving from landing ──────────── */
 /* Landing sits to the bench's left in the mental model. SlideInOnNav adds the
    class on mount; the card + marker carry the lateral slide. */
+/* `backwards` (not `both`): the steady state must NOT retain a transform on
+   .bench-card — a non-none transform would make it the containing block for
+   the ticket's position:fixed morph and pin the navbar to the card instead of
+   the viewport. The to-keyframe equals the base state, so there's no end flash. */
 .bench-workbench--slide-in .bench-exit,
 .bench-workbench--slide-in .bench-card {
-  animation: bench-slide-in var(--dur-settle) var(--ease-paper) both;
+  animation: bench-slide-in var(--dur-settle) var(--ease-paper) backwards;
 }
 
 @keyframes bench-slide-in {
