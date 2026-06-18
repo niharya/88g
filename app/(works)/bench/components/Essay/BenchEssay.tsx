@@ -26,18 +26,18 @@ export default function BenchEssay({ initialView }: { initialView?: BenchActive 
     <>
       <div className="bench-stage">
         <BenchExitMarker />
-        <InvitationCard />
+        <InvitationCard>
+          {/* Ticket foots the card; rises out into a pinned navbar on scroll. */}
+          <Ticket
+            docked={d.docked}
+            active={d.active}
+            onShowcase={() => d.openTab('vis')}
+            onLongform={() => d.openTab('lf')}
+            onClose={d.close}
+            slotRef={d.slotRef}
+          />
+        </InvitationCard>
       </div>
-
-      {/* Sticky ticket — sits at the card's foot, docks into a navbar on scroll. */}
-      <Ticket
-        docked={d.docked}
-        active={d.active}
-        onShowcase={() => d.openTab('vis')}
-        onLongform={() => d.openTab('lf')}
-        onClose={d.close}
-        slotRef={d.slotRef}
-      />
 
       {/* Work — always present; the active tab swaps the content. */}
       <WorkPanel active={d.active} workRef={d.workRef} />

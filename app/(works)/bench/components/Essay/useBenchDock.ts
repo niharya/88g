@@ -14,7 +14,7 @@
 // Content is always present (no invite/browse mount gate): card → ticket →
 // active tab's content. Default active tab is the showcase.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { scrollGlide } from '../../../../lib/scrollGlide'
 
 export type BenchActive = 'vis' | 'lf'
@@ -28,10 +28,21 @@ export function useBenchDock(initialActive: BenchActive) {
   const workRef = useRef<HTMLDivElement>(null)
   const dockedRef = useRef(false)
 
+  // ── Reserve the resting footprint ───────────────────────────────────────
+  // The ticket lives inside the card and lifts OUT (position:fixed) when docked;
+  // pin the slot's height so the card doesn't collapse (and the work below
+  // doesn't jump up) at the dock moment.
+  useLayoutEffect(() => {
+    const slot = slotRef.current
+    if (slot) slot.style.minHeight = `${Math.round(slot.getBoundingClientRect().height)}px`
+  }, [])
+
   // ── Scroll-driven dock detection ────────────────────────────────────────
-  // The sticky slot's top latches at DOCK_TOP once stuck; compare against it
-  // (with a small tolerance) and only setState on a real transition so we
-  // don't re-render every scroll frame.
+  // Dock when the slot (the ticket's resting spot in the card) reaches the top
+  // dock point. Only setState on a real transition so we don't re-render every
+  // scroll frame. The position flip is scroll-coincident with the rest spot, so
+  // the hand-off is seamless (no jump); the rise (scale + shadow) + condense
+  // animate via CSS as `.is-docked` toggles.
   useEffect(() => {
     const update = () => {
       const slot = slotRef.current
