@@ -1,43 +1,81 @@
-# Scriptorium — selected (Works)
+# Scriptorium — all (Works)
 
-Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
+Verbatim copy reference for the works hub at **`/all`** (the "Work Essay"; internal codenames "bench"/"selected"). Edit the source files, not this doc — run `/release` to surface drift.
 
-**Sources:** `app/(works)/all/page.tsx`, `app/(works)/all/components/*.tsx`
+**Sources:** `app/(works)/all/page.tsx`, `app/(works)/all/components/Essay/*.tsx` (invitation + ticket), `app/(works)/all/components/*.tsx` (Longform: Timeline + Archive), `app/(works)/all/components/Showcase/*` (Visual tab).
+
+The route is a single morphing surface: an **invitation card** (manifesto poem) footed by a **ticket** that docks into a navbar on scroll, switching between the **Longform** tab (Timeline + Archive) and the **Visual** tab (Showcase grid).
 
 ---
 
 ## sr-only heading {#sr-heading}
 
 > "Works"
-> — [`page.tsx:27`](../../app/(works)/all/page.tsx#L27)
+> — [`page.tsx:36`](../../app/(works)/all/page.tsx#L36)
 
-## Nav row — Works chapter marker {#nav-works}
+## Exit marker — "+Nihar" {#exit-marker}
 
-> "Works"
-> — [`page.tsx:45`](../../app/(works)/all/page.tsx#L45)
+Top-left marker above the invitation card; links home.
 
-> "2018-25" (sublabel)
-> — [`page.tsx:46`](../../app/(works)/all/page.tsx#L46)
+> "Nihar"
+> — [`Essay/BenchExitMarker.tsx:29`](../../app/(works)/all/components/Essay/BenchExitMarker.tsx#L29)
 
-> "Works — you are here" (aria-label)
-> — [`page.tsx:47`](../../app/(works)/all/page.tsx#L47)
+> "Back to landing page" (aria-label)
+> — [`Essay/BenchExitMarker.tsx:31`](../../app/(works)/all/components/Essay/BenchExitMarker.tsx#L31)
 
-## AboutCard {#about-card}
+## Invitation card — watermark {#card-watermark}
 
-> "While working on this portfolio, I noticed that"
-> — [`AboutCard.tsx:19`](../../app/(works)/all/components/AboutCard.tsx#L19)
+Edge-split Pinyon Script ghost behind the card (decorative; `aria-hidden`).
 
-> "most of my work becomes about system design."
-> — [`AboutCard.tsx:20`](../../app/(works)/all/components/AboutCard.tsx#L20)
+> "Product" / "Designer"
+> — [`Essay/InvitationCard.tsx:40-41`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L40)
 
-> "It could be a product, an interface, a culture, or a brand. Across all types of work, the real work lies in tweaking the underlying structure."
-> — [`AboutCard.tsx:22-23`](../../app/(works)/all/components/AboutCard.tsx#L22)
+## Invitation card — manifesto {#card-manifesto}
 
-> "When that isn’t possible directly, I design around it and still do what’s needed."
-> — [`AboutCard.tsx:24`](../../app/(works)/all/components/AboutCard.tsx#L24)
+The two-stanza poem in gradient-clipped Fraunces. Authored `<br>` line breaks shown as line breaks below; they are suppressed on mobile (the poem wraps naturally).
 
-> "You can spot it in these works"
-> — [`AboutCard.tsx:28`](../../app/(works)/all/components/AboutCard.tsx#L28)
+First stanza:
+> "Over the past 10 years, I
+> have made posters, brands,
+> a culture, interfaces, even
+> names and games."
+> — [`Essay/InvitationCard.tsx:53-58`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L53)
+
+Second stanza:
+> "Behind the scenes, all I have truly done is
+> protected the process:
+> the brief and its refinement,
+> the people and their environment,
+> agendas and budgets,
+> timelines and communication,
+> and any other force that can inhibit or
+> support the plant growth."
+> — [`Essay/InvitationCard.tsx:60-68`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L60)
+
+## Invitation card — closing {#card-closing}
+
+> "One project at a time" (eyebrow)
+> — [`Essay/InvitationCard.tsx:79`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L79)
+
+> "that practice has
+> become my craft."
+> — [`Essay/InvitationCard.tsx:80-83`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L80)
+
+## Ticket — browse control {#ticket}
+
+The letterpress ticket footing the card; docks into a navbar on scroll. Showcase (Visual) is the default tab.
+
+> "browse in two ways" (eyebrow)
+> — [`Essay/Ticket.tsx:28`](../../app/(works)/all/components/Essay/Ticket.tsx#L28)
+
+> "Visual" (tab title) / "showcase" (sub)
+> — [`Essay/Ticket.tsx:43-44`](../../app/(works)/all/components/Essay/Ticket.tsx#L43)
+
+> "Longform" (tab title) / "case studies" (sub)
+> — [`Essay/Ticket.tsx:63-64`](../../app/(works)/all/components/Essay/Ticket.tsx#L63)
+
+> "Back to the invitation" (close aria-label)
+> — [`Essay/Ticket.tsx:72`](../../app/(works)/all/components/Essay/Ticket.tsx#L72)
 
 ## Timeline — Now / Greeting {#timeline-now}
 
@@ -189,25 +227,7 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 > "opens in new tab"
 > — [`ArchivePanel.tsx:128, 170, 202, 234, 266`](../../app/(works)/all/components/ArchivePanel.tsx#L128)
 
-## Showcase — scroll cue {#showcase-cue}
-
-Pinned to the bottom of the initial viewport (via `.selected-firstview` 100svh wrapper); marks the hand-off from the AboutCard + Timeline above to the visuals grid below.
-
-> "SHOWCASE"
-> — [`showcase.css`](../../app/(works)/all/components/Showcase/showcase.css) `.sc-cue__label`, rendered in [`ShowcaseSection.tsx`](../../app/(works)/all/components/Showcase/ShowcaseSection.tsx)
-
-## Showcase — HeaderBlock {#showcase-header}
-
-> "Visuals"
-> — [`HeaderBlock.tsx`](../../app/(works)/all/components/Showcase/HeaderBlock.tsx) title
-
-> "A selection of interfaces, posters, and marks, laid out for a visual treat."
-> — [`HeaderBlock.tsx`](../../app/(works)/all/components/Showcase/HeaderBlock.tsx) sub
-
-> "pieces"
-> — [`HeaderBlock.tsx`](../../app/(works)/all/components/Showcase/HeaderBlock.tsx) countlabel (preceded by the live count, currently `10`)
-
-_(The eyebrow row "nihar.works · selected visuals" and the "one bench" qualifier on the countlabel were removed v0.93+. Header + hint now collapsed to one unit visually — single divider between them.)_
+_(The Work Essay redesign dropped the Visual tab's own copy chrome — the `ShowcaseSection` scroll cue ("SHOWCASE"), the `HeaderBlock` ("Visuals" / "A selection of interfaces, posters, and marks…" / "{n} pieces"), and the `Prelude`/`FirstView`/`AboutCard` intro. The invitation card is the intro now; the Showcase grid renders directly under the `HintRow`. Those components were deleted.)_
 
 ## Showcase — HintRow {#showcase-hint}
 

@@ -108,7 +108,7 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ---
 
-## /all (Works) — Metadata {#selected-meta}
+## /all (Works) — Metadata {#all-meta}
 
 > title: "Selected Work"
 > description: "Branding, onboarding flows, naming, systems work, infrastructure experiments."
