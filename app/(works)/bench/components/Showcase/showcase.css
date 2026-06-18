@@ -29,6 +29,7 @@
 .sc-hint {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-8);
   /* Header + hint read as a single unit — no top margin or border on  */
   /* the hint, the single divider lives on .sc-header's border-bottom  */

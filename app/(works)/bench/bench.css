@@ -301,54 +301,65 @@
 
 
 /* ── The ticket ("BROWSE IN TWO WAYS") ────────────────────────────────────── */
-/* Resting state here; Phase 4 morphs it into a pinned navbar. The per-state
-   values (padding, title size, divider height, close width, etc.) are set
-   inline by Ticket.tsx — like the prototype's renderVals — so this file owns
-   only structure + the transitions, all on our --ease-paper / --dur-* tiers
-   (the design's cubic-bezier(.65,0,.35,1) maps to --ease-paper). */
+/* A position:sticky element that docks into a navbar on scroll. The `.is-docked`
+   class (toggled by useBenchDock when the slot reaches the top dock point)
+   drives the whole condense in CSS — frame padding, eyebrow collapse, title
+   size, divider, close. All transitions on --ease-paper / --dur-* tiers. No
+   imperative geometry / fixed→static hand-off → no end-of-close jerk. */
 .bench-ticket-slot {
-  position: relative;
-  z-index: 2;
+  position: sticky;
+  top: 14px;
+  z-index: 200;
   width: 100%;
   max-width: 460px;
-  margin: clamp(56px, 7vh, 92px) auto 0;
+  /* margin-top mirrors the breathing room above the card (see --bench-frame). */
+  margin: var(--bench-frame, clamp(40px, 6vh, 72px)) auto 0;
 }
 
 .bench-ticket {
+  width: 100%;
+  margin-inline: auto;
   background: var(--terra-80);
   border: 1.5px solid var(--terra-240);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 12px 28px -4px rgba(0, 0, 0, 0.16);
   padding: 7px;
   overflow: hidden;
   box-sizing: border-box;
+  transition: width var(--dur-glide) var(--ease-paper);
 }
+.is-docked .bench-ticket { width: 296px; }
 
 .bench-ticket__frame {
   position: relative;
-  height: 100%;
-  border: 1px solid var(--terra-160);   /* border-color overridden inline on morph */
+  border: 1px solid var(--terra-160);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  padding: 26px 16px;
   transition:
     padding var(--dur-glide) var(--ease-paper),
     border-color var(--dur-settle) var(--ease-paper);
 }
+.is-docked .bench-ticket__frame { padding: 0 12px; border-color: transparent; }
 
+/* Eyebrow */
 .bench-ticket__eyebrow {
   overflow: hidden;
   display: flex;
   align-items: center;
   gap: 13px;
   justify-content: center;
+  max-height: 22px;
+  margin: 2px 0 18px;
+  opacity: 1;
   transition:
     max-height var(--dur-glide) var(--ease-paper),
     opacity var(--dur-settle) var(--ease-paper),
-    margin var(--dur-glide) var(--ease-paper),
-    transform var(--dur-glide) var(--ease-paper);
+    margin var(--dur-glide) var(--ease-paper);
 }
+.is-docked .bench-ticket__eyebrow { max-height: 0; margin: 0; opacity: 0; }
 .bench-ticket__eyebrow-rule { height: 1px; width: 56px; }
 .bench-ticket__eyebrow-rule--l {
   background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%);
@@ -365,12 +376,17 @@
   white-space: nowrap;
 }
 
+/* Tabs */
 .bench-ticket__tabs {
   display: grid;
-  grid-template-columns: 1fr auto 1fr auto;
+  grid-template-columns: auto 1fr auto 1fr auto;   /* spacer · tab · divider · tab · close */
   align-items: center;
   width: 100%;
 }
+/* Mirror cell — 0 at rest, matches the close width when docked so the two tabs
+   + divider stay centred in the navbar (the close no longer pulls them left). */
+.bench-tab__spacer { width: 0; }
+.is-docked .bench-tab__spacer { width: 30px; }
 
 .bench-tab {
   appearance: none;
@@ -383,31 +399,41 @@
   align-items: center;
   width: 100%;
   box-sizing: border-box;
+  padding: 13px 12px;
   transition: padding var(--dur-glide) var(--ease-paper);
 }
+.is-docked .bench-tab { padding: 4px 6px; }
 
 .bench-tab__title {
   font-family: var(--font-display), serif;
   font-variation-settings: 'WONK' 1;
   letter-spacing: -0.4px;
   line-height: 1.05;
+  font-size: 27px;
   transition: font-size var(--dur-glide) var(--ease-paper);
 }
+.is-docked .bench-tab__title { font-size: 18px; }
+
 .bench-tab__ink {
+  color: var(--terra-960);
   text-decoration-line: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
-  text-decoration-color: transparent;   /* shown on hover + active (CSS, not inline) */
+  text-decoration-color: transparent;
   transition:
-    color var(--dur-slide) var(--ease-snap),
-    text-decoration-color var(--dur-fast) var(--ease-snap),
-    opacity var(--dur-slide) var(--ease-snap);
+    color var(--dur-fast) var(--ease-snap),
+    text-decoration-color var(--dur-fast) var(--ease-snap);
 }
-/* Hover = just an underline (no box). Active tab (condensed) keeps the
-   accent underline. Driven in CSS so neither fights an inline value. */
+/* Docked, inactive tab → muted ink. */
+.is-docked .bench-tab:not([aria-current="true"]) .bench-tab__ink {
+  color: color-mix(in srgb, var(--terra-720) 55%, var(--grey-560));
+}
+/* Hover = a colour shift + an underline (no box). */
 .bench-tab:hover .bench-tab__ink {
+  color: var(--terra-720);
   text-decoration-color: var(--terra-720);
 }
+/* Docked active tab keeps the accent underline. */
 .bench-tab[aria-current="true"] .bench-tab__ink {
   text-decoration-color: var(--terra-560);
 }
@@ -420,27 +446,36 @@
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--terra-720);
-  transition:
-    max-height var(--dur-glide) var(--ease-paper),
-    opacity var(--dur-settle) var(--ease-paper),
-    margin-top var(--dur-glide) var(--ease-paper);
+  margin-top: 9px;
+  transition: margin-top var(--dur-glide) var(--ease-paper);
 }
+.is-docked .bench-tab__sub { margin-top: 2px; }
 
-/* Perforated divider + diamond bead */
+/* Divider between the two labels. Perforated dots at rest; a more pronounced
+   solid hairline when docked so the navbar reads as two clear cells. */
 .bench-perf {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
+  align-self: stretch;
   width: 18px;
 }
 .bench-perf__line {
   display: block;
   width: 4px;
+  height: 60px;
+  background-image: radial-gradient(circle at center, var(--terra-160) 0 1.4px, transparent 1.8px);
+  background-size: 4px 6px;
   background-repeat: repeat-y;
   background-position: center;
   transition: height var(--dur-glide) var(--ease-paper);
+}
+.is-docked .bench-perf__line {
+  width: 1px;
+  height: 26px;
+  background-image: none;
+  background-color: var(--terra-240);
 }
 .bench-perf__bead {
   position: absolute;
@@ -452,10 +487,12 @@
   align-items: center;
   justify-content: center;
   color: var(--terra-560);
+  opacity: 1;
   transition: opacity var(--dur-settle) var(--ease-paper);
 }
+.is-docked .bench-perf__bead { opacity: 0; }
 
-/* Close ✕ — hidden when resting, arrives as the bar forms (Phase 4) */
+/* Close — hidden at rest, appears docked; library `close` icon. */
 .bench-ticket__close {
   appearance: none;
   border: none;
@@ -467,12 +504,17 @@
   justify-content: center;
   overflow: hidden;
   color: var(--terra-560);
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
   transition:
     width var(--dur-glide) var(--ease-paper),
     opacity var(--dur-settle) var(--ease-paper),
     color var(--dur-instant) var(--ease-snap);
 }
+.is-docked .bench-ticket__close { width: 30px; opacity: 1; pointer-events: auto; }
 .bench-ticket__close:hover { color: var(--terra-960); }
+.bench-ticket__close-icon { font-size: 18px; }
 
 
 /* ── Entrance: slide in from the right when arriving from landing ──────────── */

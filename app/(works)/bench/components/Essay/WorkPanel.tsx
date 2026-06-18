@@ -14,17 +14,16 @@ import type { Ref } from 'react'
 import SelectedContent from '../SelectedContent'
 import Showcase from '../Showcase/Showcase'
 import HintRow from '../Showcase/HintRow'
-import type { BenchActive } from './useBenchMorph'
+import type { BenchActive } from './useBenchDock'
 
 interface WorkPanelProps {
   active: BenchActive
-  closing: boolean
   workRef?: Ref<HTMLDivElement>
 }
 
-export default function WorkPanel({ active, closing, workRef }: WorkPanelProps) {
+export default function WorkPanel({ active, workRef }: WorkPanelProps) {
   return (
-    <div ref={workRef} className={`bench-work${closing ? ' bench-work--closing' : ''}`}>
+    <div ref={workRef} className="bench-work">
       {active === 'lf' ? (
         <div className="bench-cases">
           <SelectedContent />

@@ -26,7 +26,7 @@ export default function BenchExitMarker() {
         href="/"
         role="exit"
         icon="arrow_back"
-        label="+Nihar"
+        label="Nihar"
         onClick={onClick}
         aria-label="Back to landing page"
       />

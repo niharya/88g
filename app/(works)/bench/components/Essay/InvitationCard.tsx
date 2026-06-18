@@ -7,8 +7,6 @@
 // the design's #028634) per the chosen markStyle. The footing ticket mounts
 // as a child in Phase 3.
 
-import type { ReactNode } from 'react'
-
 // Filled startooth marks — verbatim paths from the design handoff. `fill`
 // inherits via currentColor from `.bench-mark` (set to --mint-720).
 function CrownStar() {
@@ -31,7 +29,7 @@ function DividerDiamond() {
   )
 }
 
-export default function InvitationCard({ children }: { children?: ReactNode }) {
+export default function InvitationCard() {
   return (
     <div className="bench-card">
       <div className="bench-card__keyline" />
@@ -83,8 +81,6 @@ export default function InvitationCard({ children }: { children?: ReactNode }) {
           </p>
         </div>
 
-        {/* Ticket mounts here in Phase 3 */}
-        {children}
       </main>
     </div>
   )
