@@ -309,8 +309,9 @@
 }
 
 .bench-ticket {
+  position: relative;
+  left: 50%;
   width: 100%;
-  margin-inline: auto;
   background: var(--terra-80);
   border: 1.5px solid var(--terra-240);
   /* Rest: sits in the card. */
@@ -318,23 +319,23 @@
   padding: 7px;
   overflow: hidden;
   box-sizing: border-box;
-  transform: scale(0.96);          /* settled slightly into the card */
+  /* translateX(-50%) is held in BOTH states (constant), so the transitioning
+     transform animates only scale — and the width shrink stays centred (no
+     rightward bulge, which a fixed margin-left caused). Centring is width-
+     independent, so the rest→fixed hand-off (scroll-coincident) has no jump. */
+  transform: translateX(-50%) scale(0.96);
   transform-origin: center top;
   transition:
-    width var(--dur-glide) var(--ease-paper),
-    transform var(--dur-glide) var(--ease-paper),
-    box-shadow var(--dur-glide) var(--ease-paper);
+    width var(--dur-settle) var(--ease-snap),
+    transform var(--dur-settle) var(--ease-snap),
+    box-shadow var(--dur-settle) var(--ease-snap);
 }
-/* Docked: lift OUT of the card into a pinned navbar — rises in scale + shadow.
-   Centred via left/margin (not translate) so the rest→fixed hand-off, which is
-   scroll-coincident at the dock point, has no horizontal jump. */
+/* Docked: lift OUT of the card into a pinned navbar — rises in scale + shadow. */
 .is-docked .bench-ticket {
   position: fixed;
   top: 14px;
-  left: 50%;
-  margin-left: -148px;             /* half of the 296 navbar */
   width: 296px;
-  transform: scale(1);             /* risen */
+  transform: translateX(-50%) scale(1);   /* risen, still centred at left:50% */
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
 }
 
@@ -348,8 +349,8 @@
   box-sizing: border-box;
   padding: 26px 16px;
   transition:
-    padding var(--dur-glide) var(--ease-paper),
-    border-color var(--dur-settle) var(--ease-paper);
+    padding var(--dur-settle) var(--ease-snap),
+    border-color var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-ticket__frame { padding: 0 12px; border-color: transparent; }
 
@@ -364,9 +365,9 @@
   margin: 2px 0 18px;
   opacity: 1;
   transition:
-    max-height var(--dur-glide) var(--ease-paper),
-    opacity var(--dur-settle) var(--ease-paper),
-    margin var(--dur-glide) var(--ease-paper);
+    max-height var(--dur-settle) var(--ease-snap),
+    opacity var(--dur-settle) var(--ease-snap),
+    margin var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-ticket__eyebrow { max-height: 0; margin: 0; opacity: 0; }
 .bench-ticket__eyebrow-rule { height: 1px; width: 56px; }
@@ -409,7 +410,7 @@
   width: 100%;
   box-sizing: border-box;
   padding: 13px 12px;
-  transition: padding var(--dur-glide) var(--ease-paper);
+  transition: padding var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-tab { padding: 4px 6px; }
 
@@ -419,7 +420,7 @@
   letter-spacing: -0.4px;
   line-height: 1.05;
   font-size: 27px;
-  transition: font-size var(--dur-glide) var(--ease-paper);
+  transition: font-size var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-tab__title { font-size: 18px; }
 
@@ -456,7 +457,7 @@
   letter-spacing: 0.02em;
   color: var(--terra-720);
   margin-top: 9px;
-  transition: margin-top var(--dur-glide) var(--ease-paper);
+  transition: margin-top var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-tab__sub { margin-top: 2px; }
 
@@ -478,7 +479,7 @@
   background-size: 4px 6px;
   background-repeat: repeat-y;
   background-position: center;
-  transition: height var(--dur-glide) var(--ease-paper);
+  transition: height var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-perf__line {
   width: 1px;
@@ -497,7 +498,7 @@
   justify-content: center;
   color: var(--terra-560);
   opacity: 1;
-  transition: opacity var(--dur-settle) var(--ease-paper);
+  transition: opacity var(--dur-settle) var(--ease-snap);
 }
 .is-docked .bench-perf__bead { opacity: 0; }
 
@@ -517,8 +518,8 @@
   opacity: 0;
   pointer-events: none;
   transition:
-    width var(--dur-glide) var(--ease-paper),
-    opacity var(--dur-settle) var(--ease-paper),
+    width var(--dur-settle) var(--ease-snap),
+    opacity var(--dur-settle) var(--ease-snap),
     color var(--dur-instant) var(--ease-snap);
 }
 .is-docked .bench-ticket__close { width: 30px; opacity: 1; pointer-events: auto; }
