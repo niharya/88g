@@ -23,26 +23,20 @@ export default function BenchEssay({ initialView }: { initialView?: BenchActive 
 
   useEffect(() => {
     if (!initialView) return
-    // Deferred a beat so the browser's initial scroll restoration settles
-    // before the glide; the once-guard makes re-arming (Strict Mode) harmless.
     const fire = () => {
       if (jumped.current) return
       jumped.current = true
-      d.scrollToWork(true)   // instant on deep-link
+      d.scrollToWork(true)   // instant + re-asserts until docked
     }
+    // Defer past the entry beat: ~1s when arriving via an in-shell client nav
+    // (TransitionSlot owns scroll for that long and would reset us mid-flight),
+    // a short beat on a hard load. scrollToWork(true) then re-asserts the dock
+    // position until it sticks, so exact timing isn't load-bearing. The
+    // synchronous once-guard makes Strict Mode's re-mount harmless.
     const wb = document.querySelector('.workbench')
-    // In-shell client nav (EXIT from a case study) runs TransitionSlot for ~1s;
-    // wait for `.transitioning` to clear. Hard load → just a short defer.
-    if (!wb || !wb.classList.contains('transitioning')) {
-      const t = setTimeout(fire, 200)
-      return () => clearTimeout(t)
-    }
-    const obs = new MutationObserver(() => {
-      if (!wb.classList.contains('transitioning')) { obs.disconnect(); fire() }
-    })
-    obs.observe(wb, { attributes: true, attributeFilter: ['class'] })
-    const fb = setTimeout(fire, 1600)
-    return () => { obs.disconnect(); clearTimeout(fb) }
+    const delay = wb?.classList.contains('transitioning') ? 1150 : 200
+    const t = setTimeout(fire, delay)
+    return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

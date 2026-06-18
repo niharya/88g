@@ -56,30 +56,39 @@ export function useBenchDock(initialActive: BenchActive) {
   // a deep-link the document isn't tall enough to scroll to the dock point
   // until the showcase/timeline has measured, so scrollGlide would clamp short.
   // (From a click the work is already tall, so it scrolls on the first frame.)
+  const dockTarget = () => {
+    const slot = slotRef.current
+    if (!slot) return null
+    return Math.max(0, Math.round(slot.getBoundingClientRect().top + window.scrollY - DOCK_TOP))
+  }
+
   const scrollToWork = useCallback((instant = false) => {
-    const attempt = (n: number) => {
+    if (!instant) {
+      // Click from rest: the work is already laid out — glide to the dock point.
+      const y = dockTarget()
+      if (y != null) scrollGlide(y)
+      return
+    }
+    // Deep-link entry: jump instantly (a page-load landing shouldn't animate),
+    // and RE-ASSERT until the ticket is actually docked — the content lays out
+    // async and TransitionSlot scrolls late on in-shell nav, both of which would
+    // otherwise reset us. Stops once the slot sits at the dock point.
+    let tries = 0
+    const settle = () => {
       const slot = slotRef.current
-      const work = workRef.current
       if (!slot) return
-      if (work && work.getBoundingClientRect().height < 200 && n < 40) {
-        requestAnimationFrame(() => attempt(n + 1))
+      if (Math.abs(slot.getBoundingClientRect().top - DOCK_TOP) <= 2) {
+        window.dispatchEvent(new Event('scroll'))   // latch .is-docked
         return
       }
-      const y = Math.max(0, Math.round(slot.getBoundingClientRect().top + window.scrollY - DOCK_TOP))
-      // Deep-link entry jumps instantly (a page-load landing shouldn't animate,
-      // and an instant set avoids fighting the browser's scroll restoration);
-      // a click from rest glides.
-      if (instant) {
+      const y = dockTarget()
+      if (y != null) {
         window.scrollTo(0, y)
-        // Nudge the dock listener so `.is-docked` latches without waiting for
-        // the next user scroll (the native scrollTo event can land before the
-        // listener reads the updated rect).
         window.dispatchEvent(new Event('scroll'))
-      } else {
-        scrollGlide(y)
       }
+      if (tries++ < 14) setTimeout(settle, 140)
     }
-    attempt(0)
+    settle()
   }, [])
 
   // Tab click. Switching while docked keeps scroll position (just swaps the
