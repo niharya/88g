@@ -259,23 +259,13 @@
 }
 
 
-/* ── Work panel (browse mode) ─────────────────────────────────────────────── */
-/* Revealed beneath the lifted invitation once a tab opens. Top padding clears
-   the pinned navbar. `closing` leads the reverse choreography (fade + sink)
-   while the panel stays mounted so the page keeps its height. Phase 6 swaps
-   the placeholders for the real Timeline / Showcase. */
+/* ── Work panel ───────────────────────────────────────────────────────────── */
+/* Always present below the card; the active tab swaps its content (Timeline /
+   Showcase). Top padding clears the docked navbar. */
 .bench-work {
   width: 100%;
   min-height: 100vh;
   padding: 108px 8px 80px;
-  transition:
-    opacity var(--dur-slide) var(--ease-paper),
-    transform var(--dur-settle) var(--ease-paper);
-  will-change: opacity, transform;
-}
-.bench-work--closing {
-  opacity: 0;
-  transform: translateY(26px);
 }
 
 /* Longform → Timeline + Archive (SelectedContent). The mat is position:absolute
@@ -301,11 +291,12 @@
 
 
 /* ── The ticket ("BROWSE IN TWO WAYS") ────────────────────────────────────── */
-/* A position:sticky element that docks into a navbar on scroll. The `.is-docked`
-   class (toggled by useBenchDock when the slot reaches the top dock point)
-   drives the whole condense in CSS — frame padding, eyebrow collapse, title
-   size, divider, close. All transitions on --ease-paper / --dur-* tiers. No
-   imperative geometry / fixed→static hand-off → no end-of-close jerk. */
+/* The ticket foots the card at rest and lifts OUT (position:fixed) into a pinned
+   navbar on scroll. `.is-docked` (toggled by useBenchDock when the slot reaches
+   the dock point) drives the whole condense + rise in CSS — frame padding,
+   eyebrow collapse, title size, divider, close, scale + shadow. All transitions
+   on --ease-paper / --dur-* tiers. The rest→fixed flip is scroll-coincident
+   (seamless), and close is a plain scrollGlide — no end-of-close jerk. */
 /* The ticket foots the card — an in-flow reservation slot. Its min-height is
    pinned by useBenchDock so the card keeps its height when the ticket lifts out
    (position:fixed) on dock. z-index keeps the lifted ticket above the work. */

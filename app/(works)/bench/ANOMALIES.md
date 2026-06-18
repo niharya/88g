@@ -8,16 +8,15 @@
 - **Desk** (`.bench-workbench`) — recolours the workbench to the pale desk; whisper of mat-noise.
 - **Stage** (`.bench-stage`, 920 centred) — the `+Nihar` marker + the **invitation card**.
 - **Invitation card** (`.bench-card`) — engraved blue broadside: Pinyon watermark, gradient-clipped Fraunces manifesto, filled `--mint-720` startooth crown + divider, script closing. Foots the **ticket**.
-- **Ticket** — "BROWSE IN TWO WAYS", two tabs (Longform / Visual). One element that **morphs** into a pinned top navbar.
-- **Work panel** (full-width sibling, browse mode) — **Longform** → `SelectedContent` (Timeline + Archive, hosted in `.bench-cases`); **Visual** → the Showcase bento (`.sc-section`, HeaderBlock dropped, HintRow kept).
+- **Ticket** — "BROWSE IN TWO WAYS", two tabs (Visual / Longform). Foots the card; rises out into a pinned navbar on scroll.
+- **Work panel** (always present below the card) — **Visual** (default) → the Showcase bento (`.sc-section`, HeaderBlock dropped, HintRow kept); **Longform** → `SelectedContent` (Timeline + Archive, hosted in `.bench-cases`).
 
-### Morph + shell contract (load-bearing)
+### Scroll-dock + shell contract (load-bearing)
 
-- **State machine** `useBenchMorph`: `view` (invite|browse) · `active` (lf|vis) · `condensed` · `closing`. Geometry written imperatively on the ticket node; inner reshape is declarative props on `Ticket`. Open → switch (instant swap) → close (work leads fade+sink, ticket de-condenses onto the descending card, framed landing, seamless fixed→static hand-off). All on `--ease-paper`/`--dur-glide` via `scrollGlide` (lockstep); the prototype's overshoot pop is dropped.
-- **Containing-block traps** (both pin the fixed navbar to an ancestor instead of the viewport, so it scrolls away): (1) `.transition-pane` carries `will-change:transform` (globals.css) → neutralised by `.transition-pane:has(.bench-workbench){will-change:auto}` in bench.css; (2) TransitionSlot's WAAPI entrance leaves `transform:translateY(0)` on the pane (fill:both) → `openTab` cancels the pane's retained animation before measuring; (3) the slide-in entrance uses `backwards` fill so `.bench-card` retains no transform. Don't reintroduce any retained transform on a ticket ancestor.
-- **`?view` ⇄ state**: `page.tsx` reads `view` server-side (the `/cases`,`/showcase` rewrites deliver it as the destination query; client `useSearchParams` doesn't carry it) → `initialView` → deep-link jump. In-shell client nav (case-study EXIT) defers the jump until `.workbench.transitioning` clears; the once-guard is a synchronous ref (Strict-Mode safe). User open/switch/close sync the URL via `history.replaceState` (kept out of history).
-- **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/bench?view=cases` so a case-study exit returns to the Longform timeline, not the resting invite.
-- **Orphaned by the redesign** (no longer rendered; only reference each other; safe to delete after review): `AboutCard`, `FirstView`, `Showcase/ShowcaseSection`, `Showcase/Prelude`, `Showcase/HeaderBlock` + their CSS.
+- **`useBenchDock`** (mirrors the nav cluster's `useDockedMarker`): `active` (vis|lf, default vis) + `docked`. A scroll listener flips `docked` when the ticket's slot reaches the dock point (`slot.top <= 14`); `.is-docked` lifts the ticket OUT (`position:fixed`, top:14, centred via `left:50%`/`margin-left`) into a condensed navbar, and the whole condense + rise (scale 0.96→1 + deeper shadow) are CSS keyed on `.is-docked`. The slot's `min-height` is pinned (rest footprint) so the card doesn't collapse when the ticket lifts out. The rest→fixed flip is scroll-coincident → seamless (no jump). Entry unifies: scroll docks · a tab click `scrollGlide`s to the dock point · ✕ `scrollGlide(0)` back to the card (no fixed→static hand-off → no end jerk). Switching tabs while docked keeps scroll position.
+- **Containing-block guards** (the docked ticket is `position:fixed`; a transformed/will-change ancestor would pin it to that ancestor instead of the viewport, so it scrolls away): (1) `.transition-pane:has(.bench-workbench){will-change:auto}` in bench.css (the shared pane carries `will-change:transform`); (2) `useBenchDock` cancels the pane's retained WAAPI entrance transform (TransitionSlot's `fill:both` leaves `translateY(0)`) once `.workbench.transitioning` clears; (3) the slide-in entrance uses `backwards` fill so `.bench-card` retains no transform. Don't reintroduce any retained transform on a ticket ancestor.
+- **`?view` ⇄ state**: `page.tsx` reads `view` server-side (the `/cases`,`/showcase` rewrites deliver it as the destination query; client `useSearchParams` doesn't carry it) → `initialView` selects the active tab. It does NOT auto-scroll into the work (the bench rests at the card) — auto-scroll-into-content is a deferred follow-up.
+- **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/bench?view=cases` so a case-study exit returns with the Longform tab active.
 
 > The pre-redesign "single vertical flow" overview (AboutCard → Prelude → HintRow → Showcase)
 > is **superseded** by the above. The archive sections below (timeline model, spacing math,
@@ -28,9 +27,7 @@
 
 ## Showcase grid
 
-## Showcase grid
-
-Route-local under [app/(works)/selected/components/Showcase/](app/(works)/selected/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Timeline tile wrapper is `TimelineTile.tsx`. Data lives in `data.ts`. Page composition is `Prelude.tsx` → `HintRow.tsx` → `Showcase.tsx`, all rendered by `SelectedContent.tsx`.
+Route-local under [app/(works)/bench/components/Showcase/](app/(works)/bench/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Data lives in `data.ts`. In the bench it's the **Visual** tab content (rendered by `Essay/WorkPanel.tsx` inside `.sc-section`, with `HintRow` above it; `HeaderBlock` dropped).
 
 ### Layout idiom — 9-col CSS Grid with JS-measured row spans
 - `.sc-grid` is a single CSS Grid: `grid-template-columns: repeat(9, minmax(0, 1fr))`, `grid-auto-rows: 8 px` (`--sc-row`), `grid-auto-flow: dense`, `gap: 36 px` (`--sc-gap`).

@@ -10,7 +10,6 @@
 //     bench card is the intro now); the click/esc HintRow is kept.
 // Top padding clears the pinned navbar.
 
-import type { Ref } from 'react'
 import SelectedContent from '../SelectedContent'
 import Showcase from '../Showcase/Showcase'
 import HintRow from '../Showcase/HintRow'
@@ -18,12 +17,11 @@ import type { BenchActive } from './useBenchDock'
 
 interface WorkPanelProps {
   active: BenchActive
-  workRef?: Ref<HTMLDivElement>
 }
 
-export default function WorkPanel({ active, workRef }: WorkPanelProps) {
+export default function WorkPanel({ active }: WorkPanelProps) {
   return (
-    <div ref={workRef} className="bench-work">
+    <div className="bench-work">
       {active === 'lf' ? (
         <div className="bench-cases">
           <SelectedContent />
