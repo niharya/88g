@@ -53,25 +53,32 @@ const ROW_HEIGHT_PX = 8
 const GAP_PX = 36
 const MOBILE_GAP_PX = 24
 
-function measureSpans(grid: HTMLElement) {
+function measureSpans(grid: HTMLElement): Record<string, number> {
   const gap = isMobileViewport() ? MOBILE_GAP_PX : GAP_PX
   const slots = grid.querySelectorAll<HTMLElement>('.sc-slot')
+  const next: Record<string, number> = {}
   slots.forEach((slot) => {
     // Measure the slot's first child (the .sc-piece) — the slot itself
     // is constrained by whatever row span we last wrote, so measuring it
-    // directly is a chicken-and-egg trap.
+    // directly is a chicken-and-egg trap. The child is natural height
+    // (never stretched), so re-measurement is stable.
+    const id = slot.dataset.pieceId
     const child = slot.firstElementChild as HTMLElement | null
-    if (!child) return
+    if (!id || !child) return
     const h = child.getBoundingClientRect().height
     if (!h) return
-    const span = Math.ceil((h + gap) / (ROW_HEIGHT_PX + gap))
-    slot.style.setProperty('--sc-rowspan', String(span))
+    next[id] = Math.ceil((h + gap) / (ROW_HEIGHT_PX + gap))
   })
+  return next
 }
 
 export default function Showcase() {
   const gridRef = useRef<HTMLDivElement | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+  // Measured row spans, keyed by piece id. Kept in state (not set imperatively
+  // on the slot) so that React re-renders — which re-apply slotStyle to each
+  // .sc-slot — can't wipe the span back to the CSS fallback.
+  const [spans, setSpans] = useState<Record<string, number>>({})
   // Reactive isMobile — the bottom sheet should mount/unmount when the
   // viewport crosses the breakpoint (e.g. devtools rotation, orientation
   // change, real resize). matchMedia.addEventListener handles all three.
@@ -125,7 +132,17 @@ export default function Showcase() {
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null
       const grid = gridRef.current
-      if (grid) measureSpans(grid)
+      if (!grid) return
+      const next = measureSpans(grid)
+      setSpans((prev) => {
+        // No-op if unchanged — prevents the ResizeObserver → setState →
+        // re-layout → ResizeObserver loop from re-rendering forever.
+        const keys = Object.keys(next)
+        if (keys.length === Object.keys(prev).length && keys.every((k) => prev[k] === next[k])) {
+          return prev
+        }
+        return { ...prev, ...next }
+      })
     })
   }, [])
 
@@ -151,7 +168,13 @@ export default function Showcase() {
       ro.disconnect()
       window.removeEventListener('resize', schedule)
       imgs.forEach((img) => img.removeEventListener('load', schedule))
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current)
+      // Reset the ref after cancelling — otherwise a stale non-null id makes
+      // the next schedule() (e.g. React Strict Mode's re-mount, or a later
+      // observer fire) bail forever and the measurement never runs.
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
+      }
     }
   }, [schedule])
 
@@ -221,9 +244,12 @@ export default function Showcase() {
   // handled by the CSS media query directly.
   const slotStyle = (p: Piece): CSSProperties => {
     const cols = p.cols ?? 3
+    // Measured row span (state-owned). Until the first measurement lands the
+    // CSS fallback applies — see `.sc-slot` in showcase.css.
     return {
       ['--sc-cols-d' as string]: cols,
       ['--sc-cols-t' as string]: Math.max(1, Math.ceil(cols / 3)),
+      ...(spans[p.id] ? { ['--sc-rowspan' as string]: spans[p.id] } : {}),
     }
   }
 
@@ -233,7 +259,7 @@ export default function Showcase() {
       ref={gridRef}
     >
       {piecesWithDots.map((p) => (
-        <div className="sc-slot" style={slotStyle(p)} key={p.id}>
+        <div className="sc-slot" data-piece-id={p.id} style={slotStyle(p)} key={p.id}>
           <ShowcasePiece
             piece={p}
             active={activeId === p.id}

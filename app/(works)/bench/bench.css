@@ -41,20 +41,6 @@
   padding-top: clamp(8px, 4vh, 44px);
 }
 
-/* Paper grain over the desk — reuses the shared mat noise (the design ships a
-   noise-bg.png; ours is equivalent). Sits behind everything on the bench. */
-.bench-workbench::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: var(--mat-noise-url);
-  background-size: 240px 240px;
-  mix-blend-mode: multiply;
-  opacity: 0.12;        /* a whisper of grain — ours is denser than the design's */
-}
-
 /* ── Stage ──────────────────────────────────────────────────────────────── */
 .bench-stage {
   position: relative;
@@ -110,20 +96,6 @@
     0 2px 5px rgba(20, 40, 80, 0.10),
     0 18px 40px -12px rgba(20, 40, 80, 0.28);
   padding: 60px 68px 76px;
-}
-
-/* Whisper of paper grain on the card (low-opacity overlay rather than a
-   multiply blend, which over our denser noise speckled the blue). */
-.bench-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: var(--mat-noise-url);
-  background-size: 240px 240px;
-  mix-blend-mode: multiply;
-  opacity: 0.10;
 }
 
 /* Engraved double-frame — inner keyline. */
@@ -406,18 +378,12 @@
   background: transparent;
   cursor: pointer;
   text-align: center;
-  border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  transition:
-    background var(--dur-fast) var(--ease-snap),
-    padding var(--dur-glide) var(--ease-paper);
-}
-.bench-tab:hover {
-  background: color-mix(in srgb, var(--terra-560) 14%, transparent);
+  transition: padding var(--dur-glide) var(--ease-paper);
 }
 
 .bench-tab__title {
@@ -427,25 +393,23 @@
   line-height: 1.05;
   transition: font-size var(--dur-glide) var(--ease-paper);
 }
-.bench-tab__title--swap {
-  position: relative;
-  display: inline-block;
-}
 .bench-tab__ink {
   text-decoration-line: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
+  text-decoration-color: transparent;   /* shown on hover + active (CSS, not inline) */
   transition:
     color var(--dur-slide) var(--ease-snap),
-    text-decoration-color var(--dur-slide) var(--ease-snap),
+    text-decoration-color var(--dur-fast) var(--ease-snap),
     opacity var(--dur-slide) var(--ease-snap);
 }
-.bench-tab__ink--alt {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  transform: translateX(-50%);
-  white-space: nowrap;
+/* Hover = just an underline (no box). Active tab (condensed) keeps the
+   accent underline. Driven in CSS so neither fights an inline value. */
+.bench-tab:hover .bench-tab__ink {
+  text-decoration-color: var(--terra-720);
+}
+.bench-tab[aria-current="true"] .bench-tab__ink {
+  text-decoration-color: var(--terra-560);
 }
 
 .bench-tab__sub {
@@ -460,11 +424,6 @@
     max-height var(--dur-glide) var(--ease-paper),
     opacity var(--dur-settle) var(--ease-paper),
     margin-top var(--dur-glide) var(--ease-paper);
-}
-.bench-tab:hover .bench-tab__sub {
-  text-decoration: underline solid var(--terra-720);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
 }
 
 /* Perforated divider + diamond bead */

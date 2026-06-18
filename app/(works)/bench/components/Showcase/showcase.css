@@ -90,10 +90,11 @@
 
 .sc-slot {
   min-width: 0;
-  /* Fallback span 30 covers ~720 px of pre-measurement height — enough  */
-  /* for any tile we author here, low enough that the first paint isn't */
-  /* a wall of empty rows before the JS measurement runs.                */
-  grid-row: span var(--sc-rowspan, 30);
+  /* Fallback span 18 ≈ 756 px (18×8 + 17×36 gap) — clears the tallest tile so
+     content never overlaps before the JS measurement lands, without the 1284 px
+     wall the old `30` produced (it miscounted the row-gap between spanned rows).
+     The real span is state-driven (Showcase.tsx); this shows ~one frame. */
+  grid-row: span var(--sc-rowspan, 18);
   /* Column span comes from `piece.cols`. Default 3 (one-third).        */
   /* The tablet block below swaps in `--sc-cols-t` (3-col grid);        */
   /* mobile drops everything to a single column.                        */

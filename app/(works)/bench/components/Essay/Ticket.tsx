@@ -26,7 +26,6 @@ const ACTIVE_INK = 'var(--terra-960)'
 // Muted (inactive, condensed) — the design's #B7A07C greyish tan; approximated
 // by blending our gold ink toward grey until a --gold-* ramp exists.
 const MUTED_INK = 'color-mix(in srgb, var(--terra-720) 55%, var(--grey-560))'
-const UL_INK = 'var(--terra-560)'   // design bead/underline #C58B2E
 
 export default function Ticket({
   condensed: cond,
@@ -41,18 +40,17 @@ export default function Ticket({
   const visActive = active === 'vis'
 
   const titleFont = cond ? '18px' : '27px'
+  // Subtitles ("case studies" / "showcase") stay visible in the condensed
+  // navbar and morph directly from the expanded ticket — only the top margin
+  // tightens. (Underline is CSS-driven: hover + [aria-current].)
   const subStyle: CSSProperties = {
-    maxHeight: cond ? '0px' : '26px',
-    opacity: cond ? 0 : 1,
-    marginTop: cond ? '0px' : '9px',
+    marginTop: cond ? '3px' : '9px',
   }
   const lfInk: CSSProperties = {
     color: cond ? (lfActive ? ACTIVE_INK : MUTED_INK) : ACTIVE_INK,
-    textDecorationColor: cond && lfActive ? UL_INK : 'transparent',
   }
   const visInk: CSSProperties = {
     color: cond ? (visActive ? ACTIVE_INK : MUTED_INK) : ACTIVE_INK,
-    textDecorationColor: cond && visActive ? UL_INK : 'transparent',
   }
 
   return (
@@ -115,7 +113,8 @@ export default function Ticket({
               </span>
             </div>
 
-            {/* Visual / Showcase (label crossfades on condense) */}
+            {/* Visual — the persistent "showcase" subtitle carries the word, so
+                the title stays "Visual" through the morph (no crossfade). */}
             <button
               type="button"
               className="bench-tab"
@@ -123,9 +122,8 @@ export default function Ticket({
               aria-current={cond && visActive ? 'true' : undefined}
               style={{ padding: cond ? '6px 8px' : '13px 22px 13px 12px' }}
             >
-              <div className="bench-tab__title bench-tab__title--swap" style={{ fontSize: titleFont }}>
-                <span className="bench-tab__ink" style={{ ...visInk, opacity: cond ? 0 : 1 }}>Visual</span>
-                <span className="bench-tab__ink bench-tab__ink--alt" style={{ ...visInk, opacity: cond ? 1 : 0 }}>Showcase</span>
+              <div className="bench-tab__title" style={{ fontSize: titleFont }}>
+                <span className="bench-tab__ink" style={visInk}>Visual</span>
               </div>
               <span className="bench-tab__sub" style={subStyle}>showcase</span>
             </button>
