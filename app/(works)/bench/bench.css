@@ -319,23 +319,21 @@
   padding: 7px;
   overflow: hidden;
   box-sizing: border-box;
-  /* translateX(-50%) is held in BOTH states (constant), so the transitioning
-     transform animates only scale — and the width shrink stays centred (no
-     rightward bulge, which a fixed margin-left caused). Centring is width-
-     independent, so the rest→fixed hand-off (scroll-coincident) has no jump. */
-  transform: translateX(-50%) scale(0.96);
-  transform-origin: center top;
+  /* `translateX(-50%)` (constant) centres at `left:50%` independent of width,
+     so the only thing that animates on dock is the width shrink (centred, no
+     bulge) + the shadow. No scale — a scale change read as an odd enlarge
+     mid-condense. The rest→fixed hand-off is scroll-coincident, so no jump. */
+  transform: translateX(-50%);
   transition:
     width var(--dur-settle) var(--ease-snap),
-    transform var(--dur-settle) var(--ease-snap),
     box-shadow var(--dur-settle) var(--ease-snap);
 }
-/* Docked: lift OUT of the card into a pinned navbar — rises in scale + shadow. */
+/* Docked: lift OUT of the card into a pinned navbar — clean width shrink + a
+   deeper floating shadow (the "rise"). */
 .is-docked .bench-ticket {
   position: fixed;
   top: 14px;
   width: 296px;
-  transform: translateX(-50%) scale(1);   /* risen, still centred at left:50% */
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
 }
 
