@@ -353,7 +353,10 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: 26px 16px;
+  /* Top padding reserves the absolute eyebrow's rest space; the tab row centres
+     in the area below it. On dock the padding collapses to 0 — the single
+     vertical "shrink" driver (the eyebrow fades in place, doesn't pull). */
+  padding: 52px 16px 22px;
   transition:
     padding var(--dur-settle) var(--ease-snap),
     border-color var(--dur-settle) var(--ease-snap);
@@ -362,20 +365,23 @@
 
 /* Eyebrow */
 .bench-ticket__eyebrow {
-  overflow: hidden;
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 13px;
   justify-content: center;
-  max-height: 22px;
-  margin: 2px 0 18px;
   opacity: 1;
+  /* Out of flow: on dock it fades in place (opacity + a small lift) instead of
+     collapsing its box. No max-height / margin animation, so it can't reflow or
+     yank the tabs upward — the jank-prone collapse is gone. */
   transition:
-    max-height var(--dur-settle) var(--ease-snap),
     opacity var(--dur-settle) var(--ease-snap),
-    margin var(--dur-settle) var(--ease-snap);
+    transform var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-ticket__eyebrow { max-height: 0; margin: 0; opacity: 0; }
+.is-docked .bench-ticket__eyebrow { opacity: 0; transform: translateY(-4px); }
 .bench-ticket__eyebrow-rule { height: 1px; width: 56px; }
 .bench-ticket__eyebrow-rule--l {
   background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%);
@@ -395,14 +401,15 @@
 /* Tabs */
 .bench-ticket__tabs {
   display: grid;
-  grid-template-columns: auto 1fr auto 1fr auto;   /* spacer · tab · divider · tab · close */
+  grid-template-columns: 1fr auto 1fr;   /* tab · divider · tab (close is absolute) */
   align-items: center;
   width: 100%;
+  box-sizing: border-box;
+  /* Constant symmetric inset reserves room for the absolute close on the right
+     in BOTH states — so the tab pair stays centred with zero horizontal
+     animation (the old spacer/close width churn is gone). */
+  padding: 0 30px;
 }
-/* Mirror cell — 0 at rest, matches the close width when docked so the two tabs
-   + divider stay centred in the navbar (the close no longer pulls them left). */
-.bench-tab__spacer { width: 0; }
-.is-docked .bench-tab__spacer { width: 30px; }
 
 .bench-tab {
   appearance: none;
@@ -510,25 +517,35 @@
 
 /* Close — hidden at rest, appears docked; library `close` icon. */
 .bench-ticket__close {
+  position: absolute;
+  right: 6px;
+  top: 50%;
   appearance: none;
   border: none;
   background: none;
   cursor: pointer;
+  width: 30px;
   height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   color: var(--terra-560);
-  width: 0;
   opacity: 0;
   pointer-events: none;
+  /* Absolute (anchored to the frame) + opacity/transform only — no width
+     animation, so it never pushes the tabs. It eases in from a small rightward
+     offset as the ticket docks. */
+  transform: translateY(-50%) translateX(6px);
   transition:
-    width var(--dur-settle) var(--ease-snap),
     opacity var(--dur-settle) var(--ease-snap),
+    transform var(--dur-settle) var(--ease-snap),
     color var(--dur-instant) var(--ease-snap);
 }
-.is-docked .bench-ticket__close { width: 30px; opacity: 1; pointer-events: auto; }
+.is-docked .bench-ticket__close {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
 .bench-ticket__close:hover { color: var(--terra-960); }
 .bench-ticket__close-icon { font-size: 18px; }
 

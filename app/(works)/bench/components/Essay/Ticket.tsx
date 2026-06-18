@@ -29,11 +29,10 @@ export default function Ticket({ docked, active, onShowcase, onLongform, onClose
             <span className="bench-ticket__eyebrow-rule bench-ticket__eyebrow-rule--r" />
           </div>
 
-          {/* Tabs — Showcase first (default), then Longform */}
+          {/* Tabs — Showcase first (default), then Longform. The close is
+              absolute (not a grid cell), so the label pair stays centred in both
+              states with no horizontal reflow — no mirror-spacer needed. */}
           <div className="bench-ticket__tabs">
-            {/* Mirror of the close cell so the label pair stays centred in the
-                docked navbar (0-width at rest). */}
-            <span className="bench-tab__spacer" aria-hidden="true" />
             <button
               type="button"
               className="bench-tab"
