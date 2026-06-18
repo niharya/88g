@@ -312,6 +312,14 @@
   position: relative;
   left: 50%;
   width: 100%;
+  /* `max-width` is LOAD-BEARING, not cosmetic. At rest `width:100%` resolves
+     against the slot (capped 460). On dock the ticket flips to position:fixed,
+     so `100%` would re-resolve against the VIEWPORT (~1433 at 1440vw) — and the
+     `width` transition would animate FROM that, exploding the ticket to full
+     width before snapping to 296 (the "enlarges towards the right" bug). This
+     cap clamps the percentage to 460 even once fixed, so the transition runs a
+     clean 460→296. The slot's own max-width can't help — the ticket has left it. */
+  max-width: 460px;
   background: var(--terra-80);
   border: 1.5px solid var(--terra-240);
   /* Rest: sits in the card. */
