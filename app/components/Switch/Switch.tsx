@@ -16,7 +16,7 @@
 // etc.) is the consumer's job — this is the toggle artefact itself.
 //
 // Known consumers
-//   • /selected showcase tiles (Before/After, Clean/UI map, Interface/Icons).
+//   • /all showcase tiles (Before/After, Clean/UI map, Interface/Icons).
 //     Sets tint from `--sc-dotc` so the switch follows the tile's caption-
 //     dot colour.
 //   • /biconomy Flows audit (Before/After). Sets tint from the orange

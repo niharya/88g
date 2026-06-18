@@ -13,7 +13,7 @@
 //   PAUSE: brief stillness
 //   ENTER: new page emerges
 //
-// Spatial model: /selected lives ABOVE project pages.
+// Spatial model: /all lives ABOVE project pages.
 //   selected → project: ghost exits UP, new enters from BELOW
 //   project → selected: ghost exits DOWN, new enters from ABOVE
 
@@ -51,7 +51,7 @@ const ENTER_Y           = 28       // px, translate only
 const ENTER_CONTENT_DELAY = 520    // content settles slightly after mat
 const ENTER_CONTENT_DUR = 460
 
-// ── Non-sheet entrance (e.g. /selected) ────────────────────────────────
+// ── Non-sheet entrance (e.g. /all) ────────────────────────────────
 const ENTER_FLAT_DELAY  = 460
 const ENTER_FLAT_DUR    = 520
 
@@ -84,7 +84,7 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
   useEffect(() => {
     router.prefetch('/rr')
     router.prefetch('/biconomy')
-    router.prefetch('/bench')
+    router.prefetch('/all')
   }, [router])
 
   // ── Capture snapshot + scroll during render ──────────────────────────
@@ -122,7 +122,7 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     const scrollTarget = isProject(segment) ? DOCK_OFFSET : 0
 
     // ── 1. Maintain document height ───────────────────────────────────
-    //    New route content may be shorter (e.g. project → /selected),
+    //    New route content may be shorter (e.g. project → /all),
     //    which clamps scroll. Setting minHeight keeps the document tall
     //    enough to hold the old scroll position until the ghost exits.
     slot.style.minHeight = `${oldScroll + window.innerHeight}px`
@@ -158,7 +158,8 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     //    NOTE: This selector is the load-bearing contract between
     //    TransitionSlot and every route's top-level markup. Routes with a
     //    `.sheet` stack (rr, biconomy) expose each sheet's inner content;
-    //    `/bench` uses `.bench-workbench > *`. A fourth route with a
+    //    `/all` uses `.bench-workbench > *` (the "bench" codename class). A
+    //    fourth route with a
     //    different top-level class would silently fall through to no
     //    inner-content dim — add its selector here before landing it.
     const ghostContentEls = ghost.querySelectorAll(

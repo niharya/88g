@@ -4,7 +4,7 @@ Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-lo
 
 **Archive:** [`./ANOMALIES.md`](./ANOMALIES.md) — full rationale and rejected approaches. Behavior spec: [`./README.md`](./README.md). This digest is the seatbelt; the archive is the manual.
 
-**Blast radius:** this cluster is consumed by `/biconomy`, `/rr`, `/marks`, and `/selected`. Route CSS targeting `.project-marker` / `.nav-sled` / `.nav-marker` can violate these constraints from outside this folder — when editing route CSS that touches those selectors, read this digest too.
+**Blast radius:** this cluster is consumed by `/biconomy`, `/rr`, `/marks`, and `/all`. Route CSS targeting `.project-marker` / `.nav-sled` / `.nav-marker` can violate these constraints from outside this folder — when editing route CSS that touches those selectors, read this digest too.
 
 **Maintenance:** every new ANOMALIES entry gets a one-line item here in the same commit; every retired entry removes its item. The `/release` census checks this pairing.
 

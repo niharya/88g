@@ -1,12 +1,12 @@
 /* ==========================================================================
-   showcase.css — /selected showcase grid (v0.93+)
+   showcase.css — /all showcase grid (v0.93+)
    Route-local. Built on globals.css tokens.
    ========================================================================== */
 
 
 /* ── Prelude (Copy block + Timeline tile, side by side) ─────────────────── */
 /* Copy LEFT, Timeline RIGHT. The Timeline carries the nav-row chips on   */
-/* top of its mat — matches the original /selected design. The masonry    */
+/* top of its mat — matches the original /all design. The masonry    */
 /* grid below it is separate.                                              */
 
 .sc-prelude {
@@ -683,7 +683,7 @@
 
 /* Pause/play button — promoted to shared PauseButton primitive.          */
 /* See app/components/PauseButton/. Consumer just renders <PauseButton>;  */
-/* no /selected-local CSS is needed.                                       */
+/* no /all-local CSS is needed.                                       */
 
 
 /* ── Switch wrapper (Before/After-style toggles inside .sc-controls) ─── */
@@ -1621,7 +1621,7 @@
 /* class on the same element that also carries `.selected-mat` (so the    */
 /* mint border + dimensions stay applied). The override below is scoped   */
 /* to the prelude so removing the timeline-tile from this surface won't   */
-/* silently change /selected's mat behaviour elsewhere.                   */
+/* silently change /all's mat behaviour elsewhere.                   */
 .sc-prelude__timeline .sc-timeline-tile {
   position: relative;
   left: auto;

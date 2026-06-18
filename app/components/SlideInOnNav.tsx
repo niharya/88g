@@ -2,7 +2,7 @@
 
 // SlideInOnNav — apply a one-shot entrance class based on a session flag.
 //
-// Used to signal direction between landing and /selected without a shared
+// Used to signal direction between landing and /all without a shared
 // transition slot (landing lives outside the (works) route group, so
 // TransitionSlot can't wrap both sides). The outgoing page sets
 // sessionStorage['nav-direction']; the incoming page reads it on mount, adds

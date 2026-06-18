@@ -9,7 +9,7 @@
  *   --switch-border-off  — border colour when off  (defaults to tint)
  *   --switch-border-on   — border colour when on   (defaults to tint)
  *
- * Dimensions match the Figma spec used by /biconomy Flows + /selected:
+ * Dimensions match the Figma spec used by /biconomy Flows + /all:
  * track 24×16, thumb 8×12, 4px outer / 2px thumb radius. Transform
  * cubic-bezier is the gentle settle ported from the vanilla reference.
  */

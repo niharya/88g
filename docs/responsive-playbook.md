@@ -189,7 +189,7 @@ to re-sequence if DOM order doesn't match reading order. Authored gaps from
 .section .year-label { order: 4; color: var(--tone-800); }
 ```
 
-**Evidence.** [`selected.css:931`](../app/(works)/selected/selected.css:931) —
+**Evidence.** [`selected.css:931`](../app/(works)/all/selected.css:931) —
 main timeline recomposed as flex column with explicit `order:` values and a
 28px gap. Decorative bars/dots dropped (`display: none`). Year labels kept
 but recomposed as inline text markers.
@@ -278,7 +278,7 @@ Surviving meta information lives in flow with authored typography.
 }
 ```
 
-**Evidence.** [`selected.css:942`](../app/(works)/selected/selected.css:942)
+**Evidence.** [`selected.css:942`](../app/(works)/all/selected.css:942)
 — bars, dot clusters, "Now" label all dropped; year labels survive as
 recomposed inline text markers. [`rr.css:2928`](../app/(works)/rr/rr.css:2928)
 — intro card-stack, enlarged artwork, expand affordance all dropped.
@@ -366,7 +366,7 @@ dim chains so a sticky tap doesn't leave the UI in the dimmed state.
 }
 ```
 
-**Evidence.** [`selected.css:1123`](../app/(works)/selected/selected.css:1123)
+**Evidence.** [`selected.css:1123`](../app/(works)/all/selected.css:1123)
 — `.ap-entry__hint` dropped; hover dim and push-apart reset.
 
 **Verdict.** Sanctioned.
@@ -391,7 +391,7 @@ visually paired.
   abut and center as a unit. Measured marker widths into CSS vars; computed
   `left` for each.
 - **Single sticky with negative margin-top** — when it's one row already
-  (e.g. `/selected`'s `.selected-nav-row` wrapper exists). Sticky at
+  (e.g. `/all`'s `.selected-nav-row` wrapper exists). Sticky at
   `top: 0` with negative margin-top equal to `--workbench-pad-y` so the
   initial paint sits flush with viewport top.
 
@@ -426,7 +426,7 @@ visually paired.
 ```
 
 **Evidence.** Measured pair: [`rr.css:2759`](../app/(works)/rr/rr.css:2759).
-Sticky row: [`selected.css:875`](../app/(works)/selected/selected.css:875).
+Sticky row: [`selected.css:875`](../app/(works)/all/selected.css:875).
 
 **Verdict.** Sanctioned. Re-measure the marker widths if marker copy or padding
 changes — the computed pair drifts off-center otherwise.
@@ -503,8 +503,8 @@ in JSX; CSS toggles `display`.
 }
 ```
 
-**Evidence.** [`selected.css:690-694`](../app/(works)/selected/selected.css:690),
-[`Timeline.tsx:252-253`](../app/(works)/selected/components/Timeline.tsx:252).
+**Evidence.** [`selected.css:690-694`](../app/(works)/all/selected.css:690),
+[`Timeline.tsx:252-253`](../app/(works)/all/components/Timeline.tsx:252).
 
 **Verdict.** Sanctioned. The two strings have no shared source of truth —
 add a `<ResponsiveCopy>` primitive if the pattern proliferates to a second
@@ -543,9 +543,9 @@ write the meta line as the source of truth; the desktop-only visual label
 @media (max-width: 767px) { .meta__year { display: inline; } }
 ```
 
-**Evidence.** [`selected.css:686`](../app/(works)/selected/selected.css:686)
-(desktop hides) and [`selected.css:1118`](../app/(works)/selected/selected.css:1118)
-(mobile surfaces). See also [`selected ANOMALIES.md:531`](../app/(works)/selected/ANOMALIES.md:531)
+**Evidence.** [`selected.css:686`](../app/(works)/all/selected.css:686)
+(desktop hides) and [`selected.css:1118`](../app/(works)/all/selected.css:1118)
+(mobile surfaces). See also [`selected ANOMALIES.md:531`](../app/(works)/all/ANOMALIES.md:531)
 on the desktop/mobile semantic mismatch this introduces for assistive tech.
 
 **Verdict.** Sanctioned with the caveat that the content is already in the
@@ -689,7 +689,7 @@ content respects the safe column even though the mat bleeds past it.
 ```
 
 **Evidence.** [`rr.css:2736`](../app/(works)/rr/rr.css:2736),
-[`selected.css:907`](../app/(works)/selected/selected.css:907).
+[`selected.css:907`](../app/(works)/all/selected.css:907).
 
 **Verdict.** Sanctioned.
 
@@ -734,7 +734,7 @@ to `--workbench-pad-y`.
 ```
 
 **Evidence.** [`rr.css:2714-2746`](../app/(works)/rr/rr.css:2714) (sheet-stack chain),
-[`selected.css:852-920`](../app/(works)/selected/selected.css:852) (layout chain).
+[`selected.css:852-920`](../app/(works)/all/selected.css:852) (layout chain).
 
 **Verdict.** Sanctioned. Any sibling added *after* the last mat inside the
 layout chain will steal the grow and orphan the mat.
@@ -1022,7 +1022,7 @@ for composition quality. The composition bar is `/marks`.
   (Shape 13), React-inline-style gate on rails and outcome-card (Named
   patterns). No action.
 
-### `/selected` — retrofit-review
+### `/all` — retrofit-review
 
 **Mode.** Retrofit-review. Existing mobile block is mostly compliant with
 crafted-lite. Composition decisions (linearize main timeline, fold year

@@ -21,7 +21,7 @@
 
 
 /* ── Nav pair (Nihar + "Shape of Product") ──────────────────────────────
-   Mirrors /selected and landing's pattern: project-marker docked against
+   Mirrors /all and landing's pattern: project-marker docked against
    a static chapter-marker, sharing a halved seam. Pinned to the top of
    the viewport, horizontally centered on the page so the chrome stays
    anchored as the reader scrolls. */
@@ -38,7 +38,7 @@
 
 /* The MarkerSlot/.project-marker wrapper defaults to fixed positioning;
    inside our docked row it needs to flow naturally next to the chapter
-   marker, so override it to static — same fix /selected uses. */
+   marker, so override it to static — same fix /all uses. */
 .sop-nav-row .project-marker {
   position: static;
 }

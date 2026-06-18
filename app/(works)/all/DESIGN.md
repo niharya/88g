@@ -1,13 +1,13 @@
 # PRD / DESIGN — The Bench (Work Essay)
 
-> Working spec for the `/bench` redesign (formerly `/selected`). Replaces the prior
+> Working spec for the `/all` redesign (route formerly `/selected`; "bench" codename). Replaces the prior
 > FirstView+cue / single-flow Prelude compositions. Source design:
 > `reference/design_handoff_work_essay/`. This file is the durable spec — update it
 > as decisions land. Intent lives here; load-bearing wiring lives in `ANOMALIES.md`.
 
 ## 1. One-liner
 
-`/bench` is an engraved "invitation" essay: a blue broadside card carrying a short
+`/all` is an engraved "invitation" essay: a blue broadside card carrying a short
 first-person manifesto, footed by a letterpress **ticket** with two tabs. Clicking a
 tab **morphs** the ticket into a pinned top navbar, scrolls the page up, and reveals
 that browse mode below — **Longform → Timeline + Archive**, **Visual → the Showcase
@@ -43,8 +43,8 @@ State machine (ported from the prototype): `view: invite|browse` · `active: lf|
 ## 4. Architecture / IA
 
 ```
-/bench (page)                          ?view=cases  → opens Longform browse
-└─ BenchPage (.bench-workbench)        ?view=showcase → opens Visual browse
+/all (page)                          ?cases  → opens Longform browse
+└─ BenchPage (.bench-workbench)        ?showcase → opens Visual browse
    ├─ BenchExitMarker        "+Nihar" → / (top-left, role="exit")
    ├─ InvitationCard         poem · marks · closing   (the "first sheet")
    │  └─ Ticket              the single morphing element (rest ⇄ navbar)
@@ -55,17 +55,18 @@ State machine (ported from the prototype): `view: invite|browse` · `active: lf|
 
 ### Routing (locked)
 
-- **Rename `/selected` → `/bench`**, canonical. Add a permanent **redirect
-  `/selected → /bench`** so old inbound links + `og:canonical` survive.
-- **Addressable views via search-params:** `/bench?view=cases`, `/bench?view=showcase`.
+- **Rename `/selected` → `/all`**, canonical. Add a permanent **redirect
+  `/selected → /all`** so old inbound links + `og:canonical` survive.
+- **Addressable views via bare query flags:** `/all?cases`, `/all?showcase`
+  (read server-side as `'cases' in sp` / `'showcase' in sp`; showcase wins if both).
   Chosen over real routes deliberately — `useSelectedLayoutSegment` ignores
   search-params, so view changes **never trigger a shell TransitionSlot transition**,
   and the morph stays a single-surface interaction.
-- **Pretty inbound aliases via `next.config` rewrites:** `/cases → /bench?view=cases`,
-  `/showcase → /bench?view=showcase`. These are the share/entry URLs. Accepted caveat:
-  after a *client-side* tab click the address bar shows `?view=…`, not the pretty path
-  (hand-managing `history.pushState` for the pathname desyncs the App Router — not worth
-  the fragility).
+- **Pretty inbound aliases via `next.config` rewrites:** `/cases → /all?cases`,
+  `/showcase → /all?showcase`. These are the share/entry URLs; rewrites keep the
+  pretty path in the address bar. A *client-side* tab click doesn't push any query
+  (it just swaps the active tab + scrolls), so the URL stays put — no `pushState`
+  desync with the App Router.
 
 ### Why not three real routes
 
@@ -78,13 +79,13 @@ Transitions API (load-bearing, per root CLAUDE.md). Rejected.
 
 ## 5. Shell integration & seams
 
-The (works) section is hub-and-spoke: **Landing → `/bench` (hub) → Timeline cards →
+The (works) section is hub-and-spoke: **Landing → `/all` (hub) → Timeline cards →
 `/rr`, `/biconomy`, `/marks`**; and **all of those EXIT back to the hub.** `Timeline.tsx`
 is the only entry point to the deep case studies. Implications:
 
 1. **Return seam (load-bearing):** case-study EXIT lands the hub at scroll 0. Post-restructure
    that's the resting *invite*, not the timeline the user came from. **Fix:** point all EXIT
-   targets at **`/bench?view=cases`** (shell `ExitMarker`, `MarksExitMarker`); on entry the
+   targets at **`/all?cases`** (shell `ExitMarker`, `MarksExitMarker`); on entry the
    bench reads `?view` and opens directly into that browse state (fast-forward past the morph).
 2. **Exit happens *from browse mode*:** you reach `/rr` from inside Longform (condensed ticket,
    scrolled). TransitionSlot snapshots that — a `position:fixed` ticket cloned into a
@@ -106,7 +107,7 @@ is the only entry point to the deep case studies. Implications:
 
 `app/page.tsx` (landing link + slide flag `to-selected`→`to-bench`), `ShellNav.tsx`
 (`segmentNames`, `isSelected`→`isBench`, `shell-nav-hidden` gate), `TransitionSlot.tsx`
-(`prefetch('/bench')`, dim selector, spatial comments), `selected/` folder → `bench/`,
+(`prefetch('/all')`, dim selector, spatial comments), `selected/` folder → `bench/`,
 `page.tsx` `metadata.canonical`, `ExitMarker.tsx`, `MarksExitMarker.tsx`,
 `PrivacyBackLink.tsx` mapping. ~32 refs / 7 files. Plus redirect + rewrites in `next.config`.
 
@@ -170,21 +171,21 @@ to avoid scroll-clamp jumps.
 
 ## 10. Build phases (reviewable; stop between each)
 
-0. **Rename & plumbing** — `/selected`→`/bench`, redirect, rewrites (`/cases`,`/showcase`),
+0. **Rename & plumbing** — `/selected`→`/all`, redirect, rewrites (`/cases`,`/showcase`),
    the rename touch-list, `.bench-workbench` + dim-selector. Verify existing page works at
-   `/bench` and aliases resolve. (`?view`↔state lands in Phase 5.)
+   `/all` and aliases resolve. (`?view`↔state lands in Phase 5.)
 1. **Foundation** — Pinyon embed + Fraunces axis check; token mapping; mark-fill resolution.
 2. **Static bench** — desk, card, poem, marks, closing, `+Nihar`. No motion. → review.
 3. **Ticket resting** — full ticket, tabs, perforation/bead, hover.
 4. **Morph** — `useBenchMorph` + imperative geometry + `scrollGlide` lockstep; open/switch/close;
    overshoot removed. → review (risk-heavy).
-5. **Shell integration** — `?view`⇄morph state; reset-on-nav-out; EXIT targets → `?view=cases`.
+5. **Shell integration** — `?view`⇄morph state; reset-on-nav-out; EXIT targets → `?cases`.
 6. **Tab content** — `SelectedContent` (Timeline+Archive) into Longform; `Showcase` into Visual;
    verify archive-expand inside the tab; decide fate of `HeaderBlock`/`HintRow`.
 7. **Responsive** — port mobile composition.
 8. **Motion polish + a11y** — ambient gradient, reduced-motion gates.
 9. **Cleanup + docs** — retire `FirstView`/cue/`ShowcaseSection`/`Prelude`; rewrite `ANOMALIES`
-   overview + add morph-contract anomaly; rename the `/selected` doc digest → `/bench`; LIBRARY
+   overview + add morph-contract anomaly; rename the `/selected` doc digest → `/all`; LIBRARY
    entries for anything promoted.
 
 ## 11. Open items

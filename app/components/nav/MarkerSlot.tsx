@@ -14,7 +14,7 @@
 // slides horizontally without resizing, so ResizeObserver misses it).
 //
 // Set measure={false} on instances that should not write to the variable
-// (e.g. /selected's static nav row, which positions the slot differently).
+// (e.g. /all's static nav row, which positions the slot differently).
 //
 // Future: MarkerSlot will become the persistence point for cross-route
 // transitions — the box stays mounted, only the inner content swaps.

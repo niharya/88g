@@ -15,7 +15,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 ## Index
 
 - **Caption** (`.t-caption`) — globals.css; one-class caption treatment; consumers: four /biconomy caption sites.
-- **NavMarker** — `app/components/NavMarker/`; the shell behind every Chapter/Project/Exit/landing marker; consuming layouts MUST import navmarker.css; consumers: nav cluster, landing, /selected, /shape-of-product, /privacy, NotFound/Error.
+- **NavMarker** — `app/components/NavMarker/`; the shell behind every Chapter/Project/Exit/landing marker; consuming layouts MUST import navmarker.css; consumers: nav cluster, landing, /all, /shape-of-product, /privacy, NotFound/Error.
 - **Img** — `app/components/Img/`; the ONE image primitive (LQIP + materialize + next/image); run `npm run lqip` after adding images.
 - **Fonts** — `app/layout.tsx` + `app/fonts/`; five next/font/local faces as `--font-*` tokens; NEVER redeclare `--font-*` in globals.css.
 - **Rail** — `app/(works)/rr/components/Rail.tsx`; stateless tuck-push-reveal drawer shell; rr-local; consumers: NoteRail, RulesRail.
@@ -37,11 +37,11 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **MarkerTicket** — `app/components/MarkerTicket/`; postage-stamp infoCard ornament; consumers: /biconomy + /rr MarkerInfoCard.
 - **Monostamp** — `app/components/Monostamp.tsx`; monospace stamp chip; NO transitions on it, ever; consumers: /biconomy BeforeAfter, landing chips + form pills, NavMarker wipHint.
 - **CaptionTag** — `app/components/CaptionTag/`; museum-label caption docked to viewport bottom; consumer: landing startooth caption.
-- **Sticker** — `app/components/Sticker.tsx`; printed-and-pressed family shell; consumers: /biconomy ×4, /selected ProjectCard, LabelSticker.
+- **Sticker** — `app/components/Sticker.tsx`; printed-and-pressed family shell; consumers: /biconomy ×4, /all ProjectCard, LabelSticker.
 - **LabelSticker** — `app/components/LabelSticker/`; text sticker composing Sticker; consumer: /shape-of-product ActorStickers.
 - **StartoothLoader** — `app/components/StartoothLoader/`; the family's passive, SSR-safe member — die-cut sticker loader; shares `--sticker-shadow-lift` (token, not the `.sticker` class); consumer: layout.tsx page-boot.
 - **MaterialIcon** — `app/components/MaterialIcon.tsx`; the one typed way to render a Material Symbols glyph span; `name` constrained to the registry `app/lib/icons.ts` (`ICON_NAMES`/`IconName`); consumers: /biconomy Demos, /rr StoryCard·NoteRail·Intro. NavMarker's `icon` prop is the other typed path. See docs/performance.md → "Material Symbols icons".
-- **NiharHomeLink** — `app/components/NiharHomeLink/`; fixed "Nihar" back-to-landing marker; consumers: /selected, /shape-of-product.
+- **NiharHomeLink** — `app/components/NiharHomeLink/`; fixed "Nihar" back-to-landing marker; consumers: /all, /shape-of-product.
 - **CrossShellVeil** — `app/components/CrossShellVeil/`; veil bridge for cross-layout navigations; BOTH halves required; never combine with TransitionSlot.
 - **Footer** — `app/components/Footer/`; site colophon, two variants; (works) layout + landing.
 - **RR GameBoard** — `app/(works)/rr/components/game/`; playable game module; NOT promoted (needs `.route-rr` token cascade); consumers: /rr Mechanics, 404 page.
@@ -88,16 +88,16 @@ The single nav-marker primitive — the shared shell behind every `ChapterMarker
 - [app/components/NavMarker/NavMarker.tsx](app/components/NavMarker/NavMarker.tsx) — component, `NavMarkerProps` discriminated union, `NavMarkerRole` / `NavMarkerTone` / `NavMarkerState` / `NavMarkerAcknowledge` types, `useShakeState` + `useWipHintState` hooks.
 - [app/components/NavMarker/navmarker.css](app/components/NavMarker/navmarker.css) — tones, press translate, shake keyframe (`nav-marker-arrow-shake`, 360ms, origin bottom), morph rotation (`.is-morphed` → 45°), `.nav-marker__wip.is-shown` chip reveal, and the docked fill rule covering the chapter marker and the adjacent project marker.
 - [app/components/NavMarker/index.ts](app/components/NavMarker/index.ts) — barrel.
-- Consumers: `app/components/nav/{ChapterMarker,ProjectMarker,ExitMarker}.tsx`, `app/page.tsx` (landing Nihar + Works markers), `app/(works)/selected/page.tsx` (Works nameplate) + `app/(works)/selected/components/Timeline.tsx`, the shared `NiharHomeLink` (own LIBRARY entry), `app/privacy/components/PrivacyBackLink.tsx`, `app/marks/components/MarksExitMarker.tsx`, `app/shape-of-product/page.tsx` + `components/SopNavRow.tsx`. (This list drifts — `grep -rln "components/NavMarker" app` is the truth.)
+- Consumers: `app/components/nav/{ChapterMarker,ProjectMarker,ExitMarker}.tsx`, `app/page.tsx` (landing Nihar + Works markers), `app/(works)/all/page.tsx` (Works nameplate) + `app/(works)/all/components/Timeline.tsx`, the shared `NiharHomeLink` (own LIBRARY entry), `app/privacy/components/PrivacyBackLink.tsx`, `app/marks/components/MarksExitMarker.tsx`, `app/shape-of-product/page.tsx` + `components/SopNavRow.tsx`. (This list drifts — `grep -rln "components/NavMarker" app` is the truth.)
 - Route layouts must `import 'app/components/NavMarker/navmarker.css'`. Wired from `app/(works)/layout.tsx`, `app/marks/layout.tsx`, `app/shape-of-product/layout.tsx`, `app/privacy/page.tsx`, and `app/page.tsx`. Import the CSS alongside `nav.css` — the two files complement each other (`nav.css` owns positioning + the `.nav-marker` base; `navmarker.css` owns the primitive's own modifiers).
 
 **AI notes**
 - **"Marker," not "pill," inside the nav domain.** The primitive is deliberately named to match `ChapterMarker` / `ProjectMarker` / `ExitMarker`. The word "pill" was removed from the nav module on purpose — these are page-position markers. Do not rename back. Biconomy's slide prev/next component at `app/(works)/biconomy/components/NavPill.tsx` is a separate, literal pill; it is intentionally left alone.
 - **Discriminated `as` union is the public surface.** `as: 'a'` requires `href`; `as: 'button'` forbids `href` and takes an optional `type`; `as: 'div'` forbids both `href` and `onClick` (inert presence marker). Don't flatten the union into one `BaseProps` with all three — TS would stop catching consumer mistakes.
-- **Docked fill.** When the chapter marker docks (`.chapter-nav.is-docked` — written by `useDockedMarker`) the chapter marker and the adjacent project marker both switch to `--mat-bg` with a `--mint-100` border so the pair reads as cut from the mat. Hover progresses to `--grey-880`, press to `--grey-800`. Flyout items are excluded (they live in the tray, not against the mat). Inks inherit from the base role rules — only the shell changes. On `/selected` the same treatment applies statically via `.chapter-nav--static` + `.selected-nav-row` selectors. On landing the Nihar + Works pair reuses this via `.landing-nav-row`.
+- **Docked fill.** When the chapter marker docks (`.chapter-nav.is-docked` — written by `useDockedMarker`) the chapter marker and the adjacent project marker both switch to `--mat-bg` with a `--mint-100` border so the pair reads as cut from the mat. Hover progresses to `--grey-880`, press to `--grey-800`. Flyout items are excluded (they live in the tray, not against the mat). Inks inherit from the base role rules — only the shell changes. On `/all` the same treatment applies statically via `.chapter-nav--static` + `.selected-nav-row` selectors. On landing the Nihar + Works pair reuses this via `.landing-nav-row`.
 - **Acknowledgment contract.**
   - `navigate` (default) — no visual click feedback; the route change is the feedback. Used by ExitMarker and NiharHomeLink.
-  - `shake` — arrow shakes on click for same-page markers (Works marker on `/selected`). The hook `useShakeState` flips `data-shaking` for exactly 360ms to match the CSS keyframe. Keyframe origin is `center bottom` so the glyph pivots from its base.
+  - `shake` — arrow shakes on click for same-page markers (Works marker on `/all`). The hook `useShakeState` flips `data-shaking` for exactly 360ms to match the CSS keyframe. Keyframe origin is `center bottom` so the glyph pivots from its base.
   - `morph` — icon rotates 45° while `state === 'active'`. Used by the landing's Nihar toggle (`+` → `×`). Requires the consumer to pass `state="active"` when expanded; the component itself does not track this.
 - **`wipHint` chip.** Optional string; when provided, clicking the marker runs its normal `onClick` (navigation, toggle, etc.) *and* reveals a Monostamp chip (olive / light) inline to the right of the label for 8s via `useWipHintState`. Re-clicking resets the timer. CSS animates `max-width` + `opacity` + `margin-left` on `.nav-marker__wip.is-shown` (`var(--dur-slide)` / `var(--ease-paper)`). The chip sits inside `.nav-marker__content`, so the marker's 32px right padding applies equally to the chip's trailing edge.
 - **`state` is stateless by design.** Consumer owns `default` / `active`. `active` drives the morph acknowledgment when `acknowledgeOnClick === 'morph'`.
@@ -265,7 +265,7 @@ The docked-nav system used by every works route: chapter marker, project marker,
 
 ## SlideInOnNav
 
-Signals directional entrance between landing (`/`) and `/selected` — the two routes that don't share a TransitionSlot because landing lives outside the `(works)` route group. Outgoing page sets a `sessionStorage` flag; incoming page mounts this component, which reads the flag and adds an entrance class.
+Signals directional entrance between landing (`/`) and `/all` — the two routes that don't share a TransitionSlot because landing lives outside the `(works)` route group. Outgoing page sets a `sessionStorage` flag; incoming page mounts this component, which reads the flag and adds an entrance class.
 
 **Where it lives**
 - [app/components/SlideInOnNav.tsx](app/components/SlideInOnNav.tsx) — the component (returns `null`; pure effect).
@@ -504,7 +504,7 @@ A small monospace stamp — hairline-bordered pill or vertical stamp housing one
 - **No color/border/background transitions on `.monostamp`.** An earlier version transitioned these; consumer re-renders (scroll springs, motion values, hover toggles) restart the transition every paint, stack running CSS Animation objects, and the `is-active` palette never actually applies. The palette swap is intentionally instant. Do not reintroduce a transition here — it will silently break active/rest on every dark consumer. Documented in the component header comment and in globals.css above the Monostamp block.
 - Tones correspond 1:1 to the `--tone-{560,720,800,960}` token family in globals.css. To add a new tone, add all four tokens AND the matching light + dark + dark.is-active CSS rules — the naming is load-bearing (the classes are composed via template string `monostamp--${tone}`).
 - The light-appearance is the base rule (paper-cream `--grey-960` fill, `--grey-880` hairline); the `monostamp--light` class exists on the element but has no explicit rules — it's reserved for future light-appearance tone-specific shell changes. The `.monostamp--dark.monostamp--<tone>` selector uses double class specificity to guarantee override of the base.
-- Live consumers: /biconomy BeforeAfter note pointers (`tone="olive" variant="tall" appearance="dark"` — they live in `BeforeAfter.tsx`, not Flows); the NavMarker `wipHint` stamp (`app/components/NavMarker/NavMarker.tsx`); landing about-long discipline-year chips (`tone="terra"`, default light — the terra tone was added alongside this consumer because terra is now part of the system, not a one-off); landing contact-form success pill (`<Monostamp className="contact-form__success-pill" style={{ color: sentColor }}>` — per-instance dynamic ink via `style`) and error pill (`<Monostamp className="contact-form__error-pill">` with route-local orange ink + a wide multi-line variant that overrides Monostamp's `white-space: nowrap`). (The /selected archive "opens in new tab" hint and the /selected showcase index-card hint pill both chose route-local recipes over Monostamp — see `.ap-entry__hint` in `selected.css` and `.sc-note__link-hint` in `showcase.css`.)
+- Live consumers: /biconomy BeforeAfter note pointers (`tone="olive" variant="tall" appearance="dark"` — they live in `BeforeAfter.tsx`, not Flows); the NavMarker `wipHint` stamp (`app/components/NavMarker/NavMarker.tsx`); landing about-long discipline-year chips (`tone="terra"`, default light — the terra tone was added alongside this consumer because terra is now part of the system, not a one-off); landing contact-form success pill (`<Monostamp className="contact-form__success-pill" style={{ color: sentColor }}>` — per-instance dynamic ink via `style`) and error pill (`<Monostamp className="contact-form__error-pill">` with route-local orange ink + a wide multi-line variant that overrides Monostamp's `white-space: nowrap`). (The /all archive "opens in new tab" hint and the /all showcase index-card hint pill both chose route-local recipes over Monostamp — see `.ap-entry__hint` in `selected.css` and `.sc-note__link-hint` in `showcase.css`.)
 - Consumes `--font-mono` (Google Sans Code), loaded site-wide from `app/layout.tsx`.
 - What's route-specific (none today, by design): nothing — Monostamp is already parameterized for reuse.
 - What's library-ready: the full API surface. Extractable as-is once the globals.css token family is ported alongside, or rewritten with caller-supplied color tokens.
@@ -547,7 +547,7 @@ Museum-label caption docked to the viewport bottom. Collapsed state shows only a
 
 ## Sticker
 
-Shared shell for the portfolio's "fun play" elements — the paper-roll and RR diamond on /selected, the web3-abstractor on biconomy/Demos, the zhao.eth card on biconomy/API, the notes USB on biconomy/StayingAnchored, and the BiconomyChip dice in biconomy/Multiverse. Family contract: every sticker reads as printed and pressed onto the page (drop-shadow follows the alpha mask), and every sticker lifts on hover. Tilt is per-instance via the `tilt` prop. Some consumers are static images, some are interactive (`as="button" | "a"`); future stickers join by wrapping their content in this shell — no inner-art changes needed.
+Shared shell for the portfolio's "fun play" elements — the paper-roll and RR diamond on /all, the web3-abstractor on biconomy/Demos, the zhao.eth card on biconomy/API, the notes USB on biconomy/StayingAnchored, and the BiconomyChip dice in biconomy/Multiverse. Family contract: every sticker reads as printed and pressed onto the page (drop-shadow follows the alpha mask), and every sticker lifts on hover. Tilt is per-instance via the `tilt` prop. Some consumers are static images, some are interactive (`as="button" | "a"`); future stickers join by wrapping their content in this shell — no inner-art changes needed.
 
 **Where it lives**
 - [app/components/Sticker.tsx](app/components/Sticker.tsx) — component + `StickerProps` (as / tilt / jitter / clickRotate / className / aria-*). `'use client'` because `jitter`, `clickRotate`, and the press-down `:active` interaction need DOM event handlers.
@@ -559,14 +559,14 @@ Shared shell for the portfolio's "fun play" elements — the paper-roll and RR d
 - **Lift is small (`-2px`).** Real stickers don't levitate. Don't crank this back up to "card lift" values; the contact-line shadow is doing most of the work.
 - **Interactive consumers can opt out of the lift.** BiconomyChip applies `.sticker` for the shadow but sets `--sticker-lift-y: 0px` inline so the chip's press-scale stays the headline interaction. Pattern: keep the shadow, suppress the translate, let the consumer's own click/press effect own the motion.
 - **Tilt is per-instance, not random.** The `tilt` prop sets `--sticker-tilt` inline. Stable per consumer so siblings on the same page don't drift between renders. Don't randomize the resting pose — it's part of the composition.
-- **`clickRotate` is per-click, persists between clicks (default true).** On every click, the sticker re-rolls a random ±2° offset into `--sticker-jitter` and *keeps* it (no leave-reset). Each click nudges the rotation again. Sells the sticker as something you pushed and shifted. Opt out (`clickRotate={false}`) when the click is navigation (rotating the instant before route-change is wasted motion — /selected ProjectCard is the reference) or when the consumer owns its own click choreography (BiconomyChip, which doesn't go through `<Sticker>` anyway).
-- **`jitter` and `clickRotate` share the same `--sticker-jitter` channel.** Don't enable both on the same sticker — `jitter` clears on pointer leave, which would wipe a click rotation if both were active. Today only /selected uses parent-driven jitter (and opts out of clickRotate); the biconomy stickers use clickRotate only. If a future sticker needs both flavors, give it a second var (e.g., `--sticker-click`) and compose three terms in the transform calc.
+- **`clickRotate` is per-click, persists between clicks (default true).** On every click, the sticker re-rolls a random ±2° offset into `--sticker-jitter` and *keeps* it (no leave-reset). Each click nudges the rotation again. Sells the sticker as something you pushed and shifted. Opt out (`clickRotate={false}`) when the click is navigation (rotating the instant before route-change is wasted motion — /all ProjectCard is the reference) or when the consumer owns its own click choreography (BiconomyChip, which doesn't go through `<Sticker>` anyway).
+- **`jitter` and `clickRotate` share the same `--sticker-jitter` channel.** Don't enable both on the same sticker — `jitter` clears on pointer leave, which would wipe a click rotation if both were active. Today only /all uses parent-driven jitter (and opts out of clickRotate); the biconomy stickers use clickRotate only. If a future sticker needs both flavors, give it a second var (e.g., `--sticker-click`) and compose three terms in the transform calc.
 - **`jitter` is per-hover, composes on top of `tilt`.** When `jitter` is true, the sticker re-rolls a random ±2° offset on each pointer enter and writes it to `--sticker-jitter` inline. `.sticker`'s transform is `rotate(calc(--sticker-tilt + --sticker-jitter))`, so resting pose is preserved and the jitter is a hover-only flourish that feels alive without breaking placement.
-- **Parent-driven jitter.** When the hover trigger lives on a parent surface (e.g. /selected ProjectCard, where the whole card is the hover target), don't use the `jitter` prop — the parent handles its own pointerenter/leave and sets `--sticker-jitter` on itself. CSS-var inheritance carries it down to the sticker. /selected ProjectCard is the reference.
+- **Parent-driven jitter.** When the hover trigger lives on a parent surface (e.g. /all ProjectCard, where the whole card is the hover target), don't use the `jitter` prop — the parent handles its own pointerenter/leave and sets `--sticker-jitter` on itself. CSS-var inheritance carries it down to the sticker. /all ProjectCard is the reference.
 - **Every sticker feels clickable.** `.sticker` ships `cursor: pointer` and `:active` press-down for *all* consumers — decorative spans included — so the family reads as something you could pick up and play with. Real handlers are wired per consumer as we add interactivity. When a consumer becomes truly interactive, switch its `as` to `button` or `a` and the existing semantics carry through.
 - **Press-down on `:active`.** `.sticker:active` collapses the lift to 0 and snaps the shadow to `--sticker-shadow-press`, using the snap motion tier (`--dur-instant` + `--ease-snap`). Mimics finger-pressing the sticker back into contact. Fires on any element being mouse-pressed (browsers honor `:active` on spans), so even decorative consumers get the press feedback.
-- **`pointer-events: none` on a parent will kill the hover.** `/selected` previously had `.project-card__illus { pointer-events: none }` to keep the parent `<Link>`'s click clean — that was removed when stickers landed there because it disabled the hover lift on the sticker itself. Click events still bubble through to the Link, so removing the rule was safe.
-- Consumers (today): `/biconomy` Demos web3-abstractor, API zhao.eth card, StayingAnchored notes USB, Multiverse BiconomyChip; `/selected` ProjectCard illustrations (paper-roll, RR diamond).
+- **`pointer-events: none` on a parent will kill the hover.** `/all` previously had `.project-card__illus { pointer-events: none }` to keep the parent `<Link>`'s click clean — that was removed when stickers landed there because it disabled the hover lift on the sticker itself. Click events still bubble through to the Link, so removing the rule was safe.
+- Consumers (today): `/biconomy` Demos web3-abstractor, API zhao.eth card, StayingAnchored notes USB, Multiverse BiconomyChip; `/all` ProjectCard illustrations (paper-roll, RR diamond).
 - What's route-specific: per-consumer positioning classes (e.g. `.api__trailing-sticker`, `.project-card__illus--paperroll`) layer on top of `.sticker` for placement only.
 - What's library-ready: the entire API.
 
@@ -646,16 +646,16 @@ The "Nihar" project-marker that takes the reader back to the landing page from a
 **AI notes**
 - **No props.** Stateless, no consumer-facing API. The label is fixed (`Nihar`), the role is fixed (`project`), the tone is fixed (neutral), the icon is fixed (`arrow_back`), the href is fixed (`/`). Adding a prop here is the wrong move — the link's identity is its sameness across surfaces. Any variation is a different primitive.
 - **`sessionStorage` is wrapped in try/catch.** Safari private-mode and other write-blocked contexts throw on `setItem`; the catch is non-fatal so the navigation still happens. If you ever extend the side-effect, keep the same defensive shape.
-- **Consumer owns placement.** The component renders a `.nav-marker--project` directly; consumers wrap it in their own `.project-marker` div + their docked-pair container. See `/selected` (`.selected-nav-row`) and `/shape-of-product` (`.sop-nav-row`) for the wrapping pattern. The border-halving rule (project-marker right + chapter-marker left both at 1px) is consumer-side too.
+- **Consumer owns placement.** The component renders a `.nav-marker--project` directly; consumers wrap it in their own `.project-marker` div + their docked-pair container. See `/all` (`.selected-nav-row`) and `/shape-of-product` (`.sop-nav-row`) for the wrapping pattern. The border-halving rule (project-marker right + chapter-marker left both at 1px) is consumer-side too.
 - **The session flag is read by `<SlideInOnNav>`** ([app/components/SlideInOnNav.tsx](app/components/SlideInOnNav.tsx)) on the landing. If a future consumer wants a different return target than `/`, change the destination — but make sure the destination route also reads (or ignores) the flag cleanly. Don't fork the side-effect logic into route-local components.
-- Consumers (today): `/selected` ([app/(works)/selected/page.tsx](app/(works)/selected/page.tsx)) — paired with the static "Works" chapter-marker. `/shape-of-product` ([app/shape-of-product/components/SopNavRow.tsx](app/shape-of-product/components/SopNavRow.tsx)) — paired with the static "Shape of Product" chapter-marker.
+- Consumers (today): `/all` ([app/(works)/all/page.tsx](app/(works)/all/page.tsx)) — paired with the static "Works" chapter-marker. `/shape-of-product` ([app/shape-of-product/components/SopNavRow.tsx](app/shape-of-product/components/SopNavRow.tsx)) — paired with the static "Shape of Product" chapter-marker.
 - Promoted at v0.79.0 (was route-local in `/selected/components/`).
 
 ---
 
 ## CrossShellVeil
 
-Bridge between routes that don't share a layout boundary (currently `/marks` ↔ `/selected`, with `/shape-of-product` carrying a defensive incoming fader; future cross-shell routes will use this too). TransitionSlot can't cross those boundaries — its DOM-snapshot trick relies on staying mounted. CrossShellVeil instead fades a single black `<div>` up on the outgoing side, holds it opaque through `router.push`, and the incoming side fades it down. The veil lives on `document.body` so it survives the layout swap. One DOM node, two halves, one beat.
+Bridge between routes that don't share a layout boundary (currently `/marks` ↔ `/all`, with `/shape-of-product` carrying a defensive incoming fader; future cross-shell routes will use this too). TransitionSlot can't cross those boundaries — its DOM-snapshot trick relies on staying mounted. CrossShellVeil instead fades a single black `<div>` up on the outgoing side, holds it opaque through `router.push`, and the incoming side fades it down. The veil lives on `document.body` so it survives the layout swap. One DOM node, two halves, one beat.
 
 **Where it lives**
 - [app/components/CrossShellVeil/useCrossShellNav.ts](app/components/CrossShellVeil/useCrossShellNav.ts) — outgoing hook. Returns an `onClick` handler for the link.
@@ -671,8 +671,8 @@ Bridge between routes that don't share a layout boundary (currently `/marks` ↔
 - **Don't stack veils.** Rapid double-click is guarded — the hook returns early if a veil already exists.
 - **Don't combine with TransitionSlot.** A route uses TransitionSlot (in-shell, snapshot-clone slide) OR CrossShellVeil (cross-shell, opacity bridge). Wiring both creates competing animations on the same navigation.
 - **Consumers today**:
-  - Outgoing from `/selected` to `/marks`: `app/(works)/selected/components/Timeline.tsx` (the "Marks and Symbols Made" nameplate).
-  - Outgoing from `/marks` to `/selected`: `app/marks/components/MarksExitMarker.tsx`.
+  - Outgoing from `/all` to `/marks`: `app/(works)/all/components/Timeline.tsx` (the "Marks and Symbols Made" nameplate).
+  - Outgoing from `/marks` to `/all`: `app/marks/components/MarksExitMarker.tsx`.
   - Incoming on `/marks`: `app/marks/layout.tsx`.
   - Incoming on `(works)`: `app/(works)/layout.tsx` (covers all three works routes).
   - Incoming on `/shape-of-product`: `app/shape-of-product/layout.tsx` (defensive — no outgoing link targets it yet; the fader no-ops when no veil is present).
@@ -685,13 +685,13 @@ Bridge between routes that don't share a layout boundary (currently `/marks` ↔
 Site colophon — rendered in two variants depending on consumer.
 
 - **Where it lives:** [app/components/Footer/](app/components/Footer/) — `Footer.tsx`, `footer.css`, `index.ts`.
-- **Consumers:** mounted once in [app/(works)/layout.tsx](app/(works)/layout.tsx) (default variant covers `/selected`, `/rr`, `/biconomy`); also mounted on the landing in [app/page.tsx](app/page.tsx) when `expanded` is true (caption variant).
+- **Consumers:** mounted once in [app/(works)/layout.tsx](app/(works)/layout.tsx) (default variant covers `/all`, `/rr`, `/biconomy`); also mounted on the landing in [app/page.tsx](app/page.tsx) when `expanded` is true (caption variant).
 - **Variants:**
   - `default` — black `.footer-stage` slab below the workbench (rendered OUTSIDE `<main className="workbench">` so the workbench's bottom padding doesn't sit between the divider and viewport bottom). Hairline divider flush with workbench bottom edge, single row beneath: credit (left, `t-h5`) + framed link cells (right, `t-btn1`). Each `<li>` carries a vertical hairline border; the first item also gets a left border so the row reads as fully enclosed cells.
   - `caption` — fixed-positioned dark terra slab (`var(--surface-bg)` bg, `#c96f42` text — mirrors CaptionTag's literal exactly so the two artifacts share voice). Slides up from below via the `translate` CSS property (Y: `100% → 0`) when `visible` prop flips true; slides back down on scroll-up. No opacity transition — only Y position changes.
 - **Cell hover/press (default):** object-level reaction only — no background overlay, no translate. Hover brightens the link text from `--grey-640` → `--grey-240`; press whitens it to `#fff`. The inner `<span class="footer__link-label t-btn1">` carries the dotted-to-solid underline crossfade. Transition tier: `--dur-fast` + `--ease-snap` for hover, `--dur-instant` for press. The earlier per-route 800/960 palette wiring (with `ROUTE_PALETTES` + `--hover-color` custom prop + `translateY(1px)` press) was removed — the rectangle tint was overpowering the subtler type-level state, so the cell now reads through type alone.
 - **Hover underline:** the link's text is wrapped in an inner `<span class="footer__link-label t-btn1">` — `t-btn1`'s `::after` solid bar positions at `bottom: -2px` of its containing block. Without the inner span, the bar lands at the bottom of the 60-px padded cell (visually disconnected from the text). The cell's `:hover` forwards to the span via descendant selectors.
-- **Dynamic Privacy back-link:** Footer's `onClick` writes the source pathname to `sessionStorage.privacy-from`. The privacy page's `PrivacyBackLink` component reads that flag in a `useLayoutEffect` and renders a NavMarker labelled / toned to match the source (`/selected → "Works" terra`, `/biconomy → "Biconomy" mint`, `/rr → "Rug Rumble" terra`, `/ → "Back" neutral`).
+- **Dynamic Privacy back-link:** Footer's `onClick` writes the source pathname to `sessionStorage.privacy-from`. The privacy page's `PrivacyBackLink` component reads that flag in a `useLayoutEffect` and renders a NavMarker labelled / toned to match the source (`/all → "Works" terra`, `/biconomy → "Biconomy" mint`, `/rr → "Rug Rumble" terra`, `/ → "Back" neutral`).
 - **Caption visibility on landing:** controlled by `pastForm` state, which a scroll listener flips true when the document is parked at the bottom (`scrollHeight − scrollY − innerHeight ≤ 64`). The threshold is small on purpose — any honest upward scroll gesture clears the slab immediately rather than lingering until the form leaves the viewport. Resets on collapse so a re-expand starts hidden.
 - **Mobile composition (default, `≤767px` or `max-height: 500px`):** single horizontal row, centered, with the credit hidden so all five pipe-bracketed cells (Privacy, Resume, LinkedIn, X, GitHub) claim the full width. The footer drops `workbench-pad-x` to 0 on mobile so the row can span the full viewport. Cells are 44 px tall (Apple HIG min tap target) with `var(--space-8)` horizontal padding. The mid-divider hairline is not used here — that pattern was for an earlier 3-row mobile composition (credit + divider + links) that the v0.83 fix collapsed. Caption variant gets the same treatment: credit hidden, five cells centered on one line, `flex-wrap: nowrap` to guarantee no second-line wrap.
 - **Touch tap-light parity:** taps on mobile never fire `onMouseEnter`, so the link `<a>` also carries `onTouchStart` that rolls the same `--hover-color` / `--active-color` from `ROUTE_PALETTES`. Without this, the press state falls back to the gray rgba and the cell lights up dim instead of in the route's hue. Don't drop one handler without the other.
@@ -724,7 +724,7 @@ The Rug Rumble playable game module — [app/(works)/rr/components/game/](app/(w
 
 ## DotPager
 
-A 24 px-tall chip with a row of dots — one reads as the active page index. Whole chip is the click target; clicking advances the index (0 → 1 → 2 → … → N − 1 → 0). Lives at [app/components/DotPager/](app/components/DotPager/) — `DotPager.tsx` + `dotpager.css` + `index.ts`. Single consumer at promotion time (`/selected` Paymaster flow nav); promoted now so the showcase control trio — Switch, PauseButton, DotPager — all share one home and visual family.
+A 24 px-tall chip with a row of dots — one reads as the active page index. Whole chip is the click target; clicking advances the index (0 → 1 → 2 → … → N − 1 → 0). Lives at [app/components/DotPager/](app/components/DotPager/) — `DotPager.tsx` + `dotpager.css` + `index.ts`. Single consumer at promotion time (`/all` Paymaster flow nav); promoted now so the showcase control trio — Switch, PauseButton, DotPager — all share one home and visual family.
 
 **Contract:**
 
@@ -735,13 +735,13 @@ A 24 px-tall chip with a row of dots — one reads as the active page index. Who
 
 **Known consumers:**
 
-- `/selected` showcase Paymaster tile — cycles between three audit flows. Tinted from `--sc-dotc` via the `.sc-pagechip` wrapper class.
+- `/all` showcase Paymaster tile — cycles between three audit flows. Tinted from `--sc-dotc` via the `.sc-pagechip` wrapper class.
 
 ---
 
 ## PauseButton
 
-A 24 × 24 mat-bg icon button that toggles play / pause. Lives at [app/components/PauseButton/](app/components/PauseButton/) — `PauseButton.tsx` + `pausebtn.css` + `index.ts`. Single consumer at promotion time (`/selected` showcase video tiles); promoted now so the showcase control family — Switch, PauseButton, future page chip — all sit in `app/components/` together with one consistent visual language.
+A 24 × 24 mat-bg icon button that toggles play / pause. Lives at [app/components/PauseButton/](app/components/PauseButton/) — `PauseButton.tsx` + `pausebtn.css` + `index.ts`. Single consumer at promotion time (`/all` showcase video tiles); promoted now so the showcase control family — Switch, PauseButton, future page chip — all sit in `app/components/` together with one consistent visual language.
 
 **Contract:**
 
@@ -752,7 +752,7 @@ A 24 × 24 mat-bg icon button that toggles play / pause. Lives at [app/component
 
 **Known consumers:**
 
-- `/selected` showcase video tiles (Furrmark, Ecochain, Subway). Sits in `.sc-controls` next to the `Switch`.
+- `/all` showcase video tiles (Furrmark, Ecochain, Subway). Sits in `.sc-controls` next to the `Switch`.
 
 If a second consumer needs a different visual family (e.g. a transport bar with progress), don't fork — promote the divergent variant into its own primitive.
 
@@ -760,7 +760,7 @@ If a second consumer needs a different visual family (e.g. a transport bar with 
 
 ## Switch
 
-A bare-track-and-thumb binary toggle. Lives at [app/components/Switch/](app/components/Switch/) — `Switch.tsx` + `switch.css` + `index.ts`. Promoted from a tied implementation across `/biconomy` Flows (Before/After audit toggle) and `/selected` showcase tiles (Before/After, Clean/UI map, Interface/Icons).
+A bare-track-and-thumb binary toggle. Lives at [app/components/Switch/](app/components/Switch/) — `Switch.tsx` + `switch.css` + `index.ts`. Promoted from a tied implementation across `/biconomy` Flows (Before/After audit toggle) and `/all` showcase tiles (Before/After, Clean/UI map, Interface/Icons).
 
 **Contract:**
 
@@ -776,7 +776,7 @@ A bare-track-and-thumb binary toggle. Lives at [app/components/Switch/](app/comp
 **Known consumers:**
 
 - `/biconomy` Flows audit Before/After toggle — [app/(works)/biconomy/components/Flows.tsx](app/(works)/biconomy/components/Flows.tsx). Tinted via `.flows__ba-switch` scope: `--switch-tint: var(--orange-720)`, `--switch-tint-soft: var(--orange-80)`, plus `--switch-border-off: var(--orange-560)`. Wrapped in `.flows__ba-pill` for the orange motion chrome (pill fades in on standby→active).
-- `/selected` showcase tiles — [app/(works)/selected/components/Showcase/ShowcasePiece.tsx](app/(works)/selected/components/Showcase/ShowcasePiece.tsx). Tinted via `.sc-switch` scope: `--switch-tint: var(--sc-dotc)` so the toggle picks up the per-piece caption-dot colour automatically. Wrapped in a mat-bg pill (`.sc-switch`) with hover/press chrome.
+- `/all` showcase tiles — [app/(works)/all/components/Showcase/ShowcasePiece.tsx](app/(works)/all/components/Showcase/ShowcasePiece.tsx). Tinted via `.sc-switch` scope: `--switch-tint: var(--sc-dotc)` so the toggle picks up the per-piece caption-dot colour automatically. Wrapped in a mat-bg pill (`.sc-switch`) with hover/press chrome.
 
 **Don't** add internal padding, border, or background to the primitive — those are chrome and belong to the consumer wrapper. The whole point is that the same toggle composes inside two visually distinct shells without forking.
 

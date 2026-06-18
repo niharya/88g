@@ -9,27 +9,29 @@ export const metadata: Metadata = {
   title: 'Selected Work',
   description:
     'Branding, onboarding flows, naming, systems work, infrastructure experiments.',
-  alternates: { canonical: '/bench' },
+  alternates: { canonical: '/all' },
   openGraph: {
     title: 'Different systems. Same instincts.',
     description:
       'Trying to organize complexity so people can move through it and get somewhere.',
-    url: '/bench',
+    url: '/all',
     images: ['/og-image.png'],
   },
 }
 
-// `view` is read here (server) rather than via client useSearchParams so the
-// /cases & /showcase rewrites resolve correctly — the rewrite's destination
-// query reaches the server, but the browser URL (and useSearchParams) doesn't
-// carry it. Maps to the morph's active tab; anything else → the resting invite.
+// The active tab is addressed by bare query flags — `/all?showcase` / `/all?cases`
+// (the `/showcase` & `/cases` rewrites resolve to these). Read here (server)
+// rather than via client useSearchParams so the rewrites work: the rewrite's
+// destination query reaches the server, but the browser URL (and
+// useSearchParams) doesn't carry it. Precedence: showcase (the default tab)
+// wins if both flags are somehow present; neither flag → the resting invite.
 export default async function BenchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>
+  searchParams: Promise<{ showcase?: string; cases?: string }>
 }) {
-  const { view } = await searchParams
-  const initialView = view === 'showcase' ? 'vis' : view === 'cases' ? 'lf' : null
+  const sp = await searchParams
+  const initialView = 'showcase' in sp ? 'vis' : 'cases' in sp ? 'lf' : null
 
   return (
     <div className={`bench-workbench ${pinyon.variable}`}>

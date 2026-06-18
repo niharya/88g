@@ -1,8 +1,8 @@
-# /bench — Route Notes
+# /all — Route Notes
 
 ## Overview (Work Essay redesign) — current
 
-`/bench` (renamed from `/selected`) is the "Work Essay" invitation. Full spec:
+`/all` (renamed from `/selected`; "bench"/"selected" are internal codenames) is the "Work Essay" invitation. Full spec:
 [`./DESIGN.md`](./DESIGN.md). Composition:
 
 - **Desk** (`.bench-workbench`) — recolours the workbench to the pale desk; whisper of mat-noise.
@@ -18,7 +18,7 @@
 - **The docked-ticket width explosion (`max-width:460px` is load-bearing).** `.bench-ticket` sizes `width:100%`. At rest that resolves against the slot (capped 460). But `.is-docked` flips it to `position:fixed`, so `100%` re-resolves against the **viewport** (~1433 at 1440vw) — and the `width` transition then animates FROM ~1433 down to 296, so the ticket visibly explodes to near-full width before snapping in (reported as "enlarges towards the right before condensing"). The slot's own `max-width` can't constrain it — the ticket has left the slot. Fix: a `max-width:460px` ON THE TICKET ITSELF clamps the percentage to 460 even when fixed, so the transition runs a clean 460→296. Verified by frame-sampling `getBoundingClientRect().width` across the dock: pre-fix peaked at 1433; post-fix `maxW===460`. Don't drop the cap or switch the rest width to a raw `100%`/`100vw`.
 - **Containing-block guards** (the docked ticket is `position:fixed`; a transformed/will-change ancestor would pin it to that ancestor instead of the viewport, so it scrolls away): (1) `.transition-pane:has(.bench-workbench){will-change:auto}` in bench.css (the shared pane carries `will-change:transform`); (2) `useBenchDock` cancels the pane's retained WAAPI entrance transform (TransitionSlot's `fill:both` leaves `translateY(0)`) once `.workbench.transitioning` clears; (3) the slide-in entrance uses `backwards` fill so `.bench-card` retains no transform. Don't reintroduce any retained transform on a ticket ancestor.
 - **`?view` ⇄ state**: `page.tsx` reads `view` server-side (the `/cases`,`/showcase` rewrites deliver it as the destination query; client `useSearchParams` doesn't carry it) → `initialView` selects the active tab. It does NOT auto-scroll into the work (the bench rests at the card) — auto-scroll-into-content is a deferred follow-up.
-- **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/bench?view=cases` so a case-study exit returns with the Longform tab active.
+- **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/all?cases` so a case-study exit returns with the Longform tab active.
 
 > The pre-redesign "single vertical flow" overview (AboutCard → Prelude → HintRow → Showcase)
 > is **superseded** by the above. The archive sections below (timeline model, spacing math,
@@ -29,7 +29,7 @@
 
 ## Showcase grid
 
-Route-local under [app/(works)/bench/components/Showcase/](app/(works)/bench/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Data lives in `data.ts`. In the bench it's the **Visual** tab content (rendered by `Essay/WorkPanel.tsx` inside `.sc-section`, with `HintRow` above it; `HeaderBlock` dropped).
+Route-local under [app/(works)/all/components/Showcase/](app/(works)/all/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Data lives in `data.ts`. In the bench it's the **Visual** tab content (rendered by `Essay/WorkPanel.tsx` inside `.sc-section`, with `HintRow` above it; `HeaderBlock` dropped).
 
 ### Layout idiom — 9-col CSS Grid with JS-measured row spans
 - `.sc-grid` is a single CSS Grid: `grid-template-columns: repeat(9, minmax(0, 1fr))`, `grid-auto-rows: 8 px` (`--sc-row`), `grid-auto-flow: dense`, `gap: 36 px` (`--sc-gap`).
@@ -134,7 +134,7 @@ All three patterns deliberately accept a SSR → client value swap; none of them
 The 777 px (and the `--archive-open` 1249 px variant) used to size the wrapper so the cue, when it was in flex flow with `margin-top: auto`, landed at a predictable bottom. The cue is now absolute-positioned against `.selected-firstview` and anchored to the mat via `--sc-cue-top` — the layout's min-height no longer controls cue placement. It still sizes the visible first-view canvas (the area the cards + mat sit on), so don't "clean it up" by removing it: the AboutCard and nav-row are absolutely-positioned inside `.selected-layout`, and without a min-height the layout would collapse to 0. Read the value as **"how much vertical canvas the first view reserves,"** not as part of any cue arithmetic.
 
 ### Centered design canvas (`.selected-layout` + `.sc-section` at `max-width: 1224px`)
-`/selected` was authored against a 1224 px design canvas (mat at `left: 536px` + `width: 688px`). For a long time `.selected-layout` was `width: 100%`, so on viewports wider than the authored canvas the whole first-view group sat anchored to the workbench's left padding with the surplus space dumped on the right — visually "stuck to the left." Same for `.sc-section` and the showcase grid.
+`/all` was authored against a 1224 px design canvas (mat at `left: 536px` + `width: 688px`). For a long time `.selected-layout` was `width: 100%`, so on viewports wider than the authored canvas the whole first-view group sat anchored to the workbench's left padding with the surplus space dumped on the right — visually "stuck to the left." Same for `.sc-section` and the showcase grid.
 
 Fix: both `.selected-layout` (first-view stage) and `.sc-section` (showcase stage) are capped at `max-width: 1224px` and centered with `margin-inline: auto`. The whole column — cards, mat, divider, showcase grid — sits on the same centered rails on wide viewports. Below ~1352 px (where `1224 + 2×workbench-pad-x` stops fitting) the max-width caps to 100% and tablet/mobile media queries (already authored) take over.
 
@@ -211,7 +211,7 @@ Fix: both `.selected-layout` (first-view stage) and `.sc-section` (showcase stag
 
 ### Frameless-tile border exclusion list
 - The `.sc-media--plain:not(:has(.sc-cardfan)):not(:has(.sc-poster-stack)):not(:has(.sc-dual)):not(:has(.sc-rr-scene))` rule maintains a per-tile-kind opt-out list for the default 1 px hairline border.
-- `.sc-rr-scene` is the exclusion for the /selected interface tile — it stays `frame: false` because the live Rug Rumble scene's artefacts (You panel + Peace Treaty card) self-frame on the workbench. The `:has()` selector reads the scene's own root class instead of a marker class on the wrapper — same effect, one fewer class to keep in sync. See "Rug Rumble interface scene" below for the live-scene component.
+- `.sc-rr-scene` is the exclusion for the /all interface tile — it stays `frame: false` because the live Rug Rumble scene's artefacts (You panel + Peace Treaty card) self-frame on the workbench. The `:has()` selector reads the scene's own root class instead of a marker class on the wrapper — same effect, one fewer class to keep in sync. See "Rug Rumble interface scene" below for the live-scene component.
 
 ### Startooth — vector composition (v0.93+)
 - The startooth tile renders **vector SVG** (not the prior raster PNG). The cards artwork is a single SVG at `public/images/startooth/sc-startooth-cards.svg` (~340 KB, the Figma export). The dark ground (`#311700`) is provided by a per-kind CSS override on `.sc-piece--startooth .sc-media { background: #311700 }` rather than embedded in the SVG — keeps the bg tunable from one CSS line.
@@ -517,7 +517,7 @@ debt — drift risk if the Monostamp base styling changes later.
 
 ## Component ownership
 
-The `/selected` page has three components:
+The `/all` page has three components:
 
 | Component | Owns | Props |
 |-----------|------|-------|
@@ -743,7 +743,7 @@ color: var(--{project}-800);  /* themed text */
 
 ## Responsive anomalies (mobile ≤767px)
 
-The first responsive pass on `/selected` introduced several structural constraints
+The first responsive pass on `/all` introduced several structural constraints
 that are not obvious from reading the code. Mobile changes live in the
 `@media (max-width: 767px), (max-height: 500px)` blocks of `selected.css`;
 tablet overrides in the `(min-width: 768px) and (max-width: 1023px)` block
@@ -846,7 +846,7 @@ these work on touch; they're desktop-only embellishments.
 
 [ProjectCard.tsx](components/ProjectCard.tsx) sets `data-armed="true"` on its `<Link>` only after the first real cursor `mousemove` (with a position-change check that ignores synthetic moves emitted by layout/transform settles). Both the card-level `:hover` rules **and** the `.selected-tl:has(.project-card[data-armed="true"]:hover)` timeline cascade in [selected.css](selected.css) — five selectors total: dim-all, terra highlight, terra bar, blue highlight, blue bar — are gated on this attribute.
 
-**Why:** without the gate, arriving on `/selected` with the cursor parked over a card on first paint triggers the `:has(:hover)` cascade on mount, dimming the timeline and highlighting one card before the user has moved the mouse. The `data-armed` mousemove latch defers all hover-driven state to a real cursor input, which is the actual signal of intent.
+**Why:** without the gate, arriving on `/all` with the cursor parked over a card on first paint triggers the `:has(:hover)` cascade on mount, dimming the timeline and highlighting one card before the user has moved the mouse. The `data-armed` mousemove latch defers all hover-driven state to a real cursor input, which is the actual signal of intent.
 
 **Don't drop the gate from any of the five cascade rules.** They're a unit. Removing it from one breaks the others' parity (e.g. dim fires but highlight doesn't, or vice versa). The mobile override under `:has(...:hover)` to undo the desktop dim on touch also uses the same `[data-armed="true"]` gate so synthesized touch hover doesn't bypass it.
 

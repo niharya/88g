@@ -1,5 +1,5 @@
 // (works) route group layout — persistent shell
-// Stays mounted across /selected, /rr, and /biconomy navigations.
+// Stays mounted across /all, /rr, and /biconomy navigations.
 // Renders the workbench surface, PaperFilter, and nav markers once.
 // TransitionSlot wraps children with DOM ghost-clone page transitions.
 
@@ -15,7 +15,7 @@ import Footer from '../components/Footer'
 import '../components/Footer/footer.css'
 
 export default function WorksLayout({ children }: { children: ReactNode }) {
-  // Font gate is set globally in the root layout so /selected, /rr, /biconomy,
+  // Font gate is set globally in the root layout so /all, /rr, /biconomy,
   // and the landing page all participate in the same opacity reveal.
   // CrossShellEntryFader is a no-op unless the user just came in via the
   // CrossShellVeil (i.e. from /marks); see CLAUDE.md "Cross-shell navigation".
@@ -33,7 +33,7 @@ export default function WorksLayout({ children }: { children: ReactNode }) {
           shadow onto this stage (see globals.css `.workbench`), so the
           eye reads the workbench as a sheet of paper resting on a desk
           and the footer as occupying that desk. Mounting at the layout
-          level covers /selected, /rr, /biconomy without per-page
+          level covers /all, /rr, /biconomy without per-page
           wiring. */}
       <div className="footer-stage">
         <Footer />

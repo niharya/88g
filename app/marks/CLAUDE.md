@@ -10,7 +10,7 @@ Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-lo
 
 - Route lives at `app/marks/` OUTSIDE `(works)/` — never add marks wiring to ShellNav.tsx or TransitionSlot.tsx; pulling /marks into works choreography is a re-architecture, not a one-line add.
 - `app/marks/layout.tsx` must keep importing `app/components/nav/nav.css` AND `NavMarker/navmarker.css` — EXIT/`.nav-icon` styles no longer arrive via the works layout.
-- EXIT uses route-local `MarksExitMarker` + shared CrossShellVeil: timing is owned by `useCrossShellNav('/selected')`, and the veil ID `cross-shell-veil` is a cross-route contract — don't consolidate into the shared ExitMarker or duplicate timings locally.
+- EXIT uses route-local `MarksExitMarker` + shared CrossShellVeil: timing is owned by `useCrossShellNav('/all?cases')`, and the veil ID `cross-shell-veil` is a cross-route contract — don't consolidate into the shared ExitMarker or duplicate timings locally.
 - In `data/marks.ts` the first slide of every mark MUST be `{ kind: 'mark' }`, and array order IS the Essay reading order — reordering also invalidates `FIRST_MARK_ID` in autoScroll.ts.
 - Video slides must keep `muted` + `playsInline` (iOS blocks autoplay / goes fullscreen without them) and keep `loop` (the showcase timer cuts slides, not onEnded).
 - Never remove or rename the `.route-marks` wrapper class — every route-local CSS token is scoped to it.

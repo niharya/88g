@@ -32,7 +32,7 @@ Consequences:
 
 ---
 
-## /marks bridges to /selected via CrossShellVeil
+## /marks bridges to /all via CrossShellVeil
 
 `MarksExitMarker` (route-local, at `app/marks/components/MarksExitMarker.tsx`) is
 **not** the shared `ExitMarker`. Because `/marks` lives outside
@@ -40,15 +40,15 @@ Consequences:
 routed through the shared `CrossShellVeil` primitive (see
 `LIBRARY.md` → "CrossShellVeil" and `CLAUDE.md` → "Cross-shell
 navigation"). The same veil bridges the inbound path
-(`/selected → /marks`) — both halves of the journey use one beat.
+(`/all → /marks`) — both halves of the journey use one beat.
 
 Load-bearing details:
 
 - The marker is a thin shell. The actual transition is owned by
-  `useCrossShellNav('/selected')` — don't duplicate animation timing
+  `useCrossShellNav('/all?cases')` — don't duplicate animation timing
   here; tune it at the primitive.
 - The veil ID `cross-shell-veil` is a cross-route contract. Both the
-  outgoing hook (in `/selected`'s Timeline + here) and the incoming
+  outgoing hook (in `/all`'s Timeline + here) and the incoming
   fader (in `/marks/layout.tsx` and `(works)/layout.tsx`) reference it.
 - Future "consolidate with shared `ExitMarker`" passes are still risky:
   the shared marker has no `onClick` hook for this; touching it would
@@ -64,7 +64,7 @@ The six mark SVG components live at `app/marks/components/marks/`, not at
 
 Per [CLAUDE.md](../../CLAUDE.md): *"A primitive moves into shared the **second**
 time it's needed, not the first. Flag the move before doing it."* There is
-currently exactly one consumer — `/marks` itself. `/selected`'s archive
+currently exactly one consumer — `/marks` itself. `/all`'s archive
 references a few of the same project names (Ecochain, Codezeros, Slangbusters)
 but draws colored bars and text, not the mark artwork. That's name reuse, not
 primitive reuse.

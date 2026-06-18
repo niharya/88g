@@ -3,7 +3,7 @@
 // ProjectCard — project entry card linking to a route.
 // Variants: 'terra' (Rug Rumble) and 'blue' (Biconomy).
 //
-// Stale-hover gate: arriving on /selected with the cursor parked over a
+// Stale-hover gate: arriving on /all with the cursor parked over a
 // card otherwise lets :hover fire on mount, which would trigger the
 // timeline-level cascade (dimming neighbors, lighting the bar) before
 // the user has interacted. Every hover effect on the card and the

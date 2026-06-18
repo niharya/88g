@@ -1,5 +1,5 @@
 /* ==========================================================================
-   bench.css — /bench "Work Essay" invitation surface
+   bench.css — /all "Work Essay" invitation surface ("bench" = internal codename)
 
    The bench is the works hub: an engraved invitation card carrying a short
    manifesto, footed (Phase 3+) by a morphing ticket whose two tabs reveal the
@@ -10,7 +10,7 @@
    Porting note: the design was authored against our token system — the blue
    ramp matches exactly. The ticket's warm palette is dressed in --terra-* for
    now (iterate to a --gold-* ramp later); the marks are filled --mint-720,
-   which IS the design's #028634 green. See bench/DESIGN.md for the full map.
+   which IS the design's #028634 green. See ./DESIGN.md for the full map.
    ========================================================================== */
 
 

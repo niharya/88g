@@ -2,7 +2,7 @@
 
 Verbatim reference for all site metadata — page titles, descriptions, Open Graph blocks, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, and sitemap. Edit the source files, not this doc — run `/release` to surface drift.
 
-**Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/selected/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `app/robots.ts`, `app/sitemap.ts`
+**Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/all/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `app/robots.ts`, `app/sitemap.ts`
 
 This file is the SEO/social mental model. For reading-copy by route, see the per-route MDs in this folder.
 
@@ -108,18 +108,18 @@ This file is the SEO/social mental model. For reading-copy by route, see the per
 
 ---
 
-## /selected (Works) — Metadata {#selected-meta}
+## /all (Works) — Metadata {#selected-meta}
 
 > title: "Selected Work"
 > description: "Branding, onboarding flows, naming, systems work, infrastructure experiments."
-> canonical: "/selected"
-> — [`page.tsx:10-14`](../../app/(works)/selected/page.tsx#L10)
+> canonical: "/all"
+> — [`page.tsx:10-14`](../../app/(works)/all/page.tsx#L10)
 
 > OG title: "Different systems. Same instincts."
 > OG description: "Trying to organize complexity so people can move through it and get somewhere."
-> OG url: "/selected"
+> OG url: "/all"
 > OG image: "/og-image.png"
-> — [`page.tsx:15-21`](../../app/(works)/selected/page.tsx#L15)
+> — [`page.tsx:15-21`](../../app/(works)/all/page.tsx#L15)
 
 ---
 
@@ -246,7 +246,7 @@ Routes published, with priority:
 | URL | Change frequency | Priority |
 |---|---|---|
 | `/` | monthly | 1.0 |
-| `/selected` | monthly | 0.9 |
+| `/all` | monthly | 0.9 |
 | `/biconomy` | yearly | 0.8 |
 | `/rr` | yearly | 0.8 |
 | `/marks` | monthly | 0.7 |

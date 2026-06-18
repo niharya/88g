@@ -2,7 +2,7 @@
 
 // SopNavRow — the docked Nihar + "Shape of Product" pair.
 //
-// Mirrors the nav pair on /selected and landing. The "Nihar"
+// Mirrors the nav pair on /all and landing. The "Nihar"
 // project-marker is the way back to the landing page; the "Shape of
 // Product" chapter-marker is the "you are here" indicator (static,
 // shake on click — clicking the marker you're already on shakes the

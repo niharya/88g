@@ -23,14 +23,14 @@
 //               If a parent surface owns the hover (e.g. a card hover
 //               that should jitter the inner sticker), don't use this
 //               prop — wire the same CSS var on the parent's pointer
-//               enter instead. See /selected ProjectCard for that
+//               enter instead. See /all ProjectCard for that
 //               pattern.
 //   clickRotate default true. On click, re-rolls a random ±2° into
 //               --sticker-jitter that *persists* until the next click
 //               (unlike `jitter`, which clears on pointer leave). Sells
 //               the sticker as something the visitor pushed and shifted.
 //               Opt out with `clickRotate={false}` when the click is
-//               navigation (e.g. /selected ProjectCard, where rotating
+//               navigation (e.g. /all ProjectCard, where rotating
 //               just before route-change is wasted motion) or when the
 //               consumer owns its own click choreography.
 //   className   route-local positional class hooks onto the wrapper.
@@ -89,7 +89,7 @@ export default function Sticker(props: StickerProps) {
   }, [jitter])
   // Click rotation persists between clicks (no leave-reset). Coexists
   // safely with hover `jitter` only when one or the other is wired —
-  // /selected uses parent-driven jitter, so it opts out via
+  // /all uses parent-driven jitter, so it opts out via
   // clickRotate={false} to avoid a click-then-leave wiping the rotation.
   const onClickRotate = useCallback((e: { currentTarget: HTMLElement }) => {
     if (!clickRotate) return

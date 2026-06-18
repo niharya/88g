@@ -1,6 +1,6 @@
 /**
  * Time-of-day greeting. Canonical logic — used by the landing page and
- * the /selected timeline so both read with the same voice.
+ * the /all timeline so both read with the same voice.
  *
  * Sentence case is intentional: the site's copy register is calm, not titular.
  */

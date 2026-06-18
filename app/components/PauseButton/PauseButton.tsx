@@ -13,7 +13,7 @@
 // primitive growing more responsibilities.
 //
 // Known consumers
-//   • /selected showcase video tiles (Furrmark, Ecochain, Subway). Sits
+//   • /all showcase video tiles (Furrmark, Ecochain, Subway). Sits
 //     in the `.sc-controls` bar next to the Switch.
 
 import type { MouseEventHandler } from 'react'

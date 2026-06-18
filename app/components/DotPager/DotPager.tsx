@@ -13,7 +13,7 @@
 // wrapper so the active dot picks up the artefact's accent colour.
 //
 // Known consumers
-//   • /selected showcase Paymaster tile — cycles between three audit
+//   • /all showcase Paymaster tile — cycles between three audit
 //     flows. Tinted from `--sc-dotc` via the .sc-pagechip wrapper-class
 //     hook below.
 

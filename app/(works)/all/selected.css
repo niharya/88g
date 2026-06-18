@@ -1,9 +1,9 @@
 /* ==========================================================================
-   selected.css — /selected route-specific styles
+   selected.css — /all route-specific styles
 
    Shared layout system (workbench, mat, tokens) lives in globals.css.
    Nav marker styles live in nav.css.
-   This file contains only /selected-specific layout and components.
+   This file contains only /all-specific layout and components.
    ========================================================================== */
 
 
@@ -82,7 +82,7 @@
 }
 
 /* Lateral slide-in when arriving from landing. Landing sits to the left of
-   /selected in the mental model, so coming here means sliding in from the
+   /all in the mental model, so coming here means sliding in from the
    right. Runs only when SlideInOnNav applied the class on mount.
 
    Note: the about card is deliberately excluded — it owns its own

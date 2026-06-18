@@ -45,7 +45,7 @@ Every color in the portfolio belongs to one of three places:
    `--orange-*`, `--terra-*`, `--grey-*`, each with steps `80 / 100 / 160 /
    240 / 320 / 400 / 480 / 560 / 720 / 800 / 960`. Reach for these first.
 2. **Route-scoped token** — `--rr-border`, `--rr-memo-bg`, per-project hsl
-   tokens in `/selected`. Lives in that route's CSS `:root` block or
+   tokens in `/all`. Lives in that route's CSS `:root` block or
    equivalent. Reach for these when the value carries **route identity**.
 3. **Local literal** — in a `color:` or `background:` line, no token. Only
    legitimate when (a) the color is unique to one element, (b) it's part of
@@ -339,7 +339,7 @@ Live examples:
 
 Vertical breathing inside a list item that has a hairline divider. Tight enough that the item still reads as part of a list, generous enough that the type doesn't crowd the divider. The natural target for the audit's M1 candidate (`.rr-rules-rail__item` currently at 11px).
 
-The 12px tier also appears in `/selected`'s timeline grid as the dots-to-bar and content-to-bar gap — that's between-element, but the value is the same and that consistency is intentional ([selected/ANOMALIES.md:181–188](app/(works)/selected/ANOMALIES.md:181)).
+The 12px tier also appears in `/all`'s timeline grid as the dots-to-bar and content-to-bar gap — that's between-element, but the value is the same and that consistency is intentional ([selected/ANOMALIES.md:181–188](app/(works)/all/ANOMALIES.md:181)).
 
 Live examples:
 - `.rr-rules-rail__item` should sit here at `padding: var(--space-12) 0` (currently `11px 0` — drift, see findings M1)
@@ -352,8 +352,8 @@ Padding for a content-rich panel where the user is reading or scanning structure
 Live examples:
 - `.rr-rules-rail__list { padding: 16px }` — rules-list inner ([rr.css:694](app/(works)/rr/rr.css:694))
 - `.flows__notes-list { margin-top: 16px }` — list breathing from the rail's top edge ([biconomy.css:632](app/(works)/biconomy/biconomy.css:632))
-- `.project-card__title / __body / __divider / __footer { left: 16px }` — uniform left inset across all card children ([selected.css:357, 373, 386, 397](app/(works)/selected/selected.css:357))
-- `.project-card__title { top: 16px }` — top inset of the card ([selected.css:357](app/(works)/selected/selected.css:357))
+- `.project-card__title / __body / __divider / __footer { left: 16px }` — uniform left inset across all card children ([selected.css:357, 373, 386, 397](app/(works)/all/selected.css:357))
+- `.project-card__title { top: 16px }` — top inset of the card ([selected.css:357](app/(works)/all/selected.css:357))
 
 ### `--space-20` (20px) — illustration / breathing room around a fixed element
 
@@ -361,7 +361,7 @@ Top inset for an illustration anchored to the corner of a card. Breathing room b
 
 Live examples:
 - `.flows { --rail-frame-inset: 20px }` — rail breathing inside the frame ([biconomy.css:339](app/(works)/biconomy/biconomy.css:339))
-- `.project-card__illus--hov { top: 20px }` — terra-card heart illustration ([selected.css:439](app/(works)/selected/selected.css:439))
+- `.project-card__illus--hov { top: 20px }` — terra-card heart illustration ([selected.css:439](app/(works)/all/selected.css:439))
 
 ### `--space-24` (24px) — generous list rhythm
 
@@ -404,7 +404,7 @@ A floating panel docked relative to a reading frame, an illustration anchored to
 
 References:
 - `.flows__notes-wrap` derived padding from `--rail-parent-top-offset + --rail-frame-inset` ([biconomy.css:554–558](app/(works)/biconomy/biconomy.css:554)) — derived rail geometry, not a static value.
-- `.project-card__illus--notes { top: 62px; left: 288px }` ([selected.css:449–450](app/(works)/selected/selected.css:449)) — hand-tuned illustration anchor.
+- `.project-card__illus--notes { top: 62px; left: 288px }` ([selected.css:449–450](app/(works)/all/selected.css:449)) — hand-tuned illustration anchor.
 - Rail open/close transforms (`-12px`, `-50px`, `210px`, `163px`) — documented as a load-bearing triple in [rr/ANOMALIES.md:98–113](app/(works)/rr/ANOMALIES.md:98).
 
 These usually live in `top` / `left` / `right` / `transform`, not in `padding` / `margin`. If you see a `padding` value off-scale and it's clearly serving a coordinate-system role rather than spacing, leave it.

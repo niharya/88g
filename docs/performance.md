@@ -113,7 +113,7 @@ The whole pipeline is built so that crisp-on-intake stays crisp-on-serve. The tw
    - **3× — patterns, illustrations, fine UI artwork.** Pays off where the eye reads pixel-precise edges on iPhone Pro phones (DPR=3). Examples: startooth pattern, brand marks, mockups where rasterized vectors must stay crisp. Costs roughly 2× the disk weight vs 2×; gives DPR=3 devices a true 1080-class variant instead of a 1.3× upscale of the 828w.
    - **4× — never.** No mainstream device DPR exists above 3, and next/image's default `images.deviceSizes` doesn't include a srcset entry that would consume the extra pixels anyway. Pure disk + transfer bloat with no visible payoff.
 
-   Worked example: a 3-col tile in `/selected` renders 413 px wide on desktop. 2× source ≥ 826 px wide; 3× source ≥ 1239 px wide.
+   Worked example: a 3-col tile in `/all` renders 413 px wide on desktop. 2× source ≥ 826 px wide; 3× source ≥ 1239 px wide.
 4. **Compression tier is picked by folder convention** in `_source/`:
 
    | Path contains      | Tier             | Encoder                                                          | Use for                                                          |

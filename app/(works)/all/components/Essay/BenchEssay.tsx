@@ -9,7 +9,7 @@
 // case-study EXIT) selects the active tab so a deep-link lands on the right
 // content below the card. It does NOT auto-scroll into the work — that landed
 // inconsistently against the content-layout + TransitionSlot scroll timing, so
-// the bench rests at the card (consistent with bare /bench) and the chosen tab
+// the bench rests at the card (consistent with bare /all) and the chosen tab
 // is one scroll/click away. (Auto-scroll-into-content: deferred follow-up.)
 
 import BenchExitMarker from './BenchExitMarker'

@@ -16,7 +16,7 @@ import './components/NavMarker/navmarker.css'
 import './components/Footer/footer.css'
 import './landing.css'
 
-/* Session flag read by /bench on arrival so it can slide in from the right.
+/* Session flag read by /all on arrival so it can slide in from the right.
    Paired with the inline slide-in effect inside LandingPage for the reverse
    trip — that effect is inlined rather than using <SlideInOnNav> because the
    landing's root className toggles on expand, and React's className
@@ -505,7 +505,7 @@ export default function LandingPage() {
           </div>
 
           {/* Nav row — [Nihar] nameplate + expand trigger docked with [Works] link.
-              Mirrors the /selected nav row pattern; terra-tinted to live in
+              Mirrors the /all nav row pattern; terra-tinted to live in
               landing's color world. + icon rotates 45° to × on expand. */}
           <div className="landing__section--projects">
             <div className="landing-nav-row">
@@ -524,7 +524,7 @@ export default function LandingPage() {
               />
               <NavMarker
                 as="a"
-                href="/bench"
+                href="/all"
                 role="chapter"
                 tone="terra"
                 icon="arrow_forward"
@@ -585,7 +585,7 @@ export default function LandingPage() {
                   <span className="spectrum__label spectrum__label--right t-h5" style={{ color: palette.rightLabel }}>Application</span>
                   <div className="spectrum__footer">
                     <div className="spectrum__footer-line" />
-                    <Link className="spectrum__link t-btn1" href="/bench" onClick={markToBench}>My Works</Link>
+                    <Link className="spectrum__link t-btn1" href="/all" onClick={markToBench}>My Works</Link>
                   </div>
                 </div>
               </div>
