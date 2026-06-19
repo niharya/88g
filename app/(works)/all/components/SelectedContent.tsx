@@ -39,7 +39,6 @@ export default function SelectedContent() {
       // "mat grown" modifier — kept so the `.bench-cases:has(...)` height
       // mirror in bench.css keeps matching. Only the desktop dropdown sets it.
       className={`selected-mat mat${expanded ? ' selected-mat--archive-open' : ''}`}
-      data-cue-v-anchor
     >
       {isMobile ? <MobileCases /> : <Timeline expanded={expanded} onToggle={handleToggle} />}
     </section>

@@ -1,8 +1,8 @@
 'use client'
 
-// HintRow — sits below the AboutCard, above the masonry. Mono caption with
-// two keycap-styled glyphs: `[click]` to focus a piece, `[esc]` to dismiss.
-// Mirrors the hint row from the Claude design handoff.
+// HintRow — heads the Visual tab's masonry grid (rendered by WorkPanel). Mono
+// caption with two keycap-styled glyphs: `[click]` to focus a piece, `[esc]`
+// to dismiss. Mirrors the hint row from the Claude design handoff.
 
 export default function HintRow() {
   return (
