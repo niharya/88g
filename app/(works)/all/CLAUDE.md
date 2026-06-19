@@ -26,20 +26,15 @@ Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-lo
 - `data-armed` must live on the inner `<Link>`, not the outer motion.div — the `:has()` selectors target that element; timer-based and outer-element gates were tried and failed.
 - All bars grow via `scaleY` with `transform-origin: top center` on the base bar class — do not override per-bar.
 - Year labels use `transform: translate(-100%, -50%)`, so their CSS `top` is the visual center — every position calculation must account for this.
-- The `D` delay objects in Timeline.tsx and ArchivePanel.tsx are absolute values, not relative offsets — changing any bar's timing requires recalculating every delay after it.
-- The archive toggle button lives in Timeline.tsx (not ArchivePanel.tsx) because it rides the main delay train — moving it breaks entrance sequencing.
-- Entrance motion is always top-to-bottom (`y: -8 → 0`); never use a positive initial y — bottom-to-top contradicts the train metaphor.
-- Dots pop (scale 0 → 1 with the high-bounce SPRING_POP), clusters stagger per dot — they never fade.
-- Year labels stay in `--font-mono` (Google Sans Code), never the variable display font — even digit widths.
-- The archive toggle has no autoscroll — scroll-on-open was removed as disorienting; don't reintroduce it.
-- The 12px gap grid (dots-to-bar, content-to-bar) and 4px label clearances are authored constants — changing one means recalculating all adjacent absolute positions.
-- Entry rhythm contract: entry tops follow 36 + n·88; meta center = entry top + 46; bar edges sit year_center ∓ 10 from their year label.
-- Icon arrow hover animations are CSS-only translate on the inner SVG group (icons are shared at `app/components/icons/`) — no Framer Motion involvement.
-- The "opens in new tab" hint pill keeps a neutral grey shell with only the text color themed per project — don't theme the shell.
-- `.selected-archive-panel` is a sibling of `.selected-tl` inside `.selected-mat`, not a child — on mobile each repeats its own horizontal padding; a mat-inset change must land in both places.
-- Mobile mat height comes from a three-link flex chain — any sibling added after `.selected-mat` inside `.selected-layout` steals the grow and strands the mat short of the viewport frame.
-- The mobile sticky nav row uses `margin-top: calc(-1 * var(--workbench-pad-y))` — keep it tied to the token; hardcoding the value reintroduces a stale-value bug.
-- The year source of truth is the `ARCHIVE_ENTRIES` array in ArchivePanel.tsx; the hand-placed desktop year labels must agree with it.
-- The archive toggle label is two sibling spans (desktop + mobile copy) toggled by CSS — never update one string without the other.
-- Hover-only affordances (hint pill, highlights, push-apart) are deliberately disabled in the mobile block — don't "re-enable" them for touch.
-- When the hint pill eventually migrates to `<Monostamp>`, only the visual shell migrates — its hidden-by-default slide-in hover behavior stays in selected.css.
+- The `D` delay map (Timeline.tsx) is absolute values, not relative offsets — changing any timing requires recalculating every delay after it. The three case studies have a SEPARATE `CHILD_D` expand stagger (relative to the dropdown opening).
+- **Slangbusters is a second tall parent (mint) below Biconomy.** The inline "Slangbusters case studies (3)" dropdown (a text button on the mint spine, not a NavMarker) toggles `expanded`, which grows the mint bar (224→504) + the mat and shifts the lower timeline (mint card, nameplates) DOWN 280px — those animate `top`/`height` on `--dur-settle`, together with the mat `min-height`.
+- The "mat grown" modifier is still named `.selected-mat--archive-open` (historical name kept). Its heights — **958 collapsed → 1238 open** — are mirrored on `.bench-cases:has(.selected-mat--archive-open)` in **bench.css**. Change BOTH together or the Cases tab clips.
+- The three nested children (`.sb-case` — Aleyr/Ecochain/Codezeros) mount only when expanded (Framer `AnimatePresence`), at a 96px vertical pitch. The `CHILDREN` array in Timeline.tsx is the year source of truth — the hand-placed year labels must agree with it.
+- Entrance motion is always top-to-bottom (`y: -8 → 0`); never a positive initial y. Dots pop (SPRING_POP, staggered), never fade. Year labels stay in `--font-mono`. The 12px dot-cluster grid + 4px label clearances are authored constants.
+- Icon arrow hover animations are CSS-only translate on the inner SVG group (`app/components/icons/`) — no Framer Motion.
+- The "opens in new tab" hint pill (mint card + `.sb-case`) keeps a neutral grey shell with only the text color themed per project — don't theme the shell.
+- **Ecochain's hover bar fill (`--ecochain-240`) is a saturated green, NOT the old off-white** — the off-white read as invisible on the mat; the bar must stay legible.
+- The Now dot's living pulse is a separate `.selected-tl__pulse` sibling ring + `now-pulse` keyframe — NOT a pseudo, so it never collides with the dot's morning `clip-path` / evening `::before` crescent. Honors reduced-motion (own guard, since the route's old `.selected-workbench` reduced-motion block is stale post-rename).
+- **Mobile renders a separate composition** (`MobileCases` — cards-first, with the case studies in `CasesSheet`, a bottom sheet) behind a `matchMedia(MOBILE_BP)` gate in SelectedContent — NOT a CSS reflow of the desktop rail. The two never coexist in the DOM (no duplicated content). `MOBILE_BP` is the single source in `Showcase/responsive.ts`.
+- `CasesSheet` is rendered INLINE (not portaled to `<body>`) so the route-scoped study tokens (`--aleyr/ecochain/codezeros-*`, defined on `.workbench:has(.bench-workbench)`) cascade in. `position: fixed` still anchors to the viewport — no transformed ancestor in the cases tree (the same guarantee the docked ticket relies on).
+- selected.css's `@media` tablet block was removed (stale): on bench, `.bench-cases` centres the 688 mat at tablet, so the desktop layout is already correct down to ~704px. The old block repositioned a `.selected-layout` that no longer exists and squished the mat.

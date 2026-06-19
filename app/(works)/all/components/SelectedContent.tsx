@@ -1,31 +1,47 @@
 'use client'
 
-// SelectedContent — mat section with timeline, cards, and archive.
-// Manages archive open/close state to toggle mat height.
+// SelectedContent — the Cases-tab mat. Owns the `expanded` state (desktop
+// dropdown + mat growth) and the desktop/mobile composition gate.
+//
+// Desktop: the absolute-positioned Timeline (rail, cards, inline case-study
+// dropdown). Mobile: a purpose-built cards-first composition (MobileCases)
+// with the case studies in a bottom sheet — a separate DOM, swapped via
+// matchMedia(MOBILE_BP), not a CSS reflow of the rail. Both never coexist,
+// so no duplicated content. The gate mirrors the showcase's isMobile pattern
+// (single source of truth: Showcase/responsive.ts).
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Timeline from './Timeline'
-import ArchivePanel from './ArchivePanel'
+import MobileCases from './MobileCases'
+import { MOBILE_BP } from './Showcase/responsive'
 
 export default function SelectedContent() {
-  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
   const handleToggle = useCallback(() => {
-    setArchiveOpen(prev => !prev)
+    setExpanded(prev => !prev)
+  }, [])
+
+  // Match the showcase's mobile gate. Server + first client render are desktop
+  // (SSR-safe, no hydration mismatch); the effect swaps to mobile after mount.
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_BP)
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
   }, [])
 
   return (
     <section
-      className={`selected-mat mat${archiveOpen ? ' selected-mat--archive-open' : ''}`}
-      // Contract with FirstView: this element's bottom edge anchors the
-      // Showcase cue's vertical position. Horizontal rails come from the
-      // stage (data-cue-h-anchor on .selected-layout). If this attribute
-      // moves, update CUE_V_ANCHOR_SELECTOR in FirstView.tsx. Class
-      // names are styling; data-* is the cross-component wiring.
+      // `.selected-mat--archive-open` is the historical name for the
+      // "mat grown" modifier — kept so the `.bench-cases:has(...)` height
+      // mirror in bench.css keeps matching. Only the desktop dropdown sets it.
+      className={`selected-mat mat${expanded ? ' selected-mat--archive-open' : ''}`}
       data-cue-v-anchor
     >
-      <Timeline isArchiveOpen={archiveOpen} onArchiveToggle={handleToggle} />
-      <ArchivePanel isOpen={archiveOpen} />
+      {isMobile ? <MobileCases /> : <Timeline expanded={expanded} onToggle={handleToggle} />}
     </section>
   )
 }

@@ -12,13 +12,10 @@
 .workbench:has(.bench-workbench) {
   --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
 
-  /* Page-local project colors — derived from brand hex values */
-
-  /* Connektion — Teal #01F2F5 (h:181), grey-green #CDDAD9 (h:171) */
-  --connektion-100: hsl(181, 28%, 93%);
-  --connektion-240: hsl(181, 90%, 48%);
-  --connektion-800: hsl(181, 65%, 30%);
-  --connektion-960: hsl(181, 55%, 22%);
+  /* Page-local project colors — derived from brand hex values. These three
+     are the Slangbusters case studies (Aleyr / Ecochain / Codezeros) nested
+     under the mint bar; resting bar fill is the pale `-100` tint, hover
+     saturates to `-240`, text/meta is `-800`. */
 
   /* Aleyr — Purple #723CC5 (h:264), Pink #FF5581 (h:344) */
   --aleyr-100: hsl(264, 28%, 94%);
@@ -28,7 +25,9 @@
 
   /* Ecochain — Green #4CB400 (h:95), Charcoal #212121 */
   --ecochain-100: hsl(95, 24%, 93%);
-  --ecochain-240: hsl(0, 0%, 96%);   /* Off-white #F9F9F9 — hover fill */
+  --ecochain-240: hsl(95, 72%, 42%);   /* Saturated green — hover fill (was an
+                                          off-white that read as invisible on
+                                          the mat; the bar must stay legible) */
   --ecochain-800: hsl(95, 55%, 28%);
   --ecochain-960: hsl(95, 45%, 20%);
 
@@ -41,167 +40,13 @@
 
 
 /* ── Page layout ────────────────────────────────────────────────────────── */
-/* About card left, mat right — mirrors vanilla absolute positioning.       */
-
-/* First viewport — fills the workbench's content area (viewport minus  */
-/* the workbench's top + bottom padding) so the .sc-cue at the bottom  */
-/* (margin-top: auto) pins to the bottom of the initial visible        */
-/* viewport, not 100 svh past the workbench's top padding.              */
-/* `position: relative` hosts the absolutely-positioned `.sc-cue` (the */
-/* Showcase divider, positioned via measured CSS vars). No longer a    */
-/* flex column — that was left over from when the cue used `margin-   */
-/* top: auto` to dock to the bottom. With the cue now absolute and    */
-/* with `.selected-layout` using `max-width + margin-inline: auto` for */
-/* horizontal centering, flex would actively interfere (`margin-      */
-/* inline: auto` on a flex item along the cross-axis collapses the    */
-/* item to its content width — and `.selected-layout`'s children are  */
-/* all absolutely-positioned, so its intrinsic width is 0).            */
-.selected-firstview {
-  position: relative;
-  min-height: calc(100svh - (var(--workbench-pad-y) * 2));
-  width: 100%;
-}
-
-/* Design canvas — `.selected-layout` is the centered stage that hosts */
-/* the absolutely-positioned AboutCard, nav-row, and mat. Capped at    */
-/* the authored canvas width (1224 px: mat.left 536 + mat.width 688)   */
-/* and centered in the workbench so the whole first-view group + the   */
-/* showcase grid below sit balanced on wide viewports instead of       */
-/* left-anchored to the workbench padding. Below ~1352 px viewport     */
-/* (where 1224 + 2×workbench-pad-x stops fitting) max-width caps to    */
-/* 100% and tablet/mobile take over via the media queries below.       */
-.selected-layout {
-  position: relative;
-  max-width: 1224px;
-  margin-inline: auto;
-  min-height: 777px;
-}
-
-.selected-layout:has(.selected-mat--archive-open) {
-  min-height: 1249px;
-}
-
-/* Lateral slide-in when arriving from landing. Landing sits to the left of
-   /all in the mental model, so coming here means sliding in from the
-   right. Runs only when SlideInOnNav applied the class on mount.
-
-   Note: the about card is deliberately excluded — it owns its own
-   framer-motion spring entrance, which would otherwise get swallowed by
-   the parent-level transform. Sliding nav-row + mat carries the rest. */
-.selected-workbench--slide-in .selected-nav-row,
-.selected-workbench--slide-in .selected-mat {
-  animation: selected-slide-in var(--dur-settle) var(--ease-paper) both;
-}
-
-@keyframes selected-slide-in {
-  from { transform: translateX(40px); opacity: 0; }
-  to   { transform: translateX(0); opacity: 1; }
-}
-
-
-/* ── Nav row — docked markers ──────────────────────────────────────────── */
-/* "Nihar" and "Works" markers sit docked together above the mat, mirroring  */
-/* the project-marker + chapter-marker docking on project routes.          */
-
-.selected-nav-row {
-  position: absolute;
-  /* Tracks the mat: nav-row's left edge = mat.left + 24px. With the    */
-  /* mat anchored at `right: 0` width 688, mat.left = stage.width - 688, */
-  /* so nav-row's left = stage.width - 688 + 24 = stage.width - 664.    */
-  /* Expressed as calc(100% - 664px) so it stays attached to the mat as */
-  /* the stage shrinks. (Was `left: 560px` — fixed pixel, drifted off   */
-  /* the mat on narrow viewports.)                                        */
-  left: calc(100% - 664px);
-  top: 10px;
-  z-index: 20;
-  display: flex;
-  align-items: flex-start;
-}
-
-/* Override project-marker (MarkerSlot) from fixed to static within the docked row */
-.selected-workbench .project-marker {
-  position: static;
-}
-
-/* Halve touching borders — project-marker right + chapter-nav left */
-.selected-nav-row .nav-marker--project {
-  border-right-width: 1px;
-}
-
-
-/* ── About card ─────────────────────────────────────────────────────────── */
-
-.about-card-p {
-  position: absolute;
-  /* left: 0 (was 24px) — pulled flush to the stage's left edge so the */
-  /* card lines up with the Showcase content rail below (the stage's   */
-  /* left edge is the canonical left rail for the route).               */
-  left: 0;
-  top: 88px;
-  border: 2px solid var(--mint-100);
-  padding: var(--space-48);
-  display: inline-flex;
-  flex-direction: column;
-  gap: var(--space-32);
-  width: 432px;
-  background: white;
-}
-
-.about-card-p__text {
-  position: relative;
-  width: 336px;
-  color: var(--grey-400);
-}
-
-.about-card-p__quote {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.12px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-
-.about-card-p__heading {
-  font-family: var(--font-body);
-  font-size: 24px;
-  font-weight: 500;
-  font-variation-settings: 'wght' 500, 'GRAD' 0, 'opsz' 18;
-  letter-spacing: -0.48px;
-  line-height: 1.2;
-  margin-top: var(--space-12);
-  width: 336px;
-}
-
-.about-card-p__body {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.12px;
-  line-height: 1.2;
-  margin-top: var(--space-12);
-  width: 250px;
-}
-
-.about-card-p__divider {
-  position: relative;
-  width: 336px;
-  height: 1px;
-  background: var(--grey-320);
-  opacity: 0.4;
-  flex-shrink: 0;
-}
-
-.about-card-p__cta {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.12px;
-  color: var(--grey-320);
-  line-height: 1.2;
-  width: 292px;
-  position: relative;
-}
+/* The bench shell (`.bench-workbench` → BenchEssay) owns the route's layout,
+   nav, and intro now; the Cases tab's mat is hosted + centred by `.bench-cases`
+   (bench.css). The old `/selected` two-column stage (`.selected-firstview` /
+   `.selected-layout`), its `.selected-nav-row` / `.about-card-p` chrome, the
+   `selected-slide-in` keyframe, and `AboutCard.tsx` were stranded by the bench
+   migration and have been removed. Only `.selected-mat` (below) and the
+   timeline inside it belong to this file now. */
 
 
 /* ── Mat ────────────────────────────────────────────────────────────────── */
@@ -220,12 +65,12 @@
   border: 2px solid var(--mint-100);
   padding: 0;
   padding-bottom: var(--space-48);
-  min-height: 729px;
-  transition: min-height var(--dur-slide) var(--ease-paper);
+  min-height: 958px;
+  transition: min-height var(--dur-settle) var(--ease-paper);
 }
 
 .selected-mat--archive-open {
-  min-height: 1201px;
+  min-height: 1238px;
 }
 
 
@@ -272,6 +117,36 @@
   background: var(--mat-bg);
 }
 
+/* Living "Now" pulse — an expanding, fading amber ring on the dot, signalling
+   the timeline is anchored in the present. A separate element (not a pseudo)
+   so it never collides with the dot's morning clip-path / evening crescent.
+   Sits at the dot's box, behind it, non-interactive. The delay lets the dot's
+   entrance pop land first. Disabled under reduced-motion (route block below). */
+.selected-tl__pulse {
+  position: absolute;
+  left: 143px;
+  top: 64px;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: -1;
+  animation: now-pulse 2.6s var(--ease-paper) 0.7s infinite;
+}
+
+/* Amber matches the Now dot's --yellow-240 (#FFCA33 ≈ hsl(44 100% 54%)); the
+   ring needs an alpha track for the fade, which a bare ramp token can't carry,
+   so the colour is inlined here as the one justified literal. */
+@keyframes now-pulse {
+  0%   { box-shadow: 0 0 0 0 hsl(44 100% 54% / 0.45); }
+  70%  { box-shadow: 0 0 0 9px hsl(44 100% 54% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(44 100% 54% / 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selected-tl__pulse { animation: none; }
+}
+
 .selected-tl__label-now {
   position: absolute;
   left: 139px;
@@ -308,8 +183,9 @@
   gap: var(--space-8);
 }
 
-.selected-tl__dots--top  { top: 92px; }
-.selected-tl__dots--bot  { top: 512px; }
+.selected-tl__dots--top       { top: 92px; }
+.selected-tl__dots--bot       { top: 512px; }   /* Biconomy → Slangbusters */
+.selected-tl__dots--nameplate { top: 782px; }   /* Slangbusters → nameplates */
 
 .selected-tl__dots span {
   display: block;
@@ -540,6 +416,65 @@
   display: block;
 }
 
+/* Mint variant (Slangbusters) — external link. Longer title, so the body
+   sits lower and runs full width. */
+.project-card--mint {
+  background: var(--mint-100);
+  border-color: var(--mint-800);
+}
+.project-card--mint .project-card__title  { color: var(--mint-800); width: 300px; }
+.project-card--mint .project-card__body   { color: var(--mint-800); top: 106px; width: 376px; }
+.project-card--mint .project-card__divider { background: var(--mint-800); }
+.project-card--mint .project-card__role   { color: var(--mint-800); }
+.project-card--mint .project-card__arrow  { color: var(--mint-800); }
+
+/* External-link arrow nudge — mirrors the chevron nudge; the animated group
+   inside IconExternalLink is `.icon-ext-arrow`. */
+.project-card__arrow--ext .icon-ext-arrow {
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+.project-card--mint[data-armed="true"]:hover .project-card__arrow--ext .icon-ext-arrow {
+  translate: 2px -2px;
+}
+
+/* Startooth sparkle sticker — mint fill, white offset rim. */
+.project-card__illus--star {
+  top: 18px;
+  right: 50px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* "opens in new tab" hint — sibling below the mint card (the card's own
+   overflow:hidden would clip it), revealed on card hover. Neutral grey shell,
+   mint ink — same family treatment as the case-study hints. */
+.project-card__hint {
+  display: block;
+  width: fit-content;
+  margin-top: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  border: 1px solid var(--grey-880);
+  border-radius: 4px;
+  background: var(--grey-960);
+  color: var(--mint-800);
+  opacity: 0;
+  translate: 0 -4px;
+  pointer-events: none;
+  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
+}
+.project-card--mint[data-armed="true"]:hover ~ .project-card__hint {
+  opacity: 1;
+  translate: 0 0;
+}
+
 
 /* ── Nameplates ─────────────────────────────────────────────────────────── */
 /* Individual positioned markers with dot clusters between them, maintaining  */
@@ -551,10 +486,13 @@
   pointer-events: auto;
 }
 
-.selected-nameplate--names { top: 545px; }
-.selected-nameplate--marks { top: 595px; }
+/* Below the Slangbusters stack. Marks and Symbols Made sits ABOVE Names
+   Coined (§2a swap). Both shift down by 280px when the dropdown is open
+   (see the Slangbusters section's `--archive-open` shift rules). */
+.selected-nameplate--marks { top: 816px; }
+.selected-nameplate--names { top: 870px; }
 
-/* Single dots between nameplates and before archive */
+/* Single dot between the two nameplates */
 .selected-tl__dot-single {
   position: absolute;
   left: 148px;
@@ -564,8 +502,7 @@
   border-radius: 8px;
 }
 
-.selected-tl__dot-single--mid1 { top: 585px; }
-.selected-tl__dot-single--mid2 { top: 635px; }
+.selected-tl__dot-single--mid { top: 856px; }
 
 
 /* ── Timeline hover highlights ─────────────────────────────────────────── */
@@ -582,7 +519,8 @@
 
 /* Dim all when any project card is hovered */
 .selected-tl:has(.project-card--terra[data-armed="true"]:hover) > *,
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) > * {
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) > *,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) > * {
   filter: opacity(0.35);
 }
 
@@ -608,101 +546,114 @@
 }
 
 
-/* ── Archive nav button ─────────────────────────────────────────────────── */
+/* ── Slangbusters stack (mint — second parent) ──────────────────────────── */
+/* A tall parent bar (like Biconomy's blue) with three case studies nested
+   under it, collapsed behind the inline dropdown. The bar + lower timeline
+   grow/shift when the dropdown opens (see the `--archive-open` block below). */
 
-.selected-nav-archive {
-  position: absolute;
-  left: 133px;
-  top: 645px;
-  pointer-events: auto;
-}
-
-
-/* ── Archive panel ──────────────────────────────────────────────────────── */
-
-.selected-archive-panel {
+/* Mint bar — parent span. scaleY for entrance; height transition on open. */
+.selected-tl__bar-mint {
   position: absolute;
   left: 148px;
-  top: 685px;
-  width: 340px;
-  height: 468px;
-  pointer-events: auto;
-}
-
-/* Archive year labels */
-.selected-ap-year {
-  position: absolute;
-  left: -3px;
-  transform: translate(-100%, -50%);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  text-align: right;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.selected-ap-year--yellow     { top: 81px;  color: var(--connektion-800); }
-.selected-ap-year--mint-top   { top: 124px; color: var(--mint-800); }
-.selected-ap-year--aleyr      { top: 169px; color: var(--aleyr-800); }
-.selected-ap-year--olive      { top: 257px; color: var(--ecochain-800); }
-.selected-ap-year--codezeros  { top: 345px; color: var(--codezeros-800); }
-.selected-ap-year--mint       { top: 433px; color: var(--mint-800); }
-
-/* Mini timeline dots */
-.selected-ap-dots {
-  position: absolute;
-  left: 1px;
+  top: 546px;
   width: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.selected-ap-dots--top { top: 2px; }
-
-.selected-ap-dots span {
-  display: block;
-  width: 4px;
-  height: 2px;
-  background: var(--grey-720);
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-/* Mini timeline bars */
-.selected-ap-bar {
-  position: absolute;
-  left: 1px;
-  width: 4px;
+  height: 224px;
+  background: var(--mint-80);
+  border: 1px solid var(--mint-960);
   transform-origin: top center;
 }
 
-.selected-ap-bar--yellow    { top: 36px;  height: 55px;  background: var(--connektion-100); border: 1px solid var(--connektion-800); }
-.selected-ap-bar--mint      { top: 114px; height: 329px; background: var(--mint-80);      border: 1px solid var(--mint-960); }
-.selected-ap-bar--aleyr     { top: 159px; height: 20px;  background: var(--aleyr-100);    border: 1px solid var(--aleyr-960); }
-.selected-ap-bar--olive     { top: 247px; height: 20px;  background: var(--ecochain-100); border: 1px solid var(--ecochain-960); }
-.selected-ap-bar--codezeros { top: 335px; height: 20px;  background: var(--codezeros-100); border: 1px solid var(--codezeros-960); }
+/* Slangbusters years — 20 at the top of the span, 18 at the bottom. */
+.selected-tl__year--slang-top { top: 556px; color: var(--mint-800); }
+.selected-tl__year--slang-bot { top: 748px; color: var(--mint-800); }
 
-/* Archive entries */
-.ap-entry {
+/* Slangbusters card */
+.selected-card-mint {
   position: absolute;
-  left: 17px;
+  left: 164px;
+  top: 594px;
+  pointer-events: auto;
+}
+
+/* Inline dropdown header — plain text button on the mint spine (not a
+   NavMarker). Toggles the nested case studies + the mat growth. */
+.selected-tl__dropdown {
+  position: absolute;
+  left: 166px;
+  top: 550px;
+  pointer-events: auto;
+}
+.selected-tl__dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 2px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--grey-320);
+}
+.selected-tl__dropdown-label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.selected-tl__dropdown-chevron {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--mint-800);
+  flex-shrink: 0;
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+.selected-tl__dropdown-btn[aria-expanded="true"] .selected-tl__dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+/* Nested child bars (Aleyr / Ecochain / Codezeros) — short bars on the mint
+   spine. Resting fill is the pale `-100` tint so the bar stays legible;
+   hover saturates to `-240`. */
+.selected-tl__bar-sb {
+  position: absolute;
+  left: 148px;
+  width: 4px;
+  height: 56px;
+  transform-origin: top center;
+}
+.selected-tl__bar-sb--aleyr { top: 590px; background: var(--aleyr-100);     border: 1px solid var(--aleyr-960); }
+.selected-tl__bar-sb--eco   { top: 686px; background: var(--ecochain-100);  border: 1px solid var(--ecochain-960); }
+.selected-tl__bar-sb--code  { top: 782px; background: var(--codezeros-100); border: 1px solid var(--codezeros-960); }
+
+/* Child years — vertically centred on their bars. */
+.selected-tl__year--sb-aleyr { top: 618px; color: var(--aleyr-800); }
+.selected-tl__year--sb-eco   { top: 714px; color: var(--ecochain-800); }
+.selected-tl__year--sb-code  { top: 810px; color: var(--codezeros-800); }
+
+/* Child rows — reuse the case-entry treatment (title + meta + external link +
+   hint pill), positioned on the mint spine. Only mounted when expanded. */
+.sb-case {
+  position: absolute;
+  left: 166px;
   width: 300px;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   text-decoration: none;
+  pointer-events: auto;
+  translate: 0 0;
 }
+.sb-case--aleyr { top: 590px; }
+.sb-case--eco   { top: 686px; }
+.sb-case--code  { top: 782px; }
 
-.ap-entry--yellow    { top: 36px; }
-.ap-entry--aleyr     { top: 124px; }
-.ap-entry--olive     { top: 212px; }
-.ap-entry--codezeros { top: 300px; }
-.ap-entry--mint      { top: 388px; }
-
-.ap-entry__title {
+.sb-case__title {
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
@@ -712,186 +663,149 @@
   height: 36px;
 }
 
-.ap-entry__meta {
+.sb-case__meta {
   /* Typography from .t-h5 (applied via JSX). */
   display: flex;
   align-items: center;
   white-space: nowrap;
 }
+.sb-case--aleyr .sb-case__meta { color: var(--aleyr-800); }
+.sb-case--eco   .sb-case__meta { color: var(--ecochain-800); }
+.sb-case--code  .sb-case__meta { color: var(--codezeros-800); }
 
-.ap-entry__meta .icon-ext {
+.sb-case__meta .icon-ext {
   flex-shrink: 0;
   margin-left: var(--space-4);
 }
-
-.ap-entry__meta .icon-ext .icon-ext-arrow {
+.sb-case__meta .icon-ext .icon-ext-arrow {
   transition: translate var(--dur-slide) var(--ease-paper);
 }
-a.ap-entry:hover .icon-ext .icon-ext-arrow {
+a.sb-case:hover .icon-ext .icon-ext-arrow {
   translate: 2px -2px;
 }
 
-.ap-entry--yellow    .ap-entry__meta { color: var(--connektion-800); }
-.ap-entry--aleyr     .ap-entry__meta { color: var(--aleyr-800); }
-.ap-entry--olive     .ap-entry__meta { color: var(--ecochain-800); }
-.ap-entry--codezeros .ap-entry__meta { color: var(--codezeros-800); }
-.ap-entry--mint      .ap-entry__meta { color: var(--mint-800); }
-
-/* Year in meta — mobile only, hidden on desktop */
-.ap-entry__year {
-  display: none;
-}
-
-/* Responsive archive toggle label — desktop vs mobile copy */
-.archive-toggle-label--mobile { display: none; }
-@media (max-width: 767px), (max-height: 500px) {
-  .archive-toggle-label--desktop { display: none; }
-  .archive-toggle-label--mobile { display: inline; }
-}
-
-/* Hover: dissolving underline */
-.ap-entry__meta span:first-child {
+/* Dissolving underline on hover */
+.sb-case__meta span:first-child {
   text-decoration: underline;
   text-decoration-color: transparent;
   text-underline-offset: 2px;
   transition: text-decoration-color var(--dur-slide) var(--ease-paper);
 }
-a.ap-entry:hover .ap-entry__meta span:first-child {
+a.sb-case:hover .sb-case__meta span:first-child {
   text-decoration-color: currentColor;
 }
 
-/* "opens in new tab" hint — hidden by default, slides in on hover */
-.ap-entry__hint {
+/* "opens in new tab" hint — hidden, slides in on row hover. Neutral shell,
+   themed ink (same family treatment as the mint card hint). */
+.sb-case__hint {
+  width: fit-content;
+  margin-top: var(--space-4);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.02em;
   line-height: 1;
   padding: 3px 6px;
-  border: 1px solid;
+  border: 1px solid var(--grey-880);
   border-radius: 4px;
-  width: fit-content;
-  margin-top: var(--space-4);
+  background: var(--grey-960);
   opacity: 0;
   translate: 0 -4px;
-  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
   pointer-events: none;
+  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
 }
-a.ap-entry:hover .ap-entry__hint {
+.sb-case--aleyr .sb-case__hint { color: var(--aleyr-800); }
+.sb-case--eco   .sb-case__hint { color: var(--ecochain-800); }
+.sb-case--code  .sb-case__hint { color: var(--codezeros-800); }
+a.sb-case:hover .sb-case__hint {
   opacity: 1;
   translate: 0 0;
 }
 
-/* Hint pill — neutral shell, themed text only */
-.ap-entry__hint {
-  background: var(--grey-960);
-  border-color: var(--grey-880);
+
+/* ── Expand: grow + shift ───────────────────────────────────────────────── */
+/* The mint bar's height and the lower timeline's `top`s animate together with
+   the mat's min-height when the dropdown opens, all on --dur-settle. These
+   override the filter/background-only transition from `.selected-tl > *`. */
+.selected-card-mint,
+.selected-tl__year--slang-bot,
+.selected-tl__dots--nameplate,
+.selected-nameplate--marks,
+.selected-tl__dot-single--mid,
+.selected-nameplate--names {
+  transition: filter var(--dur-slide) var(--ease-paper),
+              background var(--dur-slide) var(--ease-paper),
+              top var(--dur-settle) var(--ease-paper);
 }
-.ap-entry--yellow    .ap-entry__hint { color: var(--connektion-800); }
-.ap-entry--aleyr     .ap-entry__hint { color: var(--aleyr-800); }
-.ap-entry--olive     .ap-entry__hint { color: var(--ecochain-800); }
-.ap-entry--codezeros .ap-entry__hint { color: var(--codezeros-800); }
-.ap-entry--mint      .ap-entry__hint { color: var(--mint-800); }
-
-/* Push adjacent entries away by 4px on hover — uses CSS translate to avoid Framer Motion clash */
-.ap-entry {
-  translate: 0 0;
+.selected-tl__bar-mint {
+  transition: filter var(--dur-slide) var(--ease-paper),
+              background var(--dur-slide) var(--ease-paper),
+              height var(--dur-settle) var(--ease-paper);
 }
-.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--aleyr,
-.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--olive,
-.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--codezeros,
-.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--mint      { translate: 0 4px; }
-
-.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--yellow    { translate: 0 -4px; }
-.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--olive,
-.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--codezeros,
-.selected-archive-panel:has(.ap-entry--aleyr:hover)  .ap-entry--mint      { translate: 0 4px; }
-
-.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--yellow,
-.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--aleyr     { translate: 0 -4px; }
-.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--codezeros,
-.selected-archive-panel:has(.ap-entry--olive:hover)  .ap-entry--mint      { translate: 0 4px; }
-
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--yellow,
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--aleyr,
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--olive  { translate: 0 -4px; }
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--mint   { translate: 0 4px; }
-
-.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--yellow,
-.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--aleyr,
-.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--olive,
-.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--codezeros   { translate: 0 -4px; }
-
-
-/* ── Hover highlights ──────────────────────────────────────────────────── */
-/* filter: opacity() avoids clashing with Framer Motion inline opacity.    */
-
-.selected-archive-panel .selected-ap-bar,
-.selected-archive-panel .selected-ap-year,
-.selected-archive-panel .selected-ap-dots {
-  transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
-}
-.selected-archive-panel .ap-entry {
-  transition: filter var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
+.sb-case {
+  transition: filter var(--dur-slide) var(--ease-paper),
+              translate var(--dur-slide) var(--ease-paper);
 }
 
-/* Dim everything when any entry is hovered */
-.selected-archive-panel:has(.ap-entry:hover) .selected-ap-bar,
-.selected-archive-panel:has(.ap-entry:hover) .selected-ap-year,
-.selected-archive-panel:has(.ap-entry:hover) .ap-entry,
-.selected-archive-panel:has(.ap-entry:hover) .selected-ap-dots {
-  filter: opacity(0.35);
-}
+/* Open state — mint bar grows 224→504; card + lower timeline shift down 280px. */
+.selected-mat--archive-open .selected-tl__bar-mint        { height: 504px; }
+.selected-mat--archive-open .selected-card-mint           { top: 874px; }
+.selected-mat--archive-open .selected-tl__year--slang-bot { top: 1028px; }
+.selected-mat--archive-open .selected-tl__dots--nameplate { top: 1062px; }
+.selected-mat--archive-open .selected-nameplate--marks    { top: 1096px; }
+.selected-mat--archive-open .selected-tl__dot-single--mid { top: 1136px; }
+.selected-mat--archive-open .selected-nameplate--names    { top: 1150px; }
 
-/* Connektion (yellow) — highlight bar + year 21 */
-.selected-archive-panel:has(.ap-entry--yellow:hover) .ap-entry--yellow,
-.selected-archive-panel:has(.ap-entry--yellow:hover) .selected-ap-bar--yellow,
-.selected-archive-panel:has(.ap-entry--yellow:hover) .selected-ap-year--yellow {
+
+/* ── Mint card hover ────────────────────────────────────────────────────── */
+/* Light the Slangbusters group (card + mint bar + years 20 & 18). The
+   dim-all rule above already drops the rest to opacity(0.35). */
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-card-mint,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__bar-mint,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__year--slang-top,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__year--slang-bot {
   filter: opacity(1);
 }
-.selected-archive-panel:has(.ap-entry--yellow:hover) .selected-ap-bar--yellow {
-  background: var(--connektion-240);
-}
-
-/* Aleyr — highlight bar + year 20 */
-.selected-archive-panel:has(.ap-entry--aleyr:hover) .ap-entry--aleyr,
-.selected-archive-panel:has(.ap-entry--aleyr:hover) .selected-ap-bar--aleyr,
-.selected-archive-panel:has(.ap-entry--aleyr:hover) .selected-ap-year--aleyr {
-  filter: opacity(1);
-}
-.selected-archive-panel:has(.ap-entry--aleyr:hover) .selected-ap-bar--aleyr {
-  background: var(--aleyr-240);
-}
-
-/* Ecochain (olive) — highlight bar + year 19 */
-.selected-archive-panel:has(.ap-entry--olive:hover) .ap-entry--olive,
-.selected-archive-panel:has(.ap-entry--olive:hover) .selected-ap-bar--olive,
-.selected-archive-panel:has(.ap-entry--olive:hover) .selected-ap-year--olive {
-  filter: opacity(1);
-}
-.selected-archive-panel:has(.ap-entry--olive:hover) .selected-ap-bar--olive {
-  background: var(--ecochain-240);
-}
-
-/* Codezeros — highlight bar + year 18 */
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .ap-entry--codezeros,
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .selected-ap-bar--codezeros,
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .selected-ap-year--codezeros {
-  filter: opacity(1);
-}
-.selected-archive-panel:has(.ap-entry--codezeros:hover) .selected-ap-bar--codezeros {
-  background: var(--codezeros-240);
-}
-
-/* Slangbusters (mint) — highlight bar + entry + years 20 & 18 */
-.selected-archive-panel:has(.ap-entry--mint:hover) .ap-entry--mint,
-.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-bar--mint,
-.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-year--mint-top,
-.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-year--mint {
-  filter: opacity(1);
-}
-.selected-archive-panel:has(.ap-entry--mint:hover) .selected-ap-bar--mint {
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__bar-mint {
   background: var(--mint-240);
 }
+
+
+/* ── Nested child hover ─────────────────────────────────────────────────── */
+/* Dim the OTHER children's rows + bars + years; light the hovered row's bar
+   (saturate to -240) + its year + hint + arrow; push siblings ±4px. The mint
+   card and the rest of the timeline stay lit (only the children dim among
+   themselves). */
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--code,
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--aleyr,
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--code,
+.selected-tl:has(.sb-case--code:hover)  .sb-case--aleyr,
+.selected-tl:has(.sb-case--code:hover)  .sb-case--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--code,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--aleyr,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--code,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--aleyr,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__year--sb-eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__year--sb-code,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__year--sb-aleyr,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__year--sb-code,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__year--sb-aleyr,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__year--sb-eco {
+  filter: opacity(0.35);
+}
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--aleyr { background: var(--aleyr-240); }
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--eco   { background: var(--ecochain-240); }
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--code  { background: var(--codezeros-240); }
+
+/* Push siblings apart on hover (translate — separate from Framer's transform). */
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--code  { translate: 0 4px; }
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--aleyr { translate: 0 -4px; }
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--code  { translate: 0 4px; }
+.selected-tl:has(.sb-case--code:hover)  .sb-case--aleyr,
+.selected-tl:has(.sb-case--code:hover)  .sb-case--eco   { translate: 0 -4px; }
 
 
 /* ==========================================================================
@@ -900,60 +814,171 @@ a.ap-entry:hover .ap-entry__hint {
 
 @media (max-width: 767px), (max-height: 500px) {
 
-  /* ── Layout: flow instead of absolute ──────────────────────────────────── */
-  /* Mat extends to fill any remaining viewport height so the grid surface    */
-  /* reaches the black frame bottom instead of orphaning below the archive.   */
+  /* ════ Cases tab — cards-first mobile composition (MobileCases) ═══════════ */
+  /* On mobile the Cases tab renders MobileCases (not the desktop rail), so the
+     rail/archive rules further down match nothing. The mat becomes a full-bleed
+     grid surface; .cases-mobile flows the cards inside it. */
 
-  .selected-workbench {
-    min-height: calc(100vh - 2 * var(--workbench-pad-y));
-    display: flex;
-    flex-direction: column;
+  .bench-cases {
+    width: 100%;
+    min-height: auto;
   }
 
-  .selected-layout {
+  .cases-mobile {
     display: flex;
     flex-direction: column;
-    gap: var(--space-56);
-    min-height: auto;
+    padding: 20px 18px 40px;
+  }
+
+  /* Living NOW cue — pulse dot + label + fading hairline (trimmed: no title). */
+  .cases-mobile__now {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+  .cases-mobile__now-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--yellow-240);
+    flex: none;
+    animation: now-pulse 2.6s var(--ease-paper) infinite;
+  }
+  .cases-mobile__now-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: var(--yellow-720);
+  }
+  .cases-mobile__now-rule {
     flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--grey-720), transparent);
   }
 
-  .selected-layout:has(.selected-mat--archive-open) {
-    min-height: auto;
+  /* Mobile card */
+  .mcase {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 14px;
+    border: 1px solid;
+    text-decoration: none;
+    box-shadow: var(--shadow-flat);
+    transition: box-shadow var(--dur-slide) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
   }
+  .mcase:active { transform: translateY(0); box-shadow: var(--shadow-flat); }
+  .mcase--hero { padding: 19px 18px 16px; box-shadow: var(--shadow-raised); }
 
-  /* ── Nav row: center, tucked into the 4px black viewport frame ─────────── */
-  /* Sticky — stays in place as the page scrolls. Marker top edge sits flush */
-  /* against the top of the viewport; the black frame (z:9999) overlaps the  */
-  /* marker's top few pixels, creating a "tucked under the frame" feel.       */
+  .mcase--blue  { background: var(--blue-80);    border-color: var(--blue-800);  color: var(--blue-800); }
+  .mcase--terra { background: var(--yellow-100); border-color: var(--terra-720); color: var(--terra-720); }
+  .mcase--mint  { background: var(--mint-100);   border-color: var(--mint-800);  color: var(--mint-800); }
 
-  .selected-nav-row {
-    position: sticky;
-    top: 0;
-    left: auto;
-    order: -1;
-    align-self: center;
-    margin-top: calc(-1 * var(--workbench-pad-y));
-    z-index: 40;
+  .mcase__year {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    opacity: 0.7;
+    margin-bottom: 10px;
   }
-
-  /* ── About card: full width ────────────────────────────────────────────── */
-
-  .about-card-p {
-    position: static;
-    left: auto;
-    top: auto;
-    width: 100%;
-    padding: var(--space-24);
+  .mcase__title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-variation-settings: 'SOFT' 0, 'WONK' 1;
+    letter-spacing: -0.55px;
+    line-height: 1.16;
+    font-size: 17px;
   }
-
-  .about-card-p__text,
-  .about-card-p__heading,
-  .about-card-p__body,
-  .about-card-p__divider,
-  .about-card-p__cta {
-    width: 100%;
+  .mcase--hero .mcase__title { font-size: 22px; }
+  .mcase--mint .mcase__title { font-size: 20px; }
+  .mcase__body {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.12px;
+    line-height: 1.3;
+    margin-top: 9px;
   }
+  .mcase__divider { height: 1px; background: currentColor; opacity: 0.32; margin: 14px 0 12px; }
+  .mcase__footer { display: flex; align-items: center; justify-content: space-between; }
+  .mcase__role-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .mcase__mini-slot { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .mcase__mini { display: block; }
+  .mcase__mini--paper { width: 20px; height: 13px; object-fit: contain; transform: rotate(-3deg); }
+  .mcase__role { line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mcase__arrow { font-size: 18px; flex: none; }
+
+  /* Nested label (and the sheet trigger, which shares the treatment) */
+  .cases-mobile__nest {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 18px 0 8px 22px;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+  }
+  .cases-mobile__nest-icon { font-size: 17px; }
+  .cases-mobile__nest-icon--terra { color: var(--terra-720); }
+  .cases-mobile__nest-icon--mint { color: var(--mint-800); }
+  .cases-mobile__nest-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 640;
+    font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+    letter-spacing: -0.22px;
+  }
+  .cases-mobile__nest-label--terra { color: var(--terra-720); }
+  .cases-mobile__nest-label--mint { color: var(--mint-800); }
+  .cases-mobile__indent { margin-left: 22px; }
+  .cases-mobile__slang { margin-top: 34px; }
+
+  .cases-mobile__trigger { margin: 18px 0 0 22px; }
+  .cases-mobile__trigger-label {
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .cases-mobile__trigger-out { font-size: 16px; color: var(--mint-800); }
+
+  /* Foot nameplates — Marks then Names (§2a), quiet underlined rows. */
+  .cases-mobile__foot { display: flex; flex-direction: column; margin-top: 36px; }
+  .cases-mobile__foot-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 4px;
+    border-top: 1px solid var(--grey-880);
+    color: var(--grey-560);
+    background: none;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: left;
+  }
+  .cases-mobile__foot-icon { font-size: 18px; }
+  .cases-mobile__foot-label {
+    flex: 1;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 680;
+    font-variation-settings: 'wdth' 120, 'wght' 680, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+    letter-spacing: -0.24px;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+  }
+  .cases-mobile__foot-tag { font-family: var(--font-mono); font-size: 9px; color: var(--grey-720); }
+
+
+  /* The Cases tab renders MobileCases on mobile (gated in SelectedContent),
+     so the desktop rail / project cards / archive don't mount here — their
+     old mobile flow rules are gone. Only the mat's edge-to-edge bleed (below)
+     is still live: MobileCases sits inside it as a full-bleed grid surface.
+     (The bench shell owns the workbench, nav, and intro card now — the old
+     `.selected-workbench`/`.selected-layout`/`.selected-nav-row`/`.about-card-p`
+     mobile rules targeted classes that no longer render on this route.) */
 
   /* ── Mat: edge-to-edge bleed ───────────────────────────────────────────── */
   /* Mat extends beyond workbench padding and clips at viewport edges.       */
@@ -978,307 +1003,135 @@ a.ap-entry:hover .ap-entry__hint {
     min-height: auto;
   }
 
-  /* ── Timeline: clean vertical flow ───────────────────────────────────── */
-  /* Bars, dots, and dot-singles removed entirely on mobile. Year labels   */
-  /* sit as colored inline markers above the project cards. All content     */
-  /* within the mat aligns to one column — greeting establishes the width.  */
+}
 
-  .selected-tl {
-    position: relative;
-    height: auto;
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    padding: 16px 32px 24px;
-  }
 
-  /* Hide all decorative timeline elements */
-  .selected-tl__bar-blue,
-  .selected-tl__bar-yellow,
-  .selected-tl__dots--top,
-  .selected-tl__dots--bot,
-  .selected-tl__dot-single,
-  .selected-tl__dot,
-  .selected-tl__label-now {
-    display: none;
-  }
+/* ==========================================================================
+   Cases bottom sheet (mobile) — portaled to <body>, only mounted by
+   MobileCases, so these rules need no media query (absent from the DOM on
+   desktop). Mirrors the showcase sheet: scrim (z-50) + slide-up panel (z-70).
+   ========================================================================== */
 
-  /* Greeting — equal breathing room above/below (16px each) */
-  .selected-tl__greeting {
-    position: static;
-    left: auto;
-    top: auto;
-    font-size: 11px;
-    order: 1;
-    margin-bottom: -12px;
-  }
+.cases-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.cases-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 40, 40, 0.32);
+  opacity: 0;
+  transition: opacity var(--dur-settle) var(--ease-paper);
+}
+.cases-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  background: var(--mat-bg);
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.22);
+  padding: 0 0 30px;
+  transform: translateY(101%);
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+.cases-sheet.is-open { pointer-events: auto; }
+.cases-sheet.is-open .cases-sheet__scrim { opacity: 1; }
+.cases-sheet.is-open .cases-sheet__panel { transform: translateY(0); }
 
-  /* Year labels — colored markers, tight to their preceding card */
-  .selected-tl__year {
-    position: static;
-    left: auto;
-    top: auto;
-    transform: none;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-    text-align: left;
-    margin: -20px 0 0;
-  }
+.cases-sheet__handle {
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--grey-720);
+  margin: 9px auto 4px;
+}
+.cases-sheet__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 22px 14px;
+}
+.cases-sheet__title {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  font-size: 21px;
+  letter-spacing: -0.6px;
+  color: var(--mint-800);
+}
+.cases-sheet__span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-640);
+}
+.cases-sheet__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px 22px;
+  border-top: 1px solid var(--grey-880);
+  text-decoration: none;
+}
+.cases-sheet__swatch {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  margin-top: 4px;
+}
+.cases-sheet__row--aleyr .cases-sheet__swatch { background: var(--aleyr-800); }
+.cases-sheet__row--eco   .cases-sheet__swatch { background: var(--ecochain-800); }
+.cases-sheet__row--code  .cases-sheet__swatch { background: var(--codezeros-800); }
+.cases-sheet__body { flex: 1; min-width: 0; }
+.cases-sheet__row-title {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  color: var(--grey-320);
+  line-height: 1.3;
+}
+.cases-sheet__meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 640;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+}
+.cases-sheet__row--aleyr .cases-sheet__meta { color: var(--aleyr-800); }
+.cases-sheet__row--eco   .cases-sheet__meta { color: var(--ecochain-800); }
+.cases-sheet__row--code  .cases-sheet__meta { color: var(--codezeros-800); }
+.cases-sheet__ext { font-size: 14px; }
+.cases-sheet__year {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-640);
+  flex: none;
+}
 
-  .selected-tl__year--2025 { display: none; }
-  .selected-card-terra     { order: 3; }
-  .selected-tl__year--q425 { order: 4; color: var(--yellow-800); }
-  .selected-card-blue      { order: 5; }
-  .selected-tl__year--23   { order: 6; }
-  .selected-nameplate--names { order: 7; }
-  .selected-nameplate--marks { order: 8; }
-  .selected-nav-archive    { order: 9; }
-
-  /* ── Project cards — full width, flow ──────────────────────────────── */
-
-  .selected-card-terra,
-  .selected-card-blue {
-    position: relative;
-    left: auto;
-    top: auto;
-    pointer-events: auto;
-  }
-
-  .project-card {
-    width: 100%;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    padding: var(--space-12);
-  }
-
-  .project-card__title {
-    position: static;
-    width: 100%;
-    font-size: 20px;
-    letter-spacing: -0.6px;
-  }
-
-  .project-card__body {
-    position: static;
-    margin-top: 6px;
-  }
-
-  /* Override variant-specific widths (--terra: 304px, --blue: 244px) set in
-     the desktop rules. Specificity match (two classes), source order wins. */
-  .project-card--terra .project-card__body,
-  .project-card--blue .project-card__body {
-    width: 100%;
-  }
-
-  .project-card__divider {
-    position: static;
-    width: 100%;
-    margin-top: var(--space-12);
-  }
-
-  .project-card__footer {
-    position: static;
-    margin-top: 6px;
-  }
-
-  .project-card__illus--hov,
-  .project-card__illus--paperroll {
-    display: none;
-  }
-
-  /* ── Nameplates ────────────────────────────────────────────────────── */
-
-  .selected-nameplate {
-    position: relative;
-    left: auto;
-    top: auto;
-  }
-
-  .selected-nameplate--names,
-  .selected-nameplate--marks {
-    top: auto;
-    margin: 0;
-  }
-
-  /* Archive toggle — same spacing rhythm as nameplates */
-  .selected-nav-archive {
-    position: relative;
-    left: auto;
-    top: auto;
-    margin-top: 0;
-  }
-
-  /* ── Archive panel: clean flow ─────────────────────────────────────── */
-  /* Bars, dots, year labels all hidden. Year is folded into entry meta.   */
-  /* Panel is a sibling of .selected-tl, so it needs its own padding to    */
-  /* align with the content column established by .selected-tl.             */
-
-  .selected-archive-panel {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: auto;
-    height: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    padding: 16px 32px 32px;
-  }
-
-  .selected-ap-dots,
-  .selected-ap-bar,
-  .selected-ap-year {
-    display: none;
-  }
-
-  /* Archive entries — flow, aligned with project card left edge.          */
-  /* Symmetric 24px padding above/below divider (--grey-720 hairline).     */
-  .ap-entry {
-    position: static;
-    left: auto;
-    top: auto;
-    width: 100%;
-    padding: 24px 0;
-    gap: var(--space-4);
-    border-bottom: 1px solid var(--grey-720);
-  }
-
-  .ap-entry:first-of-type {
-    padding-top: 0;
-  }
-
-  .ap-entry:last-of-type {
-    border-bottom: none;
-    /* padding-bottom retained so the bottom edge isn't clipped by the 4px
-       fixed viewport frame (z:9999) that overlays the final few px. */
-  }
-
-  .ap-entry--yellow,
-  .ap-entry--aleyr,
-  .ap-entry--olive,
-  .ap-entry--codezeros,
-  .ap-entry--mint {
-    top: auto;
-  }
-
-  .ap-entry__title {
-    height: auto;
-    line-height: 1.3;
-    font-size: 13px;
-  }
-
-  .ap-entry__year {
-    display: inline;
-  }
-
-  /* "Opens in new tab" hint is hover-only — hide on mobile touch devices */
-  .ap-entry__hint {
-    display: none;
-  }
-
-  /* Timeline hover dim reset on mobile — touch triggers sticky :hover.      */
-  /* Bars themselves are display:none on mobile so their background overrides */
-  /* aren't repeated here. The :has() selectors below only need to undo the  */
-  /* desktop filter:opacity(0.35) dim on cards so tapping doesn't leave      */
-  /* everything else ghosted.                                                 */
-  .selected-tl:has(.project-card--terra[data-armed="true"]:hover) > *,
-  .selected-tl:has(.project-card--blue[data-armed="true"]:hover) > * {
-    filter: none;
-  }
-
-  .selected-archive-panel:has(.ap-entry:hover) .ap-entry {
-    filter: none;
-  }
-
-  /* Slide-in: apply to about card too on mobile (it's in the flow now) */
-  .selected-workbench--slide-in .about-card-p {
-    animation: selected-slide-in var(--dur-settle) var(--ease-paper) both;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .cases-mobile__now-dot { animation: none; }
 }
 
 
 /* ==========================================================================
    Tablet — 768px to 1023px
+
+   No overrides needed. The Cases tab is hosted in `.bench-cases`, which caps
+   at the authored 688px mat width and centres it (margin-inline: auto), so the
+   full desktop timeline layout is already correct down to ~704px viewport.
+   Below 768 the mobile composition (MobileCases) takes over. The old two-column
+   tablet block here was stale from the /selected → /all (bench) migration — it
+   repositioned a `.selected-layout` that no longer exists and squished the mat.
    ========================================================================== */
-
-@media (min-width: 768px) and (max-width: 1023px) and (min-height: 501px) {
-
-  /* ── Layout: two-column but narrower ───────────────────────────────────── */
-
-  .selected-nav-row {
-    left: 384px;
-  }
-
-  .about-card-p {
-    left: 16px;
-    width: 340px;
-    padding: var(--space-32);
-  }
-
-  .about-card-p__text,
-  .about-card-p__heading,
-  .about-card-p__divider {
-    width: 280px;
-  }
-
-  .about-card-p__body { width: 220px; }
-  .about-card-p__cta { width: 240px; }
-
-  .selected-mat {
-    left: 380px;
-    width: calc(100% - 396px);
-  }
-
-  /* Project cards: fit within narrower mat */
-  .project-card {
-    width: calc(100% - 48px);
-  }
-
-  .project-card__body { width: auto; }
-  .project-card__divider { width: calc(100% - 32px); }
-
-  /* Timeline: shift elements proportionally for narrower mat */
-  .selected-card-terra,
-  .selected-card-blue {
-    left: 32px;
-  }
-
-  .selected-tl__dot { left: 11px; }
-  .selected-tl__label-now { left: 8px; }
-  .selected-tl__greeting { left: 31px; }
-  .selected-tl__dots { left: 16px; }
-  .selected-tl__bar-blue { left: 16px; }
-  .selected-tl__bar-yellow { left: 16px; }
-  .selected-tl__year { left: 12px; }
-
-  /* Adjust vertical positions for tighter timeline */
-  .selected-tl__dot { top: 48px; }
-  .selected-tl__label-now { top: 56px; }
-  .selected-tl__greeting { top: 48px; }
-  .selected-tl__dots--top { top: 76px; }
-  .selected-tl__bar-blue { top: 104px; height: 320px; }
-  .selected-tl__bar-yellow { top: 104px; height: 40px; }
-  .selected-tl__year--2025 { top: 112px; }
-  .selected-card-terra { top: 104px; }
-  .selected-tl__year--q425 { top: 232px; }
-  .selected-card-blue { top: 264px; }
-  .selected-tl__year--23 { top: 404px; }
-  .selected-tl__dots--bot { top: 436px; }
-
-  .selected-nameplate { left: 1px; }
-  .selected-nameplate--names { top: 464px; }
-  .selected-nameplate--marks { top: 504px; }
-  .selected-tl__dot-single { left: 16px; }
-  .selected-tl__dot-single--mid1 { top: 498px; }
-  .selected-tl__dot-single--mid2 { top: 540px; }
-  .selected-nav-archive { left: 1px; top: 550px; }
-
-  .selected-archive-panel { left: 16px; top: 580px; width: calc(100% - 32px); }
-  .ap-entry { width: calc(100% - 17px); }
-}
 
 
 /* ── Reduced motion ─────────────────────────────────────────────────────── */

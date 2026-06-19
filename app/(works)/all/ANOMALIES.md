@@ -21,9 +21,77 @@
 - **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/all?cases` so a case-study exit returns with the Longform tab active.
 
 > The pre-redesign "single vertical flow" overview (AboutCard → Prelude → HintRow → Showcase)
-> is **superseded** by the above. The archive sections below (timeline model, spacing math,
-> hover system, showcase grid) still describe the Timeline + Showcase, which now live as the
-> two tab contents.
+> is **superseded** by the above; the Cases tab mounts `SelectedContent` directly in
+> `.bench-cases` via `Essay/WorkPanel.tsx`. The "Showcase grid" sections below still describe
+> the live Visual tab. The lower "Archive timeline model / spacing / hover" sections are
+> **historical** — they document the retired archive panel; the **Slangbusters promotion
+> section immediately below is the current truth** for the Cases timeline.
+
+---
+
+## Slangbusters promotion — the Cases (Longform) tab — current
+
+The archive panel ("Works from the previous portfolio") is **retired**. `ArchivePanel.tsx` is
+deleted; **Connektion is dropped entirely** (not relocated). Slangbusters is promoted out of the
+archive into the main timeline as a **second tall parent** (mint), directly below Biconomy —
+mirroring the blue (Biconomy) parent with the yellow (Rug Rumble) child. Its three case studies
+(Aleyr / Ecochain / Codezeros) nest under it, collapsed behind an inline dropdown.
+
+### Desktop (Timeline.tsx + selected.css)
+- **Mint bar** `.selected-tl__bar-mint` (rail `left:148`, `top:546`, `h:224` collapsed → `504`
+  open). scaleY entrance; `height` transitions on open.
+- **Inline dropdown** `.selected-tl__dropdown` (`top:550`) — a plain text button (`--font-ui`
+  720, capitalize, dotted underline, `--grey-320`) + an `expand_more` `MaterialIcon` (`--mint-800`)
+  that rotates 180° via `[aria-expanded="true"]`. Toggles `expanded` (owned by SelectedContent).
+- **Mint card** `.selected-card-mint` (`top:594` collapsed → `874` open). An **external link**
+  (`ProjectCard variant="mint"`): `target=_blank`, `IconExternalLink` (not the chevron), an inline
+  startooth SVG `<Sticker tilt={-8}>` (fill `--mint-720`, white rim), and an "opens in new tab"
+  hint pill rendered as a **sibling below** the card (the card's `overflow:hidden` would clip it),
+  revealed on `[data-armed]:hover ~`.
+- **Years** 20 (`top:556`) at the bar top, 18 (`top:748` → `1028` open) ~22px above the card bottom
+  (mirrors Biconomy's 23).
+- **Open = grow + shift.** `expanded` adds `.selected-mat--archive-open` (historical modifier name,
+  kept). Mat `min-height` 958→1238; the mint bar height, mint card `top`, year-18 `top`, and the
+  whole lower timeline (nameplate dot cluster `782→1062`, Marks `816→1096`, mid dot `856→1136`,
+  Names `870→1150`) all animate on `--dur-settle`. **The same heights are mirrored on
+  `.bench-cases:has(.selected-mat--archive-open)` in bench.css — change both together.**
+- **Children** `.sb-case--{aleyr,eco,code}` (rows `left:166`, bars `left:148 h:56`, years) reuse the
+  archive-entry treatment, repositioned mat-local at a **96px pitch** (590/686/782). They mount only
+  when `expanded` via Framer `AnimatePresence` with the `CHILD_D` stagger; `CHILDREN` (Timeline.tsx)
+  is the year source of truth. Resting bar = pale `-100` tint, hover saturates to `-240`.
+- **Ecochain fix:** `--ecochain-240` was an off-white (`hsl(0 0% 96%)`) that read as invisible on
+  the mat; it's now a saturated green (`hsl(95 72% 42%)`). Carried over per the handoff.
+- **§2a:** nameplates swapped (Marks above Names); the Now dot gains a living pulse
+  (`.selected-tl__pulse` sibling ring + `now-pulse` keyframe — a separate element so it survives the
+  dot's `clip-path`/crescent; own reduced-motion guard).
+- **Hover cascades** mirror terra/blue: mint-card hover dims all + lights the mint group
+  (`--mint-240` bar); child hover dims only the OTHER children + lights the hovered row's bar/year +
+  hint + arrow, pushing siblings ±4px (`translate`, to avoid Framer's inline `transform`). All gated
+  on `data-armed` (cards) / scoped to `.selected-tl:has(.sb-case…:hover)` (children).
+
+### Mobile (MobileCases.tsx + CasesSheet.tsx)
+- A **separate composition** behind a `matchMedia(MOBILE_BP)` gate in SelectedContent (mirrors the
+  showcase's isMobile pattern; `MOBILE_BP` from `Showcase/responsive.ts`) — the desktop Timeline and
+  MobileCases **never coexist in the DOM**, so no duplicated content. SSR/first-render = desktop
+  (no hydration mismatch); the effect swaps after mount.
+- Cards-first per the mobile handoff §10: a trimmed living-NOW cue (pulse dot + `NOW · 2026` +
+  fading hairline — **no** "Selected work" title, since the bench card is the page intro), a Biconomy
+  **hero** card, a `subdirectory_arrow_right` "A project during Biconomy" label → indented Rug Rumble,
+  the Slangbusters card (`open_in_new`), a "3 projects during Slangbusters" trigger → the sheet, and
+  foot nameplates Marks → Names.
+- **`CasesSheet` is rendered INLINE, not portaled to `<body>`.** The showcase's sheet portals
+  (its tiles carry transforms that would trap `position:fixed`), but the cases tree has no
+  transformed ancestor — `position:fixed` anchors to the viewport regardless (same guarantee the
+  docked ticket relies on). Inline keeps the sheet inside `.workbench:has(.bench-workbench)` so the
+  route-scoped study tokens (`--aleyr/ecochain/codezeros-*`) cascade in. **Portaling it broke the
+  per-study swatch/meta colors** (they fell back to default-link-blue, tokens undefined at `<body>`).
+- Body scroll-lock + Esc-to-close while open; scrim tap closes. Slide-up on `--dur-settle`.
+
+### Tablet
+- selected.css's tablet `@media` block was **removed** — it was stale from the bench rename
+  (repositioned the gone `.selected-layout` two-column and squished `.selected-mat` to ~292px). On
+  bench, `.bench-cases` centres the full 688 mat at tablet, so the desktop layout is already correct
+  down to ~704px viewport.
 
 ---
 
@@ -49,16 +117,6 @@ Route-local under [app/(works)/all/components/Showcase/](app/(works)/all/compone
   - Mobile (≤767 or ≤500h): grid drops to 1 column. Every slot spans 1 regardless of `cols`. `--sc-gap` reduces to 24 px (mirror constant `MOBILE_GAP_PX = 24`).
 - `grid-auto-flow: dense` packs short tiles into gaps that wider tiles would otherwise leave. Visual order can deviate from DOM order; reading-order DOM in `PIECES` is by `num` (1 → 10).
 - **Trade-off with 9-col**: no clean two-up (`4 + 5 = 9` is asymmetric; `4.5` isn't an integer). If you ever want two equal pieces side-by-side filling a row, this grid can't do it. The trade is editorial-thirds composition in exchange for losing halves.
-
-### Prelude
-- `.sc-prelude` is a 2-column grid: `1fr 608px`. Copy LEFT, Timeline RIGHT. On tablet/mobile it collapses to 1 column.
-- Timeline lives inside `.sc-prelude__timeline`, which is `position: relative` so the `.selected-nav-row` (`position: absolute; top: -22px; left: 24px`) can dock on top of the Timeline mat's top edge.
-- The Timeline mat (`.selected-mat`) has its width neutralized inside the Prelude via the contextual selector `.sc-prelude__timeline .sc-timeline-tile`. The `sc-timeline-tile` is a dedicated class added alongside `selected-mat` (see §"Timeline tile coupling" below).
-
-### Timeline tile coupling — IMPORTANT
-- The Timeline lives inside `TimelineTile.tsx` and renders `<section class="selected-mat mat sc-timeline-tile">`. `selected-mat` keeps the original mint-bordered styling and dimensions; `sc-timeline-tile` is the showcase-context hook for overrides like `width: 100%`.
-- The Timeline owns its own archive open/close state locally (was previously owned by `SelectedContent`). Archive open grows the mat to 1201 px tall; the Prelude row grows; the masonry below pushes down. No row-span re-measure is required because the masonry is a separate surface.
-- **Do not** rename `.selected-mat` without auditing both `selected.css` and `showcase.css` — multiple media-query overrides reference it.
 
 ### Click + focus interaction
 - Click any tile (or its caption dot) → tile gets `.is-active`, lifts via `translateY(-12px) scale(1.025)`, siblings dim to `opacity 0.30 / saturate 0.6`. On desktop / tablet, `SpecNote` renders inline beside the frame on the side decided at activation by `ShowcasePiece` (column-position measurement → `left` or `right`). On mobile, `SpecNote` is rendered once by `ShowcaseBottomSheet` as a singleton portal at `document.body` (see §"Index card placement rule" below).

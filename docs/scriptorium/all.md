@@ -2,9 +2,9 @@
 
 Verbatim copy reference for the works hub at **`/all`** (the "Work Essay"; internal codenames "bench"/"selected"). Edit the source files, not this doc — run `/release` to surface drift.
 
-**Sources:** `app/(works)/all/page.tsx`, `app/(works)/all/components/Essay/*.tsx` (invitation + ticket), `app/(works)/all/components/*.tsx` (Longform: Timeline + Archive), `app/(works)/all/components/Showcase/*` (Visual tab).
+**Sources:** `app/(works)/all/page.tsx`, `app/(works)/all/components/Essay/*.tsx` (invitation + ticket), `app/(works)/all/components/*.tsx` (Longform: Timeline + Slangbusters case studies; `MobileCases`/`CasesSheet` on phones), `app/(works)/all/components/Showcase/*` (Visual tab).
 
-The route is a single morphing surface: an **invitation card** (manifesto poem) footed by a **ticket** that docks into a navbar on scroll, switching between the **Longform** tab (Timeline + Archive) and the **Visual** tab (Showcase grid).
+The route is a single morphing surface: an **invitation card** (manifesto poem) footed by a **ticket** that docks into a navbar on scroll, switching between the **Longform** tab (the career Timeline, with Slangbusters' case studies behind an inline dropdown) and the **Visual** tab (Showcase grid).
 
 ---
 
@@ -134,98 +134,68 @@ The letterpress ticket footing the card; docks into a navbar on scroll. Showcase
 > "Marks and Symbols Made"
 > — [`Timeline.tsx:235`](../../app/(works)/all/components/Timeline.tsx#L235)
 
-## Archive toggle {#archive-toggle}
+## Slangbusters dropdown header {#slangbusters-dropdown}
 
-> "Works from the previous portfolio" (desktop)
-> — [`Timeline.tsx:261`](../../app/(works)/all/components/Timeline.tsx#L261)
+> "Slangbusters case studies (3)"
+> — [`Timeline.tsx`](../../app/(works)/all/components/Timeline.tsx) (`.selected-tl__dropdown-label`)
 
-> "Previous portfolio" (mobile)
-> — [`Timeline.tsx:262`](../../app/(works)/all/components/Timeline.tsx#L262)
+## Project card — Slangbusters (mint, external) {#card-slangbusters}
 
-> "2018–22" (sublabel)
-> — [`Timeline.tsx:265`](../../app/(works)/all/components/Timeline.tsx#L265)
+> "Building the conditions that let a creative studio do its best work" (title)
+> "+ studio rituals, hiring, and the operating system behind the work." (body)
+> "Creative Director • Slangbusters" (role)
+> — [`Timeline.tsx`](../../app/(works)/all/components/Timeline.tsx) (mint `<ProjectCard>`). Links to `https://niharbhagat.com/work/slangbusters/` (new tab). Placeholder copy — confirm before ship.
 
-## ArchivePanel — entries (data) {#archive-entries}
+## Slangbusters case studies (the dropdown children) {#slangbusters-cases}
 
-### Connektion (2021) {#archive-connektion}
+Source of truth: the `CHILDREN` array in [`Timeline.tsx`](../../app/(works)/all/components/Timeline.tsx) (desktop) and `STUDIES` in [`CasesSheet.tsx`](../../app/(works)/all/components/CasesSheet.tsx) (mobile sheet). Year labels "20 / 19 / 18".
 
-> "Finding the real product hidden inside the client brief"
-> — [`ArchivePanel.tsx:41`](../../app/(works)/all/components/ArchivePanel.tsx#L41)
-
-> "Product Designer"
-> — [`ArchivePanel.tsx:42`](../../app/(works)/all/components/ArchivePanel.tsx#L42)
-
-> "Connektion"
-> — [`ArchivePanel.tsx:43`](../../app/(works)/all/components/ArchivePanel.tsx#L43)
-
-> "2021"
-> — [`ArchivePanel.tsx:44`](../../app/(works)/all/components/ArchivePanel.tsx#L44)
-
-### Aleyr (2020) {#archive-aleyr}
+### Aleyr (2020) {#case-aleyr}
 
 > "Finding the thin line between pet ownership and pet parenting"
-> — [`ArchivePanel.tsx:48`](../../app/(works)/all/components/ArchivePanel.tsx#L48)
+> "Creative Director • Aleyr" (desktop) / "Creative Director · Aleyr" (mobile sheet)
+> Links to `https://niharbhagat.com/work/aleyr/`
 
-> "Creative Director"
-> — [`ArchivePanel.tsx:49`](../../app/(works)/all/components/ArchivePanel.tsx#L49)
-
-> "Aleyr"
-> — [`ArchivePanel.tsx:50`](../../app/(works)/all/components/ArchivePanel.tsx#L50)
-
-> "2020"
-> — [`ArchivePanel.tsx:51`](../../app/(works)/all/components/ArchivePanel.tsx#L51)
-
-### Ecochain (2019) {#archive-ecochain}
+### Ecochain (2019) {#case-ecochain}
 
 > "Using the logic of a real desk to shape a digital trading workspace"
-> — [`ArchivePanel.tsx:56`](../../app/(works)/all/components/ArchivePanel.tsx#L56)
+> "Creative Director • Ecochain" / "Creative Director · Ecochain"
+> Links to `https://slangbusters.com/work/ecochain/`
 
-> "Creative Director"
-> — [`ArchivePanel.tsx:57`](../../app/(works)/all/components/ArchivePanel.tsx#L57)
-
-> "Ecochain"
-> — [`ArchivePanel.tsx:58`](../../app/(works)/all/components/ArchivePanel.tsx#L58)
-
-> "2019"
-> — [`ArchivePanel.tsx:59`](../../app/(works)/all/components/ArchivePanel.tsx#L59)
-
-### Codezeros (2018) {#archive-codezeros}
+### Codezeros (2018) {#case-codezeros}
 
 > "Defining a blockchain company before the category had a clear shape"
-> — [`ArchivePanel.tsx:64`](../../app/(works)/all/components/ArchivePanel.tsx#L64)
+> "Creative Director • Codezeros" / "Creative Director · Codezeros"
+> Links to `https://niharbhagat.com/work/codezeros/`
 
-> "Creative Director"
-> — [`ArchivePanel.tsx:65`](../../app/(works)/all/components/ArchivePanel.tsx#L65)
+## Slangbusters year labels {#slangbusters-years}
 
-> "Codezeros"
-> — [`ArchivePanel.tsx:66`](../../app/(works)/all/components/ArchivePanel.tsx#L66)
+> "20" (top of the mint span) / "18" (bottom)
+> — [`Timeline.tsx`](../../app/(works)/all/components/Timeline.tsx) (`.selected-tl__year--slang-top` / `--slang-bot`)
 
-> "2018"
-> — [`ArchivePanel.tsx:67`](../../app/(works)/all/components/ArchivePanel.tsx#L67)
-
-### Slangbusters (2018) {#archive-slangbusters}
-
-> "Building the conditions that let a creative studio do its best work"
-> — [`ArchivePanel.tsx:72`](../../app/(works)/all/components/ArchivePanel.tsx#L72)
-
-> "Creative Director"
-> — [`ArchivePanel.tsx:73`](../../app/(works)/all/components/ArchivePanel.tsx#L73)
-
-> "Slangbusters"
-> — [`ArchivePanel.tsx:74`](../../app/(works)/all/components/ArchivePanel.tsx#L74)
-
-> "2018"
-> — [`ArchivePanel.tsx:75`](../../app/(works)/all/components/ArchivePanel.tsx#L75)
-
-## ArchivePanel — year labels {#archive-years}
-
-> "21" / "20" / "20" / "19" / "18" / "18"
-> — [`ArchivePanel.tsx:136, 152, 184, 216, 248, 274`](../../app/(works)/all/components/ArchivePanel.tsx#L136)
-
-## ArchivePanel — entry hint {#archive-hint}
+## "opens in new tab" hint {#new-tab-hint}
 
 > "opens in new tab"
-> — [`ArchivePanel.tsx:128, 170, 202, 234, 266`](../../app/(works)/all/components/ArchivePanel.tsx#L128)
+> — mint card + each `.sb-case` ([`Timeline.tsx`](../../app/(works)/all/components/Timeline.tsx))
+
+## Mobile — cards-first composition {#mobile-cases}
+
+Source: [`MobileCases.tsx`](../../app/(works)/all/components/MobileCases.tsx). Shown only at ≤767px / ≤500h (the `MOBILE_BP` gate).
+
+> "NOW · 2026" (living-now cue)
+> "2023 — 2025" · "Designs to make the invisible infra: visible and usable" · "A UX audit, demos, a concept UI, and cultural interventions in a web3 ecosystem." · "Product Designer · Biconomy" (Biconomy hero)
+> "A project during Biconomy" (nested label)
+> "Q4 · 2025" · "A 5-minute game, with a simple mechanic" · "Game Designer · Rug Rumble" (Rug Rumble)
+> "2018 — 2020" · "Building the conditions that let a creative studio do its best work" · "Studio rituals, hiring, and the operating system behind the work." · "Creative Director · Slangbusters" (Slangbusters, external)
+> "3 projects during Slangbusters" (sheet trigger)
+> "Marks and Symbols Made" / "Names Coined" / "W.I.P" (foot nameplates)
+
+## Mobile — case-study sheet {#mobile-sheet}
+
+Source: [`CasesSheet.tsx`](../../app/(works)/all/components/CasesSheet.tsx).
+
+> "Slangbusters" (header) · "2018 — 2020" (span)
+> The three studies (titles + "Creative Director · {company}" + years 20/19/18), as above.
 
 _(The Work Essay redesign dropped the Visual tab's own copy chrome — the `ShowcaseSection` scroll cue ("SHOWCASE"), the `HeaderBlock` ("Visuals" / "A selection of interfaces, posters, and marks…" / "{n} pieces"), and the `Prelude`/`FirstView`/`AboutCard` intro. The invitation card is the intro now; the Showcase grid renders directly under the `HintRow`. Those components were deleted.)_
 

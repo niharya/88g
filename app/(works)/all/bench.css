@@ -268,19 +268,21 @@
   padding: 108px 8px 80px;
 }
 
-/* Longform → Timeline + Archive (SelectedContent). The mat is position:absolute
+/* Longform → Timeline (SelectedContent). The mat is position:absolute
    (anchored right:0 width:688), so it needs a sized relative host — `.bench-cases`
-   recreates the old `.selected-layout` context, including the archive-open growth. */
+   recreates the old `.selected-layout` context, including the dropdown-open
+   growth. Heights mirror `.selected-mat` / `.selected-mat--archive-open` in
+   selected.css; keep the pair in sync. */
 .bench-cases {
   position: relative;
   width: 688px;
   max-width: 100%;
   margin-inline: auto;
-  min-height: 729px;
-  transition: min-height var(--dur-slide) var(--ease-paper);
+  min-height: 958px;
+  transition: min-height var(--dur-settle) var(--ease-paper);
 }
 .bench-cases:has(.selected-mat--archive-open) {
-  min-height: 1201px;
+  min-height: 1238px;
 }
 
 /* Visual → the Showcase grid in its own 1224 flow section. The work panel
