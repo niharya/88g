@@ -1,6 +1,6 @@
-// InvitationCard — the blue "broadside": engraved double-frame, a Pinyon
-// watermark, the two-stanza manifesto in gradient-clipped Fraunces, a mint
-// startooth crown + divider, and the script closing.
+// InvitationCard — the blue "broadside": engraved double-frame, the two-stanza
+// manifesto in gradient-clipped Fraunces, a mint startooth crown + divider, and
+// the script closing.
 //
 // Static composition (Phase 2) — the poem gradient is rendered still here;
 // its calm drift is added in Phase 8. Marks are filled mint (--mint-720 ==
@@ -35,11 +35,6 @@ export default function InvitationCard({ children }: { children?: ReactNode }) {
   return (
     <div className="bench-card">
       <div className="bench-card__keyline" />
-
-      <div className="bench-card__watermark" aria-hidden="true">
-        <span>Product</span>
-        <span>Designer</span>
-      </div>
 
       <main className="bench-card__main">
         {/* Crown */}

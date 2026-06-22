@@ -131,22 +131,25 @@ export type Piece = {
 
 export const PIECES: Piece[] = [
   {
-    id: 'furrmark',
-    num: 7,
-    kind: 'furrmark',
-    title: 'Furrmark',
-    type: 'Identity',
-    dot: 'orange',
-    project: 'Aleyr',
-    year: '2021',
-    // Source video is 998 × 668 (1.494) — baked in so first paint matches  */
-    // the video's natural ratio (no letterbox flash on load).               */
-    aspect: 998 / 668,
-    frame: true,
-    video: true,
-    href: 'https://niharbhagat.com/work/aleyr/',
-    whatIs: 'A brandmark for a pet care brand',
-    notice: 'Notice how it skips the usual cat-and-dog caricatures to express your love for your pet',
+    id: 'cardstack',
+    num: 1,
+    kind: 'cardstack',
+    title: 'Evolution of RR Card',
+    type: 'Layout Design',
+    dot: 'blue',
+    project: 'Rug Rumble',
+    year: '2024',
+    // 1.4 (down from 1.6) — bumped to make room for the scaled-up
+    // cardstack (cards 34% wide as of v0.93+) without click-spread
+    // (scale 1.18 + lift -8%) clipping past the tile's overflow-hidden
+    // top edge. The bottom anchor (`bottom: 6%`) is unchanged; the tile
+    // just gains ~37 px of vertical headroom for the selected card to
+    // breathe into.
+    aspect: 1.4,
+    frame: false,
+    href: '/rr',
+    whatIs: 'A series showing how a custom playing-card layout evolved',
+    notice: 'Notice how information is chunked out for easy scanning',
   },
   {
     id: 'paymaster',
@@ -195,25 +198,22 @@ export const PIECES: Piece[] = [
     notice: 'Notice how the project and chapter markers snap satisfyingly',
   },
   {
-    id: 'cardstack',
-    num: 1,
-    kind: 'cardstack',
-    title: 'Evolution of RR Card',
-    type: 'Layout Design',
-    dot: 'blue',
-    project: 'Rug Rumble',
-    year: '2024',
-    // 1.4 (down from 1.6) — bumped to make room for the scaled-up
-    // cardstack (cards 34% wide as of v0.93+) without click-spread
-    // (scale 1.18 + lift -8%) clipping past the tile's overflow-hidden
-    // top edge. The bottom anchor (`bottom: 6%`) is unchanged; the tile
-    // just gains ~37 px of vertical headroom for the selected card to
-    // breathe into.
-    aspect: 1.4,
-    frame: false,
-    href: '/rr',
-    whatIs: 'A series showing how a custom playing-card layout evolved',
-    notice: 'Notice how information is chunked out for easy scanning',
+    id: 'furrmark',
+    num: 7,
+    kind: 'furrmark',
+    title: 'Furrmark',
+    type: 'Identity',
+    dot: 'orange',
+    project: 'Aleyr',
+    year: '2021',
+    // Source video is 998 × 668 (1.494) — baked in so first paint matches  */
+    // the video's natural ratio (no letterbox flash on load).               */
+    aspect: 998 / 668,
+    frame: true,
+    video: true,
+    href: 'https://niharbhagat.com/work/aleyr/',
+    whatIs: 'A brandmark for a pet care brand',
+    notice: 'Notice how it skips the usual cat-and-dog caricatures to express your love for your pet',
   },
   {
     id: 'startooth',

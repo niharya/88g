@@ -77,7 +77,7 @@
 /* orphan whitespace for the packer to handle.                          */
 
 .sc-grid {
-  --sc-gap: 36px;
+  --sc-gap: 44px;
   --sc-row: 8px;
 
   position: relative;
@@ -101,12 +101,22 @@
   /* mobile drops everything to a single column.                        */
   grid-column: span var(--sc-cols-d, 3);
 }
+/* Wide tiles (6+ cols — the heroes) read a touch too dominant at full span,
+   so they're inset and centred WITHIN their grid area. The span itself is
+   unchanged (layout holds); only the tile + its caption shrink, centred. The
+   measured row-span follows the narrower media height automatically. */
+.sc-slot--wide .sc-piece {
+  max-width: 84%;
+  margin-inline: auto;
+}
 
 /* When a piece is focused, siblings dim. They sit BELOW the backdrop so   */
 /* clicking them goes through the backdrop first (which closes the focus). */
 .sc-grid.is-dimming .sc-piece:not(.is-active) {
-  opacity: 0.30;
-  filter: saturate(0.6);
+  /* Same backseat recede as the biconomy/rr menu-open dim — the shared
+     --backseat-dim token (brightness + desaturate). Monochrome, not a
+     fade, so the unfocused tiles read as "stepped back", not ghosted. */
+  filter: var(--backseat-dim);
   pointer-events: none;
 }
 
@@ -126,7 +136,7 @@
 .sc-section {
   position: relative;
   margin-top: var(--space-80, 80px);
-  max-width: 1224px;
+  max-width: 1160px;
   margin-inline: auto;
   display: flex;
   flex-direction: column;
@@ -506,23 +516,8 @@
 /* Press feedback on the caption text — shifts a hair down with the   */
 /* tile so the click registers across the whole row.                  */
 .sc-piece:not(.is-active):active .sc-cap__type,
-.sc-piece:not(.is-active):active .sc-cap__project,
 .sc-piece:not(.is-active):active .sc-cap__year {
   color: var(--grey-160);
-}
-.sc-cap__sep {
-  color: var(--grey-640);
-  flex-shrink: 0;
-}
-/* project is the truncation target — gets the remaining space and    */
-/* ellipsizes if the column can't fit it.                              */
-.sc-cap__project {
-  color: var(--grey-560);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-  flex: 1 1 0;
 }
 .sc-cap__year {
   /* 4 px right inset on the year + 4 px left inset on the dot (below)   */

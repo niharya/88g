@@ -1,7 +1,7 @@
-// Ticket — the letterpress "BROWSE IN TWO WAYS" ticket. A `position: sticky`
-// element (the slot, via slotRef) that docks into a navbar on scroll; the
-// `.is-docked` class (driven by useBenchDock) drives the entire condense in
-// bench.css. This component is purely structural — no inline state.
+// Ticket — the letterpress "BROWSE IN TWO WAYS" ticket. ONE element: it foots
+// the card as the invitation at rest, and lifts into a condensed navbar on
+// scroll. `.is-pinned` (position) + `.is-condensed` (the visual condense) are
+// driven by useBenchDock. This component is structural — no inline state.
 //
 // Tab order: Showcase first (the default), Longform second.
 
@@ -9,7 +9,8 @@ import type { Ref } from 'react'
 import MaterialIcon from '../../../../components/MaterialIcon'
 
 interface TicketProps {
-  docked: boolean
+  pinned: boolean
+  condensed: boolean
   active: 'vis' | 'lf'
   onShowcase: () => void
   onLongform: () => void
@@ -17,12 +18,15 @@ interface TicketProps {
   slotRef?: Ref<HTMLDivElement>
 }
 
-export default function Ticket({ docked, active, onShowcase, onLongform, onClose, slotRef }: TicketProps) {
+export default function Ticket({ pinned, condensed, active, onShowcase, onLongform, onClose, slotRef }: TicketProps) {
   return (
-    <div className={`bench-ticket-slot${docked ? ' is-docked' : ''}`} ref={slotRef}>
+    <div
+      className={`bench-ticket-slot${pinned ? ' is-pinned' : ''}${condensed ? ' is-condensed' : ''}`}
+      ref={slotRef}
+    >
       <div className="bench-ticket">
         <div className="bench-ticket__frame">
-          {/* Eyebrow — collapses on dock */}
+          {/* Eyebrow — collapses on condense */}
           <div className="bench-ticket__eyebrow">
             <span className="bench-ticket__eyebrow-rule bench-ticket__eyebrow-rule--l" />
             <span className="bench-ticket__eyebrow-label">browse in two ways</span>
@@ -31,13 +35,13 @@ export default function Ticket({ docked, active, onShowcase, onLongform, onClose
 
           {/* Tabs — Showcase first (default), then Longform. The close is
               absolute (not a grid cell), so the label pair stays centred in both
-              states with no horizontal reflow — no mirror-spacer needed. */}
+              states with no horizontal reflow. */}
           <div className="bench-ticket__tabs">
             <button
               type="button"
               className="bench-tab"
               onClick={onShowcase}
-              aria-current={docked && active === 'vis' ? 'true' : undefined}
+              aria-current={condensed && active === 'vis' ? 'true' : undefined}
             >
               <div className="bench-tab__title"><span className="bench-tab__ink">Visual</span></div>
               <span className="bench-tab__sub">showcase</span>
@@ -57,19 +61,19 @@ export default function Ticket({ docked, active, onShowcase, onLongform, onClose
               type="button"
               className="bench-tab"
               onClick={onLongform}
-              aria-current={docked && active === 'lf' ? 'true' : undefined}
+              aria-current={condensed && active === 'lf' ? 'true' : undefined}
             >
               <div className="bench-tab__title"><span className="bench-tab__ink">Longform</span></div>
               <span className="bench-tab__sub">case studies</span>
             </button>
 
-            {/* Close — appears docked, returns to the invitation */}
+            {/* Close — appears condensed, returns to the invitation */}
             <button
               type="button"
               className="bench-ticket__close"
               onClick={onClose}
               aria-label="Back to the invitation"
-              tabIndex={docked ? 0 : -1}
+              tabIndex={condensed ? 0 : -1}
             >
               <MaterialIcon name="close" className="bench-ticket__close-icon" />
             </button>

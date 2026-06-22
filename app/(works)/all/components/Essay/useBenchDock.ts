@@ -1,49 +1,46 @@
 'use client'
 
-// useBenchDock — the bench's scroll-coupled ticket, mirroring the nav cluster's
-// useDockedMarker pattern. The ticket foots the invitation card; this hook flips
-// `docked` when its slot reaches the top dock point, and the `.is-docked` CSS
-// class lifts it OUT (position:fixed) into a condensed navbar.
+// useBenchDock — the bench's scroll-coupled tab nav. ONE ticket element that
+// pins at the top and condenses into a smaller version of itself on scroll.
 //
-// Unifies the two entry paths: SCROLL down → the ticket reaches the top and
-// docks naturally; CLICK a tab → scrollGlide to the work and the same scroll
-// threshold docks it. Closing (✕) is just scrollGlide back to the top — the
-// ticket un-docks via scroll. Because the rest→fixed flip is scroll-coincident
-// (no imperative geometry / static hand-off), there is no end-of-close jerk.
-//
-// Content is always present (no invite/browse mount gate): card → ticket →
-// active tab's content. Default active tab is the showcase.
+// Two coupled states, split so the grow can fire earlier than the unpin without
+// a jump:
+//   • pinned    — position:fixed at the top. Toggles at the TOP edge
+//                 (slot.top ≤ DOCK_TOP), scroll-coincident → seamless hand-off
+//                 to/from the card (no jump).
+//   • condensed — the scale-down + active pill. Shrinks on the TOP edge going
+//                 DOWN (the good snap), but grows back on the BOTTOM edge going
+//                 UP (slot.bottom ≥ DOCK_TOP) — ~one footprint earlier — while
+//                 still pinned, then the pin hands off at the top edge.
+// Direction-gated so the two edges don't fight in the overlap zone.
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { scrollGlide } from '../../../../lib/scrollGlide'
 
 export type BenchActive = 'vis' | 'lf'
 
-const DOCK_TOP = 14   // matches `.bench-ticket-slot { top }` in bench.css
+const DOCK_TOP = 14   // matches `.is-pinned .bench-ticket { top }` in bench.css
 
 export function useBenchDock(initialActive: BenchActive) {
   const [active, setActive] = useState<BenchActive>(initialActive)
-  const [docked, setDocked] = useState(false)
+  const [pinned, setPinned] = useState(false)
+  const [condensed, setCondensed] = useState(false)
   const slotRef = useRef<HTMLDivElement>(null)
-  const dockedRef = useRef(false)
+  const pinnedRef = useRef(false)
+  const condensedRef = useRef(false)
+  const lastYRef = useRef(0)
+  const lastDirRef = useRef<'up' | 'down'>('down')
 
-  // ── Reserve the resting footprint ───────────────────────────────────────
-  // The ticket lives inside the card and lifts OUT (position:fixed) when docked;
-  // pin the slot's height so the card doesn't collapse (and the work below
-  // doesn't jump up) at the dock moment.
+  // Reserve the resting footprint so the card doesn't collapse when the ticket
+  // pins out (position:fixed).
   useLayoutEffect(() => {
     const slot = slotRef.current
     if (slot) slot.style.minHeight = `${Math.round(slot.getBoundingClientRect().height)}px`
   }, [])
 
-  // ── Clear the transition pane's retained entrance transform ─────────────
-  // The docked ticket is position:fixed. TransitionSlot's entrance animation
-  // (WAAPI, fill:both) leaves transform:translateY(0) on `.transition-pane` — a
-  // containing block that would pin the fixed navbar to the pane instead of the
-  // viewport when the user scrolls to dock after an in-shell nav (e.g. EXIT from
-  // a case study). Cancel it once the transition settles (the animation is at
-  // its identity end-state, so cancelling is visually a no-op). Paired with the
-  // `will-change:auto` rule in bench.css (the other half of the same trap).
+  // Clear the transition pane's retained entrance transform (it would become a
+  // containing block and pin the fixed ticket to the pane). Paired with the
+  // `will-change:auto` rule in bench.css.
   useEffect(() => {
     const clearPane = () =>
       document.querySelector('.transition-pane')?.getAnimations?.().forEach(a => a.cancel())
@@ -56,21 +53,27 @@ export function useBenchDock(initialActive: BenchActive) {
     return () => obs.disconnect()
   }, [])
 
-  // ── Scroll-driven dock detection ────────────────────────────────────────
-  // Dock when the slot (the ticket's resting spot in the card) reaches the top
-  // dock point. Only setState on a real transition so we don't re-render every
-  // scroll frame. The position flip is scroll-coincident with the rest spot, so
-  // the hand-off is seamless (no jump); the rise (scale + shadow) + condense
-  // animate via CSS as `.is-docked` toggles.
   useEffect(() => {
     const update = () => {
       const slot = slotRef.current
       if (!slot) return
-      const next = slot.getBoundingClientRect().top <= DOCK_TOP + 1
-      if (next !== dockedRef.current) {
-        dockedRef.current = next
-        setDocked(next)
-      }
+      const y = window.scrollY
+      const dir: 'up' | 'down' = y > lastYRef.current ? 'down' : y < lastYRef.current ? 'up' : lastDirRef.current
+      lastYRef.current = y
+      lastDirRef.current = dir
+
+      const r = slot.getBoundingClientRect()
+      const nextPinned = r.top <= DOCK_TOP + 1
+
+      // Condensed: shrink on the top edge going down; grow on the bottom edge
+      // going up (one footprint earlier); never condensed while unpinned.
+      let nextCondensed = condensedRef.current
+      if (!nextPinned) nextCondensed = false
+      else if (dir === 'down') nextCondensed = true
+      else if (r.bottom >= DOCK_TOP) nextCondensed = false
+
+      if (nextPinned !== pinnedRef.current) { pinnedRef.current = nextPinned; setPinned(nextPinned) }
+      if (nextCondensed !== condensedRef.current) { condensedRef.current = nextCondensed; setCondensed(nextCondensed) }
     }
     update()
     window.addEventListener('scroll', update, { passive: true })
@@ -81,9 +84,7 @@ export function useBenchDock(initialActive: BenchActive) {
     }
   }, [])
 
-  // Glide so the ticket's slot reaches the dock point (the work below tops out
-  // under the navbar). Used by a tab click from rest; the work is already laid
-  // out, so a single glide suffices.
+  // Glide so the ticket's slot reaches the dock point (work tops out under it).
   const scrollToWork = useCallback(() => {
     const slot = slotRef.current
     if (!slot) return
@@ -91,16 +92,14 @@ export function useBenchDock(initialActive: BenchActive) {
     scrollGlide(y)
   }, [])
 
-  // Tab click. Switching while docked keeps scroll position (just swaps the
-  // content below); from the resting card it glides down to the work.
   const openTab = useCallback((tab: BenchActive) => {
     setActive(tab)
-    if (!dockedRef.current) scrollToWork()
+    if (!pinnedRef.current) scrollToWork()
   }, [scrollToWork])
 
-  // ✕ — return to the invitation. Just scroll up; the ticket un-docks via the
-  // scroll listener. No fixed→static hand-off, so no end jerk.
+  // ✕ — return to the invitation. Scroll up; the ticket un-docks via the scroll
+  // listener. No fixed→static hand-off, so no end jerk.
   const close = useCallback(() => scrollGlide(0), [])
 
-  return { active, docked, slotRef, openTab, close }
+  return { active, pinned, condensed, slotRef, openTab, close }
 }

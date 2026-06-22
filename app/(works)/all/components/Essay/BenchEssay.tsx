@@ -1,9 +1,10 @@
 'use client'
 
 // BenchEssay — the bench as one scroll document: card (with the ticket footing
-// it) → the active tab's work, always present. The ticket docks into a navbar on
-// scroll (useBenchDock); a tab click scroll-glides to the work; ✕ scrolls back
-// to the card. Showcase is the default tab.
+// it) → the active tab's work, always present. The ticket pins at the top and
+// condenses into a smaller version of itself on scroll (useBenchDock); a tab
+// click scroll-glides to the work; scrolling back up returns to the card.
+// Showcase is the default tab.
 //
 // `initialView` (server-read in page.tsx for the /cases & /showcase rewrites +
 // case-study EXIT) selects the active tab so a deep-link lands on the right
@@ -26,9 +27,11 @@ export default function BenchEssay({ initialView }: { initialView?: BenchActive 
       <div className="bench-stage">
         <BenchExitMarker />
         <InvitationCard>
-          {/* Ticket foots the card; rises out into a pinned navbar on scroll. */}
+          {/* The ticket foots the card; pins + condenses into a smaller version
+              of itself on scroll (same element). */}
           <Ticket
-            docked={d.docked}
+            pinned={d.pinned}
+            condensed={d.condensed}
             active={d.active}
             onShowcase={() => d.openTab('vis')}
             onLongform={() => d.openTab('lf')}

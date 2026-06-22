@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, type CSSProperties } from 'react'
+import { type CSSProperties } from 'react'
 import IconExternalLink from '../../../../components/icons/IconExternalLink'
 import { DOT_VAR_DEEP, type Piece } from './data'
 
@@ -43,14 +43,10 @@ export default function SpecNote({
   // now the year of the piece. The narrative `num` still lives in data
   // for future referencing — it just no longer renders here.
   const footLabel = piece.year
-  // Random toss rotation between -1° and +1°. New value per mount so each
-  // open feels physical, like the note was tossed onto the workbench.
-  // Matched to the tile's own range (ShowcasePiece sets --sc-tile-rotate
-  // from the same window) so the opened note reads as a sibling sheet,
-  // not a louder gesture than the artefact it explains. Set as a CSS
-  // var consumed by the sc-note-toss keyframes. Sheets don't rotate —
-  // they dock to the viewport edge instead.
-  const rotate = useMemo(() => `${(Math.random() * 2 - 1).toFixed(2)}deg`, [piece.id])
+  // The note settles flat (0°). The toss keyframes still translate it in,
+  // but with no resting rotation — `--sc-note-rotate` is left unset so the
+  // keyframes' `rotate(var(--sc-note-rotate, 0deg))` resolves to 0 on every
+  // tile.
   const isSheet = variant === 'sheet'
   // --sc-dotc is set directly on the note so the dot colour cascades to
   // the foot link, the foot serial, the hint pill, AND the card's own
@@ -59,7 +55,6 @@ export default function SpecNote({
   // companion to the closed tile's quiet caption dot.
   const styleVars: CSSProperties = {
     ['--sc-dotc' as string]: DOT_VAR_DEEP[piece.dot],
-    ...(isSheet ? {} : { ['--sc-note-rotate' as string]: rotate }),
   }
   return (
     <div

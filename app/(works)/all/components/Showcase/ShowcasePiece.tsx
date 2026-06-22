@@ -229,8 +229,6 @@ export default function ShowcasePiece({
           <span className="sc-cap__dot-glyph">{active ? <Close /> : <Plus />}</span>
         </button>
         <span className="sc-cap__type">{piece.type}</span>
-        <span className="sc-cap__sep">·</span>
-        <span className="sc-cap__project">{piece.project}</span>
         <span className="sc-cap__year">{piece.year}</span>
       </div>
 

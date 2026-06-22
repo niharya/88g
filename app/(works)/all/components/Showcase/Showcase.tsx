@@ -50,7 +50,7 @@ function shuffle<T>(arr: T[]): T[] {
 // matches the layout exactly. If you change them in CSS, change them
 // here too.
 const ROW_HEIGHT_PX = 8
-const GAP_PX = 36
+const GAP_PX = 44
 const MOBILE_GAP_PX = 24
 
 function measureSpans(grid: HTMLElement): Record<string, number> {
@@ -259,7 +259,12 @@ export default function Showcase() {
       ref={gridRef}
     >
       {piecesWithDots.map((p) => (
-        <div className="sc-slot" data-piece-id={p.id} style={slotStyle(p)} key={p.id}>
+        <div
+          className={`sc-slot${(p.cols ?? 3) >= 6 ? ' sc-slot--wide' : ''}`}
+          data-piece-id={p.id}
+          style={slotStyle(p)}
+          key={p.id}
+        >
           <ShowcasePiece
             piece={p}
             active={activeId === p.id}

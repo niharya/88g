@@ -46,7 +46,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 920px;
+  max-width: 820px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -74,6 +74,13 @@
   transition: color var(--dur-fast) var(--ease-snap);
 }
 
+/* The shared exit treatment (nav.css) rotates the arrow 180° so it points
+   right. The bench marker is a "back to landing" link, so point it left —
+   neutralise the inherited rotation (route-scoped; other exits keep theirs). */
+.bench-exit .nav-icon {
+  transform: none;
+}
+
 .bench-exit .nav-marker--exit:hover .nav-marker__content,
 .bench-exit .nav-marker--exit:focus-visible .nav-marker__content {
   color: var(--grey-560);
@@ -95,7 +102,9 @@
   box-shadow:
     0 2px 5px rgba(20, 40, 80, 0.10),
     0 18px 40px -12px rgba(20, 40, 80, 0.28);
-  padding: 60px 68px 76px;
+  /* Uniform vertical rhythm: --space-40 between every element (and as the top
+     inset). Horizontal padding stays 44. */
+  padding: var(--space-40) 44px var(--space-40);
 }
 
 /* Engraved double-frame — inner keyline. */
@@ -105,25 +114,6 @@
   border: 1px solid var(--blue-320);
   pointer-events: none;
   z-index: 1;
-}
-
-/* Watermark — "Product" / "Designer" pushed to the card edges, behind content. */
-.bench-card__watermark {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 72px;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 clamp(20px, 5vw, 60px);
-  pointer-events: none;
-  font-family: var(--font-pinyon), cursive;
-  font-size: clamp(58px, 9vw, 138px);
-  line-height: 1;
-  color: var(--blue-160);
-  white-space: nowrap;
 }
 
 /* Content column. */
@@ -142,21 +132,21 @@
 
 /* ── Marks (filled mint startooth) + flanking hairlines ───────────────────── */
 .bench-crown {
-  margin: 4px 0 48px;
+  margin: 0 0 var(--space-40);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 12px;
 }
 
 .bench-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 22px;
+  gap: 14px;
   width: 100%;
-  max-width: 540px;
-  margin: 56px 0 48px;
+  max-width: 460px;
+  margin: var(--space-40) 0;
 }
 
 .bench-mark {
@@ -164,6 +154,11 @@
   flex-shrink: 0;
   color: var(--mint-720);   /* == design #028634 */
 }
+/* Marks shrink with the rest of the card (the SVGs carry fixed 48px attrs;
+   CSS dimensions override them so the compaction stays proportional). */
+.bench-mark svg { width: 32px; height: 32px; }
+/* The crown star carries more weight than the divider diamond — sized up. */
+.bench-crown .bench-mark svg { width: 44px; height: 44px; }
 
 /* Fading hairline rules either side of a mark. The crown uses fixed 46px
    stubs; the divider uses flex:1 rules that fill the row. */
@@ -189,8 +184,9 @@
   font-family: var(--font-display), serif;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   font-weight: 400;
-  font-size: clamp(25px, 2.5vw, 35px);
-  line-height: 1.42;
+  /* 24px — the display step (matches .t-h1 / .t-h2 in globals.css). */
+  font-size: 24px;
+  line-height: 1.3;
   letter-spacing: -0.4px;
   text-wrap: balance;
   color: var(--blue-720);
@@ -216,7 +212,7 @@
 }
 
 .bench-poem--second {
-  margin: 76px 0 0;
+  margin: var(--space-40) 0 0;
   color: var(--blue-800);
   background-image: linear-gradient(
     100deg,
@@ -234,7 +230,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 14px;
+  gap: 11px;
   width: 100%;
   max-width: 780px;
   text-align: center;
@@ -251,7 +247,7 @@
 .bench-closing__line {
   margin: 0;
   font-family: var(--font-pinyon), cursive;
-  font-size: clamp(28px, 4.4vw, 48px);
+  font-size: clamp(28px, 3.2vw, 40px);
   line-height: 1.14;
   letter-spacing: 0.01em;
   color: var(--blue-720);
@@ -293,59 +289,50 @@
 
 
 /* ── The ticket ("BROWSE IN TWO WAYS") ────────────────────────────────────── */
-/* The ticket foots the card at rest and lifts OUT (position:fixed) into a pinned
-   navbar on scroll. `.is-docked` (toggled by useBenchDock when the slot reaches
-   the dock point) drives the whole condense + rise in CSS — frame padding,
-   eyebrow collapse, title size, divider, close, scale + shadow. All transitions
-   on --ease-paper / --dur-* tiers. The rest→fixed flip is scroll-coincident
-   (seamless), and close is a plain scrollGlide — no end-of-close jerk. */
-/* The ticket foots the card — an in-flow reservation slot. Its min-height is
-   pinned by useBenchDock so the card keeps its height when the ticket lifts out
-   (position:fixed) on dock. z-index keeps the lifted ticket above the work. */
+/* Foots the card at rest; on scroll it pins at the top (.is-pinned) and condenses
+   into a compact tab bar (.is-condensed). The condense ANIMATES on the box
+   (width 460→290, frame padding, title size) over one --dur-settle/--ease-snap
+   settle; disappearing chrome (eyebrow) fades opacity-only out of flow. The
+   condensed width is DEFINITE (290px, not fit-content) so width can interpolate,
+   and `justify-content:center` keeps the shrink centred — slack lands at 0 at the
+   final width, so the five gaps end exactly even. */
 .bench-ticket-slot {
   position: relative;
   z-index: 200;
   width: 100%;
   max-width: 460px;
-  margin: clamp(40px, 6vh, 72px) auto 0;
+  margin: var(--space-40) auto 0;
 }
 
 .bench-ticket {
   position: relative;
   left: 50%;
+  transform: translateX(-50%);
   width: 100%;
-  /* `max-width` is LOAD-BEARING, not cosmetic. At rest `width:100%` resolves
-     against the slot (capped 460). On dock the ticket flips to position:fixed,
-     so `100%` would re-resolve against the VIEWPORT (~1433 at 1440vw) — and the
-     `width` transition would animate FROM that, exploding the ticket to full
-     width before snapping to 296 (the "enlarges towards the right" bug). This
-     cap clamps the percentage to 460 even once fixed, so the transition runs a
-     clean 460→296. The slot's own max-width can't help — the ticket has left it. */
   max-width: 460px;
   background: var(--terra-80);
   border: 1.5px solid var(--terra-240);
-  /* Rest: sits in the card. */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 10px 24px -6px rgba(0, 0, 0, 0.14);
   padding: 7px;
   overflow: hidden;
   box-sizing: border-box;
-  /* `translateX(-50%)` (constant) centres at `left:50%` independent of width,
-     so the only thing that animates on dock is the width shrink (centred, no
-     bulge) + the shadow. No scale — a scale change read as an odd enlarge
-     mid-condense. The rest→fixed hand-off is scroll-coincident, so no jump. */
-  transform: translateX(-50%);
   transition:
     width var(--dur-settle) var(--ease-snap),
+    padding var(--dur-settle) var(--ease-snap),
     box-shadow var(--dur-settle) var(--ease-snap);
 }
-/* Docked: lift OUT of the card into a pinned navbar — clean width shrink + a
-   deeper floating shadow (the "rise"). */
-.is-docked .bench-ticket {
+/* Pinned: fixed navbar at the top + a deeper floating shadow. */
+.is-pinned .bench-ticket {
   position: fixed;
   top: 14px;
-  width: 296px;
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
 }
+/* Condensed: a DEFINITE width (so width can interpolate 460→290); tuned to the
+   content so `justify-content:center` lands slack at 0 → all five gaps even.
+   Gaps stay on the within-element scale (--space-24 ceiling, per docs/rhythm.md);
+   the bar's presence comes from width + the tabs' tap padding, not from pulling
+   a structural 32+ token for inner gaps. */
+.is-condensed .bench-ticket { width: 290px; padding: 0; }
 
 .bench-ticket__frame {
   position: relative;
@@ -355,17 +342,17 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  /* Top padding reserves the absolute eyebrow's rest space; the tab row centres
-     in the area below it. On dock the padding collapses to 0 — the single
-     vertical "shrink" driver (the eyebrow fades in place, doesn't pull). */
   padding: 52px 16px 22px;
   transition:
     padding var(--dur-settle) var(--ease-snap),
+    border-width var(--dur-settle) var(--ease-snap),
     border-color var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-ticket__frame { padding: 0 12px; border-color: transparent; }
+/* Border-WIDTH (not `border:none`) collapses to 0 so it animates and leaves no
+   inset — the edge gap stays exactly the tabs padding. */
+.is-condensed .bench-ticket__frame { padding: 0; border-width: 0; border-color: transparent; }
 
-/* Eyebrow */
+/* Eyebrow — fades opacity-only (absolute, out of flow → no reflow). */
 .bench-ticket__eyebrow {
   position: absolute;
   top: 20px;
@@ -376,21 +363,14 @@
   gap: 13px;
   justify-content: center;
   opacity: 1;
-  /* Out of flow: on dock it fades in place (opacity + a small lift) instead of
-     collapsing its box. No max-height / margin animation, so it can't reflow or
-     yank the tabs upward — the jank-prone collapse is gone. */
   transition:
     opacity var(--dur-settle) var(--ease-snap),
     transform var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-ticket__eyebrow { opacity: 0; transform: translateY(-4px); }
+.is-condensed .bench-ticket__eyebrow { opacity: 0; transform: translateY(-4px); pointer-events: none; }
 .bench-ticket__eyebrow-rule { height: 1px; width: 56px; }
-.bench-ticket__eyebrow-rule--l {
-  background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%);
-}
-.bench-ticket__eyebrow-rule--r {
-  background: linear-gradient(90deg, var(--terra-240) 0%, rgba(226, 184, 119, 0) 100%);
-}
+.bench-ticket__eyebrow-rule--l { background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%); }
+.bench-ticket__eyebrow-rule--r { background: linear-gradient(90deg, var(--terra-240) 0%, rgba(226, 184, 119, 0) 100%); }
 .bench-ticket__eyebrow-label {
   font-family: var(--font-mono), monospace;
   font-size: 10px;
@@ -400,17 +380,24 @@
   white-space: nowrap;
 }
 
-/* Tabs */
+/* Tabs — rest: a grid (the invitation pair). */
 .bench-ticket__tabs {
   display: grid;
   grid-template-columns: 1fr auto 1fr;   /* tab · divider · tab (close is absolute) */
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  /* Constant symmetric inset reserves room for the absolute close on the right
-     in BOTH states — so the tab pair stays centred with zero horizontal
-     animation (the old spacer/close width churn is gone). */
   padding: 0 30px;
+}
+/* Condensed: a flex row where ONE value is the gap between every element AND the
+   left/right edge inset — so all five spaces are identical:
+   edge · Visual · divider · Longform · ✕ · edge. */
+.is-condensed .bench-ticket__tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* centred shrink; slack→0 at 290 → gaps even */
+  gap: var(--space-24);
+  padding: 0 var(--space-24);
 }
 
 .bench-tab {
@@ -425,9 +412,13 @@
   width: 100%;
   box-sizing: border-box;
   padding: 13px 12px;
-  transition: padding var(--dur-settle) var(--ease-snap);
+  transition:
+    padding var(--dur-settle) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
 }
-.is-docked .bench-tab { padding: 4px 6px; }
+/* Condensed tab: content-sized (label = cell, so the gaps measure to the labels);
+   vertical padding keeps a comfortable tap height. */
+.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: var(--space-12) 0; }
 
 .bench-tab__title {
   font-family: var(--font-display), serif;
@@ -437,7 +428,7 @@
   font-size: 27px;
   transition: font-size var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-tab__title { font-size: 18px; }
+.is-condensed .bench-tab__title { font-size: 20px; }
 
 .bench-tab__ink {
   color: var(--terra-960);
@@ -449,17 +440,24 @@
     color var(--dur-fast) var(--ease-snap),
     text-decoration-color var(--dur-fast) var(--ease-snap);
 }
-/* Docked, inactive tab → muted ink. */
-.is-docked .bench-tab:not([aria-current="true"]) .bench-tab__ink {
+/* Condensed, inactive tab → muted ink. */
+.is-condensed .bench-tab:not([aria-current="true"]) .bench-tab__ink {
   color: color-mix(in srgb, var(--terra-720) 55%, var(--grey-560));
 }
-/* Hover = a colour shift + an underline (no box). */
+/* Hover = colour shift + underline. */
 .bench-tab:hover .bench-tab__ink {
   color: var(--terra-720);
   text-decoration-color: var(--terra-720);
 }
-/* Docked active tab keeps the accent underline. */
+/* Condensed active tab keeps the accent underline. */
 .bench-tab[aria-current="true"] .bench-tab__ink {
+  text-decoration-color: var(--terra-560);
+}
+/* Press (onclick) — a quick tactile settle on the condensed tabs: nudge down,
+   deepen the ink, flash the accent underline. Paper-snap, no bounce, no pill. */
+.is-condensed .bench-tab:active { transform: scale(0.95); }
+.is-condensed .bench-tab:active .bench-tab__ink {
+  color: var(--terra-960);
   text-decoration-color: var(--terra-560);
 }
 
@@ -472,12 +470,10 @@
   letter-spacing: 0.02em;
   color: var(--terra-720);
   margin-top: 9px;
-  transition: margin-top var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-tab__sub { margin-top: 2px; }
+.is-condensed .bench-tab__sub { margin-top: 2px; }
 
-/* Divider between the two labels. Perforated dots at rest; a more pronounced
-   solid hairline when docked so the navbar reads as two clear cells. */
+/* Divider — dots at rest; a thin line, hugging its own width, when condensed. */
 .bench-perf {
   position: relative;
   display: flex;
@@ -486,6 +482,7 @@
   align-self: stretch;
   width: 18px;
 }
+.is-condensed .bench-perf { width: auto; }
 .bench-perf__line {
   display: block;
   width: 4px;
@@ -496,7 +493,7 @@
   background-position: center;
   transition: height var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-perf__line {
+.is-condensed .bench-perf__line {
   width: 1px;
   height: 26px;
   background-image: none;
@@ -512,16 +509,16 @@
   align-items: center;
   justify-content: center;
   color: var(--terra-560);
-  opacity: 1;
-  transition: opacity var(--dur-settle) var(--ease-snap);
 }
-.is-docked .bench-perf__bead { opacity: 0; }
+.is-condensed .bench-perf__bead { display: none; }
 
-/* Close — hidden at rest, appears docked; library `close` icon. */
+/* Close — hidden at rest; condensed it joins the flex row, hugging its icon so
+   its left/right gaps match the rest. */
 .bench-ticket__close {
   position: absolute;
   right: 6px;
   top: 50%;
+  transform: translateY(-50%);
   appearance: none;
   border: none;
   background: none;
@@ -534,22 +531,29 @@
   color: var(--terra-560);
   opacity: 0;
   pointer-events: none;
-  /* Absolute (anchored to the frame) + opacity/transform only — no width
-     animation, so it never pushes the tabs. It eases in from a small rightward
-     offset as the ticket docks. */
-  transform: translateY(-50%) translateX(6px);
   transition:
     opacity var(--dur-settle) var(--ease-snap),
-    transform var(--dur-settle) var(--ease-snap),
-    color var(--dur-instant) var(--ease-snap);
+    color var(--dur-fast) var(--ease-snap);
 }
-.is-docked .bench-ticket__close {
+.is-condensed .bench-ticket__close {
+  position: static;
+  flex: 0 0 auto;
+  width: auto;
+  height: 44px;
+  transform: none;
   opacity: 1;
-  transform: translateY(-50%) translateX(0);
   pointer-events: auto;
+  transition:
+    color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
 }
 .bench-ticket__close:hover { color: var(--terra-960); }
-.bench-ticket__close-icon { font-size: 18px; }
+/* Press (onclick) — same tactile settle as the tabs. */
+.is-condensed .bench-ticket__close:active {
+  transform: scale(0.88);
+  color: var(--terra-960);
+}
+.bench-ticket__close-icon { font-size: 20px; }
 
 
 /* ── Entrance: slide in from the right when arriving from landing ──────────── */
@@ -572,9 +576,9 @@
 
 /* ── Mobile recomposition (≤767px / landscape phones) ──────────────────────── */
 /* A purposeful different composition, not the desktop scaled down: the card
-   goes full-bleed-ish, the poem wraps naturally (authored <br>s suppressed),
-   the edge-split watermark becomes a single centred ghost. The ticket + morph
-   already fit (max-width caps at viewport; the 296px navbar clears 375px). */
+   goes full-bleed-ish, the poem wraps naturally (authored <br>s suppressed).
+   The ticket + morph already fit (max-width caps at viewport; the condensed
+   navbar clears 375px). */
 @media (max-width: 767px), (max-height: 500px) {
   .bench-workbench {
     padding-top: 8px;
@@ -593,19 +597,6 @@
     max-width: 300px;
   }
   .bench-poem--second { margin-top: 40px; }
-
-  /* Watermark → one centred ghost stacked behind the content. */
-  .bench-card__watermark {
-    inset: 0;
-    bottom: auto;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    font-size: 60px;
-    line-height: 0.92;
-    text-align: center;
-  }
 
   .bench-crown { margin: 4px 0 32px; }
   .bench-divider { margin: 36px 0 30px; }

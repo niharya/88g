@@ -23,13 +23,6 @@ Top-left marker above the invitation card; links home.
 > "Back to landing page" (aria-label)
 > — [`Essay/BenchExitMarker.tsx:31`](../../app/(works)/all/components/Essay/BenchExitMarker.tsx#L31)
 
-## Invitation card — watermark {#card-watermark}
-
-Edge-split Pinyon Script ghost behind the card (decorative; `aria-hidden`).
-
-> "Product" / "Designer"
-> — [`Essay/InvitationCard.tsx:40-41`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L40)
-
 ## Invitation card — manifesto {#card-manifesto}
 
 The two-stanza poem in gradient-clipped Fraunces. Authored `<br>` line breaks shown as line breaks below; they are suppressed on mobile (the poem wraps naturally).
