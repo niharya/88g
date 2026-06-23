@@ -18,7 +18,7 @@
    tile width via container-query units so the artefact fills the frame
    without distortion. transform: scale() on a foreign embedded canvas is
    a documented exception to the crafted-lite ban — see
-   /selected/ANOMALIES.md "Rug Rumble interface scene". */
+   /all/ANOMALIES.md "Rug Rumble interface scene". */
 .sc-rr-scene__canvas {
   position: relative;
   width: 548px;

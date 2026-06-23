@@ -181,7 +181,9 @@ to avoid scroll-clamp jumps.
    overshoot removed. → review (risk-heavy).
 5. **Shell integration** — `?view`⇄morph state; reset-on-nav-out; EXIT targets → `?cases`.
 6. **Tab content** — `SelectedContent` (Timeline+Archive) into Longform; `Showcase` into Visual;
-   verify archive-expand inside the tab; decide fate of `HeaderBlock`/`HintRow`.
+   verify archive-expand inside the tab. `HeaderBlock` AND `HintRow` were both dropped — the Visual
+   grid is now headed by a category **FilterStrip** (All · Interface · Brand), a single-select
+   radiogroup that recedes non-matching tiles (pure-CSS). See `ANOMALIES.md` → "Filter strip".
 7. **Responsive** — port mobile composition.
 8. **Motion polish + a11y** — ambient gradient, reduced-motion gates.
 9. **Cleanup + docs** — retire `FirstView`/cue/`ShowcaseSection`/`Prelude`; rewrite `ANOMALIES`

@@ -21,6 +21,9 @@
    rather than cutting a different-coloured border around it. */
 .workbench:has(.bench-workbench) {
   --workbench-bg: #f2f3ef;        /* design desk surface */
+  /* Pull the broadside up into the generous top space (route-scoped — the shared
+     --workbench-pad-y stays untouched for rr/biconomy). */
+  padding-top: var(--space-24);
 }
 
 /* The shared `.transition-pane` carries `will-change: transform` (globals.css),
@@ -38,15 +41,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: clamp(8px, 4vh, 44px);
+  padding-top: clamp(6px, 2vh, 18px);
 }
 
 /* ── Stage ──────────────────────────────────────────────────────────────── */
 .bench-stage {
+  /* One knob scales the whole broadside (card + ticket) as a faithful uniform
+     reduction — width scales too, so line-breaks are preserved and the authored
+     proportions hold. This is a real layout scale (crisp text, working dock), NOT
+     transform:scale (which would make the card the containing block for the fixed
+     docked ticket and break the navbar). Tune --card-scale, then adjust from there. */
+  --card-scale: 0.75;
+  --card-rhythm: calc(var(--space-40) * var(--card-scale));
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 820px;
+  max-width: calc(820px * var(--card-scale));
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -58,7 +68,7 @@
    a touch darker than the marks white-on-art treatment). Links home. */
 .bench-exit {
   align-self: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: var(--space-20);
 }
 
 .bench-exit .nav-marker--exit {
@@ -98,19 +108,19 @@
   overflow: hidden;
   width: 100%;
   background-color: var(--blue-80);
-  border: 5px solid var(--blue-800);
+  border: 4px solid var(--blue-800);
   box-shadow:
     0 2px 5px rgba(20, 40, 80, 0.10),
     0 18px 40px -12px rgba(20, 40, 80, 0.28);
-  /* Uniform vertical rhythm: --space-40 between every element (and as the top
-     inset). Horizontal padding stays 44. */
-  padding: var(--space-40) 44px var(--space-40);
+  /* Uniform vertical rhythm: --card-rhythm between every element (and as the top
+     inset). Horizontal padding scales with the card so the reduction stays faithful. */
+  padding: var(--card-rhythm) calc(var(--space-48) * var(--card-scale));
 }
 
 /* Engraved double-frame — inner keyline. */
 .bench-card__keyline {
   position: absolute;
-  inset: 11px;
+  inset: var(--space-12);
   border: 1px solid var(--blue-320);
   pointer-events: none;
   z-index: 1;
@@ -121,7 +131,7 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 780px;
+  max-width: calc(780px * var(--card-scale));
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -132,21 +142,21 @@
 
 /* ── Marks (filled mint startooth) + flanking hairlines ───────────────────── */
 .bench-crown {
-  margin: 0 0 var(--space-40);
+  margin: 0 0 var(--card-rhythm);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: calc(var(--space-12) * var(--card-scale));
 }
 
 .bench-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: calc(var(--space-16) * var(--card-scale));
   width: 100%;
-  max-width: 460px;
-  margin: var(--space-40) 0;
+  max-width: calc(460px * var(--card-scale));
+  margin: var(--card-rhythm) 0;
 }
 
 .bench-mark {
@@ -156,16 +166,21 @@
 }
 /* Marks shrink with the rest of the card (the SVGs carry fixed 48px attrs;
    CSS dimensions override them so the compaction stays proportional). */
-.bench-mark svg { width: 32px; height: 32px; }
+.bench-mark svg { width: calc(var(--space-32) * var(--card-scale)); height: calc(var(--space-32) * var(--card-scale)); }
 /* The crown star carries more weight than the divider diamond — sized up. */
-.bench-crown .bench-mark svg { width: 44px; height: 44px; }
+.bench-crown .bench-mark svg { width: calc(var(--space-48) * var(--card-scale)); height: calc(var(--space-48) * var(--card-scale)); }
+/* Divider diamond matched to the crown star's WIDTH. Both glyph paths span the
+   same x:10→90 fraction of an identical 0 0 100 100 viewBox, so an equal (square)
+   svg box yields equal rendered width; the box stays square so preserveAspectRatio
+   doesn't clamp it back. The diamond stays flat (path only fills y:30→70). */
+.bench-divider .bench-mark svg { width: calc(var(--space-48) * var(--card-scale)); height: calc(var(--space-48) * var(--card-scale)); }
 
 /* Fading hairline rules either side of a mark. The crown uses fixed 46px
    stubs; the divider uses flex:1 rules that fill the row. */
 .bench-rule {
   height: 1px;
 }
-.bench-crown .bench-rule { width: 46px; }
+.bench-crown .bench-rule { width: calc(var(--space-48) * var(--card-scale)); }
 .bench-divider .bench-rule { flex: 1; }
 .bench-rule--l {
   background: linear-gradient(90deg, rgba(144, 200, 254, 0) 0%, var(--blue-320) 100%);
@@ -184,10 +199,10 @@
   font-family: var(--font-display), serif;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   font-weight: 400;
-  /* 24px — the display step (matches .t-h1 / .t-h2 in globals.css). */
-  font-size: 24px;
+  /* 24px display step, scaled with the card (line-height/letter-spacing track). */
+  font-size: calc(24px * var(--card-scale));
   line-height: 1.3;
-  letter-spacing: -0.4px;
+  letter-spacing: calc(-0.4px * var(--card-scale));
   text-wrap: balance;
   color: var(--blue-720);
   background-image: linear-gradient(
@@ -212,7 +227,7 @@
 }
 
 .bench-poem--second {
-  margin: var(--space-40) 0 0;
+  margin: var(--card-rhythm) 0 0;
   color: var(--blue-800);
   background-image: linear-gradient(
     100deg,
@@ -230,15 +245,15 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 11px;
+  gap: calc(var(--space-12) * var(--card-scale));
   width: 100%;
-  max-width: 780px;
+  max-width: calc(780px * var(--card-scale));
   text-align: center;
 }
 
 .bench-closing__eyebrow {
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale));
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--blue-560);
@@ -247,7 +262,7 @@
 .bench-closing__line {
   margin: 0;
   font-family: var(--font-pinyon), cursive;
-  font-size: clamp(28px, 3.2vw, 40px);
+  font-size: calc(clamp(28px, 3.2vw, 40px) * var(--card-scale));
   line-height: 1.14;
   letter-spacing: 0.01em;
   color: var(--blue-720);
@@ -290,49 +305,57 @@
 
 /* ── The ticket ("BROWSE IN TWO WAYS") ────────────────────────────────────── */
 /* Foots the card at rest; on scroll it pins at the top (.is-pinned) and condenses
-   into a compact tab bar (.is-condensed). The condense ANIMATES on the box
-   (width 460→290, frame padding, title size) over one --dur-settle/--ease-snap
-   settle; disappearing chrome (eyebrow) fades opacity-only out of flow. The
-   condensed width is DEFINITE (290px, not fit-content) so width can interpolate,
-   and `justify-content:center` keeps the shrink centred — slack lands at 0 at the
-   final width, so the five gaps end exactly even. */
+   into a compact tab bar (.is-condensed). The box ANIMATES over one snappy
+   --dur-slide/--ease-snap beat — width + frame padding (height) + title size +
+   divider width/height — and the eyebrow + bead fade opacity-only. The tabs swap
+   grid→flex (a known one-frame rearrange — the centred diamond and the tight
+   condensed fit both depend on it; smoothing it in pure CSS regresses one or the
+   other, so it stays). The condensed width is a DEFINITE 290 (see below) so width
+   can interpolate. */
 .bench-ticket-slot {
   position: relative;
   z-index: 200;
   width: 100%;
-  max-width: 460px;
-  margin: var(--space-40) auto 0;
+  max-width: calc(460px * var(--card-scale));
+  margin: var(--card-rhythm) auto 0;
 }
 
 .bench-ticket {
   position: relative;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
-  max-width: 460px;
+  /* DEFINITE width (not 100%) so the width transition is a clean px→px shrink. With
+     100%, pinning (position:fixed) re-resolves the percentage against the viewport,
+     which makes width HOLD for a beat before it starts — so it lagged the height
+     collapse. A definite width starts in lockstep. `max-width:100%` keeps it from
+     overflowing a narrower container (mobile). */
+  width: calc(460px * var(--card-scale));
+  max-width: 100%;
   background: var(--terra-80);
   border: 1.5px solid var(--terra-240);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 10px 24px -6px rgba(0, 0, 0, 0.14);
-  padding: 7px;
+  padding: calc(var(--space-8) * var(--card-scale));
   overflow: hidden;
   box-sizing: border-box;
   transition:
-    width var(--dur-settle) var(--ease-snap),
-    padding var(--dur-settle) var(--ease-snap),
-    box-shadow var(--dur-settle) var(--ease-snap);
+    width var(--dur-slide) var(--ease-snap),
+    padding var(--dur-slide) var(--ease-snap),
+    box-shadow var(--dur-slide) var(--ease-snap);
 }
 /* Pinned: fixed navbar at the top + a deeper floating shadow. */
 .is-pinned .bench-ticket {
   position: fixed;
-  top: 14px;
+  top: var(--space-16);
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
 }
-/* Condensed: a DEFINITE width (so width can interpolate 460→290); tuned to the
-   content so `justify-content:center` lands slack at 0 → all five gaps even.
-   Gaps stay on the within-element scale (--space-24 ceiling, per docs/rhythm.md);
-   the bar's presence comes from width + the tabs' tap padding, not from pulling
-   a structural 32+ token for inner gaps. */
-.is-condensed .bench-ticket { width: 290px; padding: 0; }
+/* Condensed: a DEFINITE width (so width can interpolate from rest → here). NOT
+   scaled by --card-scale — the tab sub-labels are a fixed 11px and don't shrink
+   with the card, so a scaled-down box clips them. At a fixed 290 the content
+   (~212 incl. gaps) fits and the centred slack reads as comfortable left/right
+   margin. The `min()` guards against inversion: if the rest width (460×scale) ever
+   drops below 290 (scale < ~0.63) the condense would otherwise GROW the box; the
+   cap keeps it a shrink (degenerate-but-safe at very small scales). */
+.is-condensed .bench-ticket { width: min(290px, calc(460px * var(--card-scale))); padding: 0; }
 
 .bench-ticket__frame {
   position: relative;
@@ -342,11 +365,11 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: 52px 16px 22px;
+  padding: calc(var(--space-56) * var(--card-scale)) calc(var(--space-16) * var(--card-scale)) calc(var(--space-24) * var(--card-scale));
   transition:
-    padding var(--dur-settle) var(--ease-snap),
-    border-width var(--dur-settle) var(--ease-snap),
-    border-color var(--dur-settle) var(--ease-snap);
+    padding var(--dur-slide) var(--ease-snap),
+    border-width var(--dur-slide) var(--ease-snap),
+    border-color var(--dur-slide) var(--ease-snap);
 }
 /* Border-WIDTH (not `border:none`) collapses to 0 so it animates and leaves no
    inset — the edge gap stays exactly the tabs padding. */
@@ -355,49 +378,51 @@
 /* Eyebrow — fades opacity-only (absolute, out of flow → no reflow). */
 .bench-ticket__eyebrow {
   position: absolute;
-  top: 20px;
+  top: calc(var(--space-20) * var(--card-scale));
   left: 0;
   right: 0;
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: calc(var(--space-12) * var(--card-scale));
   justify-content: center;
   opacity: 1;
   transition:
-    opacity var(--dur-settle) var(--ease-snap),
-    transform var(--dur-settle) var(--ease-snap);
+    opacity var(--dur-slide) var(--ease-snap),
+    transform var(--dur-slide) var(--ease-snap);
 }
 .is-condensed .bench-ticket__eyebrow { opacity: 0; transform: translateY(-4px); pointer-events: none; }
-.bench-ticket__eyebrow-rule { height: 1px; width: 56px; }
+.bench-ticket__eyebrow-rule { height: 1px; width: calc(var(--space-56) * var(--card-scale)); }
 .bench-ticket__eyebrow-rule--l { background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%); }
 .bench-ticket__eyebrow-rule--r { background: linear-gradient(90deg, var(--terra-240) 0%, rgba(226, 184, 119, 0) 100%); }
 .bench-ticket__eyebrow-label {
   font-family: var(--font-mono), monospace;
-  font-size: 10px;
+  font-size: calc(10px * var(--card-scale));
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--terra-720);
   white-space: nowrap;
 }
 
-/* Tabs — rest: a grid (the invitation pair). */
+/* Tabs — rest: a grid (the invitation pair), which keeps the divider diamond at
+   the exact centre (equal 1fr cells). Condensed: a centred flex cluster. The
+   grid→flex swap is a known instant rearrange (the right tab gathers inward in one
+   frame) — a pure-CSS smooth morph here regresses either the centred diamond or the
+   tight condensed fit, so the swap stays; the surrounding detail (divider, bead) is
+   smoothed instead. See ANOMALIES → "Condense". */
 .bench-ticket__tabs {
   display: grid;
   grid-template-columns: 1fr auto 1fr;   /* tab · divider · tab (close is absolute) */
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  padding: 0 30px;
+  padding: 0 calc(var(--space-32) * var(--card-scale));
 }
-/* Condensed: a flex row where ONE value is the gap between every element AND the
-   left/right edge inset — so all five spaces are identical:
-   edge · Visual · divider · Longform · ✕ · edge. */
 .is-condensed .bench-ticket__tabs {
   display: flex;
   align-items: center;
-  justify-content: center;   /* centred shrink; slack→0 at 290 → gaps even */
-  gap: var(--space-24);
-  padding: 0 var(--space-24);
+  justify-content: center;
+  gap: calc(var(--space-24) * var(--card-scale));
+  padding: 0 calc(var(--space-24) * var(--card-scale));
 }
 
 .bench-tab {
@@ -411,24 +436,24 @@
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  padding: 13px 12px;
+  padding: calc(var(--space-12) * var(--card-scale)) calc(var(--space-12) * var(--card-scale));
   transition:
-    padding var(--dur-settle) var(--ease-snap),
+    padding var(--dur-slide) var(--ease-snap),
     transform var(--dur-instant) var(--ease-snap);
 }
 /* Condensed tab: content-sized (label = cell, so the gaps measure to the labels);
    vertical padding keeps a comfortable tap height. */
-.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: var(--space-12) 0; }
+.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: calc(var(--space-12) * var(--card-scale)) 0; }
 
 .bench-tab__title {
   font-family: var(--font-display), serif;
   font-variation-settings: 'WONK' 1;
   letter-spacing: -0.4px;
   line-height: 1.05;
-  font-size: 27px;
-  transition: font-size var(--dur-settle) var(--ease-snap);
+  font-size: calc(27px * var(--card-scale));
+  transition: font-size var(--dur-slide) var(--ease-snap);
 }
-.is-condensed .bench-tab__title { font-size: 20px; }
+.is-condensed .bench-tab__title { font-size: calc(20px * var(--card-scale)); }
 
 .bench-tab__ink {
   color: var(--terra-960);
@@ -469,9 +494,9 @@
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--terra-720);
-  margin-top: 9px;
+  margin-top: var(--space-8);
 }
-.is-condensed .bench-tab__sub { margin-top: 2px; }
+.is-condensed .bench-tab__sub { margin-top: var(--space-2); }
 
 /* Divider — dots at rest; a thin line, hugging its own width, when condensed. */
 .bench-perf {
@@ -480,22 +505,29 @@
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  width: 18px;
+  width: var(--space-20);
+  transition: width var(--dur-slide) var(--ease-snap);
 }
-.is-condensed .bench-perf { width: auto; }
+/* Definite (not auto) so the divider's footprint interpolates with the rest of
+   the morph instead of snapping. */
+.is-condensed .bench-perf { width: 2px; }
 .bench-perf__line {
   display: block;
   width: 4px;
-  height: 60px;
+  height: var(--space-64);
   background-image: radial-gradient(circle at center, var(--terra-160) 0 1.4px, transparent 1.8px);
   background-size: 4px 6px;
   background-repeat: repeat-y;
   background-position: center;
-  transition: height var(--dur-settle) var(--ease-snap);
+  /* width tweens with height so the line thins as it shortens (the dotted→solid
+     fill still swaps, but it's imperceptible on a 1px line). */
+  transition:
+    height var(--dur-slide) var(--ease-snap),
+    width var(--dur-slide) var(--ease-snap);
 }
 .is-condensed .bench-perf__line {
   width: 1px;
-  height: 26px;
+  height: var(--space-24);
   background-image: none;
   background-color: var(--terra-240);
 }
@@ -503,28 +535,31 @@
   position: absolute;
   background: var(--terra-80);
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: var(--space-24);
+  height: var(--space-24);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--terra-560);
+  opacity: 1;
+  /* Fade out (not display:none) so the bead dissolves with the morph. */
+  transition: opacity var(--dur-slide) var(--ease-snap);
 }
-.is-condensed .bench-perf__bead { display: none; }
+.is-condensed .bench-perf__bead { opacity: 0; }
 
 /* Close — hidden at rest; condensed it joins the flex row, hugging its icon so
    its left/right gaps match the rest. */
 .bench-ticket__close {
   position: absolute;
-  right: 6px;
+  right: var(--space-8);
   top: 50%;
   transform: translateY(-50%);
   appearance: none;
   border: none;
   background: none;
   cursor: pointer;
-  width: 30px;
-  height: 34px;
+  width: var(--space-32);
+  height: var(--space-32);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -532,14 +567,14 @@
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity var(--dur-settle) var(--ease-snap),
+    opacity var(--dur-slide) var(--ease-snap),
     color var(--dur-fast) var(--ease-snap);
 }
 .is-condensed .bench-ticket__close {
   position: static;
   flex: 0 0 auto;
   width: auto;
-  height: 44px;
+  height: var(--space-48);
   transform: none;
   opacity: 1;
   pointer-events: auto;
@@ -581,11 +616,11 @@
    navbar clears 375px). */
 @media (max-width: 767px), (max-height: 500px) {
   .bench-workbench {
-    padding-top: 8px;
+    padding-top: var(--space-8);
   }
 
   .bench-card {
-    padding: 44px 22px 52px;
+    padding: var(--space-40) var(--space-24) var(--space-48);
   }
 
   /* Natural wrap — drop the broadside's hand-set line breaks. */
@@ -596,19 +631,20 @@
     letter-spacing: -0.3px;
     max-width: 300px;
   }
-  .bench-poem--second { margin-top: 40px; }
+  .bench-poem--second { margin-top: var(--space-40); }
 
-  .bench-crown { margin: 4px 0 32px; }
-  .bench-divider { margin: 36px 0 30px; }
+  .bench-crown { margin: var(--space-4) 0 var(--space-32); }
+  .bench-divider { margin: var(--space-32) 0 var(--space-32); }
 
   /* Tighter ticket on small screens. */
-  .bench-ticket-slot { margin-top: clamp(40px, 6vh, 64px); }
+  .bench-ticket-slot { margin-top: clamp(var(--space-40), 6vh, var(--space-64)); }
 }
 
 
 /* ── Reduced motion ────────────────────────────────────────────────────────── */
-/* The morph + scroll glide are gated in JS (useBenchMorph snaps to end-states);
-   this covers the CSS-driven ambient gradient + the entrance slide. */
+/* The commit-glide swaps for an instant jump in JS (useBenchDock → glideTo); this
+   matches it by zeroing the ticket's condense transitions so the morph snaps to
+   its end-state, and covers the ambient gradient + the entrance slide. */
 @media (prefers-reduced-motion: reduce) {
   .bench-poem,
   .bench-poem--second {
@@ -617,5 +653,14 @@
   .bench-workbench--slide-in .bench-exit,
   .bench-workbench--slide-in .bench-card {
     animation: none;
+  }
+  .bench-ticket,
+  .bench-ticket__frame,
+  .bench-ticket__eyebrow,
+  .bench-tab,
+  .bench-tab__title,
+  .bench-perf__line,
+  .bench-ticket__close {
+    transition: none;
   }
 }

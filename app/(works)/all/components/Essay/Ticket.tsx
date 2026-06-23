@@ -1,7 +1,8 @@
 // Ticket — the letterpress "BROWSE IN TWO WAYS" ticket. ONE element: it foots
-// the card as the invitation at rest, and lifts into a condensed navbar on
-// scroll. `.is-pinned` (position) + `.is-condensed` (the visual condense) are
-// driven by useBenchDock. This component is structural — no inline state.
+// the card as the invitation at rest, and lifts into a condensed navbar for the
+// work view. `engaged` (driven by useBenchDock) applies `.is-pinned` (position)
+// and `.is-condensed` (the visual condense) together, as one unit. This component
+// is structural — no inline state.
 //
 // Tab order: Showcase first (the default), Longform second.
 
@@ -9,8 +10,7 @@ import type { Ref } from 'react'
 import MaterialIcon from '../../../../components/MaterialIcon'
 
 interface TicketProps {
-  pinned: boolean
-  condensed: boolean
+  engaged: boolean
   active: 'vis' | 'lf'
   onShowcase: () => void
   onLongform: () => void
@@ -18,10 +18,10 @@ interface TicketProps {
   slotRef?: Ref<HTMLDivElement>
 }
 
-export default function Ticket({ pinned, condensed, active, onShowcase, onLongform, onClose, slotRef }: TicketProps) {
+export default function Ticket({ engaged, active, onShowcase, onLongform, onClose, slotRef }: TicketProps) {
   return (
     <div
-      className={`bench-ticket-slot${pinned ? ' is-pinned' : ''}${condensed ? ' is-condensed' : ''}`}
+      className={`bench-ticket-slot${engaged ? ' is-pinned is-condensed' : ''}`}
       ref={slotRef}
     >
       <div className="bench-ticket">
@@ -41,7 +41,7 @@ export default function Ticket({ pinned, condensed, active, onShowcase, onLongfo
               type="button"
               className="bench-tab"
               onClick={onShowcase}
-              aria-current={condensed && active === 'vis' ? 'true' : undefined}
+              aria-current={engaged && active === 'vis' ? 'true' : undefined}
             >
               <div className="bench-tab__title"><span className="bench-tab__ink">Visual</span></div>
               <span className="bench-tab__sub">showcase</span>
@@ -61,7 +61,7 @@ export default function Ticket({ pinned, condensed, active, onShowcase, onLongfo
               type="button"
               className="bench-tab"
               onClick={onLongform}
-              aria-current={condensed && active === 'lf' ? 'true' : undefined}
+              aria-current={engaged && active === 'lf' ? 'true' : undefined}
             >
               <div className="bench-tab__title"><span className="bench-tab__ink">Longform</span></div>
               <span className="bench-tab__sub">case studies</span>
@@ -73,7 +73,7 @@ export default function Ticket({ pinned, condensed, active, onShowcase, onLongfo
               className="bench-ticket__close"
               onClick={onClose}
               aria-label="Back to the invitation"
-              tabIndex={condensed ? 0 : -1}
+              tabIndex={engaged ? 0 : -1}
             >
               <MaterialIcon name="close" className="bench-ticket__close-icon" />
             </button>

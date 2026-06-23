@@ -22,10 +22,11 @@
 // can reshuffle the visual order to fill gaps.
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
-import { PIECES, type Piece, type ShowcaseDot } from './data'
+import { PIECES, PIECE_CATEGORY, type Piece, type ShowcaseDot } from './data'
 import ShowcasePiece from './ShowcasePiece'
 import ShowcaseBottomSheet from './ShowcaseBottomSheet'
 import { MOBILE_BP, isMobileViewport } from './responsive'
+import type { ShowcaseFilter } from './FilterStrip'
 import './showcase.css'
 
 // Four-color palette used for the per-load random dot shuffle. Pinned
@@ -65,14 +66,17 @@ function measureSpans(grid: HTMLElement): Record<string, number> {
     const id = slot.dataset.pieceId
     const child = slot.firstElementChild as HTMLElement | null
     if (!id || !child) return
-    const h = child.getBoundingClientRect().height
+    // offsetHeight (layout height) NOT getBoundingClientRect — the latter includes
+    // transforms, so the filter recede's scale-down would otherwise shrink the
+    // measured height and re-pack the receded tiles. offsetHeight is transform-immune.
+    const h = child.offsetHeight
     if (!h) return
     next[id] = Math.ceil((h + gap) / (ROW_HEIGHT_PX + gap))
   })
   return next
 }
 
-export default function Showcase() {
+export default function Showcase({ filter = 'all' }: { filter?: ShowcaseFilter }) {
   const gridRef = useRef<HTMLDivElement | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   // Measured row spans, keyed by piece id. Kept in state (not set imperatively
@@ -122,6 +126,23 @@ export default function Showcase() {
   const piecesWithDots: Piece[] = dotMap
     ? PIECES.map((p) => ({ ...p, dot: dotMap[p.id] ?? p.dot }))
     : PIECES
+
+  // Recede model — every tile stays in the grid (no re-pack); the filter steps
+  // the non-matching ones BACK (monochrome `--backseat-dim`, in CSS) and WAKES the
+  // matching ones (the brightness pulse below).
+  const isMatched = (p: Piece) => filter === 'all' || PIECE_CATEGORY[p.id] === filter
+
+  // If the open tile gets filtered out (receded), close it.
+  useEffect(() => {
+    if (activeId && filter !== 'all' && PIECE_CATEGORY[activeId] !== filter) {
+      setActiveId(null)
+    }
+  }, [filter, activeId])
+
+  // The filter recede / matched-emphasis animation is PURE CSS now — the slot
+  // transitions between its held resting states (scale + monochrome) keyed off
+  // `data-matched` + the `.is-filtering` class below. See showcase.css ("Filter
+  // recede / emphasis"). React just flips the attribute; CSS owns the motion.
 
   // ── Row-span measurement pass ─────────────────────────────────────────
   // rAF-debounced so bursts of ResizeObserver + window resize trigger
@@ -255,19 +276,25 @@ export default function Showcase() {
 
   return (
     <section
-      className={`sc-grid${activeId ? ' is-dimming' : ''}`}
+      className={`sc-grid${activeId ? ' is-dimming' : ''}${filter !== 'all' ? ' is-filtering' : ''}`}
       ref={gridRef}
     >
+      {/* Every tile stays mounted — the filter recedes/wakes them in place (no
+          re-pack), so DOM order + the dense packer are unchanged. `data-matched`
+          drives the CSS recede; the wake pulse (above) hits the matched set. */}
       {piecesWithDots.map((p) => (
         <div
           className={`sc-slot${(p.cols ?? 3) >= 6 ? ' sc-slot--wide' : ''}`}
           data-piece-id={p.id}
+          data-matched={isMatched(p) ? 'true' : 'false'}
           style={slotStyle(p)}
           key={p.id}
         >
           <ShowcasePiece
             piece={p}
             active={activeId === p.id}
+            /* Receded (filtered out) → force-pause its media. */
+            receded={filter !== 'all' && !isMatched(p)}
             /* When ANY tile is open, non-active video tiles pause —      */
             /* the focused artefact is the read; ambient motion behind   */
             /* the dim should quiet down. ShowcasePiece OR's this with   */

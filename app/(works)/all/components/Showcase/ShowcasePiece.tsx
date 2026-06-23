@@ -23,6 +23,9 @@ type Props = {
   /** tiles read this and force-pause so the focused artefact owns the  */
   /** room.                                                              */
   anyActive?: boolean
+  /** True when a category filter is active and this tile is NOT in it —  */
+  /** it's receded (monochrome + scaled back), so its media force-pauses. */
+  receded?: boolean
   /** True when the viewport is below the mobile breakpoint. Set by the  */
   /** Showcase parent (reactive via matchMedia). The tile uses this to   */
   /** decide whether to render its own inline SpecNote (desktop) or      */
@@ -49,6 +52,7 @@ export default function ShowcasePiece({
   piece,
   active,
   anyActive,
+  receded,
   isMobile,
   onSelect,
   toggleVal,
@@ -110,6 +114,33 @@ export default function ShowcasePiece({
     // cardfan, poster carousel, note link) respond. Clicking the dimmed  */
     // backdrop closes.                                                    */
     if (active) return
+    // Receded (not in the active filter) → a quick horizontal "no" shake; it does
+    // NOT open. Keeps the resting receded transform (rotate + scale 0.7) under the
+    // translateX so the size/tilt hold through the shake.
+    if (receded) {
+      // The recede SCALE lives on the slot, so shake the slot (keeping its 0.75).
+      const slot = pieceRef.current?.closest('.sc-slot') as HTMLElement | null
+      if (slot && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const root = getComputedStyle(document.documentElement)
+        const ax = parseFloat(root.getPropertyValue('--space-2')) || 2          // gentle amplitude
+        const dur = (parseFloat(root.getPropertyValue('--dur-slide')) || 0.25) * 1000
+        // Keep the slot's resting receded scale under the shake (it's the only
+        // transform on the slot). Read the var so the shake tracks the knob.
+        const recScale = getComputedStyle(slot).getPropertyValue('--sc-recede-scale').trim() || '0.75'
+        const base = `scale(${recScale})`
+        slot.animate(
+          [
+            { transform: `${base} translateX(0)` },
+            { transform: `${base} translateX(${-ax}px)` },
+            { transform: `${base} translateX(${ax}px)` },
+            { transform: `${base} translateX(${-ax / 2}px)` },
+            { transform: `${base} translateX(0)` },
+          ],
+          { duration: dur, easing: 'cubic-bezier(0.5, 0, 0.2, 1)' },
+        )
+      }
+      return
+    }
     onSelect(piece.id)
   }
 
@@ -170,7 +201,7 @@ export default function ShowcasePiece({
             /*   2. another tile on the showcase is the focused one        */
             /*      (anyActive && !active) — quiets ambient motion behind  */
             /*      the dim so the read sits cleanly on the active tile.   */
-            paused={paused || (!!anyActive && !active)}
+            paused={paused || receded || (!!anyActive && !active)}
             active={active}
           />
 

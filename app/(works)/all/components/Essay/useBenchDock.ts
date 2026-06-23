@@ -1,38 +1,42 @@
 'use client'
 
-// useBenchDock — the bench's scroll-coupled tab nav. ONE ticket element that
-// pins at the top and condenses into a smaller version of itself on scroll.
+// useBenchDock — the bench's two-view scroll. ONE ticket element foots the
+// invitation at rest and lifts into a condensed navbar for the work view.
 //
-// Two coupled states, split so the grow can fire earlier than the unpin without
-// a jump:
-//   • pinned    — position:fixed at the top. Toggles at the TOP edge
-//                 (slot.top ≤ DOCK_TOP), scroll-coincident → seamless hand-off
-//                 to/from the card (no jump).
-//   • condensed — the scale-down + active pill. Shrinks on the TOP edge going
-//                 DOWN (the good snap), but grows back on the BOTTOM edge going
-//                 UP (slot.bottom ≥ DOCK_TOP) — ~one footprint earlier — while
-//                 still pinned, then the pin hands off at the top edge.
-// Direction-gated so the two edges don't fight in the overlap zone.
+// Native scroll stays in charge — the ticket docks + condenses purely by READING
+// the scroll position (`engaged` flips at the dock line), never by hijacking it.
+//
+// One gentle ASSIST, down only: once the reader has scrolled far enough that the
+// ticket DOCKS (engaged) but stops before the card has fully cleared, an idle
+// settle glides the rest of the way into the work view (Anchor 1 = `workY()`). It
+// does NOT fire from the top of the zone (a small peek-scroll never yanks you in),
+// and never fires upward — scrolling back toward the invitation is pure native
+// scroll. Any glide ABORTS the instant the reader scrolls against it, so there's
+// never a fight. Below the work view the long content scrolls free; reduced motion
+// skips the assist entirely.
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { scrollGlide } from '../../../../lib/scrollGlide'
+import { scrollGlide, isGlideActive } from '../../../../lib/scrollGlide'
 
 export type BenchActive = 'vis' | 'lf'
 
-const DOCK_TOP = 14   // matches `.is-pinned .bench-ticket { top }` in bench.css
+const DOCK_TOP = 16    // matches `.is-pinned .bench-ticket { top: var(--space-16) }` in bench.css
+const IDLE_MS  = 150   // settle fires this long after the last scroll (momentum has stopped by now)
+const EPSILON  = 2     // don't bother gliding if we're already within this many px of the target
 
 export function useBenchDock(initialActive: BenchActive) {
   const [active, setActive] = useState<BenchActive>(initialActive)
-  const [pinned, setPinned] = useState(false)
-  const [condensed, setCondensed] = useState(false)
+  const [engaged, setEngaged] = useState(false)
   const slotRef = useRef<HTMLDivElement>(null)
-  const pinnedRef = useRef(false)
-  const condensedRef = useRef(false)
+  const engagedRef = useRef(false)
   const lastYRef = useRef(0)
   const lastDirRef = useRef<'up' | 'down'>('down')
+  // The in-flight glide (target + abort handle), so a counter-scroll can cancel it.
+  const glideRef = useRef<{ target: number; cancel: () => void } | null>(null)
 
   // Reserve the resting footprint so the card doesn't collapse when the ticket
-  // pins out (position:fixed).
+  // pins out (position:fixed). The placeholder stays in flow, so slot.top keeps
+  // tracking the document position even while the ticket is fixed.
   useLayoutEffect(() => {
     const slot = slotRef.current
     if (slot) slot.style.minHeight = `${Math.round(slot.getBoundingClientRect().height)}px`
@@ -53,53 +57,102 @@ export function useBenchDock(initialActive: BenchActive) {
     return () => obs.disconnect()
   }, [])
 
+  // Glide to a target Y under a duration token — DOWN into the work glides calmly
+  // (`--dur-glide`), the reverse back to the invitation is snappier (`--dur-settle`)
+  // — or instantly when the reader prefers reduced motion. The returned handle is
+  // stashed so a counter-scroll can abort it (see the override check in update).
+  const glideTo = useCallback((y: number, durVar = '--dur-glide') => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.scrollTo(0, y)
+      return
+    }
+    const dur = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue(durVar),
+    ) * 1000
+    const cancel = scrollGlide(y, dur || 650)
+    glideRef.current = { target: y, cancel }
+  }, [])
+
+  // Anchor 1 — the work view: the work panel's top at the viewport top, so the
+  // card has scrolled FULLY away and only the docked ticket + the work show.
+  const workY = useCallback(() => {
+    const work = document.querySelector('.bench-work')
+    if (work) return Math.max(0, Math.round(work.getBoundingClientRect().top + window.scrollY))
+    const slot = slotRef.current
+    if (!slot) return 0
+    return Math.max(0, Math.round(slot.getBoundingClientRect().top + window.scrollY - DOCK_TOP))
+  }, [])
+
   useEffect(() => {
+    let idleTimer: number | null = null
+
+    // The assist — DOWN only, and only to FINISH a committed descent: the ticket
+    // must already be docked (engaged), the reader heading down and stopped before
+    // the work view. A peek-scroll from the top (not yet docked) is left alone, and
+    // upward scrolling is never assisted. Never fires mid-glide or under reduced motion.
+    const settle = () => {
+      if (isGlideActive()) return
+      if (!engagedRef.current) return             // not docked yet → a small peek, leave it
+      if (lastDirRef.current !== 'down') return   // reverse scroll is pure native — leave it
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      const w = workY()
+      const y = window.scrollY
+      if (y >= w - EPSILON) return                // already at / past the work view
+      glideTo(w, '--dur-glide')                   // finish the descent so the card clears
+    }
+
     const update = () => {
       const slot = slotRef.current
       if (!slot) return
       const y = window.scrollY
-      const dir: 'up' | 'down' = y > lastYRef.current ? 'down' : y < lastYRef.current ? 'up' : lastDirRef.current
+
+      // Hand control back the instant the reader scrolls AGAINST an in-flight glide.
+      // The glide's own writes always move toward its target; a move the other way
+      // can only be the reader, so abort and let native scroll take over.
+      const g = glideRef.current
+      if (g) {
+        if (!isGlideActive()) {
+          glideRef.current = null
+        } else {
+          const moved  = y - lastYRef.current
+          const toward = g.target - lastYRef.current
+          if (moved !== 0 && Math.sign(moved) !== Math.sign(toward)) {
+            g.cancel()
+            glideRef.current = null
+          }
+        }
+      }
+
+      if (y !== lastYRef.current) lastDirRef.current = y > lastYRef.current ? 'down' : 'up'
       lastYRef.current = y
-      lastDirRef.current = dir
 
-      const r = slot.getBoundingClientRect()
-      const nextPinned = r.top <= DOCK_TOP + 1
+      // engaged = pin + condense, one unit. Reads the dock line; never hijacks.
+      const nextEngaged = slot.getBoundingClientRect().top <= DOCK_TOP + 1
+      if (nextEngaged !== engagedRef.current) { engagedRef.current = nextEngaged; setEngaged(nextEngaged) }
 
-      // Condensed: shrink on the top edge going down; grow on the bottom edge
-      // going up (one footprint earlier); never condensed while unpinned.
-      let nextCondensed = condensedRef.current
-      if (!nextPinned) nextCondensed = false
-      else if (dir === 'down') nextCondensed = true
-      else if (r.bottom >= DOCK_TOP) nextCondensed = false
-
-      if (nextPinned !== pinnedRef.current) { pinnedRef.current = nextPinned; setPinned(nextPinned) }
-      if (nextCondensed !== condensedRef.current) { condensedRef.current = nextCondensed; setCondensed(nextCondensed) }
+      if (idleTimer !== null) window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(settle, IDLE_MS)
     }
+
     update()
     window.addEventListener('scroll', update, { passive: true })
     window.addEventListener('resize', update, { passive: true })
     return () => {
       window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
+      if (idleTimer !== null) window.clearTimeout(idleTimer)
     }
-  }, [])
+  }, [glideTo, workY])
 
-  // Glide so the ticket's slot reaches the dock point (work tops out under it).
-  const scrollToWork = useCallback(() => {
-    const slot = slotRef.current
-    if (!slot) return
-    const y = Math.max(0, Math.round(slot.getBoundingClientRect().top + window.scrollY - DOCK_TOP))
-    scrollGlide(y)
-  }, [])
-
+  // A tab click glides into the work if we're still resting at the invitation;
+  // if already engaged, just swap the content (keeps scroll position).
   const openTab = useCallback((tab: BenchActive) => {
     setActive(tab)
-    if (!pinnedRef.current) scrollToWork()
-  }, [scrollToWork])
+    if (!engagedRef.current) glideTo(workY())
+  }, [glideTo, workY])
 
-  // ✕ — return to the invitation. Scroll up; the ticket un-docks via the scroll
-  // listener. No fixed→static hand-off, so no end jerk.
-  const close = useCallback(() => scrollGlide(0), [])
+  // ✕ — return to the invitation (snappy, like the reverse scroll).
+  const close = useCallback(() => glideTo(0, '--dur-settle'), [glideTo])
 
-  return { active, pinned, condensed, slotRef, openTab, close }
+  return { active, engaged, slotRef, openTab, close }
 }

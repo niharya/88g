@@ -55,7 +55,7 @@ export default function LandingPage() {
   const [greeting] = useState(getGreeting)
 
   /* Slide-in entrance — reads the session flag set by NiharHomeLink on
-     /selected. Owned by React state so the class survives className
+     /all. Owned by React state so the class survives className
      reconciliation when expand toggles. useLayoutEffect runs before paint
      so the class lands before the hero-card__bg animation can start. */
   useLayoutEffect(() => {

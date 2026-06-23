@@ -521,14 +521,6 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "hasAlpha": true,
     "lossless": true
   },
-  "/images/rr/rr-interface-frame.webp": {
-    "dominantColor": "rgb(24, 24, 72)",
-    "thumbHash": "VReGDIQrY3mQd1pnqAqscqALucabV3ZmCQ==",
-    "width": 683,
-    "height": 534,
-    "hasAlpha": true,
-    "lossless": true
-  },
   "/images/rr/rr-resolving-icon.webp": {
     "dominantColor": "rgb(248, 248, 248)",
     "thumbHash": "JbmCDQIkmUWOgmQJxzabsAV4BolnmXGLeQ==",

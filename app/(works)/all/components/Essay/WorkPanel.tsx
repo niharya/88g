@@ -5,14 +5,16 @@
 //     absolute-positioned (mat anchored right:0 width:688), so it's hosted in
 //     `.bench-cases`, a sized relative wrapper that recreates the old
 //     `.selected-layout` positioning context (incl. archive-open growth).
-//   Visual → the Showcase bento grid, in a flow `.sc-section` (1224, centred).
-//     Per the design decision, the showcase's HeaderBlock is dropped (the
-//     bench card is the intro now); the click/esc HintRow is kept.
-// Top padding clears the pinned navbar.
+//   Visual → ShowcaseSection: the category filter strip over the masonry grid.
+//
+// `filter` is held HERE (not in ShowcaseSection) so the reader's choice survives
+// Visual↔Longform tab switches — ShowcaseSection unmounts on each switch, but this
+// state persists. Top padding clears the pinned navbar.
 
+import { useState } from 'react'
 import SelectedContent from '../SelectedContent'
-import Showcase from '../Showcase/Showcase'
-import HintRow from '../Showcase/HintRow'
+import ShowcaseSection from '../Showcase/ShowcaseSection'
+import type { ShowcaseFilter } from '../Showcase/FilterStrip'
 import type { BenchActive } from './useBenchDock'
 
 interface WorkPanelProps {
@@ -20,6 +22,8 @@ interface WorkPanelProps {
 }
 
 export default function WorkPanel({ active }: WorkPanelProps) {
+  const [filter, setFilter] = useState<ShowcaseFilter>('all')
+
   return (
     <div className="bench-work">
       {active === 'lf' ? (
@@ -27,10 +31,7 @@ export default function WorkPanel({ active }: WorkPanelProps) {
           <SelectedContent />
         </div>
       ) : (
-        <div className="sc-section bench-showcase">
-          <HintRow />
-          <Showcase />
-        </div>
+        <ShowcaseSection filter={filter} onFilter={setFilter} />
       )}
     </div>
   )

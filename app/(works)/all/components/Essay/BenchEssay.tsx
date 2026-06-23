@@ -30,8 +30,7 @@ export default function BenchEssay({ initialView }: { initialView?: BenchActive 
           {/* The ticket foots the card; pins + condenses into a smaller version
               of itself on scroll (same element). */}
           <Ticket
-            pinned={d.pinned}
-            condensed={d.condensed}
+            engaged={d.engaged}
             active={d.active}
             onShowcase={() => d.openTab('vis')}
             onLongform={() => d.openTab('lf')}

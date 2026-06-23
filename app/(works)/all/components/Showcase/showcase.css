@@ -23,44 +23,40 @@
 }
 
 
-/* ── Hint row (between prelude and grid, with breathing space) ──────────── */
-/* Mono caption with keycap-styled glyphs for [click] and [esc].            */
-
-.sc-hint {
+/* ── Filter strip (heads the Visual grid) ──────────────────────────────────── */
+/* Single-select category filter (All · Interface · Brand) — mono, the active option
+   a pressed keycap. Sits where the grid's intro goes, with the --space-64 breath
+   before the tiles. A semantic RADIOGROUP, not tabs (see FilterStrip.tsx + ANOMALIES
+   → "Filter strip"). */
+.sc-filter {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-8);
-  /* Header + hint read as a single unit — no top margin or border on  */
-  /* the hint, the single divider lives on .sc-header's border-bottom  */
-  /* sitting directly above this row. Below: --space-64 (doubled from  */
-  /* --space-32) gives the masonry grid a bigger breath before the     */
-  /* tiles begin.                                                       */
   margin: 0 0 var(--space-64);
   padding: var(--space-12) 0;
+}
+.sc-filter__opt {
+  appearance: none;
+  cursor: pointer;
+  padding: 2px 10px;
+  background: transparent;
+  border: 1px solid transparent;
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--grey-400);
+  transition:
+    color var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    background-color var(--dur-fast) var(--ease-snap);
 }
-.sc-hint__key {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
+.sc-filter__opt:hover { color: var(--grey-240); }
+.sc-filter__opt[aria-checked='true'] {
   background: var(--mat-bg);
-  border: 1px solid var(--grey-800);
-  font-family: var(--font-mono);
-  font-size: 10px;
+  border-color: var(--grey-800);
   color: var(--grey-240);
 }
-.sc-hint__txt {
-  color: var(--grey-400);
-}
-.sc-hint__sep {
-  color: var(--grey-640);
-  margin: 0 var(--space-4);
-}
-
 
 /* ── Showcase grid — 9-col CSS Grid with JS-measured row spans ─────── */
 /* 9 columns under the hood. Each slot's column span is set per-piece  */
@@ -118,6 +114,49 @@
      fade, so the unfocused tiles read as "stepped back", not ghosted. */
   filter: var(--backseat-dim);
   pointer-events: none;
+}
+
+/* Filter recede / emphasis — PURE CSS, the same idiom as the open-tile dim above.
+   When a category is active, matched tiles rest slightly ENLARGED and non-matching
+   step back (scale down + the SAME --backseat-dim monochrome). React only flips
+   `data-matched` + `is-filtering`; the slot TRANSITIONS between these held resting
+   states. Interruption (rapid picks) is handled natively — a transition just
+   re-targets from its current value, so there's no "jump".
+
+   The scale lives on the .sc-slot, not the .sc-piece, so it never fights the piece's
+   rotate/hover transform; offsetHeight measurement is transform-immune, so the grid
+   never re-packs. Direction-dependent feel comes from putting the `transition` on
+   each TARGET-state rule: grows + settles use the smooth paper curve; only the
+   step-back to the receded scale uses --sc-ease-recede, a mild overshoot so the
+   recede lands with a small bounce at the END — a sanctioned, route-local deviation
+   from the no-bounce rule (see ANOMALIES → "Filter strip"). Receded tiles stay
+   CLICKABLE — a click triggers the "no" shake (ShowcasePiece), it doesn't open. */
+.sc-section {
+  --sc-matched-scale: 1.03;   /* matched-while-filtering emphasis */
+  --sc-recede-scale: 0.75;    /* stepped-back size */
+  /* The route's one sanctioned overshoot curve (a no-bounce deviation): a gentle
+     settle so the card recede lands with a small bounce at the end. */
+  --sc-ease-recede: cubic-bezier(0.34, 1.15, 0.6, 1);
+}
+.sc-slot {
+  transform-origin: center;
+  transition:
+    transform var(--dur-slide) var(--ease-paper),
+    filter var(--dur-slide) var(--ease-paper);
+}
+.sc-grid.is-filtering .sc-slot[data-matched='true'] {
+  transform: scale(var(--sc-matched-scale));
+}
+.sc-grid.is-filtering .sc-slot[data-matched='false'] {
+  transform: scale(var(--sc-recede-scale));
+  filter: var(--backseat-dim);
+  /* recede: slower settle + overshoot bounce on the scale; colour stays smooth/fast */
+  transition:
+    transform var(--dur-settle) var(--sc-ease-recede),
+    filter var(--dur-slide) var(--ease-paper);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-slot { transition: none; }
 }
 
 

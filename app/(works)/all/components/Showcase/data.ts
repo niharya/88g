@@ -53,6 +53,25 @@ export type PieceKind =
   | 'dual'
   | 'ecochain'
 
+// Filter taxonomy — the two coarse categories the showcase filter strip switches
+// between. The per-tile `type` stays the specific label ("Game Interface",
+// "Pattern"…); this is the broad axis. Keyed by piece id so it's a single
+// authoritative classification, not parsed from the free-text `type`.
+// cardstack → interface (a game-card LAYOUT reads as UI).
+export type PieceCategory = 'interface' | 'brand'
+export const PIECE_CATEGORY: Record<string, PieceCategory> = {
+  cardstack:  'interface',
+  paymaster:  'interface',
+  subway:     'interface',
+  interface:  'interface',
+  ecochain:   'interface',
+  dual:       'interface',
+  furrmark:   'brand',
+  startooth:  'brand',
+  multiverse: 'brand',
+  posters:    'brand',
+}
+
 export type ToggleSpec = {
   defaultKey: string
   opts: { k: string; label: string }[]

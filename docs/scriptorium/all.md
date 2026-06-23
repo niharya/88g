@@ -190,12 +190,12 @@ Source: [`CasesSheet.tsx`](../../app/(works)/all/components/CasesSheet.tsx).
 > "Slangbusters" (header) · "2018 — 2020" (span)
 > The three studies (titles + "Creative Director · {company}" + years 20/19/18), as above.
 
-_(The Work Essay redesign dropped the Visual tab's own copy chrome — the `ShowcaseSection` scroll cue ("SHOWCASE"), the `HeaderBlock` ("Visuals" / "A selection of interfaces, posters, and marks…" / "{n} pieces"), and the `Prelude`/`FirstView`/`AboutCard` intro. The invitation card is the intro now; the Showcase grid renders directly under the `HintRow`. Those components were deleted.)_
+_(The Work Essay redesign dropped the Visual tab's own copy chrome — the `ShowcaseSection` scroll cue ("SHOWCASE"), the `HeaderBlock` ("Visuals" / "A selection of interfaces, posters, and marks…" / "{n} pieces"), the `Prelude`/`FirstView`/`AboutCard` intro, and later the `HintRow` ("click to focus · esc to dismiss" + its timed swap to the filter). The invitation card is the intro now; the Showcase grid renders directly under the `FilterStrip`. Those components were deleted.)_
 
-## Showcase — HintRow {#showcase-hint}
+## Showcase — FilterStrip (category filter) {#showcase-filter}
 
-> "click" / "to focus a piece" / "·" / "esc" / "to dismiss"
-> — [`HintRow.tsx`](../../app/(works)/all/components/Showcase/HintRow.tsx). The two glyphs `click` and `esc` render as keycap chips; the rest is mono caption.
+> "All" / "Interface" / "Brand"
+> — [`FilterStrip.tsx`](../../app/(works)/all/components/Showcase/FilterStrip.tsx). Three mono-caption options heading the grid; the active one reads as a pressed keycap. The control is labelled "Filter pieces by category" (sr-only via `aria-label`).
 
 ## Showcase — pieces (10) {#showcase-pieces}
 

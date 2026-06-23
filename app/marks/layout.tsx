@@ -2,7 +2,7 @@
 //
 // /marks is a completely custom page: no 8px viewport frame, no workbench
 // padding, no TransitionSlot, no ProjectMarker. The only nav chrome we keep
-// is the EXIT marker so users can get back to /selected.
+// is the EXIT marker so users can get back to /all.
 //
 // nav.css is loaded here because it used to come from the (works) shared
 // layout and we need it for the EXIT marker + .nav-icon ligature styles.
