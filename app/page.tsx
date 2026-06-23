@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useLayoutEffect, useEffect, useRef, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import emailjs from '@emailjs/browser'
 import IconArrowRight from './components/icons/IconArrowRight'
@@ -16,6 +17,10 @@ import './components/NavMarker/navmarker.css'
 import './components/Footer/footer.css'
 import './landing.css'
 
+// ssr:false — canvas is client-only; code-splits the engine into its own chunk
+// so it's absent from every other route's bundle.
+const StartoothCanvas = dynamic(() => import('./_landing/StartoothCanvas'), { ssr: false })
+
 /* Session flag read by /selected on arrival so it can slide in from the right.
    Paired with the inline slide-in effect inside LandingPage for the reverse
    trip — that effect is inlined rather than using <SlideInOnNav> because the
@@ -26,6 +31,15 @@ import './landing.css'
 const markToSelected = () => {
   try { sessionStorage.setItem('nav-direction', 'to-selected') } catch { /* non-fatal */ }
 }
+
+/* Startooth build memory — deliberately a MODULE-LEVEL variable, not
+   sessionStorage. It must reset on a hard refresh (the build replays) but
+   persist across client-side navigation (return from /selected jumps straight
+   to settled — replaying a 7s build on an in-app back-trip would be tedious).
+   A module var is exactly that scope: a fresh value per page load, shared
+   across route transitions within the same JS context. sessionStorage would
+   survive the hard refresh and wrongly skip the build. */
+let builtThisLoad = false
 
 const EMAILJS_SERVICE  = 'service_76t20oq'
 const EMAILJS_TEMPLATE = 'template_t3lbcfn'
@@ -64,6 +78,55 @@ export default function LandingPage() {
     if (direction !== 'to-landing') return
     try { sessionStorage.removeItem('nav-direction') } catch { /* non-fatal */ }
     setSlideIn(true)
+  }, [])
+
+  /* ---- Startooth build gate ---- */
+  // `built` drives the .landing--built CSS class, which reveals the landing
+  // once the canvas build completes. `skipBuild` tells the engine to jump
+  // straight to the settled pattern when we've already built in this page-load
+  // (client-side return). Both read from the module-level `builtThisLoad` in
+  // useLayoutEffect so they're known before the first paint — and so a hard
+  // refresh (fresh module) always replays the build.
+  const [built, setBuilt] = useState(false)
+  const [skipBuild, setSkipBuild] = useState(false)
+  // `staged` trails `built` so the entrance reads as a clean sequence — the
+  // hero card settles, THEN the nav tabs and the caption arrive. On client-side
+  // return everything is already settled, so staged flips immediately.
+  const [staged, setStaged] = useState(false)
+
+  useLayoutEffect(() => {
+    if (builtThisLoad) {
+      setBuilt(true)
+      setSkipBuild(true)
+      setStaged(true)
+    }
+  }, [])
+
+  // Stage the trailing elements (nav row + Startooth caption) only AFTER the
+  // hero card has settled. The card's settle runs --dur-place (~1.15s) from the
+  // build reveal, so wait that long before the tabs snap in. The skip path
+  // above sets staged synchronously, so this no-ops on return.
+  useEffect(() => {
+    if (!built || staged) return
+    // --dur-place (~1.15s) for the card to settle + a deliberate beat after it
+    // sits, so the tabs clearly follow the card landing rather than overlapping
+    // its settle. Retune alongside --dur-place.
+    const id = setTimeout(() => setStaged(true), 1500)
+    return () => clearTimeout(id)
+  }, [built, staged])
+
+  // Failsafe: if onBuildComplete never fires (canvas error, no WebGL context,
+  // network failure on the dynamic chunk), reveal the landing after 8 s so
+  // the user isn't stranded at a black screen.
+  useEffect(() => {
+    if (built) return
+    const id = setTimeout(() => setBuilt(true), 8000)
+    return () => clearTimeout(id)
+  }, [built])
+
+  const handleBuildComplete = useCallback(() => {
+    builtThisLoad = true
+    setBuilt(true)
   }, [])
 
   /* ---- Spectrum state ---- */
@@ -467,9 +530,12 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
       />
-      <div className="landing-pattern-bg" aria-hidden="true" />
+      <StartoothCanvas
+        onBuildComplete={handleBuildComplete}
+        skipBuild={skipBuild}
+      />
 
-      <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}`}>
+      <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}${built ? ' landing--built' : ''}${skipBuild ? ' landing--skip' : ''}${staged ? ' landing--staged' : ''}`}>
         <div className="landing__content">
 
           {/* About Short */}
@@ -632,7 +698,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Form reveal */}
-                <div className="contact-card__form-reveal" aria-hidden={!formOpen}>
+                <div className="contact-card__form-reveal" aria-hidden={!formOpen} inert={!formOpen ? true : undefined}>
                   <form
                     ref={formRef}
                     className={formClasses.join(' ')}
@@ -781,7 +847,7 @@ export default function LandingPage() {
           title="Startooth Pattern"
           year={2025}
           description="Geometric trapezoids, sliced by stars and diamonds, inspired by the houndstooth pattern."
-          visible={!expanded}
+          visible={!expanded && staged}
         />
       </div>
 

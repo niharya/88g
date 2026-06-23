@@ -1,0 +1,37 @@
+/* ---- Startooth Canvas — fixed field behind the landing ---- */
+
+/* Root: fixed full-screen, below all landing content (z:0).
+   background:#000 closes the first-paint gap — body is also set to #000
+   via landing.css, but this provides a second layer for older browsers
+   that paint the canvas root before the body rule applies.
+   pointer-events:none — the root div must not block landing content;
+   the canvas element itself restores auto so it receives interaction events
+   in empty areas (voids, gaps between cards). */
+.startooth-canvas-root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: #000;
+  overflow: hidden;
+}
+
+/* Centered + tilted -15°, sized by the engine via JS (ResizeObserver).
+   The engine computes the dimensions needed to fill the viewport after
+   rotation and sets them on this element directly. */
+.startooth-canvas-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.startooth-canvas-root canvas {
+  display: block;
+  /* Canvas receives all pointer events that land in empty areas — the
+     landing content layer has pointer-events:none on its parent so events
+     fall through to here. See landing.css — "canvas interaction opt-in". */
+  pointer-events: auto;
+}

@@ -432,6 +432,10 @@ html.fonts-ready .route-sop {
   --loader-lit:     var(--orange-800);
   --loader-sticker: var(--orange-100);
 }
+/* Landing: canvas IS the loading experience — suppress the patience mark
+   so only black shows before the build begins. display:none is correct here
+   (not a fade) because the loader must never appear, not just end gracefully. */
+:root:has(.landing) .page-boot { display: none; }
 /* /marks sits on a black field. Unlike the old solid mark, the loader is
    line-art on a die-cut hull, so the lines must contrast the hull rather than
    the page: dark ink on a light paper hull reads as a little sticker pressed
@@ -652,6 +656,9 @@ p, li {
        --dur-slide    hover transforms, short paper settles
        --dur-settle   reveal phase 3, standard settles, landing hovers
        --dur-glide    reveal phase 1, long paper settles, marks title reveal
+       --dur-place    slowest tier — the landing hero card settling onto the
+                      Startooth field after the build; paced to the build's
+                      outline→fill wait so the place reads as deliberate
 
      Easing:
        --ease-paper   the one paper curve — spatial settles, reveals, transitions
@@ -665,6 +672,7 @@ p, li {
   --dur-slide:        0.25s;
   --dur-settle:       0.425s;
   --dur-glide:        0.65s;
+  --dur-place:        1.15s;
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);

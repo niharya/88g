@@ -81,9 +81,92 @@
 }
 
 
-/* ---- Pattern background ---- */
+/* ---- Canvas background ---- */
+/* Black base: first-paint background before the canvas element mounts.
+   The canvas engine starts on black, so this closes the FOUC gap. */
 html:has(.landing), html:has(.landing) body {
-  background-color: var(--surface-bg);
+  background-color: #000;
+}
+
+/* ---- Startooth build gate ---- */
+/* Hold the landing invisible until the canvas build completes.
+   :not() contributes .landing--built's specificity → 0,0,3,1, which beats
+   html.fonts-ready .landing in globals.css (0,0,2,1). Once .landing--built
+   lands (React state after canvas fires onBuildComplete), this rule no longer
+   matches and the globals.css fonts-ready reveal takes effect.
+   Skip-on-return: page.tsx sets built=true via useLayoutEffect before paint
+   if sessionStorage flag is present. JS failsafe in page.tsx fires at 8 s. */
+html.fonts-ready .landing:not(.landing--built) {
+  opacity: 0;
+  pointer-events: none;
+  /* NO transition:none here — the base rule below must own the transition.
+     CSS spec: a transition only fires if it is defined in the BEFORE-CHANGE
+     style. Putting transition:none here (at higher specificity) would block
+     the reveal transition from firing when landing--built is added. */
+}
+
+/* ---- Startooth staged entrance ---- */
+/* The hero card's glide-up (hero-glide-up, defined on .hero-card__bg) runs on
+   element MOUNT — which, during a first-visit build, happens while the landing
+   is still held at opacity:0. Without this gate the glide plays behind the
+   curtain and is finished before the reveal, so the card just flat-fades in
+   with everything else. Pausing it until .landing--built holds the card at its
+   from-state through the build, then plays the glide at curtain-lift so the
+   card is seen PLACING onto the settled pattern. The same about-cards that
+   ride hero-glide-up are paused with it for a coherent stack entrance.
+   Skip-on-return: .landing--built is present from first paint, so the card is
+   never paused and glides on mount exactly as a normal load. */
+html.fonts-ready .landing:not(.landing--built) .hero-card__bg,
+html.fonts-ready .landing:not(.landing--built) .about-card {
+  animation-play-state: paused;
+}
+
+/* Keep the about-cards (which sit tucked directly BEHIND the hero) hidden
+   while the hero card is still settling — otherwise they bleed through the
+   not-yet-opaque hero during its fade-in. They're occluded by the hero at rest
+   anyway, so flipping them visible at .landing--staged (once the card has
+   landed) is invisible. The :not(.landing--expanded) guard releases them if the
+   user expands before staging (expand needs them sliding out). */
+html.fonts-ready .landing--built:not(.landing--staged):not(.landing--expanded) .about-card {
+  opacity: 0;
+}
+
+/* ---- Canvas interaction opt-in ---- */
+/* Canvas (below .landing in z-order) receives pointer events in empty areas
+   because .landing and .landing__content pass them through. Override the
+   globals.css fonts-ready pointer-events:auto using same specificity + later
+   cascade position (landing.css loads after globals.css).
+   The transition must live here (not only in .landing--built) so the
+   before-change style has it defined — required for the reveal to animate. */
+html.fonts-ready .landing {
+  pointer-events: none;
+  /* Fast block reveal: opacity snaps to full quickly so the hero card reads as
+     opaque almost immediately (its slow SETTLE motion is carried by the
+     transform/shadow keyframe, not opacity). Everything other than the card is
+     individually gated, so this only governs the card's fade-in. */
+  transition: opacity var(--dur-fast) var(--ease-paper);
+}
+
+/* Skip-on-return: no reveal transition. On the skip path page.tsx flips
+   built=true inside useLayoutEffect (before first paint, for hydration
+   safety), so the opacity 0→1 change arms a transition from a from-state the
+   browser never painted — which pins at currentTime:0 and strands the landing
+   at opacity:0. There's no build to wait for on return, so the correct reveal
+   is instant: kill the transition and let opacity resolve to 1 immediately.
+   (The build path keeps the transition above — its from-state IS painted for
+   the duration of the build, so it animates cleanly.) */
+html.fonts-ready .landing.landing--skip {
+  transition: none;
+}
+
+/* Sections always interactive regardless of collapsed/expanded state.
+   hero: pill-btn + card click; projects: NavMarker row (expand + Works link).
+   CaptionTag: position:fixed but still inherits pointer-events via DOM tree.
+   Group B sections self-manage: explicit none in default, auto in expanded. */
+.landing__section--hero,
+.landing__section--projects,
+.caption-tag {
+  pointer-events: auto;
 }
 
 /* Hide scrollbar on the landing route — native scroll is preserved, only the
@@ -95,43 +178,6 @@ html:has(.landing) {
   -ms-overflow-style: none;     /* legacy Edge / IE */
 }
 html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
-
-.landing-pattern-bg {
-  position: fixed;
-  inset: -50%;
-  z-index: 0;
-  pointer-events: none;
-  background-color: var(--surface-bg);
-  background-image: url('/pattern-startooth-crop2.svg');
-  background-repeat: repeat;
-  background-size: 130px 232px;
-  background-position: top center;
-  transform: rotate(15deg);
-  transform-origin: center;
-
-  /* Load entrance — hold the pattern hidden until fonts are ready, then
-     reveal it with a radial mask that grows from the center outward. Reads
-     as the cells staggering in rather than the whole sheet popping at once.
-     Mask endpoints use percentages so CSS can interpolate the gradient. */
-  opacity: 0;
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 4%);
-          mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 4%);
-  animation: landing-pattern-reveal var(--dur-glide) var(--ease-paper) forwards;
-}
-
-@keyframes landing-pattern-reveal {
-  from {
-    opacity: 0;
-    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 6%);
-            mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 6%);
-  }
-  to {
-    opacity: 1;
-    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 140%, transparent 160%);
-            mask-image: radial-gradient(circle at 50% 50%, #000 140%, transparent 160%);
-  }
-}
-
 
 /* ---- Content layer ---- */
 .landing__content {
@@ -389,7 +435,9 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
 .hero-card__bg {
   background: var(--terra-480);
-  box-shadow: var(--shadow-resting);
+  /* Deeper cast than the default cards — the hero is the lifted piece that
+     settles onto the Startooth field (see hero-card-settle). */
+  box-shadow: var(--shadow-raised);
   padding: 32px 64px 40px;
   position: relative;
   min-height: 240px;
@@ -403,6 +451,28 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
      arriving back from /selected (.landing--slide-in), the keyframe swaps to
      a glide-from-left so the return reads as a directional slide. */
   animation: hero-glide-up var(--dur-glide) var(--ease-paper) both;
+}
+
+/* Build path only — the card SETTLES onto the freshly-built field: a slow
+   scale-down into place with the shadow deepening from flat to its raised
+   cast, so it reads as a piece being set down on a surface. Paced to
+   --dur-place (≈ the build's outline→fill wait). Skip/return paths keep the
+   quick glide above; slide-in keeps its directional glide below. */
+.landing--built:not(.landing--skip):not(.landing--slide-in) .hero-card__bg {
+  animation: hero-card-settle var(--dur-place) var(--ease-paper) both;
+}
+
+/* Rise, then sit. The card rises up into place (slightly past its rest line)
+   while the fast block-opacity fades it in, then comes back down a few px to
+   "sit" on the layout — a mild settle/feedback as if taking its seat — with the
+   shadow deepening flat→raised as it lands. Opacity is intentionally NOT here
+   (the block reveal owns it, fast) so the motion can stay slow while the card
+   reads opaque almost at once. The slight overshoot above rest is an authored
+   dampened settle (single overshoot, no oscillation) — see ANOMALIES. */
+@keyframes hero-card-settle {
+  0%   { transform: translateY(16px); box-shadow: var(--shadow-flat); }
+  60%  { transform: translateY(-5px); }
+  100% { transform: translateY(0);    box-shadow: var(--shadow-raised); }
 }
 
 @keyframes hero-glide-up {
@@ -515,8 +585,17 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
   /* Tuck-out entrance — the nav row sits hidden beneath the hero card
      (hero is z:10, landing__content z:5) and slides down into view once
-     the card has landed. Plays on every mount via animation-play-state. */
-  animation: works-tuck-out var(--dur-settle) var(--ease-paper) 0.45s both;
+     the card has SETTLED. Snappy (--ease-snap) so it reads as a quick reveal
+     after the slow card place. Gated below: paused until .landing--staged
+     (set ~--dur-place after the build reveals, i.e. once the card has landed)
+     so the slide isn't spent behind the build curtain. */
+  animation: works-tuck-out var(--dur-slide) var(--ease-snap) both;
+}
+
+/* Hold the nav row tucked until the card has settled (staged). On skip/return
+   staged is set synchronously, so this releases immediately. */
+html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
+  animation-play-state: paused;
 }
 
 @keyframes works-tuck-out {
@@ -1386,17 +1465,6 @@ textarea.contact-form__input {
 
 
 /* ============================================================
-   Tablet — 768px to 1023px
-   ============================================================ */
-
-@media (min-width: 768px) and (max-width: 1023px) and (min-height: 501px) {
-  .landing-pattern-bg {
-    background-size: 104px 186px;
-  }
-}
-
-
-/* ============================================================
    Mobile — max-width: 767px
    ============================================================ */
 
@@ -1417,10 +1485,6 @@ textarea.contact-form__input {
      Expanded retains var(--expanded-h) via the base .landing--expanded rule. */
   .landing--default {
     height: 100svh;
-  }
-
-  .landing-pattern-bg {
-    background-size: 86px 154px;
   }
 
   .landing__section--hero,
