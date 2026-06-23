@@ -101,8 +101,18 @@ const materialSymbols = localFont({
 // Theme color matches --workbench-bg in globals.css — the warm off-white
 // page surface. Mobile browser chrome (iOS Safari, Android Chrome) tints
 // the URL bar with this so the device shell visually merges into the page.
+//
+// viewportFit: 'cover' lets content fill the whole screen behind the iOS
+// status bar / home-indicator safe areas (default 'auto' insets the viewport,
+// leaving the page background showing in those bands as black on the landing).
+// The landing's full-bleed canvas needs this to reach the true edges; interior
+// pages are light + scrollable so cover reads seamlessly. Any element hugging a
+// screen edge should guard with env(safe-area-inset-*) — /marks already does
+// (top/right/bottom); the landing's only edge element is the decorative bottom
+// caption (CaptionTag), which is harmless if it tucks slightly low.
 export const viewport: Viewport = {
   themeColor: '#f2f3ef',
+  viewportFit: 'cover',
 }
 
 export const metadata: Metadata = {

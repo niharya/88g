@@ -121,6 +121,12 @@ On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop c
 
 `html:has(.landing)` hides the scrollbar via `scrollbar-width: none` + `::-webkit-scrollbar { display: none }` + `-ms-overflow-style: none`. Native scroll is preserved; only the visual indicator goes away. macOS/iOS/Android already overlay-hide, so the rule is mainly for Windows/Linux. The expand-on-click affordance carries the "more content" signal that the scrollbar would otherwise telegraph — if that affordance changes, reconsider.
 
+### Full-bleed canvas needs `viewport-fit: cover` (global)
+
+The Startooth canvas must reach the true screen edges on mobile Safari. By default (`viewport-fit: auto`) iOS insets the viewport to the safe area, so the fixed canvas (`inset: 0`) only covers that — the status-bar band (top) and home-indicator/toolbar band (bottom) fall outside it and show the landing's `#000` body background as **black bars**. `viewport.viewportFit = 'cover'` in `app/layout.tsx` makes the layout viewport span the whole screen so the canvas fills behind the chrome.
+
+**It's global, not landing-scoped** — the landing is a `'use client'` page with no layout of its own (it sits directly under the root layout), so a per-route viewport export isn't possible without a route-group restructure. Acceptable because interior pages are light + scrollable (cover reads seamlessly) and `/marks` already guards its edges with `env(safe-area-inset-*)`. **Cost of cover:** any element pinned to a screen edge now sits under the notch/home-indicator unless it guards with `env(safe-area-inset-*)`. The landing's only edge element is the decorative bottom `CaptionTag` — left unguarded on purpose: its show/hide is a JS-measured `translateY` tuck (`--tuck`/`--tuck-hidden` from `offsetHeight`), and folding a safe-area offset into that risks a sliver of the "hidden" caption peeking. If it ever needs guarding, adjust the tuck math and `--tuck-hidden` together, verified on a real device.
+
 ## Don't-touch list
 
 - `--stack-stagger-start` value (0.22s is tuned against Group A's tuck-out duration)
