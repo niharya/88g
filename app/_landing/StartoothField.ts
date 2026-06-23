@@ -332,6 +332,17 @@ export class StartoothField {
     this.ruptureStart = performance.now()
     this.ruptureOrigin = [x, y]
     this.buildFlickerSchedule()
+    // Haptic in lockstep with the flicker the user is watching: the schedule
+    // already alternates on(flash) → off(blackout) → on → off … → on(settle),
+    // which is exactly vibrate()'s [buzz, pause, buzz, …] contract — so map each
+    // segment to its duration and the phone tears in time with the screen.
+    // No-op on iOS (navigator.vibrate is undefined there); skipped under reduced
+    // motion (the schedule collapses to a single short cut then).
+    if (!this.prefersReduced && navigator.vibrate) {
+      let prev = 0
+      const pattern = this.flickerSchedule.map(s => { const d = Math.round(s.until - prev); prev = s.until; return d })
+      navigator.vibrate(pattern)
+    }
     this.done = false
     this.resetFocus()
     this.lockedKeys.clear()
@@ -554,8 +565,16 @@ export class StartoothField {
     const map = (x: number, y: number, i: number, j: number): number[] =>
       [cx + ((x - 162) + i * this.PERX) * ss, cy + ((y - 282) + j * this.PERY) * ss]
 
-    const iN = Math.ceil((W / 2) / (this.PERX * ss)) + 2
-    const jN = Math.ceil((H / 2) / (this.PERY * ss)) + 2
+    // Tile range spans from the origin out to each canvas edge — asymmetric,
+    // because the origin is NOT always the canvas centre. A centred origin
+    // reduces to the symmetric ±(half-canvas) range; a corner origin (a void
+    // rupture rebuilt from a corner) extends fully to the far edge instead of
+    // running out of tiles half-way across and leaving a black wedge. The ±2
+    // margin covers the within-tile extent and the -15° tilt oversize.
+    const iLo = Math.floor((0 - cx) / (this.PERX * ss)) - 2
+    const iHi = Math.ceil ((W - cx) / (this.PERX * ss)) + 2
+    const jLo = Math.floor((0 - cy) / (this.PERY * ss)) - 2
+    const jHi = Math.ceil ((H - cy) / (this.PERY * ss)) + 2
 
     const onscreen = (pts: number[][]): number[] | null => {
       let a=1e9, b=1e9, c=-1e9, d=-1e9
@@ -575,8 +594,8 @@ export class StartoothField {
       regs.push({ kind, cx:rcx, cy:rcy, dist, bb, pts, path: this.closed(pts), unit: -1, ti:i, tj:j, keyGroup })
     }
 
-    for (let i = -iN; i <= iN; i++) {
-      for (let j = -jN; j <= jN; j++) {
+    for (let i = iLo; i <= iHi; i++) {
+      for (let j = jLo; j <= jHi; j++) {
         addR(this.STAR,    'star',    i, j)
         addR(this.DIAMOND, 'diamond', i, j)
         for (const f of FACES_SHORTKEY) addR(f, 'face', i, j, 0)
@@ -732,7 +751,6 @@ export class StartoothField {
     const u = this.hit(lx, ly)
 
     if (isDown) {
-      if (!this.reduced && navigator.vibrate) navigator.vibrate(16)
       if (u && !isKey(u)) {
         // Press a void → push it in; release → push out
         this.outlineHeld = true; this.pressedVoid = u
@@ -752,8 +770,15 @@ export class StartoothField {
           this.chargeVoid = u; this.chargeBase = 1
         }
         this.chargeAt = performance.now()
-        if (this.chargeBase >= this.N) this.triggerRupture(u.cx, u.cy)
+        if (this.chargeBase >= this.N) {
+          this.triggerRupture(u.cx, u.cy)   // owns its own flicker-synced haptic
+        } else if (!this.reduced && navigator.vibrate) {
+          // Wind-up — each charge tick bites a little harder toward the rupture.
+          // (No amplitude control in the API; we scale the pulse length instead.)
+          navigator.vibrate(Math.round(12 + (this.chargeBase / this.N) * 18))
+        }
       } else {
+        if (!this.reduced && navigator.vibrate) navigator.vibrate(16)
         if (!this.reduced && !u) {
           // Empty space click — radial ripple
           this.ripples.push({ ox: lx, oy: ly, t0: performance.now() })
@@ -1173,11 +1198,12 @@ export class StartoothField {
       }
     }
 
-    // Fire build-complete once the on-screen fills are done. The lattice is
-    // oversized for the -15° tilt, so the farthest regions (which finish last,
-    // ~0.88) sit off-screen; every VISIBLE region is filled by ~0.79. Firing at
-    // 0.85 starts the card place sooner with no visible pop, since bakeSettled
-    // redraws the full pattern regardless of prog.
-    return prog > 0.85
+    // Fire build-complete just as the last visible corner is being laid down,
+    // not after the whole coat fills. The lattice is oversized for the -15° tilt,
+    // so the farthest regions (which finish last, ~0.88) sit off-screen; every
+    // VISIBLE region is filled by ~0.79. Firing at 0.76 reveals the card as that
+    // final corner paints — they OVERLAP, no pop (bakeSettled redraws the full
+    // pattern regardless of prog).
+    return prog > 0.76
   }
 }

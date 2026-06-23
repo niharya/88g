@@ -672,7 +672,7 @@ p, li {
   --dur-slide:        0.25s;
   --dur-settle:       0.425s;
   --dur-glide:        0.65s;
-  --dur-place:        1.15s;
+  --dur-place:        0.9s;
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);

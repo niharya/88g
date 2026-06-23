@@ -43,9 +43,17 @@ At the Nth click the break reads electrical:
 
 **Variation (Q4):** each rupture advances a small curated palette ramp (`paletteVariants`) — the warm `face`/`top` tones nudge one step and wrap. Subtle: "same field, slightly different light." The `core` (read from `--surface-bg`) and the authored `-15°` tilt never change.
 
+### Haptics (Android; iOS is a graceful no-op)
+
+The break is felt, not just seen. The Web Vibration API has no amplitude control — only on/off timing — so "intensity" is composed from pattern shape:
+- **Wind-up:** each charge press fires a tick whose *length* scales with `charge / N` (≈12ms → ≈30ms at the brink), so the build feels like it's tightening.
+- **The rupture:** the pulled-plug **`flickerSchedule` is mapped directly to a vibration pattern** — its segments already alternate on(flash) → off(blackout) → on … → on(settle), which is exactly `navigator.vibrate([buzz, pause, …])`'s contract — so the phone tears in lockstep with the screen. Same source, so they can never drift.
+
+`navigator.vibrate` is `undefined` on iOS Safari (no web haptics) — the `&&` guard makes it a silent no-op; the visual carries the moment there. Skipped under `prefers-reduced-motion`.
+
 ### Reduced motion (Q5)
 
-Minimal: skip the tremor and the multi-stutter flicker; do a quick cut → settle → regrow (the rebuild is already instant when `reduced`).
+Minimal: skip the tremor and the multi-stutter flicker; do a quick cut → settle → regrow (the rebuild is already instant when `reduced`). No haptics.
 
 ### What's reused vs. new
 

@@ -462,16 +462,17 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   animation: hero-card-settle var(--dur-place) var(--ease-paper) both;
 }
 
-/* Rise, then sit. The card rises up into place (slightly past its rest line)
-   while the fast block-opacity fades it in, then comes back down a few px to
-   "sit" on the layout — a mild settle/feedback as if taking its seat — with the
-   shadow deepening flat→raised as it lands. Opacity is intentionally NOT here
-   (the block reveal owns it, fast) so the motion can stay slow while the card
-   reads opaque almost at once. The slight overshoot above rest is an authored
-   dampened settle (single overshoot, no oscillation) — see ANOMALIES. */
+/* Rise, then sit. The card rises into place on a short run-up (slightly past its
+   rest line) while the fast block-opacity reveal fades it in, then settles back down
+   the last few px to "sit" on the layout — a gentle dampened settle — with the shadow
+   deepening flat→raised as it lands. Opacity is intentionally NOT here (the block
+   reveal owns it, fast) so the motion can stay slow while the card reads opaque almost
+   at once. The single small overshoot above rest is an authored dampened settle (no
+   oscillation) — a deliberate deviation from "no overshoot", kept deliberately shallow.
+   Paced to --dur-place. */
 @keyframes hero-card-settle {
-  0%   { transform: translateY(16px); box-shadow: var(--shadow-flat); }
-  60%  { transform: translateY(-5px); }
+  0%   { transform: translateY(10px); box-shadow: var(--shadow-flat); }
+  58%  { transform: translateY(-3px); }
   100% { transform: translateY(0);    box-shadow: var(--shadow-raised); }
 }
 

@@ -89,31 +89,40 @@ export default function LandingPage() {
   // refresh (fresh module) always replays the build.
   const [built, setBuilt] = useState(false)
   const [skipBuild, setSkipBuild] = useState(false)
-  // `staged` trails `built` so the entrance reads as a clean sequence — the
-  // hero card settles, THEN the nav tabs and the caption arrive. On client-side
-  // return everything is already settled, so staged flips immediately.
+  // The entrance reads as a clean sequence — the hero card settles, THEN the nav
+  // tabs slide out, THEN the Startooth caption follows a beat later. `staged`
+  // gates the nav tabs (and about-cards); `captionIn` trails it for the caption.
+  // On client-side return everything is already settled, so both flip immediately.
   const [staged, setStaged] = useState(false)
+  const [captionIn, setCaptionIn] = useState(false)
 
   useLayoutEffect(() => {
     if (builtThisLoad) {
       setBuilt(true)
       setSkipBuild(true)
       setStaged(true)
+      setCaptionIn(true)
     }
   }, [])
 
-  // Stage the trailing elements (nav row + Startooth caption) only AFTER the
-  // hero card has settled. The card's settle runs --dur-place (~1.15s) from the
-  // build reveal, so wait that long before the tabs snap in. The skip path
-  // above sets staged synchronously, so this no-ops on return.
+  // Stage the nav row just after the hero card has docked. The card's dock runs
+  // --dur-place (~0.9s) from the build reveal; we wait a short beat beyond that
+  // so the tabs follow the card landing closely without overlapping its dock.
+  // The skip path above sets staged synchronously, so this no-ops on return.
   useEffect(() => {
     if (!built || staged) return
-    // --dur-place (~1.15s) for the card to settle + a deliberate beat after it
-    // sits, so the tabs clearly follow the card landing rather than overlapping
-    // its settle. Retune alongside --dur-place.
-    const id = setTimeout(() => setStaged(true), 1500)
+    const id = setTimeout(() => setStaged(true), 1300)
     return () => clearTimeout(id)
   }, [built, staged])
+
+  // The Startooth caption trails the nav tabs — once the tabs are out, hold a
+  // beat, then let the caption slide up so the two reveals read as distinct
+  // steps rather than arriving together.
+  useEffect(() => {
+    if (!staged || captionIn) return
+    const id = setTimeout(() => setCaptionIn(true), 700)
+    return () => clearTimeout(id)
+  }, [staged, captionIn])
 
   // Failsafe: if onBuildComplete never fires (canvas error, no WebGL context,
   // network failure on the dynamic chunk), reveal the landing after 8 s so
@@ -847,7 +856,7 @@ export default function LandingPage() {
           title="Startooth Pattern"
           year={2025}
           description="Geometric trapezoids, sliced by stars and diamonds, inspired by the houndstooth pattern."
-          visible={!expanded && staged}
+          visible={!expanded && captionIn}
         />
       </div>
 
