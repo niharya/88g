@@ -88,6 +88,19 @@ html:has(.landing), html:has(.landing) body {
   background-color: #000;
 }
 
+/* Once built, blend the page background into the canvas ground tone. iOS Safari
+   paints the backdrop behind its translucent status bar / bottom toolbar with the
+   PAGE background (not the fixed canvas, which it can't render there) — so with a
+   black page bg those bands read as black bars even under viewport-fit:cover. Swap
+   to --surface-bg (the pattern's structural ground) at build-complete so the bands
+   blend into the settled field instead. Gated on .landing--built (not first paint)
+   so the black build-intro is untouched; eased over --dur-place so it settles with
+   the card. See _landing/ANOMALIES.md → "Full-bleed canvas needs viewport-fit". */
+html:has(.landing--built), html:has(.landing--built) body {
+  background-color: var(--surface-bg);
+  transition: background-color var(--dur-place) var(--ease-paper);
+}
+
 /* ---- Startooth build gate ---- */
 /* Hold the landing invisible until the canvas build completes.
    :not() contributes .landing--built's specificity → 0,0,3,1, which beats
