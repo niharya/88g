@@ -39,23 +39,45 @@
 .sc-filter__opt {
   appearance: none;
   cursor: pointer;
-  padding: 2px 10px;
+  /* Roomier than before so the selected option's double frame (below) has space
+     to breathe; padding is CONSTANT across rest/hover/checked, so selecting an
+     option never shifts its neighbours. */
+  padding: 5px 14px;
   background: transparent;
   border: 1px solid transparent;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--grey-400);
   transition:
     color var(--dur-fast) var(--ease-snap),
     border-color var(--dur-fast) var(--ease-snap),
-    background-color var(--dur-fast) var(--ease-snap);
+    background-color var(--dur-fast) var(--ease-snap),
+    box-shadow var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
 }
-.sc-filter__opt:hover { color: var(--grey-240); }
+/* Hover (unchecked only) — telegraph the keycap before commit: ink lifts and a
+   hairline edge previews the pressable border the checked state fills in. */
+.sc-filter__opt:not([aria-checked='true']):hover {
+  color: var(--grey-240);
+  border-color: var(--grey-880);
+}
+/* Press — a quick tactile settle, the same paper-snap idiom as the ticket tabs
+   (no bounce, no pill); ink deepens for the duration of the press. */
+.sc-filter__opt:active {
+  transform: scale(0.95);
+  color: var(--grey-160);
+}
+/* Selected — a small, precise "framed object" (Wes-Anderson symmetry): a dark
+   outer stroke, a breathing mat gap, then an inner hairline frame. The two inner
+   layers are INSET box-shadows, so the double frame adds no width — no reflow. */
 .sc-filter__opt[aria-checked='true'] {
   background: var(--mat-bg);
-  border-color: var(--grey-800);
-  color: var(--grey-240);
+  border-color: var(--grey-480);
+  color: var(--grey-160);
+  box-shadow:
+    inset 0 0 0 2px var(--mat-bg),
+    inset 0 0 0 3px var(--grey-720);
 }
 
 /* ── Showcase grid — 9-col CSS Grid with JS-measured row spans ─────── */
@@ -110,9 +132,11 @@
 /* clicking them goes through the backdrop first (which closes the focus). */
 .sc-grid.is-dimming .sc-piece:not(.is-active) {
   /* Same backseat recede as the biconomy/rr menu-open dim — the shared
-     --backseat-dim token (brightness + desaturate). Monochrome, not a
-     fade, so the unfocused tiles read as "stepped back", not ghosted. */
-  filter: var(--backseat-dim);
+     --backseat-dim token (brightness + desaturate) PLUS a mild opacity step
+     (--sc-recede-opacity) so the unfocused tiles read as stepped-back, not
+     only greyed. The opacity lives in the filter chain (opacity(), not the
+     property) so Framer's inline opacity can never override it. */
+  filter: var(--backseat-dim) opacity(var(--sc-recede-opacity));
   pointer-events: none;
 }
 
@@ -134,6 +158,7 @@
 .sc-section {
   --sc-matched-scale: 1.03;   /* matched-while-filtering emphasis */
   --sc-recede-scale: 0.75;    /* stepped-back size */
+  --sc-recede-opacity: 0.7;   /* mild opacity loss on receded tiles (both recede modes) */
   /* The route's one sanctioned overshoot curve (a no-bounce deviation): a gentle
      settle so the card recede lands with a small bounce at the end. */
   --sc-ease-recede: cubic-bezier(0.34, 1.15, 0.6, 1);
@@ -149,7 +174,7 @@
 }
 .sc-grid.is-filtering .sc-slot[data-matched='false'] {
   transform: scale(var(--sc-recede-scale));
-  filter: var(--backseat-dim);
+  filter: var(--backseat-dim) opacity(var(--sc-recede-opacity));
   /* recede: slower settle + overshoot bounce on the scale; colour stays smooth/fast */
   transition:
     transform var(--dur-settle) var(--sc-ease-recede),
@@ -218,7 +243,7 @@
   align-items: center;
   gap: var(--space-8);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: lowercase;
@@ -320,6 +345,17 @@
   z-index: 60;
   transform: rotate(0deg) translateY(-12px) scale(1.025);
   cursor: default;
+}
+
+/* Lift the active SLOT above its siblings — not just the piece. The piece's
+   z-index:60 only orders WITHIN its own slot; receded siblings each carry a
+   `filter` (a stacking context), so a later-in-DOM receded slot could paint
+   over the active tile's index card. Elevating the whole slot puts the active
+   artefact (tile + SpecNote) above every sibling slot, and above the z-50
+   backdrop, while receded siblings stay below it (click-to-dismiss intact). */
+.sc-slot:has(.sc-piece.is-active) {
+  position: relative;
+  z-index: 70;
 }
 
 /* Tiles that carry a controls bar (paymaster, ecochain, interface,      */
@@ -465,7 +501,7 @@
   gap: 8px;
   margin-top: var(--space-12);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--grey-320);
   /* line-height 1.2 (not 1): at 11 px font, line-height 1 makes the    */
@@ -657,7 +693,7 @@
 
 .sc-switch__label {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--grey-400);
   cursor: pointer;
@@ -1216,7 +1252,7 @@
   writing-mode: vertical-lr;
   text-orientation: sideways;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.04em;
 }
 .sc-audit__arrow {
@@ -1412,7 +1448,7 @@
   bottom: 4%;
   transform: translateX(-50%);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.04em;
   color: var(--grey-320);
   background: var(--mat-bg);

@@ -7,6 +7,8 @@
 // ShowcasePiece (desktop: measure column → pick left/right) and by
 // ShowcaseBottomSheet (mobile: singleton bottom sheet), not by data.
 
+import { CARD_COPY } from './card-copy'
+
 // Four-tone palette — narrowed from six (olive/yellow dropped) +
 // removed the unused grey. Anchored to the brand's four primaries so
 // every piece reads in-system. The per-page-load shuffle distributes
@@ -148,13 +150,14 @@ export type Piece = {
 // `num` is preserved on each entry as the stable narrative serial for
 // referencing; it no longer controls display order.
 
-export const PIECES: Piece[] = [
+// Structural piece data only — the reader-facing copy fields (type, title,
+// whatIs, notice) live in card-copy.ts and are overlaid by id below, so the dev
+// copy-editor can rewrite copy without ever touching this file.
+const PIECES_STRUCT: Omit<Piece, 'type' | 'title' | 'whatIs' | 'notice'>[] = [
   {
     id: 'cardstack',
     num: 1,
     kind: 'cardstack',
-    title: 'Evolution of RR Card',
-    type: 'Layout Design',
     dot: 'blue',
     project: 'Rug Rumble',
     year: '2024',
@@ -167,16 +170,12 @@ export const PIECES: Piece[] = [
     aspect: 1.4,
     frame: false,
     href: '/rr',
-    whatIs: 'A series showing how a custom playing-card layout evolved',
-    notice: 'Notice how information is chunked out for easy scanning',
   },
   {
     id: 'paymaster',
     num: 4,
     kind: 'paymaster',
-    title: 'Paymaster',
     short: 'Paymaster',
-    type: 'Developer Dashboard',
     dot: 'orange',
     project: 'Biconomy',
     year: '2024',
@@ -193,16 +192,12 @@ export const PIECES: Piece[] = [
         { k: 'after', label: 'After Audit' },
       ],
     },
-    whatIs: 'A DevX comparison before and after applying a UX Audit',
-    notice: 'Notice how the content stays the same and only the layout changes across the before and after',
   },
   {
     id: 'subway',
     num: 3,
     kind: 'subway',
-    title: 'Site-Nav',
     short: 'Site Nav',
-    type: 'Wayfinding UI',
     dot: 'mint',
     project: 'This site',
     year: '2026',
@@ -213,15 +208,11 @@ export const PIECES: Piece[] = [
     video: true,
     // href intentionally omitted — the "project" IS this very site, so the
     // index-card foot renders as plain credit text, not a link.
-    whatIs: 'A navigation marker that works as a menu toggle + page title',
-    notice: 'Notice how the project and chapter markers snap satisfyingly',
   },
   {
     id: 'furrmark',
     num: 7,
     kind: 'furrmark',
-    title: 'Furrmark',
-    type: 'Identity',
     dot: 'orange',
     project: 'Aleyr',
     year: '2021',
@@ -231,15 +222,11 @@ export const PIECES: Piece[] = [
     frame: true,
     video: true,
     href: 'https://niharbhagat.com/work/aleyr/',
-    whatIs: 'A brandmark for a pet care brand',
-    notice: 'Notice how it skips the usual cat-and-dog caricatures to express your love for your pet',
   },
   {
     id: 'startooth',
     num: 6,
     kind: 'startooth',
-    title: 'Startooth Pattern',
-    type: 'Pattern',
     dot: 'blue',
     project: 'My sketchbook',
     year: '2026',
@@ -255,15 +242,11 @@ export const PIECES: Piece[] = [
     // overlapping the image edge.
     frame: true,
     // href intentionally omitted — index-card foot renders as plain credit.
-    whatIs: 'My take on the classic Houndstooth',
-    notice: 'Notice how the trapezoids are sliced by diamonds and stars to form edible barfis',
   },
   {
     id: 'interface',
     num: 2,
     kind: 'interface',
-    title: 'Interface-RR',
-    type: 'Game Interface',
     dot: 'terra',
     project: 'Rug Rumble',
     year: '2024',
@@ -279,15 +262,11 @@ export const PIECES: Piece[] = [
     // exclusion in showcase.css.
     frame: false,
     href: '/rr',
-    whatIs: 'A vitals gauge for a PvP game',
-    notice: 'Notice how the health bar separators make it easy to read health at a glance',
   },
   {
     id: 'multiverse',
     num: 5,
     kind: 'multiverse',
-    title: 'Multiverse',
-    type: 'Design Intervention',
     dot: 'terra',
     project: 'Biconomy',
     year: '2023',
@@ -297,15 +276,11 @@ export const PIECES: Piece[] = [
     aspect: 1684 / 2382,
     frame: false,
     href: '/biconomy',
-    whatIs: 'A poster revealing silos within the workplace',
-    notice: 'Notice how the copy and metaphor just hint at the issue instead of shouting about it',
   },
   {
     id: 'ecochain',
     num: 10,
     kind: 'ecochain',
-    title: 'Ecochain UI',
-    type: 'Interface',
     dot: 'mint',
     project: 'Ecochain',
     year: '2019',
@@ -323,16 +298,12 @@ export const PIECES: Piece[] = [
         { k: 'icons', label: 'Status icons' },
       ],
     },
-    whatIs: 'Interface for a textile trading platform',
-    notice: 'Notice how buying and selling functions are grouped left and right',
   },
   {
     id: 'dual',
     num: 9,
     kind: 'dual',
-    title: 'Job Chip',
     short: 'Components',
-    type: 'Interface',
     dot: 'mint',
     project: 'Connektion',
     year: '2021',
@@ -347,15 +318,11 @@ export const PIECES: Piece[] = [
     aspect: 1.1,
     frame: false,
     href: 'https://niharbhagat.com/work/connektion/',
-    whatIs: 'Status indicators for tracking job stages',
-    notice: 'Notice how each stage reads at a glance through the length of the progress bar',
   },
   {
     id: 'posters',
     num: 8,
     kind: 'posters',
-    title: 'Posters',
-    type: 'Posters',
     dot: 'terra',
     project: 'Mic Testing',
     year: '2017',
@@ -370,7 +337,13 @@ export const PIECES: Piece[] = [
     aspect: 0.70,
     frame: false,
     href: 'https://www.behance.net/gallery/47138397/Open-Mic-Series-Poster-Collection',
-    whatIs: 'Posters for social-media marketing of open mics',
-    notice: 'Notice the Swiss Grid running through them',
   },
 ]
+
+// Overlay the editable copy (card-copy.ts) onto the structural data by id —
+// CARD_COPY is authoritative for title / whatIs / notice. The result is the
+// full Piece[] the rest of the route consumes.
+export const PIECES: Piece[] = PIECES_STRUCT.map((p) => ({
+  ...p,
+  ...CARD_COPY[p.id],
+}))

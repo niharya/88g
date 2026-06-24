@@ -86,9 +86,28 @@
 
 /* The shared exit treatment (nav.css) rotates the arrow 180° so it points
    right. The bench marker is a "back to landing" link, so point it left —
-   neutralise the inherited rotation (route-scoped; other exits keep theirs). */
-.bench-exit .nav-icon {
+   neutralise the inherited rotation. We MATCH-AND-EXCEED the base selector
+   (`.nav-marker--exit .nav-icon`, three classes vs two) so the reset wins by
+   SPECIFICITY, not source order: a client-side nav into /all (landing → works)
+   can re-insert the CSS chunks in a different order, and an order-only win let
+   the base rotation resurface and flip the arrow right. Route-scoped; other
+   exits keep their 180°. */
+.bench-exit .nav-marker--exit .nav-icon {
   transform: none;
+}
+
+/* The Nihar marker reads like the rest of the site's links: a dotted underline
+   at REST that fills to solid on hover — overriding nav.css's shell-exit idiom
+   (transparent-rest → dotted-hover, kept for the white-on-art exits). Beats the
+   base by specificity (three classes) so source order can't flip it either. */
+.bench-exit .nav-marker--exit .nav-marker__exit-label {
+  text-decoration: underline dotted currentColor;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+.bench-exit .nav-marker--exit:hover .nav-marker__exit-label,
+.bench-exit .nav-marker--exit:focus-visible .nav-marker__exit-label {
+  text-decoration-style: solid;
 }
 
 .bench-exit .nav-marker--exit:hover .nav-marker__content,
@@ -349,13 +368,14 @@
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
 }
 /* Condensed: a DEFINITE width (so width can interpolate from rest → here). NOT
-   scaled by --card-scale — the tab sub-labels are a fixed 11px and don't shrink
-   with the card, so a scaled-down box clips them. At a fixed 290 the content
-   (~212 incl. gaps) fits and the centred slack reads as comfortable left/right
-   margin. The `min()` guards against inversion: if the rest width (460×scale) ever
-   drops below 290 (scale < ~0.63) the condense would otherwise GROW the box; the
-   cap keeps it a shrink (degenerate-but-safe at very small scales). */
-.is-condensed .bench-ticket { width: min(290px, calc(460px * var(--card-scale))); padding: 0; }
+   scaled by --card-scale — the tab sub-labels are a fixed 10px and don't shrink
+   with the card, so a scaled-down box clips them. At a fixed 236 the content
+   (~190 incl. gaps + the in-flow ✕) fills the box with tight, balanced ~23px
+   left/right margins — retuned down from the old loose 290 (which left ~45px
+   voids and let the ✕ float). The `min()` guards against inversion: if the rest
+   width (460×scale) ever drops below 236 (scale < ~0.51) the condense would
+   otherwise GROW the box; the cap keeps it a shrink (degenerate-but-safe). */
+.is-condensed .bench-ticket { width: min(236px, calc(460px * var(--card-scale))); padding: 0; }
 
 .bench-ticket__frame {
   position: relative;
@@ -421,8 +441,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--space-24) * var(--card-scale));
-  padding: 0 calc(var(--space-24) * var(--card-scale));
+  /* Tighter than the rest-state 24: the whole row (both tabs · divider · ✕)
+     centres as one unit with even inter-item gaps, filling the 236 box. */
+  gap: calc(var(--space-20) * var(--card-scale));
+  padding: 0 calc(var(--space-20) * var(--card-scale));
 }
 
 .bench-tab {
@@ -478,6 +500,12 @@
 .bench-tab[aria-current="true"] .bench-tab__ink {
   text-decoration-color: var(--terra-560);
 }
+/* Condensed underline reads cleaner under the smaller title — a hair thinner and
+   nudged off the baseline so it clears the descenders and the sub-label below. */
+.is-condensed .bench-tab__ink {
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
 /* Press (onclick) — a quick tactile settle on the condensed tabs: nudge down,
    deepen the ink, flash the accent underline. Paper-snap, no bounce, no pill. */
 .is-condensed .bench-tab:active { transform: scale(0.95); }
@@ -491,12 +519,12 @@
   overflow: hidden;
   white-space: nowrap;
   font-family: var(--font-mono), monospace;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--terra-720);
   margin-top: var(--space-8);
 }
-.is-condensed .bench-tab__sub { margin-top: var(--space-2); }
+.is-condensed .bench-tab__sub { margin-top: var(--space-4); }
 
 /* Divider — dots at rest; a thin line, hugging its own width, when condensed. */
 .bench-perf {
@@ -574,7 +602,9 @@
   position: static;
   flex: 0 0 auto;
   width: auto;
-  height: var(--space-48);
+  /* Hugs its glyph (width:auto) so it's the row's quiet end-mark, not a wide
+     cell; 32 tall keeps a comfortable tap target without dictating row height. */
+  height: var(--space-32);
   transform: none;
   opacity: 1;
   pointer-events: auto;
@@ -589,6 +619,9 @@
   color: var(--terra-960);
 }
 .bench-ticket__close-icon { font-size: 20px; }
+/* A touch smaller in the condensed navbar so the ✕ reads as a quiet dismiss,
+   proportional to the shrunk tab titles rather than competing with them. */
+.is-condensed .bench-ticket__close-icon { font-size: 18px; }
 
 
 /* ── Entrance: slide in from the right when arriving from landing ──────────── */

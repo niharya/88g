@@ -23,8 +23,9 @@ export const metadata: Metadata = {
 // (the `/showcase` & `/cases` rewrites resolve to these). Read here (server)
 // rather than via client useSearchParams so the rewrites work: the rewrite's
 // destination query reaches the server, but the browser URL (and
-// useSearchParams) doesn't carry it. Precedence: showcase (the default tab)
-// wins if both flags are somehow present; neither flag → the resting invite.
+// useSearchParams) doesn't carry it. Precedence: showcase wins if both flags
+// are somehow present; neither flag → null, and the bench defaults to the
+// Longform (case studies) tab.
 export default async function BenchPage({
   searchParams,
 }: {
