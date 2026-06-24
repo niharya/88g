@@ -5,7 +5,7 @@
 // Two modes:
 //   • Dynamic (default): sticky marker with arrow rotation, docked detection,
 //     tray open/close. Requires containerRef pointing to the parent <section>.
-//   • Static: inert marker rendering only the box + content. Used on /selected
+//   • Static: inert marker rendering only the box + content. Used on /all
 //     for the "Works" marker.
 //
 // Scroll-coupled behaviors live in useDockedMarker hook. Positioning is

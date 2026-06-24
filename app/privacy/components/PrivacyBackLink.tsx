@@ -4,7 +4,7 @@
 // arrived from. The Footer's Privacy link writes a `from-privacy` flag
 // to sessionStorage on click; this component reads it on mount and
 // renders a NavMarker labelled and toned to match that source. So:
-//   • from /selected → "Works" with terra tone
+//   • from /all     → "Works" with terra tone
 //   • from /biconomy → "Biconomy" with mint tone (the route's accent)
 //   • from /rr      → "Rug Rumble" with terra tone
 //   • from /        → plain "Back" marker (intentionally NOT "Nihar" —
@@ -26,7 +26,7 @@ type BackTarget = {
 }
 
 const TARGETS: Record<string, BackTarget> = {
-  '/selected':  { href: '/selected',  label: 'Works',      tone: 'terra'   },
+  '/all':       { href: '/all',       label: 'Works',      tone: 'terra'   },
   '/biconomy':  { href: '/biconomy',  label: 'Biconomy',   tone: 'mint'    },
   '/rr':        { href: '/rr',        label: 'Rug Rumble', tone: 'terra'   },
   '/':          { href: '/',          label: 'Back',       tone: 'neutral' },

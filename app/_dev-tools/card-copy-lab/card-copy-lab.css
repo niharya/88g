@@ -1,0 +1,178 @@
+/* Index-card copy lab — throwaway dev styling, not promoted. Left: a plain
+   labelled form. Right: the ACTUAL caption + SpecNote (showcase.css is imported
+   by the page), with the in-tile absolute positioning neutralised so the card
+   sits statically in the sample column. Global tokens only. */
+
+.cclab {
+  min-height: 100vh;
+  padding: var(--space-32) var(--space-32) var(--space-96);
+  background: var(--grey-960);
+  color: var(--grey-240);
+}
+
+/* Save bar — pinned on top so the commit affordance is always reachable. */
+.cclab__bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding: var(--space-16) 0 var(--space-20);
+  margin-bottom: var(--space-32);
+  background: linear-gradient(var(--grey-960) 72%, transparent);
+  border-bottom: 1px solid var(--grey-880);
+}
+.cclab__h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 32px;
+  letter-spacing: -0.5px;
+  color: var(--grey-160);
+}
+.cclab__sub {
+  margin: 4px 0 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--grey-480);
+}
+.cclab__sub code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--grey-320);
+}
+
+.cclab__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  flex-shrink: 0;
+}
+.cclab__status {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-480);
+}
+.cclab__status--saved { color: var(--mint-720, var(--grey-240)); }
+.cclab__status--error { color: var(--terra-720, #b4341f); }
+
+.cclab__save {
+  appearance: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  padding: 8px 22px;
+  color: var(--grey-960);
+  background: var(--grey-160);
+  border: 1px solid var(--grey-160);
+  transition: opacity var(--dur-fast) var(--ease-snap), background-color var(--dur-fast) var(--ease-snap);
+}
+.cclab__save:hover:not(:disabled) { background: var(--grey-240); }
+.cclab__save:disabled { opacity: 0.4; cursor: default; }
+
+/* One row per piece: form | live sample. */
+.cclab__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  max-width: 1080px;
+  margin-inline: auto;
+}
+.ccrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 384px;
+  gap: var(--space-32);
+  align-items: start;
+  padding: var(--space-24);
+  background: var(--grey-960);
+  border: 1px solid var(--grey-880);
+}
+
+/* ── Editor (left) ─────────────────────────────────────────────────────── */
+.cc-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.cc-edit__id {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grey-480);
+}
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cc-field__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey-480);
+}
+.cc-field__input {
+  width: 100%;
+  appearance: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--grey-160);
+  background: var(--grey-960);
+  border: 1px solid var(--grey-880);
+  padding: 8px 10px;
+  resize: vertical;
+  transition: border-color var(--dur-fast) var(--ease-snap), box-shadow var(--dur-fast) var(--ease-snap);
+}
+.cc-field__input:focus {
+  outline: none;
+  border-color: var(--grey-560);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--grey-560) 18%, transparent);
+}
+
+/* ── Live sample (right) ───────────────────────────────────────────────── */
+/* A soft desk tone so the cream card and caption read as on the real bench. */
+.cc-sample {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-height: 200px;
+  padding: var(--space-24);
+  background: color-mix(in srgb, var(--mat-bg) 76%, var(--grey-560));
+  border: 1px dashed var(--grey-800);
+}
+.cc-sample__tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-480);
+}
+/* Caption preview reads exactly like the tile's .sc-cap (showcase.css), tinted
+   by --sc-dotc on .cc-sample. Drop the row's overflow clip so a long type label
+   wraps/shows in full while editing rather than ellipsizing. */
+.cc-sample__cap {
+  margin-top: 0;
+  overflow: visible;
+}
+
+/* Neutralise the in-tile placement: on the bench .sc-note is position:absolute,
+   offset left/right of a frame and tossed in by keyframes. Here it sits static
+   in the column. (The card visuals — border, shadow, dot-tinted accents — stay.) */
+.cc-sample .sc-note {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  margin: 0;
+  animation: none;
+  width: min(322px, 100%);
+}

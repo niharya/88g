@@ -1,0 +1,46 @@
+/* DotPager — 24 px chip with a row of dots. Active dot tints via
+ * `--dotpager-tint` (default `--grey-240`).
+ */
+
+.dotpager {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* 26 px — matches the Switch wrapper + PauseButton so the controls  */
+  /* bar reads as one rhythm.                                           */
+  height: 26px;
+  padding: 0 10px;
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-800);
+  border-radius: 8px;
+  color: var(--grey-240);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+
+.dotpager:hover {
+  background: var(--grey-880);
+  border-color: var(--grey-720);
+}
+.dotpager:active { transform: scale(0.97); }
+
+.dotpager__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--grey-800);
+  transition: background var(--dur-fast) var(--ease-snap);
+}
+
+.dotpager__dot.is-active {
+  background: var(--dotpager-tint, var(--grey-240));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dotpager,
+  .dotpager__dot { transition: none; }
+}

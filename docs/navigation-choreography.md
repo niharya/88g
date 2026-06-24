@@ -116,7 +116,7 @@ These are intentional — cinematic page transitions read slower than component 
 ---
 
 ## 7. Dependencies / prerequisites
-- **P1 — Icon subset is complete (13, not 11).** `keyboard_arrow_up` / `keyboard_arrow_down` (the `/selected` archive toggle, `Timeline.tsx`) are missing from `MaterialSymbolsRounded-subset.woff2` and render broken. Re-subset to 13. (Blocks nothing but is a live regression — fix first.)
+- **P1 — Icon subset is complete (13, not 11).** `keyboard_arrow_up` / `keyboard_arrow_down` (the `/all` archive toggle, `Timeline.tsx`) are missing from `MaterialSymbolsRounded-subset.woff2` and render broken. Re-subset to 13. (Blocks nothing but is a live regression — fix first.)
 - **P2 — Shrink `--font-ui` (Google Sans Flex, ~643 KB).** It can't load inside the gate's window on 3G, so the page Places raw and the wide font snaps in late. Subset it (Latin + the axes actually used: `wght`, `wdth`, `GRAD`, `opsz`) and/or add `size-adjust`/metric-matched fallback so any residual swap doesn't shift layout. **Required for first-load smoothness.** See `docs/performance.md`.
 
 ---

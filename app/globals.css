@@ -549,7 +549,7 @@ html {
   background: var(--workbench-bg);
 
   /* Prevent layout shift when scrollbar appears/disappears during
-     page transitions (e.g. short /selected → tall project page). */
+     page transitions (e.g. short /all → tall project page). */
   scrollbar-gutter: stable;
 }
 
@@ -765,7 +765,7 @@ p, li {
   }
 }
 
-/* Shell nav hidden on /selected — that page renders its own docked nav row */
+/* Shell nav hidden on /all — that page renders its own docked nav row */
 .shell-nav-hidden {
   display: none;
 }

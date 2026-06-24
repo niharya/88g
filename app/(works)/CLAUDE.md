@@ -1,6 +1,6 @@
 # (works) shell — protective digest
 
-Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-loads whenever files under `app/(works)/` are touched — this node covers the shell itself (layout, ShellNav, TransitionSlot); each route inside has its own digest (`rr/CLAUDE.md`, `biconomy/CLAUDE.md`, `selected/CLAUDE.md`).
+Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-loads whenever files under `app/(works)/` are touched — this node covers the shell itself (layout, ShellNav, TransitionSlot); each route inside has its own digest (`rr/CLAUDE.md`, `biconomy/CLAUDE.md`, `all/CLAUDE.md`).
 
 ## Hard rules
 

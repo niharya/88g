@@ -15,7 +15,7 @@
 // `.project-marker` div + the docked-pair container that owns the
 // row's positioning + border-halving.
 //
-// Consumers (today): `/selected` (the workbench's nav row, paired with
+// Consumers (today): `/all` (the workbench's nav row, paired with
 // the static "Works" chapter-marker), `/shape-of-product` (SopNavRow,
 // paired with the static "Shape of Product" chapter-marker). Future
 // musings or non-landing routes that want the same back-affordance

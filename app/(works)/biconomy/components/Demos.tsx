@@ -351,6 +351,10 @@ export default function Demos() {
       <div className="demos__web3-row">
         <div className="demos__web3-wrap">
           <Sticker tilt={-2} className="demos__web3-sticker">
+            {/* No `sizes` prop: explicit width × height (112 × 62) make the */}
+            {/* render dimensions fixed and known at request time, so       */}
+            {/* next/image picks the correct srcset entry without a `sizes` */}
+            {/* hint. Sticker chip; very small. */}
             <Img
               src="/images/biconomy/demos/web3_abstractor.webp"
               alt="Web3 Abstractor"

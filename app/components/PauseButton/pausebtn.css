@@ -1,0 +1,40 @@
+/* PauseButton — 24×24 mat-bg icon button.
+ * Shares the showcase control family: 8 px radius, 1 px grey-800 hairline,
+ * mat-bg fill. Hover swaps the bg to grey-880 (and tightens the border
+ * to grey-720); :active scales 0.96 for a press feel.
+ */
+
+.pausebtn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 26 × 26 — matches the visible height of the Switch wrapper (4 px    */
+  /* vertical padding + 16 px inner track + 2 px borders) so the chips  */
+  /* in a single controls bar align cleanly.                             */
+  width: 26px;
+  height: 26px;
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-800);
+  border-radius: 8px;
+  color: var(--grey-240);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+
+.pausebtn:hover {
+  background: var(--grey-880);
+  border-color: var(--grey-720);
+}
+
+.pausebtn:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pausebtn { transition: none; }
+}

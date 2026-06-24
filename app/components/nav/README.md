@@ -28,7 +28,7 @@ Three fixed/sticky markers docked to the top of every long-form route:
 |---|---|---|---|
 | Project | `<ProjectMarker>` inside `<MarkerSlot left>` | `position: fixed; top: var(--marker-top); left: var(--workbench-pad-x)` | Identity — the project title. Always visible. |
 | Chapter | `<ChapterMarker>` rendered inside each `<Sheet>`'s `.nav-sled` | `position: sticky; top: var(--marker-top)` | Wayfinding — the current section title, plus a tray that lists every chapter. |
-| Exit | `<ExitMarker>` | `position: fixed; top: var(--marker-top); right: var(--workbench-pad-x)` | Escape — links back to `/selected`. |
+| Exit | `<ExitMarker>` | `position: fixed; top: var(--marker-top); right: var(--workbench-pad-x)` | Escape — links back to `/all`. |
 
 The chapter marker docks horizontally next to the project marker via the nav-sled
 formula, which reads `--project-marker-right` (measured live by `MarkerSlot`)
@@ -169,7 +169,7 @@ Per-section wiring (inside a `<Sheet>`):
   provides it).
 - **Static** — `<ChapterMarker static chapter={…} chapters={[]} />`. Inert marker
   with the docked-border halving applied, no scroll listeners. Used on
-  `/selected` for the "Works 2018-25" label.
+  `/all` for the "Works 2018-25" label.
 
 ### `[data-arrow-target]` — per-section arrow focus
 

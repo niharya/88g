@@ -17,7 +17,6 @@
   --biconomy-orange: #F2561D;  /* brand orange — Biconomy mark fill */
 }
 
-
 /* ── NavPill (shared by Flows + API) ─────────────────────────────────────── */
 /* Single-pill prev/next with a hairline divider.                          */
 /* Each button owns the full pill padding as its own hit area so the       */
@@ -483,54 +482,17 @@
     margin-right var(--dur-fast) var(--ease-snap);
 }
 
-/* Custom toggle switch — Figma spec 2463-3758. */
-/* Track 24×16 border-box, border 1, padding 1 — the padding+border pair   */
-/* together give exactly 2px inset to the thumb on the resting side, so    */
-/* inactive and active states are visually symmetric (2px from left inactive, */
-/* 2px from right active). Transition is the mild cubic-bezier settle      */
-/* ported from the vanilla reference so the thumb lands with a perceptible */
-/* but restrained snap.                                                     */
+/* .flows__ba-switch is the consumer-side class hook on the shared       */
+/* Switch primitive (app/components/Switch). The shared switch reads     */
+/* --switch-tint + --switch-tint-soft from this scope; biconomy ties the */
+/* tint to the orange palette so the Before / After toggle keeps its    */
+/* original colour pairing. Original Figma spec 2463-3758 (track 24×16,  */
+/* thumb 8×12, 4 / 2 px radii) is enforced by the shared CSS.            */
 .flows__ba-switch {
-  display: inline-flex;
-  align-items: center;
-  width: 24px;
-  height: 16px;
-  padding: 1px;
-  border-radius: 4px;
-  background: var(--orange-80);
-  border: 1px solid var(--orange-560);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background var(--dur-fast) var(--ease-snap), border-color var(--dur-fast) var(--ease-snap);
-}
-
-.flows__ba-switch[aria-checked='true'] {
-  background: var(--orange-720);
-  border-color: var(--orange-720);
-}
-
-.flows__ba-switch-thumb {
-  display: block;
-  width: 8px;
-  height: 12px;
-  border-radius: 2px;
-  background: var(--orange-560);
-  transition:
-    transform 0.2s cubic-bezier(0, 1, 0.31, 1.05),
-    background 0.2s;
-}
-
-.flows__ba-switch[aria-checked='true'] .flows__ba-switch-thumb {
-  background: var(--orange-80);
-  /* 24 (outer) - 2 (borders) - 2 (padding) - 8 (thumb) = 12 → exact inset */
-  transform: translateX(12px);
-}
-
-.flows__ba-switch:active .flows__ba-switch-thumb {
-  transform: scaleX(0.9);
-}
-.flows__ba-switch[aria-checked='true']:active .flows__ba-switch-thumb {
-  transform: translateX(12px) scaleX(0.9);
+  --switch-tint: var(--orange-720);
+  --switch-tint-soft: var(--orange-80);
+  --switch-border-off: var(--orange-560);
+  --switch-border-on: var(--orange-720);
 }
 
 /* Before/After label text. Desaturates toward grey-400 in standby.        */

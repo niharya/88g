@@ -30,8 +30,8 @@
 //   • Landing contact-form success pill (neutral light + per-instance `style`
 //     for the randomized sentColor) and error pill (neutral light + a
 //     route-local className for orange ink + wide multi-line variant).
-//   • /selected archive entry "opens in new tab" hint — migration pending;
-//     see app/(works)/selected/ANOMALIES.md (blocked on missing per-entry
+//   • /all archive entry "opens in new tab" hint — migration pending;
+//     see app/(works)/all/ANOMALIES.md (blocked on missing per-entry
 //     tones — connektion/aleyr/codezeros/ecochain — and a token-promotion
 //     decision; not a duplicate of the pattern, an extension of it).
 //

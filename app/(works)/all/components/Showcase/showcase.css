@@ -1,0 +1,1711 @@
+/* ==========================================================================
+   showcase.css — /all showcase grid (v0.93+)
+   Route-local. Built on globals.css tokens.
+   ========================================================================== */
+
+
+/* ── Prelude (Copy block + Timeline tile, side by side) ─────────────────── */
+/* Copy LEFT, Timeline RIGHT. The Timeline carries the nav-row chips on   */
+/* top of its mat — matches the original /all design. The masonry    */
+/* grid below it is separate.                                              */
+
+.sc-prelude {
+  display: grid;
+  grid-template-columns: 1fr 608px;
+  gap: var(--space-32);
+  align-items: start;
+  width: 100%;
+}
+.sc-prelude__header   { min-width: 0; padding-top: var(--space-32); }
+.sc-prelude__timeline {
+  min-width: 0;
+  position: relative;
+}
+
+
+/* ── Filter strip (heads the Visual grid) ──────────────────────────────────── */
+/* Single-select category filter (All · Interface · Brand) — mono, the active option
+   a pressed keycap. Sits where the grid's intro goes, with the --space-64 breath
+   before the tiles. A semantic RADIOGROUP, not tabs (see FilterStrip.tsx + ANOMALIES
+   → "Filter strip"). */
+.sc-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  margin: 0 0 var(--space-64);
+  padding: var(--space-12) 0;
+}
+.sc-filter__opt {
+  appearance: none;
+  cursor: pointer;
+  /* Roomier than before so the selected option's double frame (below) has space
+     to breathe; padding is CONSTANT across rest/hover/checked, so selecting an
+     option never shifts its neighbours. */
+  padding: 5px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--grey-400);
+  transition:
+    color var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    background-color var(--dur-fast) var(--ease-snap),
+    box-shadow var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+/* Hover (unchecked only) — telegraph the keycap before commit: ink lifts and a
+   hairline edge previews the pressable border the checked state fills in. */
+.sc-filter__opt:not([aria-checked='true']):hover {
+  color: var(--grey-240);
+  border-color: var(--grey-880);
+}
+/* Press — a quick tactile settle, the same paper-snap idiom as the ticket tabs
+   (no bounce, no pill); ink deepens for the duration of the press. */
+.sc-filter__opt:active {
+  transform: scale(0.95);
+  color: var(--grey-160);
+}
+/* Selected — a small, precise "framed object" (Wes-Anderson symmetry): a dark
+   outer stroke, a breathing mat gap, then an inner hairline frame. The two inner
+   layers are INSET box-shadows, so the double frame adds no width — no reflow. */
+.sc-filter__opt[aria-checked='true'] {
+  background: var(--mat-bg);
+  border-color: var(--grey-480);
+  color: var(--grey-160);
+  box-shadow:
+    inset 0 0 0 2px var(--mat-bg),
+    inset 0 0 0 3px var(--grey-720);
+}
+
+/* ── Showcase grid — 9-col CSS Grid with JS-measured row spans ─────── */
+/* 9 columns under the hood. Each slot's column span is set per-piece  */
+/* via `--sc-cols-d` (desktop, 9-col) / `--sc-cols-t` (tablet, 3-col)  */
+/* on inline style, written by Showcase.tsx from `piece.cols` (1..9).  */
+/* Row height is 8 px, and each slot's `--sc-rowspan` is written by    */
+/* Showcase.tsx after measuring content height:                        */
+/*   span = ceil((h + gap) / (row + gap)).                              */
+/* `grid-auto-flow: dense` packs short tiles into gaps that taller or  */
+/* wider tiles would otherwise leave behind.                            */
+/*                                                                      */
+/* Canonical spans on the 9-col grid: 3 (third), 6 (two-thirds = hero),*/
+/* 9 (full). Off-canonical values (4, 5, 7, 8) work but leave more     */
+/* orphan whitespace for the packer to handle.                          */
+
+.sc-grid {
+  --sc-gap: 44px;
+  --sc-row: 8px;
+
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-auto-rows: var(--sc-row);
+  grid-auto-flow: dense;
+  gap: var(--sc-gap);
+}
+
+.sc-slot {
+  min-width: 0;
+  /* Fallback span 18 ≈ 756 px (18×8 + 17×36 gap) — clears the tallest tile so
+     content never overlaps before the JS measurement lands, without the 1284 px
+     wall the old `30` produced (it miscounted the row-gap between spanned rows).
+     The real span is state-driven (Showcase.tsx); this shows ~one frame. */
+  grid-row: span var(--sc-rowspan, 18);
+  /* Column span comes from `piece.cols`. Default 3 (one-third).        */
+  /* The tablet block below swaps in `--sc-cols-t` (3-col grid);        */
+  /* mobile drops everything to a single column.                        */
+  grid-column: span var(--sc-cols-d, 3);
+}
+/* Wide tiles (6+ cols — the heroes) read a touch too dominant at full span,
+   so they're inset and centred WITHIN their grid area. The span itself is
+   unchanged (layout holds); only the tile + its caption shrink, centred. The
+   measured row-span follows the narrower media height automatically. */
+.sc-slot--wide .sc-piece {
+  max-width: 84%;
+  margin-inline: auto;
+}
+
+/* When a piece is focused, siblings dim. They sit BELOW the backdrop so   */
+/* clicking them goes through the backdrop first (which closes the focus). */
+.sc-grid.is-dimming .sc-piece:not(.is-active) {
+  /* Same backseat recede as the biconomy/rr menu-open dim — the shared
+     --backseat-dim token (brightness + desaturate) PLUS a mild opacity step
+     (--sc-recede-opacity) so the unfocused tiles read as stepped-back, not
+     only greyed. The opacity lives in the filter chain (opacity(), not the
+     property) so Framer's inline opacity can never override it. */
+  filter: var(--backseat-dim) opacity(var(--sc-recede-opacity));
+  pointer-events: none;
+}
+
+/* Filter recede / emphasis — PURE CSS, the same idiom as the open-tile dim above.
+   When a category is active, matched tiles rest slightly ENLARGED and non-matching
+   step back (scale down + the SAME --backseat-dim monochrome). React only flips
+   `data-matched` + `is-filtering`; the slot TRANSITIONS between these held resting
+   states. Interruption (rapid picks) is handled natively — a transition just
+   re-targets from its current value, so there's no "jump".
+
+   The scale lives on the .sc-slot, not the .sc-piece, so it never fights the piece's
+   rotate/hover transform; offsetHeight measurement is transform-immune, so the grid
+   never re-packs. Direction-dependent feel comes from putting the `transition` on
+   each TARGET-state rule: grows + settles use the smooth paper curve; only the
+   step-back to the receded scale uses --sc-ease-recede, a mild overshoot so the
+   recede lands with a small bounce at the END — a sanctioned, route-local deviation
+   from the no-bounce rule (see ANOMALIES → "Filter strip"). Receded tiles stay
+   CLICKABLE — a click triggers the "no" shake (ShowcasePiece), it doesn't open. */
+.sc-section {
+  --sc-matched-scale: 1.03;   /* matched-while-filtering emphasis */
+  --sc-recede-scale: 0.75;    /* stepped-back size */
+  --sc-recede-opacity: 0.7;   /* mild opacity loss on receded tiles (both recede modes) */
+  /* The route's one sanctioned overshoot curve (a no-bounce deviation): a gentle
+     settle so the card recede lands with a small bounce at the end. */
+  --sc-ease-recede: cubic-bezier(0.34, 1.15, 0.6, 1);
+}
+.sc-slot {
+  transform-origin: center;
+  transition:
+    transform var(--dur-slide) var(--ease-paper),
+    filter var(--dur-slide) var(--ease-paper);
+}
+.sc-grid.is-filtering .sc-slot[data-matched='true'] {
+  transform: scale(var(--sc-matched-scale));
+}
+.sc-grid.is-filtering .sc-slot[data-matched='false'] {
+  transform: scale(var(--sc-recede-scale));
+  filter: var(--backseat-dim) opacity(var(--sc-recede-opacity));
+  /* recede: slower settle + overshoot bounce on the scale; colour stays smooth/fast */
+  transition:
+    transform var(--dur-settle) var(--sc-ease-recede),
+    filter var(--dur-slide) var(--ease-paper);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-slot { transition: none; }
+}
+
+
+/* ── Showcase section wrapper ───────────────────────────────────────────── */
+/* Sits below the reverted AboutCard + Timeline (.selected-layout) inside    */
+/* .selected-workbench. The layout above has min-height 777px (1249px when   */
+/* archive is open), so the showcase naturally lands underneath. A generous  */
+/* top margin separates the two movements; the showcase reads as its own.    */
+
+/* Capped at the same authored canvas width as `.selected-layout` and  */
+/* centered in the workbench, so the showcase grid + header sit on the */
+/* same left/right rails as the first-view cards above. The divider's  */
+/* anchor measurements (AboutCard's left + mat's right) already pin   */
+/* the divider to those rails, so the whole column reads as one        */
+/* centered stage.                                                      */
+.sc-section {
+  position: relative;
+  margin-top: var(--space-80, 80px);
+  max-width: 1160px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* (The scroll cue `.sc-cue` lived here — a hand-off from the old first-view
+   Timeline panel to the grid, rendered + measured by FirstView.tsx. The bench
+   redesign replaced the first-view stage with the ticket/tab navbar, so
+   FirstView and the cue are gone; its rules were removed.) */
+
+
+/* ── Header copy block (Claude Design) ──────────────────────────────────── */
+/* Lead column (eyebrow / "Visuals" title / sub) + right-aligned meta with   */
+/* count. Bottom-ruled in grey so the head reads as a deliberate masthead    */
+/* before the hint row and the grid begin.                                   */
+
+.sc-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: var(--space-32);
+  padding-bottom: var(--space-24);
+  /* The header's border-bottom is the SINGLE divider between the      */
+  /* header block and the hint row below. Zero margin-bottom so the   */
+  /* hint sits flush against this line, reading as one continuous     */
+  /* unit. (Was --space-16 before the header + hint merge.)            */
+  border-bottom: 1px solid var(--grey-880);
+  margin-bottom: 0;
+}
+.sc-header__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 640px;
+  min-width: 0;
+}
+.sc-header__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--terra-720);
+}
+.sc-header__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--terra-560);
+}
+.sc-header__title {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 6.2vw, 76px);
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -2.5px;
+  line-height: 0.92;
+  color: var(--grey-160);
+  margin: 0;
+}
+.sc-header__sub {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--grey-400);
+  margin: 0;
+  text-wrap: pretty;
+}
+.sc-header__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-8);
+}
+.sc-header__count {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  color: var(--grey-240);
+}
+.sc-header__countlabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--grey-480);
+}
+
+@media (max-width: 767px), (max-height: 500px) {
+  .sc-section { margin-top: var(--space-48); }
+  .sc-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: var(--space-16);
+  }
+  .sc-header__title { font-size: 52px; letter-spacing: -1.5px; }
+  .sc-header__meta { flex-direction: row; align-items: baseline; gap: var(--space-12); }
+  .sc-header__count { font-size: 28px; }
+}
+
+
+/* ── Piece (tile) ───────────────────────────────────────────────────────── */
+
+.sc-piece {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  /* Random per-mount rotation between -1° and +1° (set by ShowcasePiece */
+  /* via inline style). Tiles read as loose sheets on the mat, not a    */
+  /* uniform grid. Hover and active straighten to 0°.                    */
+  transform: rotate(var(--sc-tile-rotate, 0deg));
+  transition:
+    transform var(--dur-settle) var(--ease-paper),
+    opacity var(--dur-slide) var(--ease-paper),
+    filter var(--dur-slide) var(--ease-paper);
+}
+
+/* Hover straightens the tile to 0° (no lift) — the sheet settles flat   */
+/* under the cursor while the caption row reacts.                        */
+.sc-piece:hover:not(.is-active) {
+  transform: rotate(0deg);
+}
+
+/* Press feedback — brief nudge down so the tile responds to the click. */
+.sc-piece:not(.is-active):active {
+  transform: rotate(0deg) translateY(1px);
+  transition: transform var(--dur-instant) var(--ease-snap);
+}
+
+/* Active tile reads as the focused artefact. Sits above the dismiss      */
+/* backdrop (z 50) so its own clicks (dot, switch, controls) work and    */
+/* clicks anywhere else fall through to the backdrop and close.          */
+.sc-piece.is-active {
+  position: relative;
+  z-index: 60;
+  transform: rotate(0deg) translateY(-12px) scale(1.025);
+  cursor: default;
+}
+
+/* Lift the active SLOT above its siblings — not just the piece. The piece's
+   z-index:60 only orders WITHIN its own slot; receded siblings each carry a
+   `filter` (a stacking context), so a later-in-DOM receded slot could paint
+   over the active tile's index card. Elevating the whole slot puts the active
+   artefact (tile + SpecNote) above every sibling slot, and above the z-50
+   backdrop, while receded siblings stay below it (click-to-dismiss intact). */
+.sc-slot:has(.sc-piece.is-active) {
+  position: relative;
+  z-index: 70;
+}
+
+/* Tiles that carry a controls bar (paymaster, ecochain, interface,      */
+/* furrmark) read as monochrome on simple hover — the controls and the   */
+/* media desaturate together, signaling "you can engage with this" while */
+/* keeping unhovered tiles in their authored palette. On active, the    */
+/* original colour restores so the focused artefact regains its weight.  */
+/* Hover on a tile with a controls bar desaturates the controls only —   */
+/* the media itself stays in its authored palette. On active, the        */
+/* controls bar regains colour with the rest of the artefact.            */
+.sc-piece:hover:not(.is-active) .sc-controls {
+  filter: grayscale(1);
+}
+.sc-controls {
+  transition: filter var(--dur-fast) var(--ease-snap);
+}
+
+
+/* ── Media frame anchor ─────────────────────────────────────────────────── */
+/* .sc-frame is a position-relative wrapper around .sc-media. Its only    */
+/* sized child is .sc-media, so .sc-frame's bounds equal the visible      */
+/* frame. The desktop spec note (.sc-note with left/right placement) is   */
+/* rendered INSIDE .sc-frame so its top/left/right offsets resolve        */
+/* against the frame edges — not against .sc-piece, which would include  */
+/* the caption row's height in its bounds.                                */
+.sc-frame {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Media box ──────────────────────────────────────────────────────────── */
+
+.sc-media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  transition: box-shadow var(--dur-slide) var(--ease-paper);
+}
+
+/* Plain tiles sit directly on the workbench — no fill behind them.        */
+.sc-media--plain {
+  background: transparent;
+}
+/* Thin grey border on plain tiles too, EXCEPT the cardstack and poster   */
+/* stack — those two read as loose paper artefacts on the bench, where a */
+/* hairline frame would feel like a tile box around them.                 */
+.sc-media--plain:not(:has(.sc-cardfan)):not(:has(.sc-poster-stack)):not(:has(.sc-dual)):not(:has(.sc-rr-scene)) {
+  border: 1px solid var(--grey-800);
+}
+.sc-media--framed {
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-800);
+  /* Resting shadow — tight 1 px offset, sheet-on-mat. Matches the      */
+  /* settle-phase shadow in CLAUDE.md's section reveal choreography.    */
+  box-shadow:
+    0 1px 0 rgba(20, 20, 20, 0.05),
+    0 2px 6px -4px rgba(20, 20, 20, 0.16);
+}
+
+/* Per-tile corner-radius overrides. Each artefact gets its own outer    */
+/* radius so the family reads as authored, not uniform. Inner controls   */
+/* (switches, pause, page chip, etc.) keep their own 8 px family radius. */
+.sc-piece--cardstack  .sc-media { border-radius: 0; }
+.sc-piece--paymaster  .sc-media { border-radius: 10px; }
+.sc-piece--ecochain   .sc-media { border-radius: 8px; }
+.sc-piece--startooth  .sc-media {
+  border-radius: 10px;
+  /* Recolor the framed bg from `--mat-bg` cream to the Startooth ground */
+  /* (#311700, the deep brown from the original PNG composition). The     */
+  /* cards SVG sits on top of this; we don't need a separate bg layer in */
+  /* the SVG. Border + shadow from .sc-media--framed continue to apply.   */
+  background: #311700;
+}
+.sc-piece--multiverse .sc-media { border-radius: 18px; }
+
+
+/* Ecochain — video sits slightly left of center so the right-edge      */
+/* whitespace in the source clip doesn't read as an asymmetric margin.   */
+/* `object-fit: contain` keeps the full clip visible; `object-position`  */
+/* shifts where the inevitable letterbox (or content) lands inside the  */
+/* wrapper.                                                              */
+.sc-piece--ecochain .sc-video {
+  object-position: 22% 50%;
+}
+
+/* Dual (chip + gauge) — same treatment as ecochain. The tile's outer    */
+/* media is `--plain` (frame: false), which by default picks up the     */
+/* hairline grey border via the plain-non-cardfan rule. Override it      */
+/* here so the JobChipStack and LifecycleGauge sit on the bench         */
+/* unbordered — each artefact already self-frames inside itself.         */
+.sc-piece--dual .sc-media {
+  border: none;
+}
+
+/* Hover lift — sheet rises off the mat. Wider, deeper, more diffuse.  */
+.sc-piece:hover .sc-media--framed {
+  box-shadow:
+    0 2px 0 rgba(20, 20, 20, 0.06),
+    0 16px 28px -10px rgba(20, 20, 20, 0.22);
+}
+
+/* Active framed tile gets the deepest lift shadow. Plain (frameless)     */
+/* tiles stay shadowless on focus — the cards/posters read fully          */
+/* transparent and sit on the bench directly, without an implied tile     */
+/* rectangle behind.                                                       */
+.sc-piece.is-active .sc-media--framed {
+  box-shadow:
+    0 3px 0 rgba(20, 20, 20, 0.06),
+    0 28px 44px -14px rgba(20, 20, 20, 0.28);
+}
+
+
+/* Image fill helper — children of <Img fill> need a positioned wrapper */
+.sc-media-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sc-media-tile {
+  position: absolute;
+  inset: 0;
+}
+
+/* Raw <video> element — fills the media box, object-fit contain so the    */
+/* native aspect is preserved (no clipping; letterbox on mismatched ratios).*/
+.sc-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--mat-bg);
+  display: block;
+}
+
+
+/* ── Caption row ────────────────────────────────────────────────────────── */
+
+.sc-cap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--space-12);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--grey-320);
+  /* line-height 1.2 (not 1): at 11 px font, line-height 1 makes the    */
+  /* line box exactly the font-size, so descenders (y, g, p, q, j)     */
+  /* end up at or past the line box's bottom edge — and the row's      */
+  /* `overflow: hidden` then clips them. 1.2 gives the line box 2.2 px */
+  /* of leading split top/bottom, so descenders have ~1 px of breathing */
+  /* room below the baseline INSIDE the line box and never reach the   */
+  /* row's bottom edge.                                                  */
+  line-height: 1.2;
+  /* Lock the row to the active-dot height (20 px) so the dot can grow  */
+  /* from 11 → 20 px on hover without lifting the row's baseline. The   */
+  /* growth then reads as a sideways push only — the cat/src/year text  */
+  /* shifts right; nothing shifts down. (line-height 1.2 keeps the      */
+  /* line box at 13.2 px — well under 20 px — so this still holds.)     */
+  min-height: 20px;
+  /* Hard-clip at the tile boundary so any caption that wants to extend  */
+  /* past the column width gets ellipsized rather than overlapping the  */
+  /* next tile's content in the masonry grid.                            */
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sc-cap__dot {
+  appearance: none;
+  background: var(--sc-dotc);
+  border: 1.5px solid var(--sc-dotc);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  /* 4 px left inset — pairs with .sc-cap__year's 4 px right inset to    */
+  /* squeeze the row's bookends inward from the tile edges.              */
+  margin-left: 4px;
+  transition:
+    width var(--dur-fast) var(--ease-snap),
+    height var(--dur-fast) var(--ease-snap),
+    background var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap);
+}
+
+.sc-piece:hover .sc-cap__dot,
+.sc-piece.is-active .sc-cap__dot {
+  width: 20px;
+  height: 20px;
+  background: var(--mat-bg);
+  color: var(--sc-dotc);
+}
+
+/* Press state on the plus circle — squashes briefly when clicked so  */
+/* the affordance reads as a real button. Mirrors the tile's own      */
+/* press feedback above.                                               */
+.sc-cap__dot:active {
+  transform: scale(0.92);
+  background: color-mix(in srgb, var(--sc-dotc) 14%, var(--mat-bg));
+}
+
+.sc-cap__dot-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* type is short and never truncates — it carries the meaning of the   */
+/* artefact (Layout Design / Pattern / etc.) and shouldn't ellipsize.  */
+.sc-cap__type {
+  color: var(--grey-320);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: underline transparent;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur-fast) var(--ease-snap);
+}
+/* Underline the type (the "main title line" of the caption) on hover.*/
+/* The line stays put — only the dot expands and pushes it right; the */
+/* underline crossfades in under it.                                   */
+.sc-piece:hover .sc-cap__type {
+  text-decoration-color: var(--grey-320);
+}
+/* Press feedback on the caption text — shifts a hair down with the   */
+/* tile so the click registers across the whole row.                  */
+.sc-piece:not(.is-active):active .sc-cap__type,
+.sc-piece:not(.is-active):active .sc-cap__year {
+  color: var(--grey-160);
+}
+.sc-cap__year {
+  /* 4 px right inset on the year + 4 px left inset on the dot (below)   */
+  /* squeeze the row's bookends in from the tile edges, so the caption  */
+  /* reads as held inside the column rather than crashing into its       */
+  /* margins.                                                            */
+  margin-left: auto;
+  margin-right: 4px;
+  color: var(--grey-560);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+
+/* ── Controls bar (pause + switch) ──────────────────────────────────────── */
+/* Bottom-left of the media. Holds the pause button (video tiles) and the */
+/* Before/After switch (toggle tiles) side-by-side in a row.              */
+
+.sc-controls {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity var(--dur-fast) var(--ease-snap),
+    transform var(--dur-fast) var(--ease-snap);
+}
+/* Controls only register clicks when the tile is active. Hover preview   */
+/* shows them but doesn't unlock clicks — that aligns with the           */
+/* "first click opens, then interactivity unlocks" model.                */
+.sc-piece:hover .sc-controls {
+  opacity: 1;
+  transform: translateY(0);
+}
+.sc-piece.is-active .sc-controls {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Per-piece extras slot — empty by default. Per-piece renderers (e.g.   */
+/* PaymasterAuditController) portal their own controls into this <div>  */
+/* via ExtraControlsContext. The shell doesn't know who consumes it.    */
+.sc-controls__extras {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+}
+/* When no consumer portals into the slot, collapse it so it doesn't    */
+/* leave a phantom gap in the inline-flex row of .sc-controls.           */
+.sc-controls__extras:empty {
+  display: none;
+}
+
+/* Pause/play button — promoted to shared PauseButton primitive.          */
+/* See app/components/PauseButton/. Consumer just renders <PauseButton>;  */
+/* no /all-local CSS is needed.                                       */
+
+
+/* ── Switch wrapper (Before/After-style toggles inside .sc-controls) ─── */
+/* The toggle artefact itself is the shared <Switch> primitive            */
+/* (app/components/Switch). This block is the showcase-local CHROME       */
+/* around it — mat-bg pill, hairline border, mono label. The switch       */
+/* tint is wired to the per-piece caption-dot colour via CSS vars on the  */
+/* wrapper, so the toggle follows the artefact's palette.                 */
+
+.sc-switch {
+  /* Tint the shared Switch from the per-piece dot colour.                */
+  --switch-tint: var(--sc-dotc);
+  --switch-tint-soft: color-mix(in srgb, var(--sc-dotc) 14%, var(--mat-bg));
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-800);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+.sc-switch:hover {
+  background: var(--grey-880);
+  border-color: var(--grey-720);
+}
+/* Press feedback on the wrapper while the inner switch is being pressed. */
+.sc-switch:has(.switch:active) { transform: scale(0.97); }
+
+.sc-switch__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--grey-400);
+  cursor: pointer;
+  user-select: none;
+}
+
+
+/* ── Page chip (paymaster flow nav) ────────────────────────────────────── */
+/* Promoted to shared DotPager primitive — app/components/DotPager.       */
+/* .sc-pagechip is the scope hook that ties the shared chip's active-dot */
+/* tint to the per-piece caption-dot colour.                              */
+.sc-pagechip {
+  --dotpager-tint: var(--sc-dotc);
+}
+
+
+/* ── Spec note (positioned per-piece, never clipped) ────────────────────── */
+/* Per-piece `--note-${side}` class places the note in the open direction. */
+/* Square corners, tight shadow, faster enter (--dur-settle).               */
+
+.sc-note {
+  /* Toss distance — how far the note rises/drops/slides before landing.    */
+  /* Lives on the element so retuning is one edit; all four keyframe       */
+  /* variants below read it.                                                */
+  --sc-toss-d: 28px;
+
+  position: absolute;
+  /* 322 px = 290 px Figma content column + 16 px × 2 horizontal padding. */
+  /* 92 vw cap keeps it sane on narrow tablets / landscape phones before */
+  /* the mobile breakpoint hands rendering to the bottom-sheet.           */
+  width: min(322px, 92vw);
+  background: var(--mat-bg);
+  /* Border reads the per-piece dot tint (DEEP / 720 step, set by         */
+  /* SpecNote on the element). Joined the title/foot accents as the 4th  */
+  /* consumer of --sc-dotc — the card edge participates in the piece's   */
+  /* tone instead of sitting on a neutral grey-880 line.                  */
+  border: 1px solid var(--sc-dotc, var(--grey-880));
+  /* Figma spec: 16 px horizontal × 24 px vertical. Matches the px-[16]   */
+  /* py-[24] of the Frame11402 outer container.                           */
+  padding: var(--space-24) var(--space-16);
+  /* Lifted shadow — matches the active tile's lift so the index card    */
+  /* reads as having been tossed onto the bench at the same height as   */
+  /* the focused artefact next to it.                                    */
+  box-shadow:
+    0 3px 0 rgba(20, 20, 20, 0.06),
+    0 24px 36px -14px rgba(20, 20, 20, 0.26);
+  z-index: 45;
+  cursor: default;
+  transform-origin: 50% 0;
+  /* Snappier toss — dur-slide + ease-snap (tab-tier) so the card lands  */
+  /* inside attention rather than gliding in. Index cards thrown onto a */
+  /* desk arrive fast.                                                  */
+  animation: sc-note-toss var(--dur-slide) var(--ease-snap) both;
+}
+
+/* Note-side variants. Two placements only — left or right of the tile  */
+/* frame on desktop / tablet. Mobile renders the index card as a docked */
+/* bottom sheet via ShowcaseBottomSheet (singleton, portal to body), so */
+/* the in-tile `.sc-note` doesn't render below the mobile breakpoint    */
+/* and no `--note-bottom` / `--note-top` placement is needed.            */
+/* Horizontal placements — note hugs the tile's top edge with a small    */
+/* 4 px nudge down so the card top sits just inside the frame's top      */
+/* line, not flush against it (which read as taped-on). The toss         */
+/* keyframes still bring it in from the open direction.                  */
+.sc-piece--note-right .sc-note {
+  left: calc(100% + 12px);
+  top: 4px;
+  transform-origin: 0 0;
+  animation-name: sc-note-toss-left;
+}
+.sc-piece--note-left .sc-note {
+  right: calc(100% + 12px);
+  top: 4px;
+  transform-origin: 100% 0;
+  animation-name: sc-note-toss-right;
+}
+
+@keyframes sc-note-toss-left {
+  from { opacity: 0; transform: translate(var(--sc-toss-d), 0) rotate(0deg); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translate(0, 0) rotate(var(--sc-note-rotate, 0deg)); }
+}
+@keyframes sc-note-toss-right {
+  from { opacity: 0; transform: translate(calc(-1 * var(--sc-toss-d)), 0) rotate(0deg); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translate(0, 0) rotate(var(--sc-note-rotate, 0deg)); }
+}
+
+/* Title row — title alone on its row, with the close button (sheet      */
+/* variant only) anchored top-right. The serial number that used to      */
+/* live here has moved to the foot. 12 px margin-bottom = the gap-12     */
+/* the Figma head-block has between title and whatIs.                    */
+.sc-note__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-bottom: var(--space-12);
+}
+/* Close button — base = hidden. Mobile bottom-sheet variant reveals it. */
+.sc-note__close {
+  display: none;
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--grey-800);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--grey-320);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+.sc-note__close:hover { background: var(--grey-880); color: var(--grey-160); }
+.sc-note__close:active { transform: scale(0.92); }
+/* Title — Figma H1 token: Fraunces 24 px, weight 400, line-height 100%, */
+/* letter-spacing -0.72 px, color grey-80 (deep ink). Mirrors .t-h1 in   */
+/* globals.css; values inlined here so the card doesn't reach for a    */
+/* shared utility class on its h3.                                       */
+.sc-note__title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -0.72px;
+  line-height: 1;
+  color: var(--grey-80);
+  margin: 0;
+}
+/* "What is it" body — Figma P2 token: Google Sans Medium 16 px,        */
+/* line-height 100%, letter-spacing -0.32 px, color grey-320. 48 px     */
+/* margin-bottom is the gap-48 between Figma's head-block and rest-     */
+/* block — landing at the first rule.                                   */
+.sc-note__whatis {
+  margin: 0 0 var(--space-48) 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.32px;
+  line-height: 1.2;
+  color: var(--grey-320);
+}
+/* Notice row — body text on the left, decorative eye glyph docked       */
+/* right. Eye sits centered to the body's cap-height. Both legs read    */
+/* grey (not dot-tinted) — the "look at this" mark is a quiet beat,     */
+/* not a brand accent. 24 px vertical margins place it on the gap-24    */
+/* rhythm Figma's rest-block uses between rule → notice → rule.         */
+/* Gap deviation from Figma (16 px vs 44 px): Figma sized the gap for   */
+/* a one-line notice; with the multi-line copy used here (some run to   */
+/* 4 lines), 44 px stole ~28 px of column width and forced earlier      */
+/* word breaks — text wrapped with awkward right-side whitespace per    */
+/* line. 16 px keeps the eye visibly disjoined from the text without   */
+/* starving the column.                                                  */
+.sc-note__notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  margin: var(--space-24) 0;
+}
+/* Notice copy — H5 typography token (Google Sans Flex ExtraBold       */
+/* wght 640, 12 px, line-height 100%) inlined from .t-h5 in            */
+/* globals.css. Rendered as an <h5> so it carries semantic weight too. */
+/* Sentence case (no `text-transform: capitalize`) — strings are        */
+/* authored sentence-case in data.ts and read the same way at runtime. */
+/* Colour grey-480 (one stop lighter than the prior grey-400) so the   */
+/* row reads as a calmer secondary line under the title, not a second  */
+/* H1.                                                                  */
+.sc-note__notice-txt {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 640;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1.2;
+  color: var(--grey-480);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sc-note__notice-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--grey-400);
+  flex-shrink: 0;
+}
+/* Serial number — Figma BTN1 token: Google Sans Flex ExtraBold 12 px,  */
+/* wght 720, capitalize, letter-spacing -0.24 px, dot-tinted. Mirrors   */
+/* the foot link's typography so the pair reads as one closing beat.   */
+.sc-note__no {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+  /* Per-piece dot tint — set by SpecNote on the .sc-note element. The   */
+  /* serial number, the link, the hint pill, and the card border all     */
+  /* read from --sc-dotc so the four accents share one colour per piece. */
+  color: var(--sc-dotc);
+}
+.sc-note__rule {
+  height: 1px;
+  background: var(--grey-880);
+  margin: 0;
+}
+.sc-note__foot {
+  display: flex;
+  align-items: baseline;
+  /* Link on the LEFT, serial on the RIGHT. Both dot-tinted, partnered   */
+  /* as the closing beat of the card. 24 px margin-top closes Figma's   */
+  /* rest-block gap between (rule2) and (foot).                          */
+  justify-content: space-between;
+  gap: var(--space-12);
+  margin-top: var(--space-24);
+}
+/* Plain-text credit — used when piece.href is omitted (the project IS  */
+/* this site or otherwise unlinkable). Same mono caption typography as  */
+/* the linked variant, just no chevron / no link colour.                */
+/* Foot credit (when piece.href is omitted) — same BTN1 typography as   */
+/* the link, just no underline / no icon / no dot tint.                 */
+.sc-note__credit {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+  color: var(--grey-400);
+}
+/* Foot link — Figma BTN1 token: Google Sans Flex ExtraBold 12 px,      */
+/* wght 720, capitalize. Dotted underline (2 px, currentColor) at rest, */
+/* crossfades to a solid 1 px bar on hover via the ::after pseudo (see  */
+/* .sc-note__link-label below — same recipe as .t-btn1 in globals.css). */
+.sc-note__link {
+  position: relative;          /* anchor for .sc-note__link-hint pill */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+  /* Per-piece dot tint — see .sc-note__no comment. Link, hint pill,    */
+  /* and the chevron icon all inherit `currentColor` from this.         */
+  color: var(--sc-dotc);
+  text-decoration: none;
+  cursor: pointer;
+  transition: translate var(--dur-instant) var(--ease-snap);
+}
+/* Press state — 1 px paper-tag press-down. Matches the NavMarker /     */
+/* footer link idiom (translateY on active). The icon's own            */
+/* translateX(3px) scale below stacks on top for a bit of extra      */
+/* "click happened" weight.                                              */
+.sc-note__link:active {
+  translate: 0 1px;
+}
+
+/* Persistent dotted underline on the label — Figma BTN1 spec.         */
+/* Crossfades to a solid 1 px bar on hover via the ::after pseudo,     */
+/* matching the .t-btn1 recipe in globals.css. text-decoration-style   */
+/* doesn't smoothly interpolate, so the pseudo carries the solid       */
+/* state. Label is positioned relative so the bar anchors to it.        */
+.sc-note__link-label {
+  position: relative;
+  text-decoration: underline currentColor dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  transition: text-decoration-color var(--dur-fast) var(--ease-snap);
+}
+.sc-note__link-label::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-snap);
+  pointer-events: none;
+}
+.sc-note__link:hover .sc-note__link-label,
+.sc-note__link:focus-visible .sc-note__link-label {
+  text-decoration-color: transparent;
+}
+.sc-note__link:hover .sc-note__link-label::after,
+.sc-note__link:focus-visible .sc-note__link-label::after {
+  opacity: 1;
+}
+
+/* External-link arrow — adopted from the archive (.ap-entry .icon-ext */
+/* .icon-ext-arrow). The icon's arrow group slides diagonally on hover */
+/* via the parent link selector. Slow paper ease so the arrow drifts   */
+/* out rather than snapping — matches the archive's feel and the      */
+/* sop chip's. Local rule so the showcase doesn't reach into archive  */
+/* selectors.                                                           */
+.sc-note__link .icon-ext {
+  flex-shrink: 0;
+}
+.sc-note__link .icon-ext .icon-ext-arrow {
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+.sc-note__link:hover .icon-ext .icon-ext-arrow,
+.sc-note__link:focus-visible .icon-ext .icon-ext-arrow {
+  translate: 2px -2px;
+}
+
+/* Foot-end stack — right side of the foot row. Holds the serial      */
+/* number (in flow) and the hint pill (absolute, right-anchored)      */
+/* layered on top. Width tracks the wider of the two so the foot      */
+/* doesn't reflow on hover.                                            */
+.sc-note__foot-end {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.sc-note__no {
+  /* Serial typography is defined above. Add the hover-fade transition. */
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+
+/* "opens in new tab" hint pill — sits on the RIGHT (right-anchored   */
+/* to the foot-end stack), absolutely positioned over where the       */
+/* serial sits at rest. On hover the serial fades out and the pill    */
+/* fades in to take its place — a clean swap, no reflow. Mirrors the */
+/* archive's .ap-entry__hint recipe (mono 10 px, paper bg, 1 px       */
+/* border, 4 px radius, pointer-events: none).                         */
+.sc-note__hint {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-880);
+  border-radius: 4px;
+  color: var(--sc-dotc);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  /* Vertical centering (-50%) + a small slide-in offset (4 px from    */
+  /* the right) that resolves to 0 on hover.                            */
+  translate: 4px -50%;
+  transition:
+    opacity var(--dur-fast) var(--ease-snap),
+    translate var(--dur-fast) var(--ease-snap);
+}
+
+/* Swap: when the link is hovered/focused, the serial fades out and   */
+/* the hint pill fades in. `:has()` reaches up from the link to the   */
+/* foot so the toggle lives at one stable selector — no JS state, no  */
+/* prop drilling.                                                       */
+.sc-note__foot:has(.sc-note__link:hover) .sc-note__no,
+.sc-note__foot:has(.sc-note__link:focus-visible) .sc-note__no {
+  opacity: 0;
+}
+.sc-note__foot:has(.sc-note__link:hover) .sc-note__hint,
+.sc-note__foot:has(.sc-note__link:focus-visible) .sc-note__hint {
+  opacity: 1;
+  translate: 0 -50%;
+}
+
+
+/* ── Backdrop ───────────────────────────────────────────────────────────── */
+
+/* Dismiss backdrop — sits above everything on the page except the active */
+/* tile. ANY click that isn't on the active tile lands here and closes —  */
+/* no sibling tile opens, no AboutCard / Timeline / nav fires. Modal      */
+/* pattern.                                                                */
+.sc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: transparent;
+}
+
+
+/* ── Placeholders ───────────────────────────────────────────────────────── */
+
+.sc-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--mat-bg);
+  color: var(--grey-400);
+  text-align: center;
+  padding: 16px;
+}
+.sc-placeholder__label {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -0.4px;
+  color: var(--grey-240);
+}
+.sc-placeholder__sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--grey-560);
+}
+
+
+/* ── Paymaster UX Audit ─────────────────────────────────────────────────── */
+/* Tile-size port of /biconomy Flows: olive rail with outline-inset border, */
+/* tilted-when-closed, vertical "Notes" tab. Numbered Monostamps on the     */
+/* image appear only when the rail is open. Hover sync between stamp and    */
+/* matching note line uses the same lift + ±2° tilt as biconomy's           */
+/* .ba__note-pointer.                                                       */
+
+.sc-audit {
+  position: absolute;
+  inset: 0;
+  /* Same numbers as /biconomy. Closed: only the tab peeks at the right    */
+  /* edge of the tile. Open: main slides left by --sc-main-open-shift and */
+  /* the rail slides into view next to it (no overlap, no clipping).       */
+  --sc-rail-w: 240px;
+  --sc-main-open-shift: 120px;
+  --sc-rail-open-tuck: 16px;
+  --sc-rail-open-shift: calc(
+    var(--sc-rail-w) - var(--sc-rail-open-tuck) - var(--sc-main-open-shift)
+  );
+}
+
+/* Main column — wraps the image stack. Same width as the tile when       */
+/* closed; slides left by --sc-main-open-shift when notes open.            */
+.sc-audit__main {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transition: transform var(--dur-slide) var(--ease-snap);
+}
+.sc-audit.is-notes-open .sc-audit__main {
+  transform: translateX(calc(-1 * var(--sc-main-open-shift)));
+}
+
+.sc-audit__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--mat-bg);
+}
+
+/* Before/after layers — both fill the frame; .sc-audit__after fades in   */
+/* over .sc-audit__before on toggle. Mirrors /biconomy's .ba__before +    */
+/* .ba__after pattern.                                                    */
+.sc-audit__before,
+.sc-audit__after {
+  position: absolute;
+  inset: 0;
+}
+.sc-audit__after {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-paper);
+}
+.sc-audit__after.is-on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Pointers layer fills its parent image — translate(-50% -50%) positions */
+/* each Monostamp at its note anchor (x/y are 0..1 of image width/height).*/
+.sc-audit__pointers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sc-audit__pointers > * {
+  pointer-events: auto;
+}
+
+/* Rail — anchored to the right edge of the tile, but pushed FURTHER     */
+/* right by its own width so it sits entirely outside the visible tile    */
+/* area when closed. The vertical tab (positioned to the LEFT of the rail */
+/* via right:100%) is what stays visible at the tile's right edge.        */
+/* On open, the rail slides LEFT by --sc-rail-open-shift to come into     */
+/* view next to the main column (which has slid left as well).            */
+.sc-audit__rail {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  right: 0;
+  width: var(--sc-rail-w);
+  display: flex;
+  background: var(--olive-80);
+  color: var(--olive-800);
+  outline: 1px solid var(--olive-400);
+  outline-offset: -8px;
+  transform: translateX(var(--sc-rail-w)) rotate(1deg);
+  transition: transform var(--dur-slide) var(--ease-snap);
+  z-index: 5;
+}
+.sc-audit__rail.is-open {
+  /* Translate is (rail-w − main-shift − tuck) = 104px with the current   */
+  /* values. The rail's left edge lands at tile-right − (main-shift +     */
+  /* tuck), so it sits flush next to the image (which has slid left by    */
+  /* main-shift) with a 16 px tuck of overlap, exactly like /biconomy.    */
+  transform: translateX(var(--sc-rail-open-shift)) rotate(0deg);
+}
+
+/* Vertical tab — hangs off the left edge of the rail. Same olive surface */
+/* so it reads as continuous with the rail, with the arrow + "Notes"     */
+/* label rotated vertical-lr.                                             */
+.sc-audit__tab {
+  appearance: none;
+  position: absolute;
+  right: 100%;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: var(--olive-80);
+  color: var(--olive-800);
+  border: none;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap);
+}
+.sc-audit__tab:hover {
+  background: var(--olive-160);
+  color: var(--olive-960);
+}
+.sc-audit__tab:active .sc-audit__tab-inner { transform: scale(0.97); }
+.sc-audit__tab-inner { transition: transform var(--dur-instant) var(--ease-snap); }
+.sc-audit__tab-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 6px 6px;
+  writing-mode: vertical-lr;
+  text-orientation: sideways;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.sc-audit__arrow {
+  flex-shrink: 0;
+  transform: rotate(180deg);
+  transition: transform var(--dur-slide) var(--ease-snap);
+}
+.sc-audit__arrow.is-open {
+  transform: rotate(0deg);
+}
+
+/* Panel — flex-end aligned so short note lists hug the bottom of the rail */
+/* (matches /biconomy). Longer lists scroll inside the panel.              */
+.sc-audit__panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+.sc-audit__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-16) var(--space-16) var(--space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  overflow-y: auto;
+}
+.sc-audit__note {
+  cursor: default;
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--olive-800);
+  transition:
+    color var(--dur-fast) var(--ease-paper),
+    opacity var(--dur-fast) var(--ease-paper);
+}
+.sc-audit__list:has(.is-hovered) .sc-audit__note:not(.is-hovered) {
+  opacity: 0.45;
+}
+.sc-audit__note.is-hovered {
+  color: var(--olive-720, var(--olive-800));
+}
+.sc-audit__note-n {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.sc-audit__note-t {
+  display: block;
+}
+
+/* Numbered pointer — wraps a Monostamp (tone="olive" variant="tall"      */
+/* appearance="dark"), centered on the note's image-relative anchor.      */
+/* Hover lifts + tilts the stamp by --sc-lift-rotate (binary ±2°), same   */
+/* idiom as /biconomy's .ba__note-pointer.                                 */
+.sc-audit__pointer {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  pointer-events: auto;
+  user-select: none;
+  z-index: 3;
+  transition: transform 0.14s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+.sc-audit__pointer:hover,
+.sc-audit__pointer.is-hovered {
+  transform: translate(-50%, -50%) scale(1.2) rotate(var(--sc-lift-rotate, 0deg));
+  z-index: 5;
+}
+
+
+/* ── Multiverse poster — smaller + radius ───────────────────────────────── */
+/* The piece is `frame: false` so the default plain media has no border —   */
+/* the poster needs the 8 px radius applied directly. Width capped so the   */
+/* poster doesn't dominate its column.                                      */
+
+.sc-piece--note-left:has(.sc-multiverse) .sc-media,
+.sc-multiverse-wrap {
+  /* targeted below by the wrapper class on the piece */
+}
+.sc-multiverse {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+
+/* ── Cardstack fan — RR cards, /rr CardFan port ─────────────────────────── */
+/* Always-interactive fan. Rest: five cards staggered along the bottom    */
+/* with per-card rotation. Hover: focused card lifts, neighbours nudge.   */
+/* Selected: card lifts to center + scales; others spread out and recede. */
+/* Click outside to deselect. Caption fades in under the selected card.   */
+/* Positions are container-query units (cqw/cqh) so the fan scales with   */
+/* the tile box.                                                          */
+
+.sc-cardfan {
+  position: absolute;
+  inset: 0;
+  container-type: size;
+  /* Container is non-interactive; the cards themselves re-enable, same  */
+  /* idiom as /rr's .rr-card-fan.                                         */
+  pointer-events: none;
+}
+
+/* Card wrapper is INVISIBLE — no background, no border-radius, no       */
+/* overflow clip, no box-shadow. The card webps carry their own alpha    */
+/* rounded corners; an opaque wrapper or square clip would either show   */
+/* its own shape (defeating the card art) or let the layers underneath   */
+/* bleed through transparent card edges (the ghost halo).                */
+/*                                                                        */
+/* All visual weight — including the shadow — lives on the IMG element  */
+/* via `filter: drop-shadow()` (mirrors /rr's .rr-card-item__img model). */
+/* drop-shadow traces the alpha shape, so the shadow follows the rounded */
+/* card corners instead of a rectangular wrapper bounding box.           */
+.sc-cardfan__card {
+  position: absolute;
+  /* Anchor sits at the bottom edge so cards scale upward — bottom stays */
+  /* fixed, top edges rise into the tile's vertical space. Combined with */
+  /* `transform-origin: 50% 100%` below, every transform (hover lift,    */
+  /* click spread, scale) keeps the bottom locked.                        */
+  bottom: 6%;
+  /* Card width bumped 30% → 34% — gives the fan more presence in the    */
+  /* tile. Card height grows proportionally (aspect 449:617), tops rise */
+  /* into the tile's headroom. 34% leaves enough room that the click-   */
+  /* spread (scale 1.18 + lift -8%) only barely touches the tile's      */
+  /* overflow-hidden top edge. Going wider needs aspect retune.           */
+  width: 34%;
+  aspect-ratio: 449 / 617;
+  padding: 0;
+  border: none;
+  background: transparent;
+  transform-origin: 50% 100%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+
+/* Rest shadow on the alpha image. object-fit: contain preserves the     */
+/* full alpha shape (no edge crop). Filter on the inner <img> so the     */
+/* shadow traces the card's rounded corners instead of the square        */
+/* wrapper.                                                               */
+.sc-cardfan__card .img__inner {
+  object-fit: contain;
+  filter: drop-shadow(-2px 4px 8px rgba(0, 0, 0, 0.38));
+  transition:
+    filter var(--dur-slide) var(--ease-paper),
+    opacity var(--dur-slide) var(--ease-paper);
+}
+
+/* Selected — deeper lifted shadow, same alpha-traced idiom.              */
+.sc-cardfan__card.is-selected .img__inner {
+  filter: drop-shadow(-3px 18px 22px rgba(0, 0, 0, 0.52));
+}
+
+/* Pushed-back cards (any non-selected while something is selected) —     */
+/* lying flat on the desk: tighter shadow + dim + desaturate.             */
+.sc-cardfan--has-selection .sc-cardfan__card:not(.is-selected) .img__inner {
+  filter:
+    drop-shadow(-1px 1px 3px rgba(0, 0, 0, 0.22))
+    brightness(0.78)
+    saturate(0.6);
+}
+
+/* Hovering a pushed-back card while another is selected — partial lift   */
+/* in brightness + a slightly fuller shadow so the focus reads as         */
+/* recoverable.                                                            */
+.sc-cardfan--has-selection .sc-cardfan__card.is-hovered:not(.is-selected) .img__inner {
+  filter:
+    drop-shadow(-1px 3px 6px rgba(0, 0, 0, 0.32))
+    brightness(0.92)
+    saturate(0.85);
+}
+
+/* Caption strip below the selected card — mono label centered at the      */
+/* tile's bottom edge. Styled to match the showcase control family       */
+/* (8 px outer radius, grey-800 hairline, mat fill) so internal captions  */
+/* and on-tile controls share one visual language.                         */
+.sc-cardfan__caption {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--grey-320);
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-800);
+  border-radius: 8px;
+  padding: 4px 10px;
+  /* Single-line caption — the v1 label "The very first hand-drawn        */
+  /* concept" wraps to two lines otherwise. Keep it nowrap; the tile's   */
+  /* .sc-media is overflow-hidden so anything past the edge gets clipped */
+  /* (acceptable since the longest current caption fits at 30 % card     */
+  /* width).                                                              */
+  white-space: nowrap;
+  z-index: 11;
+  pointer-events: none;
+  animation: sc-fade-in var(--dur-slide) var(--ease-paper) both;
+}
+
+/* Mono iteration label on each card — top-left corner. Hidden until the   */
+/* card is selected; fades in with the caption.                            */
+.sc-cardfan__label {
+  position: absolute;
+  top: -16px;
+  left: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--grey-320);
+  padding: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+.sc-cardfan__card.is-selected .sc-cardfan__label {
+  opacity: 1;
+}
+
+
+/* ── Poster stack carousel — click cycles front to back ─────────────────── */
+
+/* All four posters anchor at the stack's centre via `left/top: 50%` and   */
+/* a base `translate(-50%, -50%)`. Slot offsets compose on top. Using      */
+/* absolute positioning instead of CSS Grid here avoids the cell-grows-   */
+/* with-rotated-bounding-box issue that was making slot-4 visibly larger. */
+.sc-poster-stack {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+.sc-poster {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58%;
+  /* Per-poster aspect — set inline by PosterStack from each poster's    */
+  /* natural width/height. Fallback ~0.707 matches the three A-series   */
+  /* print posters so a missing inline value renders correctly.          */
+  aspect-ratio: var(--poster-aspect, 1222 / 1722);
+  overflow: hidden;
+  /* Each poster carries its own border colour, set inline from PosterStack */
+  /* (sampled from the poster's content accent). Falls back to grey if the  */
+  /* inline style isn't applied. Cutting-2 passes `transparent` because the */
+  /* artwork already has its own printed red rule.                          */
+  border: 1px solid var(--grey-800);
+  /* Two-layer shadow: a tight close-in shadow gives the poster its       */
+  /* sit-on-paper edge; a wider diffuse layer plants it on the bench.   */
+  box-shadow:
+    0 1px 0 rgba(20, 20, 20, 0.10),
+    0 10px 22px -10px rgba(20, 20, 20, 0.38);
+  transform-origin: 50% 50%;
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+
+/* Slot 1 = front. Slots 2–3 fan up-and-left from there. The whole stack */
+/* is nudged right (translateX adjusted by +6% across all slots) so the  */
+/* front poster sits a touch right of tile centre — leaves more visual  */
+/* room for the fanned-out backs on the left.                            */
+.sc-poster--slot-1 { transform: translate(-44%,  -50%) rotate(0deg);   }
+.sc-poster--slot-2 { transform: translate(-51%,  -54%) rotate(-3deg);  }
+.sc-poster--slot-3 { transform: translate(-58%,  -58%) rotate(-6deg);  }
+.sc-poster--slot-4 { transform: translate(-65%,  -62%) rotate(-9deg);  }
+
+
+/* ── Startooth (SVG) — vector cards on the framed dark ground ─────────── */
+/* The cards SVG (334 × 284 viewBox) sits centered on the tile's framed  */
+/* media area. The dark brown ground comes from the framed-bg override   */
+/* in the per-kind block above (.sc-piece--startooth .sc-media bg). Two  */
+/* tunable knobs:                                                         */
+/*   - `--st-cards-w`  (default 80%) — cards width as % of tile width    */
+/*   - `--st-cards-y`  (default 0)  — vertical translation; negative     */
+/*                                     values shift cards toward the top */
+/* Cards render as vector all the way to pixel — no raster, no AVIF       */
+/* re-encode. Crisp at every DPR.                                          */
+.sc-startooth-svg {
+  --st-cards-w: 80%;
+  --st-cards-y: 0px;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc-startooth-svg__cards {
+  width: var(--st-cards-w);
+  height: auto;
+  display: block;
+  transform: translateY(var(--st-cards-y));
+  /* Defensive: SVG `<img>` elements default to inline; some browsers add */
+  /* a few px below the baseline. flex centering handles vertical anchor,*/
+  /* but block display kills the baseline-gap edge case.                  */
+}
+
+
+/* ── Dual — chip + gauge ─────────────────────────────────────────────────── */
+/* Two real Connektion artefacts (JobChipStack + LifecycleGauge) sit       */
+/* directly on the workbench, stacked VERTICALLY (chip on top, gauge       */
+/* below). No pane wrappers, no pane borders — each artefact already      */
+/* self-frames (chip on its light-grey card, gauge inside its dark         */
+/* frame), so an additional container would read as a tray around          */
+/* something that doesn't need one.                                        */
+/*                                                                          */
+/* Tile geometry: cols 3 (canonical) + aspect 1.1 = ~413 × 375 px on       */
+/* desktop. Chip (260 × 162) + 32 px gap + gauge (138 × 115) = 309 px      */
+/* stack height; ~33 px of vertical bench above and below. Both centered  */
+/* horizontally — chip leaves ~76 px each side, gauge ~137 px each side.  */
+/* (Previously cols 4 / aspect 2.0 in a side-by-side row, which left      */
+/* orphan columns in the bento row — restructured for canonical 3-col    */
+/* rhythm.)                                                                 */
+.sc-dual {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-32);
+}
+
+
+/* ── Timeline tile inside the prelude ───────────────────────────────────── */
+/* `.sc-timeline-tile` is the showcase-context selector; it's a sibling    */
+/* class on the same element that also carries `.selected-mat` (so the    */
+/* mint border + dimensions stay applied). The override below is scoped   */
+/* to the prelude so removing the timeline-tile from this surface won't   */
+/* silently change /all's mat behaviour elsewhere.                   */
+.sc-prelude__timeline .sc-timeline-tile {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-piece,
+  .sc-media,
+  .sc-cap__dot,
+  .sc-switch,
+  .sc-cardfan__card,
+  .sc-poster {
+    transition: none;
+  }
+  .sc-piece:hover,
+  .sc-piece.is-active {
+    transform: none;
+  }
+  .sc-note {
+    animation: none;
+  }
+}
+
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (min-width: 768px) and (max-width: 1023px) and (min-height: 501px) {
+  /* Tablet — 3-col grid. Preserves the desktop thirds rhythm exactly: */
+  /* a desktop "third" (cols 3) becomes a tablet "third" (1 of 3); a   */
+  /* desktop "two-thirds hero" (cols 6) becomes a tablet "two-thirds   */
+  /* hero" (2 of 3); "full" (cols 9) stays full. Each slot reads       */
+  /* `--sc-cols-t`, pre-computed by Showcase.tsx as                   */
+  /* `max(1, ceil(cols / 3))`.                                          */
+  .sc-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .sc-slot {
+    grid-column: span var(--sc-cols-t, 1);
+  }
+  .sc-prelude {
+    grid-template-columns: 1fr;
+  }
+  .sc-prelude__header { padding-top: 0; }
+}
+
+@media (max-width: 767px), (max-height: 500px) {
+  /* Mobile — 1-col stack. All tiles span the full width regardless of */
+  /* `width` setting. Smaller gap (1.5× the previous 16 → 24).           */
+  .sc-grid {
+    --sc-gap: 24px;
+    grid-template-columns: 1fr;
+  }
+  /* Mobile — every slot spans the single column regardless of cols. */
+  .sc-slot {
+    grid-column: span 1;
+  }
+  .sc-prelude {
+    grid-template-columns: 1fr;
+    gap: var(--space-24);
+  }
+  .sc-prelude__header { padding-top: 0; }
+
+}
+
+/* ── Bottom-sheet variant (mobile only) ─────────────────────────────── */
+/* The index card is rendered through a React Portal into document.body */
+/* (see ShowcasePiece) as `.sc-note.sc-note--sheet`. Because it lives at */
+/* the body level it can't be trapped by any transformed ancestor in     */
+/* the tile tree — `position: fixed` resolves cleanly against the        */
+/* viewport. Lives outside the mobile @media block above on purpose:     */
+/* the sheet skin only gets the modifier class on mobile (activeSide =   */
+/* 'bottom' is only ever set on mobile in ShowcasePiece), so scoping it  */
+/* by class is enough — no media query needed. Body scroll is locked    */
+/* while the sheet is up (ShowcasePiece useEffect).                     */
+.sc-note.sc-note--sheet {
+  position: fixed;
+  inset: auto 0 0 0;          /* docked: bottom/left/right flush, no radius */
+  width: 100vw;
+  max-width: 100vw;
+  max-height: 75vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--mat-bg);
+  /* Viewport-edge dock seam — picks up the dot tint (DEEP / 720) so   */
+  /* the sheet reads as the same card-edge as the desktop variant,    */
+  /* now docked instead of free.                                       */
+  border: none;
+  border-top: 1px solid var(--sc-dotc, var(--grey-880));
+  border-radius: 0;
+  padding: var(--space-20) var(--space-20)
+           calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -16px 40px -8px rgba(20, 20, 20, 0.30);
+  /* Sits above .sc-backdrop (50) and the active piece (60). Portal at  */
+  /* body level means no ancestor stacking context interferes.          */
+  z-index: 70;
+  transform-origin: 50% 100%;
+  animation: sc-sheet-rise var(--dur-slide) var(--ease-snap) both;
+}
+/* Close button is the explicit dismiss affordance on the sheet (the   */
+/* tile's plus-dot is off-screen-ish when scrolled up; the × on the     */
+/* sheet is what the thumb reaches for).                                */
+.sc-note--sheet .sc-note__close {
+  display: inline-flex;
+}
+
+@keyframes sc-sheet-rise {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}

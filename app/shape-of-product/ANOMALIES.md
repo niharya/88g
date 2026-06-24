@@ -27,7 +27,7 @@ ground. Same pattern `/marks` uses for its dark canvas.
 ## Nav pair (`SopNavRow`)
 
 **Center-aligned, not left-anchored.** `position: fixed; left: 50%;
-transform: translateX(-50%)`. Different from `/selected` (left:560)
+transform: translateX(-50%)`. Different from `/all` (left:560)
 and `/marks` (top-right exit). The page is centered editorial prose,
 so the nav reads better centered above the column.
 
@@ -51,7 +51,7 @@ left on arrival. Same pattern as `/selected/components/NiharHomeLink`.
 
 **`NiharHomeLink` is consumed from the shared layer.** Promoted at
 v0.79.0 from `/selected/components/NiharHomeLink.tsx` to
-`app/components/NiharHomeLink/`. Both `/selected` and
+`app/components/NiharHomeLink/`. Both `/all` and
 `/shape-of-product` import from the shared path. The session-flag
 side-effect (`nav-direction = 'to-landing'`) lives once.
 

@@ -8,7 +8,7 @@ when an architectural decision changes — not on every edit.
 This is the **global** nav module: `ChapterMarker`, `ProjectMarker`, `ExitMarker`,
 `MarkerSlot`, `useDockedMarker`, `nav.css`. Used by every long-form project route.
 Treat changes here as load-bearing for **every consumer**: `/biconomy`, `/rr`,
-`/marks` (imports `nav.css` + `navmarker.css` from its layout), and `/selected`
+`/marks` (imports `nav.css` + `navmarker.css` from its layout), and `/all`
 (MarkerSlot + NavMarker consumers) — plus any future route.
 
 For project-level rules see `CLAUDE.md`. For route-specific consumers see
@@ -18,7 +18,7 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 
 ## Every marker routes through `NavMarker`
 
-Every visible marker in this cluster — `ChapterMarker` (static + dynamic current), `ProjectMarker`, `ExitMarker` — renders through the shared [`NavMarker`](../NavMarker/NavMarker.tsx) primitive. The landing's Nihar/Works markers and `/selected`'s Works nameplate + NiharHomeLink + Timeline `Names` / `Marks` buttons also route through it. See `LIBRARY.md` → "NavMarker" for the API contract.
+Every visible marker in this cluster — `ChapterMarker` (static + dynamic current), `ProjectMarker`, `ExitMarker` — renders through the shared [`NavMarker`](../NavMarker/NavMarker.tsx) primitive. The landing's Nihar/Works markers and `/all`'s Works nameplate + NiharHomeLink + Timeline `Names` / `Marks` buttons also route through it. See `LIBRARY.md` → "NavMarker" for the API contract.
 
 **Consequences for this module:**
 - Route layouts must import `app/components/NavMarker/navmarker.css` alongside `nav.css`. `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`) and the `.nav-marker` base; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked fill.
@@ -116,7 +116,7 @@ target `.project-marker` and continue to work.
 - No scroll listeners, no tray, no arrow rotation
 - No hooks called at all (early return in component)
 
-Used on `/selected` for the "Works 2018-25" marker. Replaces the previous hand-coded
+Used on `/all` for the "Works 2018-25" marker. Replaces the previous hand-coded
 fake chapter marker.
 
 **Border halving:** the dynamic-mode halving rule in `nav.css`

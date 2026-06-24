@@ -105,7 +105,50 @@
   margin: 0;
   color: inherit;
   text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
 }
+
+/* Startooth row — three small favicon-style icons sit to the left of   */
+/* the credit. Same six SVG variants as the favicon swap                */
+/* (star / tooth × blue / olive / terra @720, /icon-*.svg in public).  */
+/* Per-mount roll picks one shape per slot (alternating so no two       */
+/* adjacent shapes match) and a permutation of the three tones so each */
+/* colour appears once and never repeats across the row. The wrapper   */
+/* is the home-link <a> — its padding gives a larger touch target than */
+/* the icon bounds and hosts the hover/active states.                   */
+.footer__startooths {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* Touch target padding — taps anywhere in this padded box hit the   */
+  /* link, not just the 14 × 14 icons. No background or radius — the   */
+  /* hover/press reaction lives on the icons themselves (rotation +    */
+  /* 1px press nudge), matching the rectangle-free footer link cells. */
+  padding: var(--space-8);
+  margin: calc(var(--space-8) * -1);  /* compensate so layout doesn't shift */
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-instant) var(--ease-snap);
+}
+.footer__startooths:active {
+  transform: translateY(1px);
+}
+.footer__startooth {
+  width: 14px;
+  height: 14px;
+  display: block;
+  transform-origin: 50% 50%;
+  transition:
+    transform var(--dur-fast) var(--ease-snap);
+}
+/* Per-slot hover rotations — slight, deliberate, asymmetric so the    */
+/* trio reads as three loose paper pieces being nudged at once, not a  */
+/* lockup snapping in unison.                                           */
+.footer__startooths:hover .footer__startooth--slot-1 { transform: rotate(-8deg) translateY(-1px); }
+.footer__startooths:hover .footer__startooth--slot-2 { transform: rotate( 4deg) translateY(-1px); }
+.footer__startooths:hover .footer__startooth--slot-3 { transform: rotate( 9deg) translateY(-1px); }
 
 .footer--default .footer__links {
   list-style: none;
@@ -147,10 +190,7 @@
   padding: var(--space-24) var(--space-12);
   color: inherit;
   text-decoration: none;
-  background-color: transparent;
-  transition:
-    background-color var(--dur-fast) var(--ease-snap),
-    color var(--dur-fast) var(--ease-snap);
+  transition: color var(--dur-fast) var(--ease-snap);
 }
 
 .footer--default .footer__link-label {
@@ -162,27 +202,18 @@
 
 .footer--default .footer__link:hover,
 .footer--default .footer__link:focus-visible {
-  /* Bg is a random 800-step hue rolled per-hover by JS (sets
-     --hover-color via onMouseEnter). Fallback covers focus-visible
-     entries that bypass the mouseenter handler (keyboard nav). */
-  background-color: var(--hover-color, rgba(255, 255, 255, 0.08));
-  color: var(--grey-960);
+  /* Object-level reaction only: text colour brightens, the inner span's
+     underline crossfades dotted → solid (mirrored below). No background
+     overlay — the rectangle hover tint was overpowering the subtler
+     type-level state. */
+  color: var(--grey-240);
   outline: none;
 }
 
-/* Press state — paper-tag press-down. 1-px translate matches NavMarker's
-   `:active` (see app/components/NavMarker/navmarker.css). Bg switches to
-   the matched 960-step variant (`--active-color`, set in JS alongside
-   --hover-color), so the cell appears to press into the black surface
-   as it depresses. Snap easing, instant duration — same tier as
-   NavMarker. */
+/* Press state — text whitens. No translate, no bg shift. */
 .footer--default .footer__link:active {
-  background-color: var(--active-color, rgba(0, 0, 0, 0.4));
-  transform: translateY(1px);
-  transition:
-    background-color var(--dur-instant) var(--ease-snap),
-    color var(--dur-instant) var(--ease-snap),
-    transform var(--dur-instant) var(--ease-snap);
+  color: #fff;
+  transition: color var(--dur-instant) var(--ease-snap);
 }
 
 /* Forward the cell's hover state to the inner span's t-btn1 treatment.
@@ -277,6 +308,9 @@
 .footer--caption .footer__credit {
   margin: 0;
   color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
 }
 
 .footer--caption .footer__links {

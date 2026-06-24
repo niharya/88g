@@ -1,0 +1,1147 @@
+/* ==========================================================================
+   selected.css — /all route-specific styles
+
+   Shared layout system (workbench, mat, tokens) lives in globals.css.
+   Nav marker styles live in nav.css.
+   This file contains only /all-specific layout and components.
+   ========================================================================== */
+
+
+/* ── Route tokens ───────────────────────────────────────────────────────── */
+
+.workbench:has(.bench-workbench) {
+  --mat-line-color: rgba(210, 221, 210, 0.24);  /* mint grid */
+
+  /* Page-local project colors — derived from brand hex values. These three
+     are the Slangbusters case studies (Aleyr / Ecochain / Codezeros) nested
+     under the mint bar; resting bar fill is the pale `-100` tint, hover
+     saturates to `-240`, text/meta is `-800`. */
+
+  /* Aleyr — Purple #723CC5 (h:264), Pink #FF5581 (h:344) */
+  --aleyr-100: hsl(264, 28%, 94%);
+  --aleyr-240: hsl(344, 80%, 62%);   /* Pink — hover fill */
+  --aleyr-800: hsl(264, 42%, 38%);
+  --aleyr-960: hsl(264, 36%, 28%);
+
+  /* Ecochain — Green #4CB400 (h:95), Charcoal #212121 */
+  --ecochain-100: hsl(95, 24%, 93%);
+  --ecochain-240: hsl(95, 72%, 42%);   /* Saturated green — hover fill (was an
+                                          off-white that read as invisible on
+                                          the mat; the bar must stay legible) */
+  --ecochain-800: hsl(95, 55%, 28%);
+  --ecochain-960: hsl(95, 45%, 20%);
+
+  /* Codezeros — Orange-red #FF4B3F (h:4), Golden #F9A12E (h:34) */
+  --codezeros-100: hsl(34, 30%, 94%);
+  --codezeros-240: hsl(34, 92%, 58%);
+  --codezeros-800: hsl(4, 60%, 40%);
+  --codezeros-960: hsl(4, 50%, 30%);
+}
+
+
+/* ── Page layout ────────────────────────────────────────────────────────── */
+/* The bench shell (`.bench-workbench` → BenchEssay) owns the route's layout,
+   nav, and intro now; the Cases tab's mat is hosted + centred by `.bench-cases`
+   (bench.css). The old `/selected` two-column stage (`.selected-firstview` /
+   `.selected-layout`), its `.selected-nav-row` / `.about-card-p` chrome, the
+   `selected-slide-in` keyframe, and `AboutCard.tsx` were stranded by the bench
+   migration and have been removed. Only `.selected-mat` (below) and the
+   timeline inside it belong to this file now. */
+
+
+/* ── Mat ────────────────────────────────────────────────────────────────── */
+/* Smaller mat containing timeline, cards, and archive.                     */
+
+.selected-mat {
+  position: absolute;
+  /* Anchored to the stage's *right* edge (was `left: 536px`, a fixed   */
+  /* pixel offset from the left). With the right anchor, the mat tracks */
+  /* the stage's right rail as the stage shrinks — the gap between      */
+  /* AboutCard (anchored at `left: 0`) and the mat closes naturally on   */
+  /* narrower viewports instead of the mat drifting past the rail.       */
+  right: 0;
+  top: 24px;
+  width: 688px;
+  border: 2px solid var(--mint-100);
+  padding: 0;
+  padding-bottom: var(--space-48);
+  min-height: 958px;
+  transition: min-height var(--dur-settle) var(--ease-paper);
+}
+
+.selected-mat--archive-open {
+  min-height: 1238px;
+}
+
+
+/* ── Timeline ───────────────────────────────────────────────────────────── */
+
+.selected-tl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Now dot — shape varies by time of day. The 16×16 box is constant so the
+   timeline alignment is fixed; what changes is what gets painted inside.
+   Morning: clip to a top-half dome (sun above horizon).
+   Afternoon: full disk (sun overhead).
+   Evening: a same-color pseudo-element offset to the top-right carves a
+   bite out of the disk, leaving a crescent opening to the bottom-left.
+   The carve paints in --mat-bg so it dissolves into the mat surface. */
+.selected-tl__dot {
+  position: absolute;
+  left: 143px;
+  top: 64px;
+  width: 16px;
+  height: 16px;
+  background: var(--yellow-240);
+  border-radius: 8px;
+}
+
+.selected-tl__dot--morning {
+  clip-path: inset(0 0 50% 0);
+}
+
+.selected-tl__dot--evening::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mat-bg);
+}
+
+/* Living "Now" pulse — an expanding, fading amber ring on the dot, signalling
+   the timeline is anchored in the present. A separate element (not a pseudo)
+   so it never collides with the dot's morning clip-path / evening crescent.
+   Sits at the dot's box, behind it, non-interactive. The delay lets the dot's
+   entrance pop land first. Disabled under reduced-motion (route block below). */
+.selected-tl__pulse {
+  position: absolute;
+  left: 143px;
+  top: 64px;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: -1;
+  animation: now-pulse 2.6s var(--ease-paper) 0.7s infinite;
+}
+
+/* Amber matches the Now dot's --yellow-240 (#FFCA33 ≈ hsl(44 100% 54%)); the
+   ring needs an alpha track for the fade, which a bare ramp token can't carry,
+   so the colour is inlined here as the one justified literal. */
+@keyframes now-pulse {
+  0%   { box-shadow: 0 0 0 0 hsl(44 100% 54% / 0.45); }
+  70%  { box-shadow: 0 0 0 9px hsl(44 100% 54% / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(44 100% 54% / 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selected-tl__pulse { animation: none; }
+}
+
+.selected-tl__label-now {
+  position: absolute;
+  left: 139px;
+  top: 72px;
+  transform: translate(-100%, -50%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--yellow-720);
+  line-height: 1;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.selected-tl__greeting {
+  /* Typography from .t-h5 (applied via JSX). */
+  position: absolute;
+  left: 163px;
+  top: 72px;
+  transform: translateY(-50%);
+  color: var(--yellow-720);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Dot clusters */
+.selected-tl__dots {
+  position: absolute;
+  left: 148px;
+  width: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.selected-tl__dots--top       { top: 92px; }
+.selected-tl__dots--bot       { top: 512px; }   /* Biconomy → Slangbusters */
+.selected-tl__dots--nameplate { top: 782px; }   /* Slangbusters → nameplates */
+
+.selected-tl__dots span {
+  display: block;
+  width: 4px;
+  height: 2px;
+  background: var(--grey-720);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* Timeline bars */
+.selected-tl__bar-blue {
+  position: absolute;
+  left: 148px;
+  top: 126px;
+  width: 4px;
+  height: 374px;
+  background: var(--blue-80);
+  border: 1px solid var(--blue-800);
+  transform-origin: top center;
+}
+
+.selected-tl__bar-yellow {
+  position: absolute;
+  left: 148px;
+  top: 256px;
+  width: 4px;
+  height: 46px;
+  background: var(--yellow-100);
+  border: 1px solid var(--yellow-800);
+  transform-origin: top center;
+}
+
+/* Year labels */
+.selected-tl__year {
+  position: absolute;
+  left: 144px;
+  transform: translate(-100%, -50%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--blue-800);
+  text-align: right;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.selected-tl__year--2025  { top: 136px; }
+.selected-tl__year--q425  { top: 280px; color: var(--yellow-800); }
+.selected-tl__year--23    { top: 478px; }
+
+
+/* ── Project cards ──────────────────────────────────────────────────────── */
+
+.selected-card-terra {
+  position: absolute;
+  left: 164px;
+  top: 126px;
+  pointer-events: auto;
+}
+
+.selected-card-blue {
+  position: absolute;
+  left: 164px;
+  top: 324px;
+  pointer-events: auto;
+}
+
+.project-card {
+  position: relative;
+  width: 408px;
+  height: 176px;
+  border-width: 1px;
+  border-style: solid;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-decoration: none;
+  display: block;
+  transition: box-shadow var(--dur-slide) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
+}
+
+/* Hover effects are gated by [data-armed="true"], set by ProjectCard.tsx
+   on the first real cursor movement. Prevents a stale hover state from
+   rendering when the page mounts with the cursor already parked over a
+   card. The :has(.project-card[data-armed="true"]:hover) cascade below
+   gates the timeline dim+highlight on the same flag. */
+.project-card[data-armed="true"]:hover {
+  box-shadow: var(--shadow-raised);
+  transform: translateY(-2px);
+}
+
+.project-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-flat);
+}
+
+.project-card--terra {
+  background: var(--yellow-100);
+  border-color: var(--yellow-800);
+}
+.project-card--blue {
+  background: var(--blue-80);
+  border-color: var(--blue-800);
+}
+
+.project-card__title {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 308px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.72px;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  line-height: 1.2;
+}
+.project-card--terra .project-card__title { color: var(--terra-720); }
+.project-card--blue  .project-card__title { color: var(--blue-800); }
+
+.project-card__body {
+  position: absolute;
+  top: 88px;
+  left: 16px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  line-height: 1.2;
+}
+.project-card--terra .project-card__body { color: var(--terra-720); width: 304px; }
+.project-card--blue  .project-card__body { color: var(--blue-800); width: 244px; }
+
+.project-card__divider {
+  position: absolute;
+  top: 136px;
+  left: 16px;
+  width: 376px;
+  height: 1px;
+  opacity: 0.35;
+}
+.project-card--terra .project-card__divider { background: var(--terra-720); }
+.project-card--blue  .project-card__divider { background: var(--blue-800); }
+
+.project-card__footer {
+  position: absolute;
+  top: 144px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.project-card__role {
+  /* Typography from .t-h5 (applied via JSX). */
+  white-space: nowrap;
+}
+.project-card--terra .project-card__role { color: var(--terra-720); }
+.project-card--blue  .project-card__role { color: var(--blue-800); }
+
+.project-card--terra .project-card__arrow { color: var(--terra-720); }
+.project-card--blue  .project-card__arrow { color: var(--blue-800); }
+
+.project-card__arrow {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.project-card__arrow .icon-chevron-shaft {
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+.project-card[data-armed="true"]:hover .project-card__arrow .icon-chevron-shaft {
+  translate: 3px 0;
+}
+
+/* Illustrations — wrapped in <Sticker> for the family treatment (drop
+   shadow + hover lift). Sticker owns the rotation via `tilt`, so the
+   per-instance transform is set inline via --sticker-tilt rather than
+   on these positional classes. The illustrations stay interactive (no
+   pointer-events: none) so the sticker can receive hover; click events
+   bubble up to the parent <Link>.
+
+   Card-hover lift: hovering anywhere on the card (not just the sticker)
+   should trigger the sticker's lift, so the sticker reads as part of
+   the card's hover personality, not a separate hit zone. The card also
+   sets --sticker-jitter on pointerenter (see ProjectCard.tsx) for a
+   per-hover ±1° random offset that composes with the resting tilt. */
+.project-card__illus {
+  position: absolute;
+}
+
+.project-card[data-armed="true"]:hover .sticker {
+  transform: rotate(calc(var(--sticker-tilt, 0deg) + var(--sticker-jitter, 0deg))) translateY(var(--sticker-lift-y));
+  filter: var(--sticker-shadow-lift);
+}
+
+.project-card__illus--hov {
+  top: 20px;
+  right: 58px;
+  width: 27px;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* SVG renders slightly larger than the box (white sticker rim bleeds
+     past) — let it overflow without clipping. */
+  overflow: visible;
+}
+
+/* Decorative sticker on the Biconomy (blue) card — hand-drawn paper-roll
+   illustration sitting in the empty space right of the body copy and
+   above the divider. Tilt comes from the Sticker `tilt` prop. */
+.project-card__illus--paperroll {
+  top: 60px;
+  right: 12px;
+  width: 120px;
+  height: 65px;
+  transform-origin: bottom right;
+}
+
+.project-card__illus--paperroll img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Mint variant (Slangbusters) — external link. Longer title, so the body
+   sits lower and runs full width. */
+.project-card--mint {
+  background: var(--mint-100);
+  border-color: var(--mint-800);
+}
+.project-card--mint .project-card__title  { color: var(--mint-800); width: 300px; }
+.project-card--mint .project-card__body   { color: var(--mint-800); top: 106px; width: 376px; }
+.project-card--mint .project-card__divider { background: var(--mint-800); }
+.project-card--mint .project-card__role   { color: var(--mint-800); }
+.project-card--mint .project-card__arrow  { color: var(--mint-800); }
+
+/* External-link arrow nudge — mirrors the chevron nudge; the animated group
+   inside IconExternalLink is `.icon-ext-arrow`. */
+.project-card__arrow--ext .icon-ext-arrow {
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+.project-card--mint[data-armed="true"]:hover .project-card__arrow--ext .icon-ext-arrow {
+  translate: 2px -2px;
+}
+
+/* Startooth sparkle sticker — mint fill, white offset rim. */
+.project-card__illus--star {
+  top: 18px;
+  right: 50px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* "opens in new tab" hint — sibling below the mint card (the card's own
+   overflow:hidden would clip it), revealed on card hover. Neutral grey shell,
+   mint ink — same family treatment as the case-study hints. */
+.project-card__hint {
+  display: block;
+  width: fit-content;
+  margin-top: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  border: 1px solid var(--grey-880);
+  border-radius: 4px;
+  background: var(--grey-960);
+  color: var(--mint-800);
+  opacity: 0;
+  translate: 0 -4px;
+  pointer-events: none;
+  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
+}
+.project-card--mint[data-armed="true"]:hover ~ .project-card__hint {
+  opacity: 1;
+  translate: 0 0;
+}
+
+
+/* ── Nameplates ─────────────────────────────────────────────────────────── */
+/* Individual positioned markers with dot clusters between them, maintaining  */
+/* the same vertical rhythm as the upper timeline.                          */
+
+.selected-nameplate {
+  position: absolute;
+  left: 133px;
+  pointer-events: auto;
+}
+
+/* Below the Slangbusters stack. Marks and Symbols Made sits ABOVE Names
+   Coined (§2a swap). Both shift down by 280px when the dropdown is open
+   (see the Slangbusters section's `--archive-open` shift rules). */
+.selected-nameplate--marks { top: 816px; }
+.selected-nameplate--names { top: 870px; }
+
+/* Single dot between the two nameplates */
+.selected-tl__dot-single {
+  position: absolute;
+  left: 148px;
+  width: 4px;
+  height: 2px;
+  background: var(--grey-720);
+  border-radius: 8px;
+}
+
+.selected-tl__dot-single--mid { top: 856px; }
+
+
+/* ── Timeline hover highlights ─────────────────────────────────────────── */
+/* Same pattern as archive: filter: opacity() to avoid Framer inline clash */
+
+.selected-tl > * {
+  transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
+}
+
+/* Hover-driven highlight cascade — gated by [data-armed="true"] on the
+   inner .project-card link (set by ProjectCard.tsx after the cursor
+   actually moves). Without the gate, the cascade fires on stale-mount
+   hover when the cursor lands on a card via navigation. */
+
+/* Dim all when any project card is hovered */
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) > *,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) > *,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) > * {
+  filter: opacity(0.35);
+}
+
+/* Terra (Rug Rumble) — highlight yellow bar + card + Q4•25 */
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-card-terra,
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow,
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__year--q425 {
+  filter: opacity(1);
+}
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow {
+  background: var(--yellow-240);
+}
+
+/* Blue (Biconomy) — highlight blue bar + card + years 2025 & 23 */
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-card-blue,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--2025,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--23 {
+  filter: opacity(1);
+}
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue {
+  background: var(--blue-160);
+}
+
+
+/* ── Slangbusters stack (mint — second parent) ──────────────────────────── */
+/* A tall parent bar (like Biconomy's blue) with three case studies nested
+   under it, collapsed behind the inline dropdown. The bar + lower timeline
+   grow/shift when the dropdown opens (see the `--archive-open` block below). */
+
+/* Mint bar — parent span. scaleY for entrance; height transition on open. */
+.selected-tl__bar-mint {
+  position: absolute;
+  left: 148px;
+  top: 546px;
+  width: 4px;
+  height: 224px;
+  background: var(--mint-80);
+  border: 1px solid var(--mint-960);
+  transform-origin: top center;
+}
+
+/* Slangbusters years — 20 at the top of the span, 18 at the bottom. */
+.selected-tl__year--slang-top { top: 556px; color: var(--mint-800); }
+.selected-tl__year--slang-bot { top: 748px; color: var(--mint-800); }
+
+/* Slangbusters card */
+.selected-card-mint {
+  position: absolute;
+  left: 164px;
+  top: 594px;
+  pointer-events: auto;
+}
+
+/* Inline dropdown header — plain text button on the mint spine (not a
+   NavMarker). Toggles the nested case studies + the mat growth. */
+.selected-tl__dropdown {
+  position: absolute;
+  left: 166px;
+  top: 550px;
+  pointer-events: auto;
+}
+.selected-tl__dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 2px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--grey-320);
+}
+.selected-tl__dropdown-label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 720;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+  line-height: 1;
+  text-transform: capitalize;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.selected-tl__dropdown-chevron {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--mint-800);
+  flex-shrink: 0;
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+.selected-tl__dropdown-btn[aria-expanded="true"] .selected-tl__dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+/* Nested child bars (Aleyr / Ecochain / Codezeros) — short bars on the mint
+   spine. Resting fill is the pale `-100` tint so the bar stays legible;
+   hover saturates to `-240`. */
+.selected-tl__bar-sb {
+  position: absolute;
+  left: 148px;
+  width: 4px;
+  height: 56px;
+  transform-origin: top center;
+}
+.selected-tl__bar-sb--aleyr { top: 590px; background: var(--aleyr-100);     border: 1px solid var(--aleyr-960); }
+.selected-tl__bar-sb--eco   { top: 686px; background: var(--ecochain-100);  border: 1px solid var(--ecochain-960); }
+.selected-tl__bar-sb--code  { top: 782px; background: var(--codezeros-100); border: 1px solid var(--codezeros-960); }
+
+/* Child years — vertically centred on their bars. */
+.selected-tl__year--sb-aleyr { top: 618px; color: var(--aleyr-800); }
+.selected-tl__year--sb-eco   { top: 714px; color: var(--ecochain-800); }
+.selected-tl__year--sb-code  { top: 810px; color: var(--codezeros-800); }
+
+/* Child rows — reuse the case-entry treatment (title + meta + external link +
+   hint pill), positioned on the mint spine. Only mounted when expanded. */
+.sb-case {
+  position: absolute;
+  left: 166px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-decoration: none;
+  pointer-events: auto;
+  translate: 0 0;
+}
+.sb-case--aleyr { top: 590px; }
+.sb-case--eco   { top: 686px; }
+.sb-case--code  { top: 782px; }
+
+.sb-case__title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.28px;
+  color: var(--grey-320);
+  line-height: 1.2;
+  height: 36px;
+}
+
+.sb-case__meta {
+  /* Typography from .t-h5 (applied via JSX). */
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.sb-case--aleyr .sb-case__meta { color: var(--aleyr-800); }
+.sb-case--eco   .sb-case__meta { color: var(--ecochain-800); }
+.sb-case--code  .sb-case__meta { color: var(--codezeros-800); }
+
+.sb-case__meta .icon-ext {
+  flex-shrink: 0;
+  margin-left: var(--space-4);
+}
+.sb-case__meta .icon-ext .icon-ext-arrow {
+  transition: translate var(--dur-slide) var(--ease-paper);
+}
+a.sb-case:hover .icon-ext .icon-ext-arrow {
+  translate: 2px -2px;
+}
+
+/* Dissolving underline on hover */
+.sb-case__meta span:first-child {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: text-decoration-color var(--dur-slide) var(--ease-paper);
+}
+a.sb-case:hover .sb-case__meta span:first-child {
+  text-decoration-color: currentColor;
+}
+
+/* "opens in new tab" hint — hidden, slides in on row hover. Neutral shell,
+   themed ink (same family treatment as the mint card hint). */
+.sb-case__hint {
+  width: fit-content;
+  margin-top: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  border: 1px solid var(--grey-880);
+  border-radius: 4px;
+  background: var(--grey-960);
+  opacity: 0;
+  translate: 0 -4px;
+  pointer-events: none;
+  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
+}
+.sb-case--aleyr .sb-case__hint { color: var(--aleyr-800); }
+.sb-case--eco   .sb-case__hint { color: var(--ecochain-800); }
+.sb-case--code  .sb-case__hint { color: var(--codezeros-800); }
+a.sb-case:hover .sb-case__hint {
+  opacity: 1;
+  translate: 0 0;
+}
+
+
+/* ── Expand: grow + shift ───────────────────────────────────────────────── */
+/* The mint bar's height and the lower timeline's `top`s animate together with
+   the mat's min-height when the dropdown opens, all on --dur-settle. These
+   override the filter/background-only transition from `.selected-tl > *`. */
+.selected-card-mint,
+.selected-tl__year--slang-bot,
+.selected-tl__dots--nameplate,
+.selected-nameplate--marks,
+.selected-tl__dot-single--mid,
+.selected-nameplate--names {
+  transition: filter var(--dur-slide) var(--ease-paper),
+              background var(--dur-slide) var(--ease-paper),
+              top var(--dur-settle) var(--ease-paper);
+}
+.selected-tl__bar-mint {
+  transition: filter var(--dur-slide) var(--ease-paper),
+              background var(--dur-slide) var(--ease-paper),
+              height var(--dur-settle) var(--ease-paper);
+}
+.sb-case {
+  transition: filter var(--dur-slide) var(--ease-paper),
+              translate var(--dur-slide) var(--ease-paper);
+}
+
+/* Open state — mint bar grows 224→504; card + lower timeline shift down 280px. */
+.selected-mat--archive-open .selected-tl__bar-mint        { height: 504px; }
+.selected-mat--archive-open .selected-card-mint           { top: 874px; }
+.selected-mat--archive-open .selected-tl__year--slang-bot { top: 1028px; }
+.selected-mat--archive-open .selected-tl__dots--nameplate { top: 1062px; }
+.selected-mat--archive-open .selected-nameplate--marks    { top: 1096px; }
+.selected-mat--archive-open .selected-tl__dot-single--mid { top: 1136px; }
+.selected-mat--archive-open .selected-nameplate--names    { top: 1150px; }
+
+
+/* ── Mint card hover ────────────────────────────────────────────────────── */
+/* Light the Slangbusters group (card + mint bar + years 20 & 18). The
+   dim-all rule above already drops the rest to opacity(0.35). */
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-card-mint,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__bar-mint,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__year--slang-top,
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__year--slang-bot {
+  filter: opacity(1);
+}
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__bar-mint {
+  background: var(--mint-240);
+}
+
+
+/* ── Nested child hover ─────────────────────────────────────────────────── */
+/* Dim the OTHER children's rows + bars + years; light the hovered row's bar
+   (saturate to -240) + its year + hint + arrow; push siblings ±4px. The mint
+   card and the rest of the timeline stay lit (only the children dim among
+   themselves). */
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--code,
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--aleyr,
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--code,
+.selected-tl:has(.sb-case--code:hover)  .sb-case--aleyr,
+.selected-tl:has(.sb-case--code:hover)  .sb-case--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--code,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--aleyr,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--code,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--aleyr,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__year--sb-eco,
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__year--sb-code,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__year--sb-aleyr,
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__year--sb-code,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__year--sb-aleyr,
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__year--sb-eco {
+  filter: opacity(0.35);
+}
+.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--aleyr { background: var(--aleyr-240); }
+.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--eco   { background: var(--ecochain-240); }
+.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--code  { background: var(--codezeros-240); }
+
+/* Push siblings apart on hover (translate — separate from Framer's transform). */
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--eco,
+.selected-tl:has(.sb-case--aleyr:hover) .sb-case--code  { translate: 0 4px; }
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--aleyr { translate: 0 -4px; }
+.selected-tl:has(.sb-case--eco:hover)   .sb-case--code  { translate: 0 4px; }
+.selected-tl:has(.sb-case--code:hover)  .sb-case--aleyr,
+.selected-tl:has(.sb-case--code:hover)  .sb-case--eco   { translate: 0 -4px; }
+
+
+/* ==========================================================================
+   Mobile — max-width: 767px
+   ========================================================================== */
+
+@media (max-width: 767px), (max-height: 500px) {
+
+  /* ════ Cases tab — cards-first mobile composition (MobileCases) ═══════════ */
+  /* On mobile the Cases tab renders MobileCases (not the desktop rail), so the
+     rail/archive rules further down match nothing. The mat becomes a full-bleed
+     grid surface; .cases-mobile flows the cards inside it. */
+
+  .bench-cases {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .cases-mobile {
+    display: flex;
+    flex-direction: column;
+    padding: 20px 18px 40px;
+  }
+
+  /* Living NOW cue — pulse dot + label + fading hairline (trimmed: no title). */
+  .cases-mobile__now {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 20px;
+  }
+  .cases-mobile__now-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--yellow-240);
+    flex: none;
+    animation: now-pulse 2.6s var(--ease-paper) infinite;
+  }
+  .cases-mobile__now-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: var(--yellow-720);
+  }
+  .cases-mobile__now-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--grey-720), transparent);
+  }
+
+  /* Mobile card */
+  .mcase {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 14px;
+    border: 1px solid;
+    text-decoration: none;
+    box-shadow: var(--shadow-flat);
+    transition: box-shadow var(--dur-slide) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
+  }
+  .mcase:active { transform: translateY(0); box-shadow: var(--shadow-flat); }
+  .mcase--hero { padding: 19px 18px 16px; box-shadow: var(--shadow-raised); }
+
+  .mcase--blue  { background: var(--blue-80);    border-color: var(--blue-800);  color: var(--blue-800); }
+  .mcase--terra { background: var(--yellow-100); border-color: var(--terra-720); color: var(--terra-720); }
+  .mcase--mint  { background: var(--mint-100);   border-color: var(--mint-800);  color: var(--mint-800); }
+
+  .mcase__year {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    opacity: 0.7;
+    margin-bottom: 10px;
+  }
+  .mcase__title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-variation-settings: 'SOFT' 0, 'WONK' 1;
+    letter-spacing: -0.55px;
+    line-height: 1.16;
+    font-size: 17px;
+  }
+  .mcase--hero .mcase__title { font-size: 22px; }
+  .mcase--mint .mcase__title { font-size: 20px; }
+  .mcase__body {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.12px;
+    line-height: 1.3;
+    margin-top: 9px;
+  }
+  .mcase__divider { height: 1px; background: currentColor; opacity: 0.32; margin: 14px 0 12px; }
+  .mcase__footer { display: flex; align-items: center; justify-content: space-between; }
+  .mcase__role-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .mcase__mini-slot { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .mcase__mini { display: block; }
+  .mcase__mini--paper { width: 20px; height: 13px; object-fit: contain; transform: rotate(-3deg); }
+  .mcase__role { line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mcase__arrow { font-size: 18px; flex: none; }
+
+  /* Nested label (and the sheet trigger, which shares the treatment) */
+  .cases-mobile__nest {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 18px 0 8px 22px;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+  }
+  .cases-mobile__nest-icon { font-size: 17px; }
+  .cases-mobile__nest-icon--terra { color: var(--terra-720); }
+  .cases-mobile__nest-icon--mint { color: var(--mint-800); }
+  .cases-mobile__nest-label {
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 640;
+    font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+    letter-spacing: -0.22px;
+  }
+  .cases-mobile__nest-label--terra { color: var(--terra-720); }
+  .cases-mobile__nest-label--mint { color: var(--mint-800); }
+  .cases-mobile__indent { margin-left: 22px; }
+  .cases-mobile__slang { margin-top: 34px; }
+
+  .cases-mobile__trigger { margin: 18px 0 0 22px; }
+  .cases-mobile__trigger-label {
+    text-decoration: underline dotted;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+  .cases-mobile__trigger-out { font-size: 16px; color: var(--mint-800); }
+
+  /* Foot nameplates — Marks then Names (§2a), quiet underlined rows. */
+  .cases-mobile__foot { display: flex; flex-direction: column; margin-top: 36px; }
+  .cases-mobile__foot-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 4px;
+    border-top: 1px solid var(--grey-880);
+    color: var(--grey-560);
+    background: none;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: left;
+  }
+  .cases-mobile__foot-icon { font-size: 18px; }
+  .cases-mobile__foot-label {
+    flex: 1;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 680;
+    font-variation-settings: 'wdth' 120, 'wght' 680, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+    letter-spacing: -0.24px;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+  }
+  .cases-mobile__foot-tag { font-family: var(--font-mono); font-size: 9px; color: var(--grey-720); }
+
+
+  /* The Cases tab renders MobileCases on mobile (gated in SelectedContent),
+     so the desktop rail / project cards / archive don't mount here — their
+     old mobile flow rules are gone. Only the mat's edge-to-edge bleed (below)
+     is still live: MobileCases sits inside it as a full-bleed grid surface.
+     (The bench shell owns the workbench, nav, and intro card now — the old
+     `.selected-workbench`/`.selected-layout`/`.selected-nav-row`/`.about-card-p`
+     mobile rules targeted classes that no longer render on this route.) */
+
+  /* ── Mat: edge-to-edge bleed ───────────────────────────────────────────── */
+  /* Mat extends beyond workbench padding and clips at viewport edges.       */
+  /* No visible left/right border — bleeds to the viewport edge.              */
+
+  .selected-mat {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: calc(100% + 2 * var(--workbench-pad-x));
+    margin-left: calc(-1 * var(--workbench-pad-x));
+    margin-right: calc(-1 * var(--workbench-pad-x));
+    margin-bottom: calc(-1 * var(--workbench-pad-y));
+    min-height: auto;
+    flex: 1 0 auto;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .selected-mat--archive-open {
+    min-height: auto;
+  }
+
+}
+
+
+/* ==========================================================================
+   Cases bottom sheet (mobile) — portaled to <body>, only mounted by
+   MobileCases, so these rules need no media query (absent from the DOM on
+   desktop). Mirrors the showcase sheet: scrim (z-50) + slide-up panel (z-70).
+   ========================================================================== */
+
+.cases-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.cases-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(40, 40, 40, 0.32);
+  opacity: 0;
+  transition: opacity var(--dur-settle) var(--ease-paper);
+}
+.cases-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  background: var(--mat-bg);
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.22);
+  padding: 0 0 30px;
+  transform: translateY(101%);
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+.cases-sheet.is-open { pointer-events: auto; }
+.cases-sheet.is-open .cases-sheet__scrim { opacity: 1; }
+.cases-sheet.is-open .cases-sheet__panel { transform: translateY(0); }
+
+.cases-sheet__handle {
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--grey-720);
+  margin: 9px auto 4px;
+}
+.cases-sheet__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 22px 14px;
+}
+.cases-sheet__title {
+  font-family: var(--font-display);
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  font-size: 21px;
+  letter-spacing: -0.6px;
+  color: var(--mint-800);
+}
+.cases-sheet__span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-640);
+}
+.cases-sheet__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 17px 22px;
+  border-top: 1px solid var(--grey-880);
+  text-decoration: none;
+}
+.cases-sheet__swatch {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  margin-top: 4px;
+}
+.cases-sheet__row--aleyr .cases-sheet__swatch { background: var(--aleyr-800); }
+.cases-sheet__row--eco   .cases-sheet__swatch { background: var(--ecochain-800); }
+.cases-sheet__row--code  .cases-sheet__swatch { background: var(--codezeros-800); }
+.cases-sheet__body { flex: 1; min-width: 0; }
+.cases-sheet__row-title {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  color: var(--grey-320);
+  line-height: 1.3;
+}
+.cases-sheet__meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 640;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: -0.24px;
+}
+.cases-sheet__row--aleyr .cases-sheet__meta { color: var(--aleyr-800); }
+.cases-sheet__row--eco   .cases-sheet__meta { color: var(--ecochain-800); }
+.cases-sheet__row--code  .cases-sheet__meta { color: var(--codezeros-800); }
+.cases-sheet__ext { font-size: 14px; }
+.cases-sheet__year {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--grey-640);
+  flex: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cases-mobile__now-dot { animation: none; }
+}
+
+
+/* ==========================================================================
+   Tablet — 768px to 1023px
+
+   No overrides needed. The Cases tab is hosted in `.bench-cases`, which caps
+   at the authored 688px mat width and centres it (margin-inline: auto), so the
+   full desktop timeline layout is already correct down to ~704px viewport.
+   Below 768 the mobile composition (MobileCases) takes over. The old two-column
+   tablet block here was stale from the /selected → /all (bench) migration — it
+   repositioned a `.selected-layout` that no longer exists and squished the mat.
+   ========================================================================== */
+
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .selected-workbench,
+  .selected-workbench *,
+  .selected-workbench *::before,
+  .selected-workbench *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

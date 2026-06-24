@@ -8,6 +8,15 @@ import './img.css'
 
 type Placeholder = 'color' | 'hash' | 'none'
 
+// Serve-quality defaults are derived from the source asset's compression
+// tier (recorded in the manifest's `lossless` flag by the optimizer). The
+// two layers — intake encoder and next/image serve quality — stay
+// coordinated automatically so the same asset can't be lossless on intake
+// and re-smeared at q75 on serve. Override via the `quality` prop only
+// when there's a reason (e.g. a thumbnail that doesn't need q90/100).
+const QUALITY_LOSSLESS = 100
+const QUALITY_LOSSY = 90
+
 type ImgProps = Omit<NextImageProps, 'src' | 'placeholder' | 'blurDataURL' | 'width' | 'height' | 'fill'> & {
   src: string
   alt: string
@@ -74,6 +83,7 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   loading,
   width,
   height,
+  quality,
   prefetchMargin = '1500px',
   ...rest
 }: ImgProps, forwardedRef) {
@@ -206,6 +216,7 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
         draggable={draggable}
         unoptimized={unoptimized}
         loading={effectiveLoading}
+        quality={quality ?? (entry.lossless ? QUALITY_LOSSLESS : QUALITY_LOSSY)}
         onLoad={() => {
           loadedSrcs.add(src)
           setLoaded(true)

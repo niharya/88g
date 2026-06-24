@@ -14,6 +14,8 @@ import { flows, type FlowNote } from './flowSlides'
 import BeforeAfter from './BeforeAfter'
 import { Img } from '../../../components/Img'
 import NavPill from './NavPill'
+import { Switch } from '../../../components/Switch'
+import '../../../components/Switch/switch.css'
 
 // ── ArrowBack SVG (for notes tab) ─────────────────────────────────────────────
 function ArrowBackIcon({ className }: { className?: string }) {
@@ -320,18 +322,19 @@ export default function Flows() {
                 className="flows__ba-pill"
               >
                 <motion.span layout="position" className="flows__ba-switch-wrap">
-                  {/* Custom toggle switch replacing Radix UI Switch */}
-                  <button
+                  {/* Shared Switch primitive (app/components/Switch). The   */}
+                  {/* orange tint and orange-soft palette are supplied via   */}
+                  {/* CSS vars in biconomy.css → .flows__ba-pill scope. The */}
+                  {/* outer motion.span chrome (pill bg fade, switch-wrap   */}
+                  {/* collapse-on-standby) stays biconomy-local because it  */}
+                  {/* depends on --active-t.                                 */}
+                  <Switch
                     id="flows-show-after"
-                    role="switch"
-                    type="button"
-                    aria-checked={showAfter}
-                    aria-label="Toggle before/after audit states"
+                    checked={showAfter}
+                    onCheckedChange={handleToggleChange}
+                    ariaLabel="Toggle before/after audit states"
                     className="flows__ba-switch"
-                    onClick={() => handleToggleChange(!showAfter)}
-                  >
-                    <span className="flows__ba-switch-thumb" />
-                  </button>
+                  />
                 </motion.span>
                 <motion.span
                   layout="position"

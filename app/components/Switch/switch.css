@@ -1,0 +1,78 @@
+/* Switch — bare track+thumb binary toggle.
+ *
+ * Visual tokens come from the consumer via CSS variables on the element
+ * (or any ancestor). Defaults fall back to a sane neutral palette so an
+ * uncustomised consumer still reads correctly.
+ *
+ *   --switch-tint        — main "on" colour (filled track, off thumb)
+ *   --switch-tint-soft   — light variant (off track, on thumb)
+ *   --switch-border-off  — border colour when off  (defaults to tint)
+ *   --switch-border-on   — border colour when on   (defaults to tint)
+ *
+ * Dimensions match the Figma spec used by /biconomy Flows + /all:
+ * track 24×16, thumb 8×12, 4px outer / 2px thumb radius. Transform
+ * cubic-bezier is the gentle settle ported from the vanilla reference.
+ */
+
+.switch {
+  --_tint: var(--switch-tint, var(--grey-560));
+  --_soft: var(--switch-tint-soft, color-mix(in srgb, var(--_tint) 14%, var(--mat-bg)));
+  --_bd-off: var(--switch-border-off, var(--_tint));
+  --_bd-on:  var(--switch-border-on,  var(--_tint));
+
+  display: inline-flex;
+  align-items: center;
+  width: 24px;
+  height: 16px;
+  padding: 1px;
+  border-radius: 4px;
+  background: var(--_soft);
+  border: 1px solid var(--_bd-off);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    border-color var(--dur-fast) var(--ease-snap);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--_tint);
+  border-color: var(--_bd-on);
+}
+
+.switch__thumb {
+  display: block;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--_tint);
+  /* Ported from the vanilla reference — gentle overshoot on settle. */
+  transition:
+    transform 0.2s cubic-bezier(0, 1, 0.31, 1.05),
+    background 0.2s;
+}
+
+.switch[aria-checked='true'] .switch__thumb {
+  background: var(--_soft);
+  /* 24 (outer) − 2 (borders) − 2 (padding) − 8 (thumb) = 12 px exact inset */
+  transform: translateX(12px);
+}
+
+.switch:active .switch__thumb {
+  transform: scaleX(0.9);
+}
+.switch[aria-checked='true']:active .switch__thumb {
+  transform: translateX(12px) scaleX(0.9);
+}
+
+.switch:disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch__thumb {
+    transition: none;
+  }
+}

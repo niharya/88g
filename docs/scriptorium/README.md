@@ -17,7 +17,7 @@ One file per route, flat:
 - [`shape-of-product.md`](./shape-of-product.md) — `app/shape-of-product/`
 - [`biconomy.md`](./biconomy.md) — `app/(works)/biconomy/`
 - [`rr.md`](./rr.md) — `app/(works)/rr/`
-- [`selected.md`](./selected.md) — `app/(works)/selected/`
+- [`all.md`](./all.md) — `app/(works)/all/` (the works hub; internal codenames "bench"/"selected")
 - [`resume.md`](./resume.md) — `app/resume/`
 - [`privacy.md`](./privacy.md) — `app/privacy/`
 - [`not-found.md`](./not-found.md) — `app/not-found.tsx`

@@ -1122,7 +1122,7 @@ same color as the rest of the dashboard, so nothing bleeds.
 **Exempt from the flatten** (intentional transparency preserved):
 
 - `public/images/biconomy/multiverse_pill.webp`
-- `public/images/biconomy/multiverse_poster.webp`
+- `public/images/biconomy/_diagrams/multiverse_poster.webp` _(moved into `_diagrams/` for the full-lossless tier; see CLAUDE.md → "Image handling")_
 - `public/images/biconomy/sa/notes.webp`
 
 These are editorial / decorative pieces (a pill chip, a poster

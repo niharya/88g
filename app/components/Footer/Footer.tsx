@@ -16,7 +16,7 @@
 // to the horizontal divider above and extend through the link box's
 // full height.
 
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 const LINKS: { label: string; href: string; external?: boolean }[] = [
@@ -34,40 +34,85 @@ const LINKS: { label: string; href: string; external?: boolean }[] = [
 
 const CREDIT = 'Made in 2026'
 
-// Hover-fill palettes for default-variant link cells, scoped per route.
-// Each route's two hues at the 800 luminance step — deeper / more
-// saturated than the 720 set, so the fill registers cleanly against
-// the black footer-stage. `onMouseEnter` rolls a fresh random pick
-// per cell entry from the active route's pair, NEVER returning the
-// same color twice in a row across the row (a shared ref tracks the
-// last pick — see `pickHoverColor` below). With 2-hue palettes this
-// makes the pair strictly alternate.
-const ROUTE_PALETTES: Record<string, string[]> = {
-  '/selected':  ['var(--blue-800)',  'var(--terra-800)'],
-  '/rr':        ['var(--yellow-800)','var(--terra-800)'],
-  '/biconomy':  ['var(--blue-800)',  'var(--olive-800)'],
-}
-const FALLBACK_PALETTE = ['var(--blue-800)', 'var(--terra-800)']
+// Startooth row — three small icons from the favicon-swap palette
+// (star / tooth × blue / olive / terra @720, same six SVGs as
+// app/layout.tsx's icon set).
+//
+// Rules per roll:
+//   • Three slots.
+//   • Each slot picks one of the two SHAPES (star, tooth), random but
+//     never the same shape as the slot immediately before it (so the
+//     row alternates: star-tooth-star or tooth-star-tooth).
+//   • The three TONES are a permutation of [blue, olive, terra] —
+//     each colour used exactly once, no repeats across the row.
+const STARTOOTH_SHAPES = ['star', 'tooth'] as const
+const STARTOOTH_TONES = ['blue', 'olive', 'terra'] as const
+const STARTOOTH_COUNT = 3
+type StartoothShape = typeof STARTOOTH_SHAPES[number]
+type StartoothTone = typeof STARTOOTH_TONES[number]
+type StartoothPick = { shape: StartoothShape; tone: StartoothTone }
 
-// Click-state palette — same hue, 960 step. The cell darkens as it
-// presses into the black surface. Combined with the 1-px translate
-// this gives the same paper-tag press feel NavMarker has.
-const ACTIVE_FOR_HOVER: Record<string, string> = {
-  'var(--blue-800)':   'var(--blue-960)',
-  'var(--olive-800)':  'var(--olive-960)',
-  'var(--yellow-800)': 'var(--yellow-960)',
-  'var(--mint-800)':   'var(--mint-960)',
-  'var(--orange-800)': 'var(--orange-960)',
-  'var(--terra-800)':  'var(--terra-960)',
+function shuffleTones(): StartoothTone[] {
+  const out = [...STARTOOTH_TONES]
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[out[i], out[j]] = [out[j], out[i]]
+  }
+  return out
 }
 
-function pickHoverColor(palette: string[], last: string | null): string {
-  // Exclude the previous pick so successive hovers never repeat. With
-  // 2-color palettes this collapses to a strict alternation. Falls
-  // back to a random pick if filtering would empty the list (defensive).
-  const available = palette.filter((c) => c !== last)
-  const pool = available.length > 0 ? available : palette
-  return pool[Math.floor(Math.random() * pool.length)]
+function rollShapes(): StartoothShape[] {
+  // First slot random; each subsequent slot flips to the other shape.
+  const first = STARTOOTH_SHAPES[Math.floor(Math.random() * STARTOOTH_SHAPES.length)]
+  return Array.from({ length: STARTOOTH_COUNT }, (_, i) =>
+    i % 2 === 0 ? first : (first === 'star' ? 'tooth' : 'star'),
+  )
+}
+
+function rollStartooths(): StartoothPick[] {
+  const tones = shuffleTones()
+  const shapes = rollShapes()
+  return shapes.map((shape, i) => ({ shape, tone: tones[i] }))
+}
+
+// SSR-stable default so server + client first paint match. useEffect
+// rolls fresh per mount.
+const STARTOOTH_DEFAULT: StartoothPick[] = [
+  { shape: 'star', tone: 'blue' },
+  { shape: 'tooth', tone: 'olive' },
+  { shape: 'star', tone: 'terra' },
+]
+
+function StartoothRow() {
+  const [picks, setPicks] = useState<StartoothPick[]>(STARTOOTH_DEFAULT)
+  useEffect(() => {
+    setPicks(rollStartooths())
+  }, [])
+  // Hover delight — re-roll on each hover-enter so the row never reads
+  // exactly the same twice in a single session. Cheap, no animation.
+  const reroll = () => setPicks(rollStartooths())
+  return (
+    <a
+      className="footer__startooths"
+      href="/"
+      aria-label="Back to the home page"
+      onMouseEnter={reroll}
+    >
+      {picks.map((p, i) => (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          key={i}
+          className={`footer__startooth footer__startooth--slot-${i + 1}`}
+          src={`/icon-${p.shape}-${p.tone}.svg`}
+          alt=""
+          width={14}
+          height={14}
+          aria-hidden="true"
+          draggable={false}
+        />
+      ))}
+    </a>
+  )
 }
 
 type FooterVariant = 'default' | 'caption'
@@ -85,10 +130,6 @@ export default function Footer({
 }) {
   const ref = useRef<HTMLElement>(null)
   const pathname = usePathname()
-  const palette = ROUTE_PALETTES[pathname ?? ''] ?? FALLBACK_PALETTE
-  // Shared across all link cells — guarantees no two consecutive hovers
-  // (even across different links) end up on the same hue.
-  const lastColorRef = useRef<string | null>(null)
 
   // Write the source path to sessionStorage when the Privacy link is
   // clicked, so PrivacyBackLink can read it and render a back marker
@@ -116,7 +157,10 @@ export default function Footer({
       <footer ref={ref} className={className}>
         <div className="footer__divider" aria-hidden="true" />
         <div className="footer__row">
-          <p className="footer__credit t-h5">{CREDIT}</p>
+          <p className="footer__credit t-h5">
+            <StartoothRow />
+            <span>{CREDIT}</span>
+          </p>
           {/* Mid-divider — hidden on desktop, shown on mobile between the
               centered credit and the centered link cluster. Mirrors the
               top hairline so the two rows read as a stacked library card. */}
@@ -127,38 +171,6 @@ export default function Footer({
                 <a
                   className="footer__link"
                   href={link.href}
-                  onMouseEnter={(e) => {
-                    // Roll a fresh color from the route's palette,
-                    // excluding the previous pick so we never repeat
-                    // the same hue twice in a row. Set both --hover-color
-                    // (read by :hover) and --active-color (read by
-                    // :active for the press-down state). The two are a
-                    // matched 800/960 pair: hover saturates, click
-                    // presses into the matching darker step.
-                    const next = pickHoverColor(palette, lastColorRef.current)
-                    lastColorRef.current = next
-                    const target = e.currentTarget
-                    target.style.setProperty('--hover-color', next)
-                    target.style.setProperty(
-                      '--active-color',
-                      ACTIVE_FOR_HOVER[next] ?? next,
-                    )
-                  }}
-                  onTouchStart={(e) => {
-                    // Touch never fires onMouseEnter, so without this
-                    // the :active fallback would be the gray rgba — the
-                    // cell would light up dim instead of in the route's
-                    // hue. Roll a fresh color and stamp both vars so the
-                    // tap registers in palette like a desktop click.
-                    const next = pickHoverColor(palette, lastColorRef.current)
-                    lastColorRef.current = next
-                    const target = e.currentTarget
-                    target.style.setProperty('--hover-color', next)
-                    target.style.setProperty(
-                      '--active-color',
-                      ACTIVE_FOR_HOVER[next] ?? next,
-                    )
-                  }}
                   onClick={() => handleLinkClick(link.href)}
                   {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
@@ -179,7 +191,10 @@ export default function Footer({
   return (
     <footer ref={ref} className={className}>
       <div className="footer__row">
-        <p className="footer__credit t-h5">{CREDIT}</p>
+        <p className="footer__credit t-h5">
+          <StartoothRow />
+          <span>{CREDIT}</span>
+        </p>
         <ul className="footer__links">
           {LINKS.map((link) => (
             <li key={link.label} className="footer__link-item">

@@ -26,10 +26,10 @@ export const lqipSamples = [
   },
   {
     "label": "Poster",
-    "src": "/images/biconomy/multiverse_poster.webp",
+    "src": "/images/biconomy/_diagrams/multiverse_poster.webp",
     "dominantColor": "rgb(40, 24, 8)",
-    "thumbHash": "ziiKDAQPCFiYN4d3lhCJp3TPw/N4CIePAA==",
-    "width": 1684,
-    "height": 2382
+    "thumbHash": "ziiKDAIPCFiYN4d3hiCJmHRPQICIGDiIAQ==",
+    "width": 1400,
+    "height": 1980
   }
 ] as const

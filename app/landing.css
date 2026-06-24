@@ -459,9 +459,9 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   justify-content: center;
 
   /* Load entrance — a subtle glide-up that fires on every mount (hard loads
-     AND client-side navigations back from /selected). CSS animations re-run
+     AND client-side navigations back from /all). CSS animations re-run
      on element mount, so no gating is needed. Default: glide up. When
-     arriving back from /selected (.landing--slide-in), the keyframe swaps to
+     arriving back from /all (.landing--slide-in), the keyframe swaps to
      a glide-from-left so the return reads as a directional slide. */
   animation: hero-glide-up var(--dur-glide) var(--ease-paper) both;
 }
@@ -588,7 +588,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
 /* ---- Landing nav row ---- */
 /* [Nihar] + [Works] docked pair, tucked under the hero card.
-   Mirrors the /selected nav row but tinted to landing's terra palette so
+   Mirrors the /all nav row but tinted to landing's terra palette so
    the pair sits in the hero's color world. Structurally identical — same
    nav-marker primitive from nav.css, same docked border-halving detail.
    The + icon on the Nihar pill rotates 45° to × when content is expanded. */
@@ -896,7 +896,7 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
 /* hover handled by t-btn1 token */
 
 /* Press acknowledgment — mirrors .projects-btn; the spectrum footer "Works"
-   link is the second landing → /selected doorway. */
+   link is the second landing → /all doorway. */
 .spectrum__link:active {
   opacity: 0.55;
   transition: opacity var(--dur-instant) var(--ease-snap);

@@ -149,7 +149,7 @@ button.nav-marker--project.is-info-open {
   border-left-width: 1px;
 }
 
-/* Static mode (e.g. /selected Works marker next to NiharHomeLink): the same
+/* Static mode (e.g. /all Works marker next to NiharHomeLink): the same
    adjacency exists without the sticky/is-docked toggle, so halve the touching
    borders unconditionally. */
 .selected-nav-row .project-marker .nav-marker--project {
@@ -198,7 +198,7 @@ button.nav-marker--project.is-info-open {
   top: 0;
 }
 
-/* Static mode — inert marker used on /selected, no sticky/scroll behavior */
+/* Static mode — inert marker used on /all, no sticky/scroll behavior */
 .chapter-nav--static {
   position: static;
 }

@@ -140,6 +140,10 @@ export default function MarkCarousel({ mark, index, preload = false, onVideoDura
                 />
               )
             }
+            // No `sizes` prop: prefetch render only — sits off-screen to
+            // warm the browser cache so the active slide's <Img> at line
+            // 108 (which DOES have sizes="100vw") paints instantly when
+            // the user advances. Never visible at runtime.
             return <Img key={`pre-${i}`} src={s.src} alt="" intrinsic />
           })}
         </div>

@@ -134,10 +134,32 @@ Apply via JSX class, not by duplicating typography in per-class CSS — that way
 
 ---
 
+## Works hub: /all slug ↔ codenames
+
+The works hub has **one public route, `/all`** (`nihar.works/all`), with pretty
+aliases `/showcase` and `/cases` (rewrites; the address bar keeps the alias). A
+permanent `/selected → /all` redirect covers the historical inbound URL. Inside
+`/all` the active tab is addressed by **bare query flags** — `/all?showcase` /
+`/all?cases` — read server-side in `page.tsx`.
+
+The implementation keeps two older **codenames**, which are NOT the route:
+
+| In code | Meaning | Examples |
+|---|---|---|
+| `bench` / `Bench` | the Work Essay shell (card + ticket + dock) | `app/(works)/all/bench.css`, `BenchEssay`, `useBenchDock`, `.bench-workbench`, `.bench-ticket`, `isBench`, the `to-bench` nav flag |
+| `selected` / `Selected` | the timeline + showcase content (the older build) | `selected.css`, `SelectedContent`, `.selected-mat`, `.selected-tl`, `.sc-*` |
+
+So: a leading-slash `/selected` or `/bench` in prose means the **route** (now
+`/all`); `selected.css` / `.bench-ticket` / `SelectedContent` mean the
+**codename** and stay. The folder moved `selected/ → all/`; class names and file
+names did not.
+
 ## Why not rename the code to match the language?
 
 Renaming `.surface` → `.sheet` would flip the meaning of the existing
 `.sheet` class and touch every consumer. The names in code came from the
 sheet-stack metaphor (`.sheet` is the paper chapter container) and are
 load-bearing in LIBRARY.md and `Sheet.tsx`. Documenting the mapping is
-cheaper and accurate.
+cheaper and accurate. The same logic keeps the `bench`/`selected` codenames
+for the `/all` route (above) — renaming `.selected-*`/`.bench-*` would churn
+dozens of files for no behavioural gain.

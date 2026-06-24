@@ -20,7 +20,7 @@
 //   sublabel            secondary text (year / subtitle — chapter role)
 //   acknowledgeOnClick  'navigate' (default) | 'shake' | 'morph'
 //     - navigate: no visual acknowledgment; route change is the feedback.
-//     - shake:    arrow shakes on click — same-page markers (Works on /selected).
+//     - shake:    arrow shakes on click — same-page markers (Works on /all).
 //     - morph:    icon rotates 45° while `active` — landing Nihar + → ×.
 //   wipHint             clicking the marker reveals a Monostamp chip beside
 //                       the label for 8s (auto-dismiss; re-click resets timer).

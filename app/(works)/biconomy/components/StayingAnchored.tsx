@@ -161,6 +161,8 @@ function RolodexSticker() {
       onClick={advance}
       aria-label="Cycle through the Biconomy stickers"
     >
+      {/* No `sizes` prop: width/height come from the frame data so next/image */}
+      {/* renders at known dimensions and picks the right srcset entry. */}
       <Img
         key={frame.src}
         src={frame.src}
