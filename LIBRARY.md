@@ -45,6 +45,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **CrossShellVeil** — `app/components/CrossShellVeil/`; veil bridge for cross-layout navigations; BOTH halves required; never combine with TransitionSlot.
 - **Footer** — `app/components/Footer/`; site colophon, two variants; (works) layout + landing.
 - **RR GameBoard** — `app/(works)/rr/components/game/`; playable game module; NOT promoted (needs `.route-rr` token cascade); consumers: /rr Mechanics, 404 page.
+- **Analytics (cookieless Umami)** — `app/lib/analytics.ts` + `app/Analytics.tsx`; typed `track()` helper (ALL events route through it) + opt-out-gated loader + first-party `/_stats/*` proxy + `CaseCompletion`; consumers: layout, landing, /all, /biconomy, /rr, StartoothField.
 - **Promotion candidates** — pre-staged "maybe" entries (Paginator, gradient recipe, HeroCard, blue note card) so second-consumer promotion is fast.
 
 ---
@@ -780,6 +781,24 @@ A bare-track-and-thumb binary toggle. Lives at [app/components/Switch/](app/comp
 - `/all` showcase tiles — [app/(works)/all/components/Showcase/ShowcasePiece.tsx](app/(works)/all/components/Showcase/ShowcasePiece.tsx). Tinted via `.sc-switch` scope: `--switch-tint: var(--sc-dotc)` so the toggle picks up the per-piece caption-dot colour automatically. Wrapped in a mat-bg pill (`.sc-switch`) with hover/press chrome.
 
 **Don't** add internal padding, border, or background to the primitive — those are chrome and belong to the consumer wrapper. The whole point is that the same toggle composes inside two visually distinct shells without forking.
+
+---
+
+## Analytics (cookieless Umami)
+
+Privacy-first, aggregate analytics. Umami's hosted tracker auto-captures page views + visit duration; a typed `track()` helper records discrete interaction events ("where they clicked"). No cookies, no per-visitor identity, no consent banner. **Every custom event goes through the helper — never call `window.umami.track()` directly.**
+
+**Where it lives**
+- [app/lib/analytics.ts](app/lib/analytics.ts) — the `analytics` helper. One method per event; the whole vocabulary lives here. Safe no-op when the tracker is absent, so callers never guard.
+- [app/Analytics.tsx](app/Analytics.tsx) — the loader, mounted once in `app/layout.tsx`. `afterInteractive`; opt-out-gated (GPC/DNT); `data-domains` pins it to `nihar.works`; website id from `NEXT_PUBLIC_UMAMI_ID`.
+- [app/components/CaseCompletion.tsx](app/components/CaseCompletion.tsx) — passive route-local observer; fires `case-completed` once when a case study's final `<section id>` enters view. Mounted by /biconomy ("staying-anchored") + /rr ("outcome").
+- [netlify.toml](netlify.toml) — first-party proxy (`/_stats/script.js` + `/_stats/api/send` → Umami) so ad-blockers can't intercept; the `NEXT_PUBLIC_UMAMI_ID` env var; the CSP (no external umami host needed). Plus [app/csp-report/route.ts](app/csp-report/route.ts) — the CSP report sink.
+
+**AI notes**
+- Helper consumers: [page.tsx](app/page.tsx) (contact-submitted, book-call-clicked), [useBenchDock.ts](app/(works)/all/components/Essay/useBenchDock.ts) (browse-mode), [Showcase.tsx](app/(works)/all/components/Showcase/Showcase.tsx) (work-opened), [StartoothField.ts](app/_landing/StartoothField.ts) (easter-egg, fired in `triggerRupture` — NOT `onBuildComplete`, which re-fires on every regrow). CaseCompletion fires case-completed.
+- Event names are kebab-case; keep payload props low-cardinality (slugs / enums) — aggregate only, nothing identifying.
+- Proxy detail: script from `cloud.umami.is/script.js`, beacons to `gateway.umami.is/api/send` (the tracker's real default collector); `data-host-url="/_stats"` is relative — the tracker resolves it against our origin. The proxy only runs on Netlify, so analytics can't be exercised under `next dev`; verify on a deploy (Network → `/_stats/api/send` returns 2xx).
+- Plan, rationale, and the gated per-visitor "adaptive" track (deferred): [docs/analytics-prd.md](docs/analytics-prd.md).
 
 ---
 

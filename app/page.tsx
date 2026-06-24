@@ -12,6 +12,7 @@ import { ExpandToggle } from './components/ExpandToggle'
 import Monostamp from './components/Monostamp'
 import Footer from './components/Footer'
 import { getGreeting } from './lib/greeting'
+import { analytics } from './lib/analytics'
 import './components/nav/nav.css'
 import './components/NavMarker/navmarker.css'
 import './components/Footer/footer.css'
@@ -449,6 +450,9 @@ export default function LandingPage() {
 
     emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, params, EMAILJS_KEY)
       .then(() => {
+        // Record the successful send (aggregate, anonymous; broken down by the
+        // purpose tag(s) chosen). Fire-and-forget — never blocks the UI.
+        analytics.contactSubmitted(params.purpose)
         // Progress bar runs for ~4s via CSS, then show success pill
         setTimeout(() => {
           setSentColor(SENT_COLORS[Math.floor(Math.random() * SENT_COLORS.length)])
@@ -844,7 +848,7 @@ export default function LandingPage() {
                 <div className="contact-card__footer">
                   <div className="contact-card__footer-line" />
                   <span className="contact-card__footer-left t-p4">Prefer to talk sooner?</span>
-                  <a className="contact-card__footer-right t-btn1" href="https://calendar.app.google/ek4WL37YAqTcytjH9" target="_blank" rel="noopener noreferrer">Book A Call</a>
+                  <a className="contact-card__footer-right t-btn1" href="https://calendar.app.google/ek4WL37YAqTcytjH9" target="_blank" rel="noopener noreferrer" onClick={() => analytics.bookCallClicked()}>Book A Call</a>
                 </div>
               </div>
             </div>

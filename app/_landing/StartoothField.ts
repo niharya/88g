@@ -25,6 +25,7 @@ import {
   RUPTURE_N, CHARGE_DECAY_MS, DECAY_FALL_MS, TREMOR_THRESHOLD,
   IDLE_BREATH_MS,
 } from './startooth-constants'
+import { analytics } from '../lib/analytics'
 
 type RegionKind = 'star' | 'diamond' | 'face' | 'top'
 type UnitType   = 'star' | 'diamond' | 'shortkey' | 'tallkey'
@@ -327,6 +328,7 @@ export class StartoothField {
   // (done=false), clears all transient state, and hands the loop into the
   // pulled-plug flicker; the loop calls rebuildFrom when the flicker finishes.
   private triggerRupture(x: number, y: number) {
+    analytics.easterEggFound('void-rupture')
     this.chargeVoid = null; this.chargeBase = 0
     this.rupturing = true
     this.ruptureStart = performance.now()

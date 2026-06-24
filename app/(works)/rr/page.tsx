@@ -7,6 +7,7 @@ import Mechanics from './components/Mechanics'
 import Cards from './components/Cards'
 import Outcome from './components/Outcome'
 import InterstitialText from './components/InterstitialText'
+import CaseCompletion from '../../components/CaseCompletion'
 
 export const metadata: Metadata = {
   title: 'Rug Rumble · Systems Disguised As A Card Game',
@@ -63,6 +64,7 @@ export default function RRPage() {
           </Fragment>
         ))}
       </div>
+      <CaseCompletion project="rr" sectionId="outcome" />
     </div>
   )
 }

@@ -27,6 +27,7 @@ import ShowcasePiece from './ShowcasePiece'
 import ShowcaseBottomSheet from './ShowcaseBottomSheet'
 import { MOBILE_BP, isMobileViewport } from './responsive'
 import type { ShowcaseFilter } from './FilterStrip'
+import { analytics } from '../../../../lib/analytics'
 import './showcase.css'
 
 // Four-color palette used for the per-load random dot shuffle. Pinned
@@ -79,6 +80,14 @@ function measureSpans(grid: HTMLElement): Record<string, number> {
 export default function Showcase({ filter = 'all' }: { filter?: ShowcaseFilter }) {
   const gridRef = useRef<HTMLDivElement | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+  // Open a tile (or close, with null). Wraps setActiveId so every open path —
+  // tile click and dot button — records one `work-opened` analytics event;
+  // closes (null) and dismissals (Escape / backdrop, which call setActiveId
+  // directly) stay untracked.
+  const handleSelect = useCallback((id: string | null) => {
+    if (id) analytics.workOpened(id)
+    setActiveId(id)
+  }, [])
   // Measured row spans, keyed by piece id. Kept in state (not set imperatively
   // on the slot) so that React re-renders — which re-apply slotStyle to each
   // .sc-slot — can't wipe the span back to the CSS fallback.
@@ -305,7 +314,7 @@ export default function Showcase({ filter = 'all' }: { filter?: ShowcaseFilter }
             /* desktop the tile renders its own SpecNote inline beside  */
             /* the frame. ShowcasePiece reads this to decide which.     */
             isMobile={isMobile}
-            onSelect={setActiveId}
+            onSelect={handleSelect}
             toggleVal={toggles[p.id]}
             onToggle={setToggle}
           />

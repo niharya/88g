@@ -5,6 +5,7 @@ import './globals.css'
 import './components/CrossShellVeil/cross-shell-veil.css'
 import { StartoothLoader } from './components/StartoothLoader'
 import { GATE_CAP_MS } from './lib/gate'
+import Analytics from './Analytics'
 
 // Font loading strategy
 // ─────────────────────
@@ -240,6 +241,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <StartoothLoader size={150} />
         </div>
         <div id="content">{children}</div>
+        {/* Umami analytics — cookieless, aggregate, opt-out-gated. Renders a
+            single afterInteractive script, so it stays off the page-gate path.
+            See app/Analytics.tsx. */}
+        <Analytics />
       </body>
     </html>
   )

@@ -17,6 +17,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { scrollGlide, isGlideActive } from '../../../../lib/scrollGlide'
+import { analytics } from '../../../../lib/analytics'
 
 export type BenchActive = 'vis' | 'lf'
 
@@ -147,6 +148,7 @@ export function useBenchDock(initialActive: BenchActive) {
   // A tab click glides into the work if we're still resting at the invitation;
   // if already engaged, just swap the content (keeps scroll position).
   const openTab = useCallback((tab: BenchActive) => {
+    analytics.browseMode(tab === 'vis' ? 'showcase' : 'cases')
     setActive(tab)
     if (!engagedRef.current) glideTo(workY())
   }, [glideTo, workY])

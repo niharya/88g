@@ -9,6 +9,9 @@
 [build.environment]
   # Pin Node to match local (node --version → v22). Keeps CI builds reproducible.
   NODE_VERSION = "22"
+  # Umami website id. Public (it appears in the page HTML), kept here so analytics
+  # can be repointed or disabled without a code change. Read by app/Analytics.tsx.
+  NEXT_PUBLIC_UMAMI_ID = "07cb233d-26f2-4dbb-98c8-546cf12d602f"
 
 # Security headers — applied to every response. Order:
 #   • HSTS — force HTTPS for 2y once seen, include subdomains, allow preload list.
@@ -22,8 +25,10 @@
 #     report-uri logs and no legitimate traffic is blocked, promote to enforcing
 #     Content-Security-Policy by renaming this header. The current policy keeps
 #     allowances for emailjs (contact form) and the Google Calendar embed
-#     (book-a-call). Google Fonts allowances were removed once /rr's
-#     decorative fonts moved to next/font/local.
+#     (book-a-call). Umami analytics needs NO external host here — it's proxied
+#     first-party via the /_stats/* redirects below, so 'self' covers it. Google
+#     Fonts allowances were removed once /rr's decorative fonts moved to
+#     next/font/local.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -33,3 +38,24 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
     Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.emailjs.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.emailjs.com; frame-src https://calendar.app.google; form-action 'self'; base-uri 'self'; report-uri /csp-report"
+
+# Umami analytics, proxied first-party so ad-blockers (which target
+# cloud.umami.is by name) can't intercept it and the browser only ever talks to
+# our own origin. The loader requests /_stats/script.js; the tracker POSTs
+# beacons to /_stats/api/send (data-host-url="/_stats" in app/Analytics.tsx).
+# Both are rewritten (status 200 = proxy) to Umami Cloud — script from
+# cloud.umami.is, beacons to gateway.umami.is (the tracker's real collector).
+# Because it's first-party, the CSP above needs no external umami host.
+# VERIFY AFTER DEPLOY: on the live site, confirm the Network tab shows
+# POST /_stats/api/send → 2xx on a real visit; if it 404s, the send host is wrong.
+[[redirects]]
+  from = "/_stats/script.js"
+  to = "https://cloud.umami.is/script.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/_stats/api/send"
+  to = "https://gateway.umami.is/api/send"
+  status = 200
+  force = true

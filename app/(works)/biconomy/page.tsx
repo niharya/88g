@@ -8,6 +8,7 @@ import BIPs from './components/BIPs'
 import Multiverse from './components/Multiverse'
 import API from './components/API'
 import StayingAnchored from './components/StayingAnchored'
+import CaseCompletion from '../../components/CaseCompletion'
 
 export const metadata: Metadata = {
   title: 'Biconomy · Deep Infrastructure Stuff',
@@ -67,6 +68,7 @@ export default function BiconomyPage() {
           </Sheet>
         ))}
       </div>
+      <CaseCompletion project="biconomy" sectionId="staying-anchored" />
     </div>
   )
 }
