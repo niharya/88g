@@ -45,7 +45,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **CrossShellVeil** — `app/components/CrossShellVeil/`; veil bridge for cross-layout navigations; BOTH halves required; never combine with TransitionSlot.
 - **Footer** — `app/components/Footer/`; site colophon, two variants; (works) layout + landing.
 - **RR GameBoard** — `app/(works)/rr/components/game/`; playable game module; NOT promoted (needs `.route-rr` token cascade); consumers: /rr Mechanics, 404 page.
-- **Analytics (cookieless Umami)** — `app/lib/analytics.ts` + `app/Analytics.tsx`; typed `track()` helper (ALL events route through it) + opt-out-gated loader + first-party `/_stats/*` proxy + `CaseCompletion`; consumers: layout, landing, /all, /biconomy, /rr, StartoothField.
+- **Analytics (cookieless Umami)** — `app/lib/analytics.ts` + `app/Analytics.tsx`; typed `track()` helper (ALL events route through it) + opt-out-gated loader + `CaseCompletion`; sent DIRECT (not proxied — a proxy breaks geolocation); consumers: layout, landing, /all, /biconomy, /rr, StartoothField.
 - **Promotion candidates** — pre-staged "maybe" entries (Paginator, gradient recipe, HeroCard, blue note card) so second-consumer promotion is fast.
 
 ---
@@ -792,12 +792,12 @@ Privacy-first, aggregate analytics. Umami's hosted tracker auto-captures page vi
 - [app/lib/analytics.ts](app/lib/analytics.ts) — the `analytics` helper. One method per event; the whole vocabulary lives here. Safe no-op when the tracker is absent, so callers never guard.
 - [app/Analytics.tsx](app/Analytics.tsx) — the loader, mounted once in `app/layout.tsx`. `afterInteractive`; opt-out-gated (GPC/DNT); `data-domains` pins it to `nihar.works`; website id from `NEXT_PUBLIC_UMAMI_ID`.
 - [app/components/CaseCompletion.tsx](app/components/CaseCompletion.tsx) — passive route-local observer; fires `case-completed` once when a case study's final `<section id>` enters view. Mounted by /biconomy ("staying-anchored") + /rr ("outcome").
-- [netlify.toml](netlify.toml) — first-party proxy (`/_stats/script.js` + `/_stats/api/send` → Umami) so ad-blockers can't intercept; the `NEXT_PUBLIC_UMAMI_ID` env var; the CSP (no external umami host needed). Plus [app/csp-report/route.ts](app/csp-report/route.ts) — the CSP report sink.
+- [netlify.toml](netlify.toml) — the Umami CSP hosts (`cloud.umami.is` in script-src, `gateway.umami.is` in connect-src) + the `NEXT_PUBLIC_UMAMI_ID` env var. Plus [app/csp-report/route.ts](app/csp-report/route.ts) — the CSP report sink.
 
 **AI notes**
 - Helper consumers: [page.tsx](app/page.tsx) (contact-submitted, book-call-clicked), [useBenchDock.ts](app/(works)/all/components/Essay/useBenchDock.ts) (browse-mode), [Showcase.tsx](app/(works)/all/components/Showcase/Showcase.tsx) (work-opened), [StartoothField.ts](app/_landing/StartoothField.ts) (easter-egg, fired in `triggerRupture` — NOT `onBuildComplete`, which re-fires on every regrow). CaseCompletion fires case-completed.
 - Event names are kebab-case; keep payload props low-cardinality (slugs / enums) — aggregate only, nothing identifying.
-- Proxy detail: script from `cloud.umami.is/script.js`, beacons to `gateway.umami.is/api/send` (the tracker's real default collector); `data-host-url="/_stats"` is relative — the tracker resolves it against our origin. The proxy only runs on Netlify, so analytics can't be exercised under `next dev`; verify on a deploy (Network → `/_stats/api/send` returns 2xx).
+- Direct, not proxied: script from `cloud.umami.is/script.js`, beacons to `gateway.umami.is/api/send` (the tracker's default collector). A same-origin proxy shipped in v0.109 and was reverted in v0.110 — it dodged ad-blockers but routed beacons through Netlify, so Umami saw Netlify's IP and geolocated every visitor to the proxy's region (Singapore). The loader is production-only, so analytics isn't exercised under `next dev`; it verifies on deploy. Getting both ad-block-resistance AND real geo would need Umami Cloud's paid custom-domain (CNAME).
 - Plan, rationale, and the gated per-visitor "adaptive" track (deferred): [docs/analytics-prd.md](docs/analytics-prd.md).
 
 ---
