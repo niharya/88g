@@ -321,17 +321,20 @@
 
 /* ── Page gate ───────────────────────────────────────────────────────────
    Top-level surfaces are held invisible — behind the .page-boot loader —
-   until the page is actually READY, then revealed. Released by either:
+   until the page is READY, then revealed. Released by either:
      (a) the inline script in app/layout.tsx landing `.fonts-ready` on <html>
-         when BOTH `window.load` (above-the-fold images + subresources) AND
-         `document.fonts.ready` have settled, or an 8000 ms cap; OR
-     (b) the CSS-only failsafe animation below auto-releasing at 8000 ms if the
-         script is late or never runs (e.g. blocked behind the stylesheet).
-   The animated loader holds the screen for the whole wait, so a long hold on
-   a slow connection reads as "loading," not frozen — which is why we gate the
-   full payload now, not just fonts (the old 1 s font-only cap revealed a
-   half-loaded page and you watched elements pop in). `fonts-ready` is a legacy
-   class name — it now means "page ready," not just fonts. */
+         when BOTH window.load (JS bundle + subresources) AND
+         `document.fonts.ready` settle, or the --dur-gate-cap failsafe; OR
+     (b) the CSS-only failsafe animation below auto-releasing at --dur-gate-cap
+         if the script is late or never runs (e.g. blocked behind the sheet).
+   Holds for window.load, not fonts-only: page content reveals via a client
+   hook (useReveal → .revealed → the section-reveal transition) that can't fire
+   until React hydrates (after the JS bundle loads). Releasing on fonts alone
+   shows the surface ~600ms before hydration, leaving a blank gap while content
+   waits to reveal — so we hold until the page can actually show content, and
+   it all arrives in sync. Below-the-fold images stay lazy (<Img> LQIP blur),
+   so this isn't waiting on them. `fonts-ready` is a legacy class name — it now
+   means "page ready." */
 @keyframes page-gate-failsafe {
   to { opacity: 1; pointer-events: auto; }
 }
@@ -343,7 +346,7 @@
   /* opacity:0 alone does not block events — pointer-events:none does.
      The failsafe animation flips both at the same keyframe. */
   pointer-events: none;
-  animation: page-gate-failsafe 1ms linear 8000ms forwards;
+  animation: page-gate-failsafe 1ms linear var(--dur-gate-cap) forwards;
 }
 html.fonts-ready .landing,
 html.fonts-ready .workbench,
@@ -353,10 +356,10 @@ html.fonts-ready .route-sop {
   pointer-events: auto;
   /* Cancel the failsafe so the JS path's transition owns the reveal. */
   animation: none;
-  /* Sequenced handoff: the 80ms delay lets the loader lead its lift-away
-     (page-boot-out below) before the page settles in, so the two don't
+  /* Sequenced handoff: --delay-reveal-handoff lets the loader lead its lift-
+     away (page-boot-out below) before the page settles in, so the two don't
      resolve on the same frame — the abrupt-flip the reveal used to be. */
-  transition: opacity var(--dur-settle) var(--ease-paper) 80ms;
+  transition: opacity var(--dur-settle) var(--ease-paper) var(--delay-reveal-handoff);
 }
 
 /* ── Skip-to-content link ────────────────────────────────────────────────
@@ -384,53 +387,67 @@ html.fonts-ready .route-sop {
 }
 
 /* ── Page boot — patience mark ───────────────────────────────────────────
-   During the gate hold, the page surfaces above are invisible. Instead of
-   showing blank paper, the StartoothLoader fades in ~120 ms after mount (so
-   fast loads barely flash it) and fades out when `.fonts-ready` applies. The
-   mark recolours per route via CSS vars below. */
+   During the gate hold, the page surfaces above are invisible. The .page-boot
+   field fills the screen with a saturated per-route brand colour
+   (--loader-screen-bg), so a confident branded screen shows even if the page
+   never loads. The StartoothLoader mark fades in ~--dur-loader-appear after
+   mount (so fast loads barely flash it), then on `.fonts-ready` the mark lifts
+   away while the field fades. Field + mark recolour per route via CSS vars
+   below. (Landing opts out — its canvas is the loading experience.) */
 .page-boot {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--loader-screen-bg, var(--workbench-bg));
   pointer-events: none;
   z-index: 1;
   opacity: 0;
-  /* Two animations: fade in at 120 ms, then a CSS-only failsafe fade-out at
-     8000 ms that matches the gate failsafe above, so the loader never outlives
-     the gate when JS is late or never runs. `html.fonts-ready .page-boot`
-     overrides this with the JS path (fades out the moment the page is ready). */
+  /* Two animations: fade in at --dur-loader-appear, then a CSS-only failsafe
+     fade-out at --dur-gate-cap that matches the gate failsafe above, so the
+     loader never outlives the gate when JS is late or never runs.
+     `html.fonts-ready .page-boot` overrides this with the JS path (fades out
+     the moment the page is ready). */
   animation:
-    page-boot-in var(--dur-slide) var(--ease-paper) 120ms forwards,
-    page-boot-out var(--dur-slide) var(--ease-paper) 8000ms forwards;
+    page-boot-in var(--dur-slide) var(--ease-paper) var(--dur-loader-appear) forwards,
+    page-boot-out var(--dur-slide) var(--ease-paper) var(--dur-gate-cap) forwards;
 }
 
-/* Per-route palette — the StartoothLoader inherits these two colours (and,
-   on the twinkle routes, the movement preset). Replaces the old
-   --startooth-stroke / --startooth-fill pair. --loader-lit = the animated
-   line accent (was the stroke); --loader-sticker = the die-cut hull tint
-   (was the fill). The resting base stroke derives from both inside
-   startooth-loader.css. */
+/* Per-route palette — the StartoothLoader inherits these colours (and, on the
+   twinkle routes, the movement preset). --loader-lit = the animated line
+   accent; --loader-sticker = the die-cut hull tint; --loader-screen-bg = the
+   full-screen field behind the mark — a soft brand 160 tint so a calm branded
+   screen holds even mid-load. The resting base stroke derives from lit +
+   sticker in startooth-loader.css. */
 :root {
-  --loader-lit:     var(--blue-560);
-  --loader-sticker: var(--blue-100);
+  --loader-lit:        var(--blue-560);
+  --loader-sticker:    var(--blue-100);
+  --loader-screen-bg:  var(--blue-160);
 }
 :root:has(.route-biconomy) {
-  --loader-lit:     var(--blue-560);
-  --loader-sticker: var(--blue-100);
+  --loader-lit:        var(--blue-560);
+  --loader-sticker:    var(--blue-100);
+  --loader-screen-bg:  var(--blue-160);
 }
 :root:has(.route-rr) {
-  --loader-lit:     var(--terra-560);
-  --loader-sticker: var(--terra-100);
+  --loader-lit:        var(--terra-560);
+  --loader-sticker:    var(--terra-100);
+  --loader-screen-bg:  var(--terra-160);
 }
 :root:has(.selected-workbench) {
-  --loader-lit:     var(--blue-800);
-  --loader-sticker: var(--blue-100);
+  --loader-lit:        var(--blue-800);
+  --loader-sticker:    var(--blue-100);
+  --loader-screen-bg:  var(--blue-160);
+}
+:root:has(.route-sop) {
+  --loader-lit:        var(--blue-560);
+  --loader-sticker:    var(--blue-100);
+  --loader-screen-bg:  var(--blue-160);
 }
 :root:has(.landing) {
-  --loader-lit:     var(--orange-800);
-  --loader-sticker: var(--orange-100);
+  --loader-lit:        var(--orange-800);
+  --loader-sticker:    var(--orange-100);
 }
 /* Landing: canvas IS the loading experience — suppress the patience mark
    so only black shows before the build begins. display:none is correct here
@@ -439,12 +456,13 @@ html.fonts-ready .route-sop {
 /* /marks sits on a black field. Unlike the old solid mark, the loader is
    line-art on a die-cut hull, so the lines must contrast the hull rather than
    the page: dark ink on a light paper hull reads as a little sticker pressed
-   onto the void. The #000 field stays. The grey palette tops out at #F5F5F5
-   (--grey-960) and bottoms at #141414; pure black isn't a token — don't
-   "fix" the literal. */
+   onto the void. The #000 field stays (loader screen + page both). The grey
+   palette tops out at #F5F5F5 (--grey-960) and bottoms at #141414; pure black
+   isn't a token — don't "fix" the literal. */
 :root:has(.route-marks) {
-  --loader-lit:     var(--grey-160);
-  --loader-sticker: var(--grey-960);
+  --loader-lit:        var(--grey-160);
+  --loader-sticker:    var(--grey-960);
+  --loader-screen-bg:  #000;
   background: #000;
 }
 
@@ -471,22 +489,20 @@ html.fonts-ready .page-boot {
 }
 
 @keyframes page-boot-out {
-  /* The loader doesn't just fade — it lifts a hair off the desk and recedes
-     as it goes, so the handoff reads as the mark being lifted away rather
-     than switched off. Settles on --ease-paper; transform on .page-boot (an
-     overlay with no fixed-position content) so nothing's containing block
-     is affected. */
-  to { opacity: 0; transform: scale(0.96) translateY(-8px); }
+  /* The FIELD just fades — the lift lives on the mark (page-boot-mark-out
+     below), so the whole saturated screen doesn't scale/zoom out; only the
+     sticker peels off it. Settles on --ease-paper. */
+  to { opacity: 0; }
 }
 
 /* Mark entrance — the loader grows in from a hair smaller and untwists from
    -2° to straight, so it reads as a sticker placed from inside the screen
    rather than fading in flat. Pairs with the container's opacity fade above
-   (same 120 ms delay). Settles on the paper curve — no overshoot, no bounce.
-   Transform lives on the mark, not the full-screen container, so the origin
-   stays tight to the sticker. */
+   (same --dur-loader-appear delay). Settles on the paper curve — no overshoot,
+   no bounce. Transform lives on the mark, not the full-screen container, so
+   the origin stays tight to the sticker. */
 .page-boot .startooth-loader {
-  animation: page-boot-mark-in var(--dur-slide) var(--ease-paper) 120ms both;
+  animation: page-boot-mark-in var(--dur-slide) var(--ease-paper) var(--dur-loader-appear) both;
 }
 
 @keyframes page-boot-mark-in {
@@ -494,8 +510,23 @@ html.fonts-ready .page-boot {
   to   { transform: scale(1) rotate(0deg); }
 }
 
+/* Mark exit — on release the mark lifts a hair off the field and recedes as
+   the field fades beneath it, so the handoff reads as the sticker peeling away
+   rather than the whole screen zooming out. Transform on the mark, not the
+   field. Overrides the mark-in above once `.fonts-ready` lands. */
+html.fonts-ready .page-boot .startooth-loader {
+  animation: page-boot-mark-out var(--dur-slide) var(--ease-paper) forwards;
+}
+
+@keyframes page-boot-mark-out {
+  to { transform: scale(var(--loader-exit-scale)) translateY(var(--loader-exit-lift)); }
+}
+
+/* Reduced motion — null the mark's scale/rotate/lift (in and out); the field's
+   opacity fade is acceptable and carries the mark away. */
 @media (prefers-reduced-motion: reduce) {
-  .page-boot .startooth-loader { animation: none; }
+  .page-boot .startooth-loader,
+  html.fonts-ready .page-boot .startooth-loader { animation: none; }
 }
 
 /* Shared tactile-press keyframe (consumers in landing.css, rr.css,
@@ -673,6 +704,23 @@ p, li {
   --dur-settle:       0.425s;
   --dur-glide:        0.65s;
   --dur-place:        0.9s;
+
+  /* Page-gate failsafe ceiling — the CSS half of the cold-load gate cap.
+     The JS half lives in app/lib/gate.ts (GATE_CAP_MS); keep the two in sync.
+     Only fires if the inline gate script is late or never runs. */
+  --dur-gate-cap:     8000ms;
+
+  /* Loader (.page-boot) choreography. --dur-loader-appear: delay before the
+     patience mark fades in, so fast loads barely flash it. --delay-reveal-
+     handoff: the beat the surface waits after release so the loader leads its
+     lift-away (the two don't resolve on the same frame). */
+  --dur-loader-appear:    120ms;
+  --delay-reveal-handoff: 80ms;
+
+  /* Loader exit — on release the mark lifts off (page-boot-mark-out) while the
+     field fades, so the sticker reads as peeled away rather than zoomed out. */
+  --loader-exit-scale:    0.96;
+  --loader-exit-lift:     -8px;
 
   /* Overlay backseat — shared dim filter for tray, enlarged scans, rules panel */
   --backseat-dim:     brightness(0.68) saturate(0.2);

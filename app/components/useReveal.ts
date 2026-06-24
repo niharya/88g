@@ -27,12 +27,13 @@
 //      `.transitioning` is never set.
 
 import { useEffect, useRef, type RefObject } from 'react'
+import { GATE_FAILSAFE_MS } from '../lib/gate'
 
 const ROOT_MARGIN = '-60px'
 const THRESHOLD = 0
-// Past the page gate's own 8000ms CSS failsafe — so if `.fonts-ready` never
-// lands, sections still reveal rather than staying hidden forever.
-const GATE_FAILSAFE_MS = 8500
+// GATE_FAILSAFE_MS sits just past the page gate's own --dur-gate-cap CSS
+// failsafe (app/lib/gate.ts) — so if `.fonts-ready` never lands, sections
+// still reveal rather than staying hidden forever.
 
 export function useReveal(ref: RefObject<HTMLElement | null>) {
   const revealed = useRef(false)

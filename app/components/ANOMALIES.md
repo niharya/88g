@@ -86,6 +86,34 @@ architecture explicitly avoids. Forgetting that movement is a 4-var *bundle*
 **Don't change without reading first:** the `:has()` colour/movement blocks in
 globals.css and the prop→inline-var path in `StartoothLoader.tsx`.
 
+## The loader field is a per-route colour; the exit transform lives on the mark, not the field
+
+**What:** the `.page-boot` loader fills the screen with a saturated per-route
+**field** (`--loader-screen-bg`, a soft `-160` ramp step per route; `#000` for
+`/marks`; the landing opts out via `.page-boot { display: none }`). On release
+(`html.fonts-ready`) the field fades via `page-boot-out` (**opacity only**) while
+the **mark** lifts off via `page-boot-mark-out`
+(`scale(var(--loader-exit-scale)) translateY(var(--loader-exit-lift))`).
+
+**Where:** `app/globals.css`, the "Page boot" section — the `:root:has(.route-*)`
+blocks set `--loader-screen-bg` alongside the two colour vars; `.page-boot`
+carries `background: var(--loader-screen-bg, …)`; `page-boot-out` (field) and
+`page-boot-mark-out` (mark) are separate keyframes on separate selectors.
+
+**Why:** the exit transform is deliberately on the **mark**
+(`.startooth-loader`), not the **field** (`.page-boot`). Putting the
+`scale`/`translateY` on `.page-boot` would scale and lift the *entire saturated
+screen* on exit — reads as the whole field zooming out rather than a sticker
+peeling off it. The field only ever animates opacity.
+
+**What breaks if violated:** moving the exit transform onto `.page-boot` (or
+merging the two keyframes) zooms the full-screen colour on every load. Dropping
+`--loader-screen-bg` falls back to `--workbench-bg` (paper) — the branded screen
+is lost. Setting it on `/marks` to anything but `#000` breaks the documented void.
+
+**Don't change without reading first:** the `page-boot-out` / `page-boot-mark-out`
+split and the `--loader-screen-bg` blocks in globals.css "Page boot".
+
 ## `/marks` colour is a deliberate divergence from the old white-on-black mark
 
 **What:** `/marks` boots with dark ink on a light paper hull —

@@ -4,6 +4,7 @@ import localFont from 'next/font/local'
 import './globals.css'
 import './components/CrossShellVeil/cross-shell-veil.css'
 import { StartoothLoader } from './components/StartoothLoader'
+import { GATE_CAP_MS } from './lib/gate'
 
 // Font loading strategy
 // ─────────────────────
@@ -180,25 +181,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${fraunces.variable} ${googleSans.variable} ${googleSansFlex.variable} ${googleSansCode.variable} ${materialSymbols.variable}`} suppressHydrationWarning>
       <head>
         {/* Page gate — holds every page surface behind the .page-boot loader
-            until the page is actually ready, then reveals. Lands `.fonts-ready`
-            on <html> when BOTH `window.load` (above-the-fold images +
-            subresources) AND `document.fonts.ready` (fonts, incl. the icon
-            subset) have settled — or an 8000 ms cap, the failsafe ceiling so a
-            stalled asset can't trap the page forever. globals.css consumes the
-            class to fade the surfaces in and the loader out.
+            until the page is ready, then reveals. Lands `.fonts-ready` on
+            <html> when BOTH `window.load` (the JS bundle + subresources) AND
+            `document.fonts.ready` have settled — or a GATE_CAP_MS failsafe
+            ceiling so a stalled asset can't trap the page forever. globals.css
+            consumes the class to fade the surfaces in and the loader out.
 
-            Why hold-until-ready and not the old 1000 ms font-only cap: on a
-            throttled cold load the short cap revealed a half-loaded page and
-            you watched elements pop in. The animated loader makes a longer hold
-            read as "loading," which is the whole point of having one — so we
-            gate the full payload, not just fonts. The 8 s ceiling is the only
-            hard limit (was 1.5 s). The matching CSS failsafe lives in globals
-            (`page-gate-failsafe` at 8000 ms) so the gate still releases if this
-            script never runs. (`fonts-ready` is a legacy class name — it now
-            means "page ready.") Note: render-blocking CSS already blocks first
-            paint until the bundle loads, so the loader can't paint *earlier*
-            than that without async-loading the CSS — this gate governs how long
-            it HOLDS, which is the part that was broken.
+            Why window.load, not fonts-only: page CONTENT reveals via a client
+            hook (useReveal adds `.revealed`, which runs the section-reveal
+            transition) that can't fire until React hydrates — i.e. until the
+            JS bundle has loaded. Releasing on fonts alone reveals the surface
+            ~600ms before hydration, leaving a blank gap while the content
+            waits to reveal. Holding for window.load keeps the loader up until
+            the page can show content, so it all arrives in sync. Images are
+            still NOT a concern — below-the-fold imagery is lazy (<Img> LQIP
+            blur), so window.load isn't waiting on it; it waits on type + JS.
+            (`fonts-ready` is a legacy class name — it now means "page ready.")
+            The cap is the JS half of the ceiling; the CSS half is
+            `--dur-gate-cap` in globals (`page-gate-failsafe`), which also
+            releases the gate if this script never runs. Render-blocking CSS
+            still blocks first paint until the bundle loads, so the loader
+            can't paint earlier than that — this gate only governs how long it
+            HOLDS.
 
             Vanilla <script dangerouslySetInnerHTML>, NOT <Script
             beforeInteractive>: in App Router the latter is queued through
@@ -206,7 +210,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             load/fonts listeners during HTML parse, which is what we need. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var d=false;var done=function(){if(d)return;d=true;document.documentElement.classList.add('fonts-ready');};var cap=setTimeout(done,8000);var loaded=document.readyState==='complete';var fonts=!(document.fonts&&document.fonts.ready);var go=function(){if(loaded&&fonts){clearTimeout(cap);done();}};if(!loaded){window.addEventListener('load',function(){loaded=true;go();});}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){fonts=true;go();});}go();})();`,
+            __html: `(function(){var d=false;var done=function(){if(d)return;d=true;document.documentElement.classList.add('fonts-ready');};var cap=setTimeout(done,${GATE_CAP_MS});var loaded=document.readyState==='complete';var fonts=!(document.fonts&&document.fonts.ready);var go=function(){if(loaded&&fonts){clearTimeout(cap);done();}};if(!loaded){window.addEventListener('load',function(){loaded=true;go();});}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){fonts=true;go();});}go();})();`,
           }}
         />
         {/* Favicon swap — uniform pick across six startooth variants on each
