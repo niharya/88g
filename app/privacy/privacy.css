@@ -1,78 +1,604 @@
-/* Privacy + Now — shared editorial layout for the two text-only routes.
-   Same paper canvas as the rest of the portfolio, narrow column for legal /
-   personal-statement reading width, restrained typography that defers to
-   the body copy. */
+/* Privacy — the "Stationery" treatment.
+   A formal framed notice: double-rule frame over a paper-noise inner sheet, a
+   crest masthead, five numbered Articles with drop-cap descriptions and
+   skimmable register cards, marginalia, a filed stamp, and a wax-seal coupon.
 
-.legal {
+   Colorway is the 88g "Salmon" set, aliased here from the canonical ramps so
+   the rest of the file can speak the stationery's own role-names. Values live
+   in globals.css; these are pointers, not new values. */
+
+.privacy {
+  --paper:  var(--orange-80);   /* page & inner-sheet bg */
+  --panel:  var(--orange-160);  /* register-card bg */
+  --ink:    var(--terra-960);   /* text, borders, frame */
+  --soft:   var(--terra-800);   /* muted labels, meta */
+  --accent: var(--orange-720);  /* links, marks, drop caps */
+  --hair:   var(--orange-320);  /* dotted hairlines */
+
+  --ui-wght-bold: 720;
+  --ui-wght-mid:  640;
+
   min-height: 100vh;
-  background: var(--workbench-bg);
+  background: var(--paper);
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 36px 24px 72px;
+}
+
+/* ── Top utility row ─────────────────────────────────────────────────── */
+.privacy__utility {
+  width: 880px;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+/* Top return — the shared ReturnMarker primitive (flat exit link; styling in
+   navmarker.css). The wrapper only tones it to the stationery palette
+   (--soft → --ink); the href resolves at runtime from the back-nav session
+   flag (PrivacyReturn). */
+.privacy-exit {
+  --return-marker-ink: var(--soft);
+  --return-marker-ink-hover: var(--ink);
+}
+
+/* Bottom return — the stationery bordered button. Label/href resolve at
+   runtime from the same session flag (PrivacyReturn). */
+.privacy__return-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 32px;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-paper),
+              color var(--dur-fast) var(--ease-paper);
+}
+.privacy__return-block:hover { background: var(--ink); color: var(--paper); }
+.privacy__return-arrow { font-size: 13px; }
+
+/* ── Double-rule frame ───────────────────────────────────────────────── */
+.privacy__frame {
+  width: 880px;
+  max-width: 100%;
+  border: 1px solid var(--ink);
+  padding: 7px;
+  box-shadow: var(--shadow-resting);
+  box-sizing: border-box;
+}
+.privacy__sheet {
+  position: relative;
+  border: 1px solid var(--ink);
+  background-color: var(--paper);
+  background-image: url('/noise-bg.png');
+  background-size: 200px 200px;
+  background-blend-mode: multiply;
+  padding: 56px 72px 52px;
+}
+
+/* ── Masthead ────────────────────────────────────────────────────────── */
+.privacy__masthead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 12px;
+}
+.privacy__crest {
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+.privacy__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 84px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -2.5px;
+  line-height: 0.92;
+  color: var(--ink);
+}
+.privacy__subtitle {
+  margin-top: 20px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ── Ornamental rules ────────────────────────────────────────────────── */
+.privacy__rule {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: clamp(64px, 12vh, 144px) var(--space-24) var(--space-48);
+  gap: 14px;
+  margin: 44px auto;
+  max-width: 320px;
+}
+.privacy__rule-line { flex: 1; height: 1px; background: var(--hair); }
+.privacy__rule--grand {
+  gap: 12px;
+  margin: 44px auto 0;
+  max-width: 460px;
+}
+.privacy__rule--grand .privacy__rule-line { background: var(--ink); }
+
+.privacy__diamond {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  transform: rotate(45deg);
+  flex: none;
+}
+.privacy__diamond--sm { width: 4px; height: 4px; }
+.privacy__diamond--md { width: 7px; height: 7px; }
+.privacy__diamond--hollow {
+  width: 9px;
+  height: 9px;
+  background: none;
+  border: 1px solid var(--ink);
 }
 
-.legal__inner {
+/* ── Lead ────────────────────────────────────────────────────────────── */
+.privacy__lead {
+  margin: 40px auto 0;
+  max-width: 580px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* ── Article ─────────────────────────────────────────────────────────── */
+.privacy__article { position: relative; }
+.privacy__article-head {
   display: flex;
   flex-direction: column;
-  gap: var(--space-32);
-  max-width: 640px;
-  width: 100%;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.privacy__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.privacy__article-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -0.8px;
+  color: var(--ink);
 }
 
-.legal__head {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  border-bottom: 1px solid var(--grey-880);
-  padding-bottom: var(--space-24);
+/* Marginalia — printer's-mark annotations in the frame gutters. */
+.privacy__margin {
+  position: absolute;
+  top: 0;
+  writing-mode: vertical-rl;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--soft);
+  pointer-events: none;
+}
+.privacy__margin--left {
+  left: -50px;
+  transform: rotate(180deg);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.privacy__margin--right {
+  right: -52px;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
 }
 
-.legal__title {
-  color: var(--grey-80);
+/* ── Description + drop cap ───────────────────────────────────────────── */
+.privacy__desc {
+  margin: 4px auto 0;
+  max-width: 600px;
+  text-align: left;
+  display: flow-root;
+  font-family: var(--font-body);
+  font-size: 16.5px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  line-height: 1.62;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.privacy__dropcap {
+  float: left;
+  font-family: var(--font-display);
+  font-size: 52px;
+  line-height: 0.72;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  color: var(--accent);
+  margin: 5px 14px 0 0;
 }
 
-.legal__sub {
-  color: var(--grey-480);
-}
-
-.legal__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-20);
-  color: var(--grey-160);
-}
-
-.legal__body a {
-  color: inherit;
+/* Body links — accent, dotted underline → solid on hover. */
+.privacy__link {
+  color: var(--accent);
   text-decoration: underline;
-  text-decoration-thickness: 1px;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+.privacy__link:hover { text-decoration-style: solid; }
+
+/* ── Register card ───────────────────────────────────────────────────── */
+.privacy__card {
+  margin: 28px auto 0;
+  border: 1px solid var(--ink);
+  background: var(--panel);
+}
+.privacy__card--600 { max-width: 600px; }
+.privacy__card--540 { max-width: 540px; }
+
+.privacy__card-band {
+  background: var(--ink);
+  padding: 9px 18px;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+.privacy__card-band--foot { letter-spacing: 0.14em; }
+.privacy__card-band a {
+  color: var(--paper);
+  text-decoration: underline;
+  text-decoration-style: dotted;
   text-underline-offset: 3px;
 }
 
-.legal__body a:hover {
-  color: var(--grey-80);
+.privacy__card-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
+.privacy__ledger-col { padding: 16px 22px 18px; }
+.privacy__ledger-col--ruled { border-right: 1px solid var(--ink); }
+.privacy__ledger-head {
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.privacy__ledger-head--count { color: var(--accent); }
+.privacy__ledger-head--never { color: var(--soft); }
 
-.legal__foot {
+.privacy__ledger-row {
   display: flex;
-  margin-top: var(--space-16);
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px dotted var(--hair);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
+}
+.privacy__ledger-row:last-child { border-bottom: none; }
+.privacy__ledger-row--soft { color: var(--soft); }
+.privacy__ledger-key { flex: 1; }
+.privacy__ledger-tag {
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.privacy__ledger-tag--yes { color: var(--accent); }
+
+/* Stacked field (II, III, IV) */
+.privacy__field {
+  padding: 15px 20px;
+}
+.privacy__field--ruled-r { border-right: 1px solid var(--ink); }
+.privacy__field--ruled-b { border-bottom: 1px solid var(--ink); }
+.privacy__field-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+.privacy__field-value {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--soft);
+}
+.privacy__field-value--body {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.privacy__field-value--mono-ink {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink);
 }
 
-.legal__list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* ── Browser-state twin cards (IV) ───────────────────────────────────── */
+.privacy__twin {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  max-width: 600px;
+  margin: 28px auto 0;
+}
+.privacy__twin .privacy__card { margin: 0; }
+.privacy__twin .privacy__card-band { padding: 9px 16px; letter-spacing: 0.16em; }
+.privacy__state-row { padding: 13px 18px; }
+.privacy__state-row--ruled { border-bottom: 1px dotted var(--hair); }
+.privacy__state-label {
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.privacy__state-value {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+/* ── Fact strip ──────────────────────────────────────────────────────── */
+.privacy__facts {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 22px auto 0;
+  max-width: 560px;
+}
+.privacy__fact {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+/* ── Removal coupon + wax seal (V) ───────────────────────────────────── */
+.privacy__coupon {
+  position: relative;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  border: 1px solid var(--ink);
+  background: var(--panel);
+  padding: 34px 44px 38px;
+}
+.privacy__coupon-text {
+  margin: 0 0 22px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -0.4px;
+  line-height: 1.4;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.privacy__coupon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 20px;
+  background: var(--ink);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper);
+  text-decoration: none;
+}
+
+.privacy__seal {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--accent);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  box-shadow: var(--shadow-resting);
+  transition: transform var(--dur-slide) var(--ease-paper),
+              box-shadow var(--dur-slide) var(--ease-paper);
+}
+.privacy__seal-mark {
+  width: 30px;
+  height: 30px;
+  transition: transform var(--dur-settle) var(--ease-paper);
+}
+/* Wax-seal press — button and seal are siblings; hovering the button presses
+   the seal. */
+.privacy__coupon-btn:hover ~ .privacy__seal {
+  transform: rotate(-3deg) scale(0.93) translateY(2px);
+  box-shadow: var(--shadow-flat);
+}
+.privacy__coupon-btn:hover ~ .privacy__seal .privacy__seal-mark {
+  transform: rotate(22deg);
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+.privacy__footer-rule {
+  margin-top: 48px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  height: 4px;
+}
+.privacy__colophon {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+}
+.privacy__colophon-mark {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-mid), 'opsz' 18;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.privacy__colophon-meta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+  opacity: 0.7;
 }
 
-.legal__list-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+/* Filed rubber stamp — faint, tilted, decorative. */
+.privacy__stamp {
+  position: absolute;
+  bottom: 20px;
+  left: 56px;
+  transform: rotate(-7deg);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-variation-settings: 'wdth' 120, 'wght' var(--ui-wght-bold), 'opsz' 18;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.2;
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
-.legal__list-marker {
-  color: var(--grey-480);
+/* ── Crest draw-on (load) ────────────────────────────────────────────── */
+@keyframes privacy-crest-reveal {
+  from { opacity: 0; clip-path: circle(0% at 50% 52%); transform: scale(0.92); }
+  55%  { opacity: 1; }
+  to   { opacity: 1; clip-path: circle(82% at 50% 52%); transform: scale(1); }
+}
+.privacy__crest {
+  animation: privacy-crest-reveal var(--dur-glide) var(--ease-paper) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .privacy__crest { animation: none; }
+  .privacy__seal,
+  .privacy__seal-mark { transition: none; }
+}
+@media print {
+  .privacy__crest { animation: none; }
+}
+
+/* ── Mobile (< 768px, + landscape phones) ────────────────────────────────
+   Authored for the phone, not scaled from desktop (docs/responsive.md):
+   the double-rule frame + crest + seal + dividers stay (brand identity,
+   halved not deleted); the hand-placed marginalia and the filed stamp drop
+   (sanctioned embellishment drop-outs); the register cards stack into single
+   columns with their rules turned from vertical to horizontal; type is
+   re-anchored, not shrunk; tap targets clear 44px. The (works)-shell mobile
+   patterns (4px viewport frame, tucked marker nav, mat-as-last) don't apply —
+   /privacy is a standalone editorial sheet outside the shell. */
+@media (max-width: 767px), (max-height: 500px) {
+  .privacy { padding: 20px 14px 48px; }
+
+  .privacy__utility { margin-bottom: 18px; }
+
+  /* The frame tightens but keeps its double rule. */
+  .privacy__frame { padding: 5px; }
+  .privacy__sheet { padding: 38px 22px 36px; }
+
+  /* Crest stays; a touch smaller so it breathes in the narrow sheet. */
+  .privacy__crest { width: 140px; height: auto; }
+
+  /* Type re-anchored for the phone (re-declared, not scaled down). */
+  .privacy__title { font-size: 54px; letter-spacing: -1.5px; }
+  .privacy__subtitle { letter-spacing: 0.2em; }
+  .privacy__lead { margin-top: 32px; font-size: 20px; }
+  .privacy__article-title { font-size: 24px; }
+  .privacy__dropcap { font-size: 42px; margin: 4px 11px 0 0; }
+
+  /* Tighter section rhythm. */
+  .privacy__rule { margin: 36px auto; }
+  .privacy__rule--grand { margin-top: 36px; }
+
+  /* Drop the gutter embellishments — nothing to dock to at this width. */
+  .privacy__margin,
+  .privacy__stamp { display: none; }
+
+  /* Register cards stack: vertical rules become horizontal dividers. */
+  .privacy__card-cols,
+  .privacy__twin { grid-template-columns: 1fr; }
+  .privacy__ledger-col--ruled {
+    border-right: none;
+    border-bottom: 1px solid var(--ink);
+  }
+  .privacy__field--ruled-r { border-right: none; }
+  .privacy__card-cols .privacy__field {
+    border-right: none;
+    border-bottom: 1px solid var(--ink);
+  }
+  .privacy__card-cols .privacy__field:last-child { border-bottom: none; }
+
+  /* Coupon padding eases in; the seal pulls in so it stays on the sheet. */
+  .privacy__coupon { padding: 30px 26px 34px; }
+  .privacy__seal { right: -14px; bottom: -16px; }
+
+  /* Touch targets ≥ 44px for the three controls. The 4-class selector
+     out-specifies the shared `.return-marker …{ padding:0 }` in navmarker.css. */
+  .privacy-exit .return-marker.nav-marker--exit .nav-marker__content { padding: 12px 0; }
+  .privacy__return-block { padding: 13px 20px; }
+  .privacy__coupon-btn { padding: 15px 22px; }
 }

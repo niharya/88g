@@ -132,8 +132,8 @@ export default function Footer({
   const pathname = usePathname()
 
   // Write the source path to sessionStorage when the Privacy link is
-  // clicked, so PrivacyBackLink can read it and render a back marker
-  // labelled / toned to match. Quietly no-ops if storage is unavailable.
+  // clicked, so PrivacyReturn can read it and send "Return" back to the
+  // route the visitor came from. Quietly no-ops if storage is unavailable.
   const handleLinkClick = (href: string) => {
     if (href !== '/privacy') return
     try {

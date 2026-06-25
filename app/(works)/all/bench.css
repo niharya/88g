@@ -63,61 +63,15 @@
 }
 
 /* ── +Nihar marker (top-left, in-flow above the card) ─────────────────────── */
-/* Reuses NavMarker(role="exit") but, unlike the shell/marks EXIT, it sits in
-   flow on the pale desk in our grey scale (rest --grey-720 → hover --grey-560,
-   a touch darker than the marks white-on-art treatment). Links home. */
+/* The "+Nihar" back-link is the shared ReturnMarker primitive (flat exit link;
+   styling in navmarker.css). Here we only place it on the pale desk and set its
+   grey tone — rest --grey-720 → hover --grey-560, a touch darker than the marks
+   white-on-art treatment. Links home. */
 .bench-exit {
   align-self: flex-start;
   margin-bottom: var(--space-20);
-}
-
-.bench-exit .nav-marker--exit {
-  background: none;
-  border: none;
-  box-shadow: none;
-}
-
-.bench-exit .nav-marker--exit .nav-marker__content {
-  padding: 0;
-  align-items: center;
-  color: var(--grey-720);
-  transition: color var(--dur-fast) var(--ease-snap);
-}
-
-/* The shared exit treatment (nav.css) rotates the arrow 180° so it points
-   right. The bench marker is a "back to landing" link, so point it left —
-   neutralise the inherited rotation. We MATCH-AND-EXCEED the base selector
-   (`.nav-marker--exit .nav-icon`, three classes vs two) so the reset wins by
-   SPECIFICITY, not source order: a client-side nav into /all (landing → works)
-   can re-insert the CSS chunks in a different order, and an order-only win let
-   the base rotation resurface and flip the arrow right. Route-scoped; other
-   exits keep their 180°. */
-.bench-exit .nav-marker--exit .nav-icon {
-  transform: none;
-}
-
-/* The Nihar marker reads like the rest of the site's links: a dotted underline
-   at REST that fills to solid on hover — overriding nav.css's shell-exit idiom
-   (transparent-rest → dotted-hover, kept for the white-on-art exits). Beats the
-   base by specificity (three classes) so source order can't flip it either. */
-.bench-exit .nav-marker--exit .nav-marker__exit-label {
-  text-decoration: underline dotted currentColor;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
-}
-.bench-exit .nav-marker--exit:hover .nav-marker__exit-label,
-.bench-exit .nav-marker--exit:focus-visible .nav-marker__exit-label {
-  text-decoration-style: solid;
-}
-
-.bench-exit .nav-marker--exit:hover .nav-marker__content,
-.bench-exit .nav-marker--exit:focus-visible .nav-marker__content {
-  color: var(--grey-560);
-}
-
-.bench-exit .nav-marker--exit:hover,
-.bench-exit .nav-marker--exit:focus-visible {
-  background: none;
+  --return-marker-ink: var(--grey-720);
+  --return-marker-ink-hover: var(--grey-560);
 }
 
 

@@ -2,13 +2,12 @@
 
 // BenchExitMarker — the "+Nihar" marker, top-left above the invitation card.
 //
-// Reuses NavMarker(role="exit") for the icon+label affordance, but sits in
-// flow on the pale desk in our grey scale (styled by `.bench-exit` in
-// bench.css) rather than the shell/marks fixed white-on-art EXIT. Links home
-// (/) and, like NiharHomeLink, sets the to-landing nav-direction so the
-// landing slides its hero back in on arrival.
+// The flat back-link affordance is the shared ReturnMarker primitive; this
+// wrapper owns the /all-specifics: grey tone + flow positioning (`.bench-exit`
+// in bench.css) and, like NiharHomeLink, the to-landing nav-direction flag so
+// the landing slides its hero back in on arrival.
 
-import NavMarker from '../../../../components/NavMarker'
+import ReturnMarker from '../../../../components/ReturnMarker'
 
 export default function BenchExitMarker() {
   const onClick = () => {
@@ -21,15 +20,7 @@ export default function BenchExitMarker() {
 
   return (
     <div className="bench-exit">
-      <NavMarker
-        as="a"
-        href="/"
-        role="exit"
-        icon="arrow_back"
-        label="Nihar"
-        onClick={onClick}
-        aria-label="Back to landing page"
-      />
+      <ReturnMarker href="/" label="Nihar" onClick={onClick} aria-label="Back to landing page" />
     </div>
   )
 }

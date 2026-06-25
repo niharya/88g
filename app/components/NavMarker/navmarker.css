@@ -181,3 +181,54 @@ a.nav-marker:active {
 .workbench:has(.chapter-nav--open)     .project-marker button.nav-marker--project:active {
   background-color: var(--grey-800);
 }
+
+
+/* ── ReturnMarker — flat, chip-less exit link ────────────────────────────── */
+/* The flat sibling of the chip EXIT: NavMarker(role="exit") + `.return-marker`,
+   rendered by the ReturnMarker primitive (app/components/ReturnMarker/). Strips
+   the marker shell and reads as a back link — arrow points LEFT, label is a
+   dotted→solid underline. Colour is consumer-driven via two custom properties
+   (fallbacks keep it legible if unset):
+     --return-marker-ink        rest    (fallback --grey-720)
+     --return-marker-ink-hover  hover   (fallback --grey-560)
+   Consumers set the inks + any positioning on their wrapper: /all `.bench-exit`
+   (grey), /privacy `.privacy-exit` (stationery terra). */
+.return-marker.nav-marker--exit {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+.return-marker.nav-marker--exit .nav-marker__content {
+  padding: 0;
+  align-items: center;
+  color: var(--return-marker-ink, var(--grey-720));
+  transition: color var(--dur-fast) var(--ease-snap);
+}
+/* nav.css rotates every exit arrow 180° (it points right for the shell/marks
+   EXIT). A return link points LEFT — neutralise the rotation. THREE classes
+   (`.return-marker.nav-marker--exit .nav-icon`) out-specify the base
+   (`.nav-marker--exit .nav-icon`, two), so the reset wins by SPECIFICITY, not
+   source order — a client-side nav that re-inserts CSS chunks in a different
+   order can't flip it back. */
+.return-marker.nav-marker--exit .nav-icon {
+  transform: none;
+}
+/* Label reads like the site's links: dotted at rest, solid on hover. Three
+   classes so source order can't revert it to the shell-exit fade idiom. */
+.return-marker.nav-marker--exit .nav-marker__exit-label {
+  text-decoration: underline dotted currentColor;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+.return-marker.nav-marker--exit:hover .nav-marker__exit-label,
+.return-marker.nav-marker--exit:focus-visible .nav-marker__exit-label {
+  text-decoration-style: solid;
+}
+.return-marker.nav-marker--exit:hover .nav-marker__content,
+.return-marker.nav-marker--exit:focus-visible .nav-marker__content {
+  color: var(--return-marker-ink-hover, var(--grey-560));
+}
+.return-marker.nav-marker--exit:hover,
+.return-marker.nav-marker--exit:focus-visible {
+  background: none;
+}

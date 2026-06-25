@@ -109,7 +109,7 @@ is the only entry point to the deep case studies. Implications:
 (`segmentNames`, `isSelected`→`isBench`, `shell-nav-hidden` gate), `TransitionSlot.tsx`
 (`prefetch('/all')`, dim selector, spatial comments), `selected/` folder → `bench/`,
 `page.tsx` `metadata.canonical`, `ExitMarker.tsx`, `MarksExitMarker.tsx`,
-`PrivacyBackLink.tsx` mapping. ~32 refs / 7 files. Plus redirect + rewrites in `next.config`.
+`PrivacyReturn.tsx` mapping. ~32 refs / 7 files. Plus redirect + rewrites in `next.config`.
 
 ## 6. Token & porting spec (decisions applied)
 
