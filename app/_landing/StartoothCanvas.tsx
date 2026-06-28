@@ -24,9 +24,12 @@ import './startooth-canvas.css'
 export interface StartoothCanvasProps {
   onBuildComplete: () => void
   skipBuild: boolean
+  /* When the landing expands, the engine dissolves its filled pattern down to a
+     bare wireframe so the busy field quiets behind the bento. */
+  expanded: boolean
 }
 
-export default function StartoothCanvas({ onBuildComplete, skipBuild }: StartoothCanvasProps) {
+export default function StartoothCanvas({ onBuildComplete, skipBuild, expanded }: StartoothCanvasProps) {
   const rootRef   = useRef<HTMLDivElement>(null)
   const wrapRef   = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -70,11 +73,23 @@ export default function StartoothCanvas({ onBuildComplete, skipBuild }: Startoot
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])  // intentionally stable — field mounts once; skipBuild baked at construction
 
+  // Relay expand state to the engine (separate from the mount effect, which is
+  // stable). The field may not exist yet on the very first idle-deferred mount;
+  // the next expand toggle (only possible post-build) re-syncs it.
+  useEffect(() => {
+    fieldRef.current?.setExpanded(expanded)
+  }, [expanded])
+
   return (
-    <div ref={rootRef} className="startooth-canvas-root" aria-hidden="true">
-      <div ref={wrapRef} className="startooth-canvas-wrap">
-        <canvas ref={canvasRef} />
+    <>
+      <div ref={rootRef} className="startooth-canvas-root" aria-hidden="true">
+        <div ref={wrapRef} className="startooth-canvas-wrap">
+          <canvas ref={canvasRef} />
+        </div>
       </div>
-    </div>
+      {/* Framed sheet: matte over the scrolling content — its window clips the
+          content to the sheet, its border is the frame. See startooth-canvas.css. */}
+      <div className="startooth-sheet-matte" aria-hidden="true" />
+    </>
   )
 }

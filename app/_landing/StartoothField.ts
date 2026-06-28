@@ -124,6 +124,17 @@ export class StartoothField {
   private md = 1
   private maxD = 1
   private settled: HTMLCanvasElement | null = null
+  // Line-only bake of the settled field (black ground + bare wireframe, no
+  // face/top fills). Cross-faded over `settled` when the landing expands so the
+  // busy filled pattern quiets to its outline behind the bento. See setExpanded.
+  private settledLines: HTMLCanvasElement | null = null
+  private expandAmt    = 0   // eased 0 (filled) → 1 (line) — current
+  private expandTarget = 0   // 0 (filled) | 1 (line) — driven by React expand state
+  private expandFrom   = 0   // expandAmt captured when the target last changed (tween start value)
+  private expandStart  = 0   // timestamp the current dissolve tween began (performance.now)
+  private readonly EXPAND_DUR = 800   // ms — filled↔line dissolve duration (both directions)
+  private lineGround   = '#4C2B18'                  // line-version ground = the void/structural brown (--surface-bg), read at mount
+  private lineStroke   = 'rgba(205, 134, 7, 0.28)'  // line-version grid ink — a terra-toned line (terra-560 @ ~28%) on the void ground
 
   // Build origin (parametrized for future 9-click break/rebuild)
   private buildOriginX: number | undefined
@@ -212,6 +223,8 @@ export class StartoothField {
       this.COL.core = surfaceBg
       this.PEN      = surfaceBg
     }
+    const lineGround = style.getPropertyValue('--surface-bg').trim()
+    if (lineGround) this.lineGround = lineGround
 
     this.lockedKeys  = new Map()
     this.crossRipples = []
@@ -472,7 +485,7 @@ export class StartoothField {
 
   private start() {
     this.buildStart = performance.now()
-    this.done = false; this.settled = null
+    this.done = false; this.settled = null; this.settledLines = null
     this.resetFocus()
     this.lockedKeys.clear()
     this.crossRipples = []; this.topFlashes = []; this.voidWaves = []
@@ -485,6 +498,22 @@ export class StartoothField {
       cancelAnimationFrame(this.raf)
       this.raf = requestAnimationFrame(() => this.loop())
     }
+  }
+
+  // React calls this when the landing expands/collapses. Sets the dissolve
+  // target (1 = line-only, 0 = filled) and kicks the loop to animate the fade.
+  setExpanded(on: boolean) {
+    const t = on ? 1 : 0
+    if (t === this.expandTarget) return
+    this.expandTarget = t
+    // Start a fresh time-based dissolve tween FROM wherever we currently are
+    // (handles a reverse mid-dissolve), so expand and collapse mirror each other.
+    this.expandFrom = this.expandAmt
+    this.expandStart = performance.now()
+    // Opening: drop any hover lamp / press state so nothing stays lit behind the
+    // bento (pointer() is gated off below, so it can't clear itself).
+    if (t === 1) this.resetFocus()
+    this.kick()
   }
 
   private resize() {
@@ -717,6 +746,20 @@ export class StartoothField {
     for (const r of this.regs) if (r.kind === 'top')  { x.fillStyle = col.top; x.fill(r.path) }
     x.lineWidth = Math.max(1.4, 5.5 * this.SS); x.strokeStyle = col.core; x.stroke(this.linePath)
     this.settled = c
+
+    // Line-only twin: --surface-bg ground (the void/structural brown) + a
+    // terra-toned grid ink (terra-560 @ ~28%), no fills. Cross-fading
+    // settledLines over settled settles the face/top fills down to the void
+    // tone while the outline cross-dissolves to the terra line — a quiet shift
+    // from the filled pattern to a line drawing on the void ground (see
+    // drawInteractive).
+    const l = document.createElement('canvas')
+    l.width = Math.round(W); l.height = Math.round(H)
+    const lx = l.getContext('2d')!
+    lx.lineJoin = 'round'; lx.lineCap = 'round'
+    lx.fillStyle = this.lineGround; lx.fillRect(0, 0, W, H)
+    lx.lineWidth = Math.max(1.4, 5.5 * this.SS); lx.strokeStyle = this.lineStroke; lx.stroke(this.linePath)
+    this.settledLines = l
   }
 
   // Screen (client) coords → canvas-local CSS px, undoing the wrapper's -15° tilt
@@ -748,6 +791,10 @@ export class StartoothField {
 
   private pointer(e: PointerEvent, isDown: boolean) {
     if (!this.done) return
+    // Bento open: the field is a quiet line drawing behind the content — its
+    // hover lamps and click ripples/ruptures would pop bright fills against it,
+    // so interaction is suspended until the landing collapses back to filled.
+    if (this.expandTarget === 1) return
     this.lastActivity = performance.now()   // resets the idle-breathing clock
     const [lx, ly] = this.toLocal(e.clientX, e.clientY)
     const u = this.hit(lx, ly)
@@ -902,10 +949,26 @@ export class StartoothField {
     this.outlineAmt += (ot - this.outlineAmt) * ko
     if (Math.abs(ot - this.outlineAmt) < 0.004) this.outlineAmt = ot
 
+    // Dissolve the filled↔line cross-fade on a TIME-based smootherstep (not a
+    // per-frame exponential): it accelerates and decelerates symmetrically, so
+    // expand and collapse are mirror images — the bright fills no longer "pop"
+    // back in fast on collapse the way an ease-out front-loads them. Framerate-
+    // independent. Snaps under reduced motion; the loop runs while mid-tween.
+    if (this.expandAmt !== this.expandTarget) {
+      if (this.prefersReduced) {
+        this.expandAmt = this.expandTarget
+      } else {
+        const t = Math.min(1, (performance.now() - this.expandStart) / this.EXPAND_DUR)
+        this.expandAmt = this.expandFrom + (this.expandTarget - this.expandFrom) * this.smoother(t)
+        if (t >= 1) this.expandAmt = this.expandTarget
+      }
+    }
+
     this.drawInteractive()
 
     return (
       this.focusAmt !== focusTgt ||
+      this.expandAmt !== this.expandTarget ||
       (!!du && this.traceAmt < 1) ||
       this.ripples.length > 0 ||
       this.outlineAmt !== ot ||
@@ -935,6 +998,14 @@ export class StartoothField {
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     if (this.settled) {
       ctx.drawImage(this.settled, 0, 0, this.settled.width, this.settled.height, jx, jy, dev.width, dev.height)
+      // Expanded: dissolve toward the line-only twin. Its --surface-bg (void)
+      // ground fades over the fills (settling them to the void tone) and the
+      // wireframe cross-dissolves to the terra-toned grid ink.
+      if (this.settledLines && this.expandAmt > 0.001) {
+        ctx.globalAlpha = this.expandAmt
+        ctx.drawImage(this.settledLines, 0, 0, this.settledLines.width, this.settledLines.height, jx, jy, dev.width, dev.height)
+        ctx.globalAlpha = 1
+      }
     } else {
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, dev.width, dev.height)
     }

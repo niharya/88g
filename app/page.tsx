@@ -64,6 +64,14 @@ const PALETTES: Palette[] = [
 
 
 
+/* Practice-timeline phases — width encodes duration (sums to 100%); each
+   reveals its guiding question + year-range when focused. */
+const TIMELINE_PHASES = [
+  { key: 'interface', label: 'Interface', num: '02', unit: 'years', question: 'How do people interact with technology?', range: '2016 – 2018', defaultW: 20 },
+  { key: 'brand', label: 'Brand', num: '03', unit: 'years', question: 'How do ideas shape an organization?', range: '2018 – 2021', defaultW: 30 },
+  { key: 'product', label: 'Product', num: '05', unit: 'years', question: 'How do complex products become usable?', range: '2021 – Now', defaultW: 50 },
+]
+
 export default function LandingPage() {
   const [expanded, setExpanded] = useState(false)
   const [slideIn, setSlideIn] = useState(false)
@@ -139,11 +147,54 @@ export default function LandingPage() {
     setBuilt(true)
   }, [])
 
+  /* ---- Practice-timeline focus ---- */
+  // null = proportional default; 0/1/2 = that phase sprung open, others collapsed.
+  const [focusedPhase, setFocusedPhase] = useState<number | null>(null)
+  const barRef = useRef<HTMLDivElement>(null)
+
+  // Click anywhere outside the bar resets the focus. Native document listener +
+  // containment check (synthetic stopPropagation wouldn't reach here anyway).
+  useEffect(() => {
+    if (focusedPhase === null) return
+    const onDocClick = (e: MouseEvent) => {
+      if (barRef.current && !barRef.current.contains(e.target as Node)) setFocusedPhase(null)
+    }
+    document.addEventListener('click', onDocClick)
+    return () => document.removeEventListener('click', onDocClick)
+  }, [focusedPhase])
+
   /* ---- Spectrum state ---- */
   const [hueIdx, setHueIdx] = useState(0)
-  const [specRotation, setSpecRotation] = useState(0)
+  const [specRotation, setSpecRotation] = useState(0)   // click reroll (±1/±2°)
+  const [specPressed, setSpecPressed] = useState(false)
+  const spectrumRef = useRef<HTMLDivElement>(null)
 
   const palette = PALETTES[hueIdx]
+
+  /* Spectrum base tilt — scroll-driven. 0° at the top of the page, easing to
+     its −1° rest over the first 120px of scroll, so it reads straight when you
+     first reach it and tilts as you nudge down. Driven as a CSS variable on
+     .spectrum via a rAF-throttled scroll listener (no React re-render); it
+     composes with the frame's click-reroll rotate. The click reroll is left
+     intact (discrete user action). Frozen at 0° under reduced motion. */
+  useEffect(() => {
+    const el = spectrumRef.current
+    if (!el) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let raf = 0
+    const update = () => {
+      raf = 0
+      const t = mq.matches ? 0 : -Math.min(window.scrollY / 120, 1)
+      el.style.setProperty('--spec-scroll-tilt', `${t}deg`)
+    }
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update) }
+    update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
 
   /* ---- Contact state ---- */
   const [formOpen, setFormOpen] = useState(false)
@@ -484,8 +535,7 @@ export default function LandingPage() {
     if ((e.target as HTMLElement).closest('a')) return
     setHueIdx(prev => (prev + 1) % PALETTES.length)
     // Reroll from the subset that excludes the current value so the frame
-    // always visibly rotates. Without this filter, two consecutive identical
-    // picks would read as no rotation change.
+    // always visibly rotates. Stacks on the scroll-driven base tilt.
     setSpecRotation(prev => {
       const options = [-2, -1, 1, 2].filter(t => t !== prev)
       return options[Math.floor(Math.random() * options.length)]
@@ -546,31 +596,25 @@ export default function LandingPage() {
       <StartoothCanvas
         onBuildComplete={handleBuildComplete}
         skipBuild={skipBuild}
+        expanded={expanded}
       />
 
       <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}${built ? ' landing--built' : ''}${skipBuild ? ' landing--skip' : ''}${staged ? ' landing--staged' : ''}`}>
         <div className="landing__content">
-
-          {/* About Short */}
-          <div className="landing__section--about-short">
-            <div className="about-card about-card--short">
-              <p className="about-card__text t-p3">
-                I never fit neatly into one discipline. Every time I thought I found &ldquo;my thing,&rdquo; it opened the door to a larger system behind it.
-              </p>
-              <div className="about-card__divider" />
-            </div>
-          </div>
 
           {/* Hero */}
           <div className="landing__section--hero">
             <div className="hero-card">
               <div className="hero-card__bg">
                 <div className="hero-card__content">
-                  <p className="hero-card__greeting t-p4">{greeting}</p>
+                  <p className="hero-card__greeting t-p4">
+                    <span>{greeting}</span>
+                    <span className="hero-card__greeting-sep" aria-hidden="true" />
+                    <span>I&rsquo;m Nihar</span>
+                  </p>
                   <h1 className="hero-card__headline t-h2">
-                    I&rsquo;m Nihar. I&rsquo;ve designed brands, cultures, and products.
+                    I believe well-made tools and systems can bring clarity, calm, and even delight to people working through complexity.
                   </h1>
-                  <p className="hero-card__sub t-p3">What connected all of it was systems thinking.</p>
                 </div>
                 <button
                   className="pill-btn"
@@ -614,30 +658,92 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* About Long — split part 1: framing paragraph */}
+          {/* About Long — the practice timeline. A proportional data-viz: each
+              segment's WIDTH encodes the years in that specialization (Interface
+              2 / Brand 3 / Product 5), running end-to-end so "one thing at a
+              time" reads literally. Replaces the former lead-paragraph +
+              discipline-chip list — same content, literal form. Recomposed from
+              the 800×480 handoff (reference/design_handoff_practice_card) to the
+              column; stays Group A (tucks behind hero). */}
           <div className="landing__section--about-long">
             <div className="about-card about-card--long">
-              <p className="about-card__text about-card__lead t-p3">
-                I never tried to become a generalist. I specialized in one thing at a time.
+              <p className="practice-timeline__statement">
+                Ten years.<br />
+                <span className="practice-timeline__accent">Each thing I learn opens a bigger system.</span>
               </p>
-              <p className="about-card__text t-p3">
-                <span className="discipline">
-                  UI and interaction design <Monostamp tone="terra" className="year-chip">2 years</Monostamp>
-                </span>
-                <span className="discipline">
-                  Studio-building and creative direction <Monostamp tone="terra" className="year-chip">3y</Monostamp>
-                </span>
-                <span className="discipline">
-                  Developer tooling, tech infrastructure, and <span style={{ whiteSpace: 'nowrap' }}>growth experiments</span> <Monostamp tone="terra" className="year-chip">3y</Monostamp>
-                </span>
-              </p>
+
+              <div className="practice-timeline__lower">
+                {/* The bar — interactive focus graph. Click a phase to spring it
+                    open (74%, question + range revealed); the others collapse to
+                    13% grey spines. Widths always sum to 100% so the bar never
+                    gaps mid-transition. Now genuinely interactive, so the segments
+                    are real buttons (the hover affordance is honest). */}
+                <div className="practice-timeline__bar" ref={barRef}>
+                  {TIMELINE_PHASES.map((p, i) => {
+                    const w = focusedPhase === null ? p.defaultW : (focusedPhase === i ? 74 : 13)
+                    const state = focusedPhase === null ? 'default' : (focusedPhase === i ? 'focused' : 'collapsed')
+                    const toggle = () => setFocusedPhase(prev => (prev === i ? null : i))
+                    return (
+                      <div
+                        key={p.key}
+                        className={`practice-timeline__seg practice-timeline__seg--${p.key} is-${state}`}
+                        style={{ ['--phase-size']: `${w}%` } as React.CSSProperties}
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={focusedPhase === i}
+                        aria-label={`${p.label}: ${p.question}`}
+                        onClick={toggle}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle() } }}
+                      >
+                        <div className="practice-timeline__seg-top">
+                          <span className="practice-timeline__seg-label">{p.label}</span>
+                          <div className="practice-timeline__seg-reveal">
+                            <p className="practice-timeline__seg-question">{p.question}</p>
+                            <p className="practice-timeline__seg-range">{p.range}</p>
+                          </div>
+                        </div>
+                        <span className="practice-timeline__seg-num">{p.num}{p.unit ? <span className="practice-timeline__seg-unit">{p.unit}</span> : null}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Year axis — cells mirror the segment widths and track the
+                    moving edges; the focused phase's boundary years highlight. */}
+                <div className="practice-timeline__axis">
+                  {TIMELINE_PHASES.map((p, i) => {
+                    const w = focusedPhase === null ? p.defaultW : (focusedPhase === i ? 74 : 13)
+                    return (
+                      <div className="practice-timeline__axis-cell" style={{ ['--phase-size']: `${w}%` } as React.CSSProperties} key={p.key}>
+                        {i === 0 && <span className={`practice-timeline__year${focusedPhase === 0 ? ' is-active' : ''}`}>2016</span>}
+                        {i === 1 && <span className={`practice-timeline__year${focusedPhase === 0 || focusedPhase === 1 ? ' is-active' : ''}`}>2018</span>}
+                        {i === 2 && (
+                          <>
+                            <span className={`practice-timeline__year${focusedPhase === 1 || focusedPhase === 2 ? ' is-active' : ''}`}>2021</span>
+                            <span className={`practice-timeline__year practice-timeline__year--now${focusedPhase === 2 ? ' is-active' : ''}`}>
+                              <span className="practice-timeline__rec" aria-hidden="true" />NOW
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Spectrum — Group B #1 (was #2 before the spectrum/practice swap;
               see _landing/ANOMALIES.md → "Group B order"). */}
           <div className="landing__section--spectrum">
-            <div className="spectrum" onClick={handleSpectrumClick}>
+            <div
+              ref={spectrumRef}
+              className={`spectrum${specPressed ? ' spectrum--pressed' : ''}`}
+              onClick={handleSpectrumClick}
+              onPointerDown={() => setSpecPressed(true)}
+              onPointerUp={() => setSpecPressed(false)}
+              onPointerLeave={() => setSpecPressed(false)}
+            >
               <div className="spectrum__frame" style={{ transform: `rotate(${specRotation}deg)` }}>
                 <div className="spectrum__bg" />
                 <div className="spectrum__inner">

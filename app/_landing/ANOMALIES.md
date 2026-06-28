@@ -10,10 +10,12 @@ Read this before touching the expand choreography or anything in the secondary s
 
 The landing has two logical groups of cards, and their entrance/exit motion must stay in separate idioms:
 
-- **Group A — hero-tucked.** `about-short`, `about-long`. These live *inside* the hero's mental frame in the default state and tuck out on expand via `top`/`transform` **transitions** (the `hero-glide-*` keyframes are mount-entrance only — not expand choreography). No random rotation exists anywhere in Group A; that system was removed.
-- **Group B — secondary stack.** `spectrum`, `about-practice`, `contact` (in DOM order; see "Group B order" below). These live *below* the hero in the expanded state only. In the default state they are opacity 0 with a small upward `translateY(-var(--stack-settle))` offset and `pointer-events: none`. On expand, they settle from above into place.
+- **Group A — hero-tucked.** `about-short` only. It lives *inside* the hero's mental frame in the default state and tucks out on expand via `top`/`transform` **transitions** (the `hero-glide-*` keyframes are mount-entrance only — not expand choreography). No random rotation exists anywhere in Group A; that system was removed.
+- **Group B — secondary stack.** `about-long`, `spectrum`, `about-practice`, `contact` (in DOM order; see "Group B order" below). These live *below* the hero in the expanded state only. In the default state they are opacity 0 with a small upward `translateY(-var(--stack-settle))` offset and `pointer-events: none`. On expand, they settle from above into place.
 
 **Do not mix idioms.** Do not apply Group A's hero-tuck transitions to Group B cards, and do not apply Group B's opacity-fade-settle to Group A. `about-practice` is part of Group B, not an extension of `about-long`, even though the copy continues.
+
+**`about-long` migrated A→B (practice-timeline redesign).** about-long used to be Group A — it tucked behind the hero via `top`/`scale`. The practice-timeline redesign (see "About-long is the practice timeline" below) made the card ~370px tall (desktop) / ~379px (mobile), too tall to tuck behind the 240px hero without poking far below it — the same height reason about-practice is Group B. So about-long moved to Group B: settle-from-above via opacity + `translateY(-stack-settle)`, no scale. It was already invisible on the collapsed home screen when tucked, so Group B preserves its visibility behavior (hidden collapsed, revealed on expand) while removing the poke. Its inner `.about-card--long` now sets `animation: none` to opt out of the `hero-glide-up` mount keyframe (same as about-practice), so the section transition owns the entrance. Don't move it back to Group A without shrinking the card back under the hero.
 
 ### Choreography tokens
 
@@ -23,15 +25,37 @@ Defined on `.landing` in `landing.css`:
 - `--stack-settle: var(--space-24)` — Y-offset Group B cards start from (above their resting top). Creates the "settling from above" read.
 - `--stack-gap: 40px` — design intent for vertical rhythm between Group B cards' unrotated boundaries. Used when positioning new stack cards.
 
-**Cascade offsets.** After the spectrum/practice swap, the order is spectrum (#1, no offset), about-practice (#2, `+0.02s`), contact (#3, `+0.04s`). If you add a fourth Group B card, it continues the cascade (+0.06s). Do not restart at 0.
+**Cascade offsets.** spectrum (no offset), about-practice (`+0.02s`), contact (`+0.04s`), about-long (`calc(var(--stack-stagger-start) + 0.06s)`). about-long is positionally the FIRST Group B card in the expanded stack but its expand delay was **appended** at +0.06s rather than restarting the cascade at 0 — honoring the "continue, never restart at 0" rule. The 60ms spread is sub-perceptual; spectrum/practice/contact delays were left untouched. Do not reorder these to match DOM/visual order.
 
 ### Group B order
 
-Spectrum sits above about-practice in the expanded stack (post-swap). `--spectrum-top` is the first Group B slot below `about-long`; `--practice-top` is computed from `--spectrum-top + spectrum-block`. `--contact-top` and `--expanded-h` are unchanged by the swap because spectrum-block + practice-block totals the same in either order — they're a linked set anchored at long-top and contact-top. If you change either card's height, remeasure both intermediate tops in tandem.
+about-long is the first Group B slot, spectrum sits below it, about-practice below that, contact last. On desktop these tops are now a SELF-ADJUSTING `calc()` chain — see "Self-adjusting cascade (desktop)" below: `--projects-top`/`--long-top`/`--spectrum-top`/`--practice-top`/`--contact-top`/`--expanded-h` all derive off the settled hero bottom, each offset = the block above's height + gap. So changing the hero height re-docks the whole stack automatically; only the per-block offset constants need touching if a CARD's height changes. **Mobile still uses its own hardcoded px values** for all of these (the `@media (max-width: 767px)` block) — there the old "remeasure the linked set in tandem, per viewport" rule still applies until mobile is migrated to the same chain.
 
 ## Group B card rotation — pinned to 0deg
 
 `about-practice` (and any future Group B card) opens at 0deg. The earlier random-rotation system (`--practice-rot`, `rerollStackRotations()`, `@property --practice-rot` registration) was removed in favour of an axis-aligned rest. If a future Group B card needs random tilt, restore the `@property <angle>` typing AND batch the reroll with `setExpanded` in the same React commit (untyped custom properties snap mid-transition; a `useEffect([expanded])` reroll lags one render and ghost-flickers).
+
+## Spectrum scroll-driven tilt
+
+The spectrum sheet's artistic angle is driven by scroll position, replacing the old static `rotate(-1deg)` (see the rewritten note in "Group B collapsed-state contract").
+
+**What it is.** `0°` at the top of the page, easing to `−1°` over the first **120px** of scroll. Applied as a CSS custom property `--spec-scroll-tilt` on `.spectrum` (`transform: rotate(var(--spec-scroll-tilt, 0deg))`, **no CSS transition** on the rotate), set by a rAF-throttled window-scroll listener in `app/page.tsx` (a `useEffect` writing `el.style.setProperty`). The sheet reads straight as you reach it and tilts to its rest as you scroll down; scrolling back up straightens it. Frozen at `0°` under `prefers-reduced-motion: reduce`.
+
+**Composes with the click reroll on a different element.** The scroll rotate lives on the parent `.spectrum`; the click reroll (`specRotation` React state, ±1/±2°, inline `transform: rotate()` with a `transform` CSS transition) lives on the child `.spectrum__frame`. Two elements, two transforms — they multiply, they don't fight. The click reroll is otherwise unchanged.
+
+**Framer Motion was tried and rejected here — do not "modernize" it back.** First attempt used `useScroll`/`useSpring`/`useTransform` + a `motion.div`. Those motion values were **inert in this component**: scroll- and spring-driven updates never propagated to the DOM (only a manual `.set()` moved the element). The CSS-var + rAF-throttled scroll listener replaced it and works. If you see the imperative `el.style.setProperty('--spec-scroll-tilt', …)` and reach for `useScroll`/`useSpring` to tidy it, you will reintroduce the inert-motion-value bug.
+
+## Spectrum hover + press affordance
+
+The spectrum is genuinely interactive (clicking cycles the palette), so it carries site-consistent hover/press feedback. This replaced an older inset-shadow-on-`.spectrum__inner` hover.
+
+**Hover (desktop-gated).** Behind `@media (hover: hover) and (min-width: 768px) and (min-height: 501px)`: a mild paper lift on `.spectrum__frame` — `translate: 0 -2px` + `box-shadow: var(--shadow-raised)`, on `--dur-slide`/`--ease-paper`. The frame carries a **transparent base shadow** (`0 3px 8px -1px rgba(0,0,0,0)`) so the hover shadow can fade in — box-shadow can't interpolate from `none`. Don't drop the transparent base or the lift will pop instead of fade.
+
+**Press.** `.spectrum--pressed .spectrum__frame { scale: 0.99 }`, toggled by `specPressed` React state via `onPointerDown`/`onPointerUp`/`onPointerLeave` in `page.tsx`, on `--dur-instant`/`--ease-snap`.
+
+**Hover also strengthens the gradient bar.** Hovering anywhere on `.spectrum` (`.spectrum:hover`) deepens the vertical gradient bar `.spectrum__gradient`: opacity rises (base `0.1` → hover `0.32`) and the gradient's top stop lifts (its `var(--orange-800)` mix from ~5% → ~26%). It eases on `--dur-slide`/`--ease-paper`, so the base `.spectrum__gradient` rule carries a `transition` on `opacity` + `background` for it to interpolate. This is the spectrum-wide hover read (alongside the frame lift); don't drop the transition on the base rule or the gradient will snap rather than swell.
+
+**Lift and press use standalone `translate:`/`scale:`, NOT `transform` (load-bearing).** `.spectrum__frame` already owns `transform: rotate()` (the click reroll). The hover lift and press scale are expressed via the standalone `translate:` and `scale:` CSS properties so they **compose** with that rotate instead of overriding it — the same idiom rr's StoryCard uses. Folding any of these into `transform` would clobber the click reroll.
 
 ## Group B collapsed-state contract
 
@@ -46,7 +70,7 @@ This pattern is what gives Group B its "settle from above" read. A card that dro
 
 **Historical note.** Spectrum and contact previously violated this contract — they started at `--hero-top` with `scale(0.9)` and slid ~1000–1350px down to their final positions while fading in. The long descent read as ghost cards trailing behind the settled hero. They were brought into full compliance so all three Group B cards now settle from ~24px above in place. Do not regress this by re-anchoring spectrum/contact to `--hero-top` or reintroducing `scale()` on them.
 
-**Static artistic rotation is separate from Group B 0deg rest.** Spectrum carries a fixed `rotate(-1deg)` at all breakpoints — this is an authored artistic tilt, not a rerolled rotation. The "Group B pinned to 0deg" rule above refers specifically to the removal of the random `--practice-rot` reroll system; static per-card rotations baked into the transform chain are fine and should be preserved.
+**Spectrum's artistic tilt is now scroll-driven, not a static `rotate(-1deg)`.** Spectrum *used to* carry a fixed `rotate(-1deg)` baked into its transform at all breakpoints. That static rotation was **removed from all four `.landing__section--spectrum` rules** (desktop + mobile, collapsed + expanded) — those rules now carry only the Group-B settle transform (translateX/translateY), and the settle contract is otherwise untouched (no ghost-cards regression). The tilt now lives on `.spectrum` and animates with scroll — see "Spectrum scroll-driven tilt" below. The "Group B pinned to 0deg" rule still refers specifically to the removed random `--practice-rot` reroll; this scroll tilt is the authored artistic angle, just relocated and made motion-aware.
 
 ## Expanded-state transition timing
 
@@ -62,9 +86,45 @@ Group B cards transition `top`, `opacity`, and `transform` on expand. All three 
 
 `.contact-card__form-reveal` carries both `aria-hidden={!formOpen}` and `inert={!formOpen ? true : undefined}` in `page.tsx`. `aria-hidden` removes the form from the accessibility tree but does **not** block keyboard focus — a keyboard-only user (no screen reader) could Tab into the invisible fields inside the `overflow: hidden` / zero `max-height` container while the form is collapsed. `inert` closes that gap: it suppresses both keyboard focus and AT access in a single attribute. Don't remove `inert` thinking `aria-hidden` is sufficient — they serve different users.
 
+## Self-adjusting cascade (desktop) — tops derive off the settled hero bottom
+
+**What it is.** In `:root` (`landing.css`), only `--hero-top` + `--hero-h` are free measurements. `--projects-top`, `--long-top`, `--spectrum-top`, `--practice-top`, `--contact-top`, and `--expanded-h` are DERIVED as a `calc()` chain off the settled hero bottom (`--hero-top + --hero-h`): each value = the block above's position + that block's height + its gap (e.g. `--spectrum-top: calc(var(--long-top) + 477px)`, where the inline comment names the block — about-long 447 + 30 gap). `--projects-top` and `--long-top` tuck a few px UP under the hero (the `- 6px` / `- 31px` terms) so the markers + about-long's statement read as docked into the card.
+
+**Why.** Changing the hero height (the common edit, when about-short copy or hero copy shifts) used to require manually re-pushing the whole marker + Group-B stack in tandem, per viewport — a linked set that desynced easily. The chain re-docks everything automatically: move `--hero-top`/`--hero-h` and the markers and entire Group-B stack follow. The per-block offset constants (the `+ Npx` terms = each card's height + gap) only need touching if a CARD's height changes — rare, vs. the hero, common.
+
+**Mobile is NOT on the chain.** The `@media (max-width: 767px)` block overrides all of these with its own hardcoded px values — so on mobile the old "remeasure the linked set together, per viewport" discipline still holds. (The framed sheet is desktop-only for now; mobile's framed-sheet adaptation, and likely its migration to the same derived chain, is deferred.)
+
+**What breaks if flattened back to literals.** Hardcoding the derived tops back to px (as mobile still is) means a hero-height change silently floats the markers and throws off every Group-B dock until each is re-measured by hand — the exact failure the chain was built to remove. Don't "simplify" the desktop `calc()` chain to fixed values.
+
 ## `--expanded-h` follows practice card height
 
-`--expanded-h` (page height in expanded state) was measured with the practice card at ~471px tall (padding 72 + para 84 + divider 49 + para block 266). If practice card content changes materially, remeasure and update `--expanded-h`, `--spectrum-top`, and `--contact-top` together — they are a linked set, not independent values.
+On desktop `--expanded-h` is the tail of the self-adjusting cascade (`calc(var(--contact-top) + 345px)` = contact block + footer margin) — see "Self-adjusting cascade" above. The per-block offset constants in that chain (including this 345px tail) were measured against the current card heights; if a card's content changes materially, update that block's offset constant. On mobile `--expanded-h` is still a hardcoded px value alongside `--spectrum-top`/`--contact-top` — remeasure those together there.
+
+## About-long is the practice timeline
+
+`.about-card--long` is no longer a centered lead-paragraph + discipline-year-chip list. It was redesigned as the **practice timeline**: a proportional data-viz where each segment's WIDTH encodes years in a specialization (Interface ~20% / Brand / Product), running end-to-end so "one thing at a time" reads literally. Recomposed from the 800×480 handoff at `reference/design_handoff_practice_card` into the landing column. Migration to Group B and the retuned linked tops are covered above ("Two-group card system" → "`about-long` migrated A→B"; "Group B order"). The framing, accent, and footgun notes specific to this card:
+
+**Framing recompose — black border shed, terra keyline kept.** Width is 458px (= spectrum's, to give the timeline room). The handoff's black 2px border + heavy drop shadow were dropped in favor of our `--shadow-resting` plus a `terra-560` keyline `::before` (inset 6px, echoing the about-practice mat idiom). Ground stays `--terra-160`. Don't reintroduce the handoff's hard border/shadow — it reads as a foreign card, not part of the mat family.
+
+**Graph-paper grid MUST stay `background-image` longhand (footgun).** A terra-tinted graph-paper grid (`rgba(140,110,45,0.06)`, 32px cell) is layered via the `background-image` longhand. The base `.about-card` rule owns the ground color through a `background:` **shorthand**, and the shorthand resets `background-image`. If you fold this grid into a shorthand on `.about-card--long`, or move the ground to a shorthand here, the grid is wiped. Keep it longhand.
+
+**REC/NOW red `#D23A02` is a deliberate out-of-ramp literal.** The recording-signal red on the NOW tick and the pulsing REC dot is intentionally OUTSIDE the terra ramp — a single-use, route-local accent, not a system token. Don't "fix" it to a terra value or promote it to `globals.css`.
+
+**Hover hatch reconciled to our motion; segments are not controls.** The per-segment hatch (dots/rules/crosshatch) rides a `::after` overlay that fades in via `opacity var(--dur-fast) var(--ease-snap)` — NOT the handoff's instant `background-image` swap — so feedback eases like the rest of the site. Segments are tactile surfaces only: `cursor` stays `auto` (no false click affordance, per the "controls must not lie" hard rule). The REC dot pulse is the `recpulse` keyframe (1.4s), guarded by `prefers-reduced-motion: reduce`. Don't restore the instant swap, and don't add a click cursor/handler to segments.
+
+**Card top padding clears the nav-pill row.** Top padding is `--space-80` (desktop) / `--space-56` (mobile), sides `--space-32` — the larger top clears the Nihar/Works nav pill row that overlays the card top. (This replaced the old card's `--space-24` side padding pinned to the discipline-chip line.)
+
+### Mobile type recompose (practice timeline)
+
+At the ~60px Interface segment (~20% of 458 → narrowest column), the desktop type sizes overflow. The mobile block (`max-width: 767px`) overrides: statement 20px, captions 7px (so "Interaction" clears the column without colliding), seg padding `0 8px`, seg-label 9px. The seg-num size is a single 24px value across breakpoints (see "Seg numerals are Geist Pixel" below) — the earlier mobile 26px override was removed. These are pinned to the segment widths at the mobile column — re-measure if the year proportions or column width change.
+
+### Seg numerals are Geist Pixel (route-local `@font-face`)
+
+The segment numerals (`.practice-timeline__seg-num`, the 02 / 03 / 05) render in **Geist Pixel**, a pixel/grid display font, instead of Fraunces — a recording-counter look that suits the card's REC/NOW motif.
+
+**Route-local `@font-face`, shared public asset.** The font is declared by an `@font-face` at the TOP of `app/landing.css` (`font-family: 'Geist Pixel'`, `src: url('/images/rr/GeistPixel-Grid.woff2')`). It reuses the same public asset that `app/(works)/rr/rr.css` declares for rr's structure-view title — **routes don't share fonts via imports**, so the landing redeclares its own `@font-face` against the shared file. Note the coupling: the asset path is rr-named but it's a public file addressable from anywhere; if rr's asset is renamed or moved, this declaration breaks silently (numerals fall back to `monospace`).
+
+**Size is one 24px value (desktop + mobile).** Chosen to match rr's Geist Pixel title and `t-h2`. The earlier mobile 26px numeral override was removed — 24px fits the narrow 20% Interface segment without clipping. The timeline bar is fixed-height, so the font/size swap did NOT change card height or any of the linked tops (see "Group B order").
 
 ---
 
@@ -72,39 +132,26 @@ Group B cards transition `top`, `opacity`, and `transform` on expand. All three 
 
 ### `about-short` is natural-height; dock is manual per viewport
 
-`.about-card--short` has **no** `min-height`. The card shrinks to its natural content height (centered paragraph + tight padding + a divider above the bottom edge on desktop), and the hero docks against that natural bottom via a manually-tuned `--hero-top` per viewport:
+`.about-card--short` has **no** `min-height`. The card shrinks to its natural content height (a single short centered line — wrapping to ~2 lines on mobile — + tight padding + a divider above the bottom edge on desktop), and the hero docks against that natural bottom via a manually-tuned `--hero-top` per viewport:
 
-- desktop: `--hero-top: 178px`, `--short-top: var(--space-56)` (56), natural card height ~122 → 56 + 122 = 178 ✓
-- mobile: `--hero-top: 116px`, `--short-top: var(--space-24)` (24), natural card height ~92 (no divider) → 24 + 92 = 116 ✓
+- desktop: `--hero-top: 132px`, `--short-top: var(--space-56)` (56), natural card height ~76 → the hero docks with a small overlap into about-short's bottom padding / hidden divider (the desktop clip-buffer — see "Mobile about-short can't overlap the hero" below).
+- mobile: `--hero-top: 84px`, `--short-top: var(--space-24)` (24), natural card height ~78 (no divider) → the hero docks just BELOW the card bottom, not overlapping it (see the same entry).
 
-**Why this changed.** The original architecture locked `min-height: calc(var(--hero-top) - var(--short-top))` so the card always filled the dock space at every breakpoint. That worked when the short-copy was the long-form three-clause paragraph it used to be, but the current copy ("I never fit neatly…") is shorter, and the locked min-height left 30–55px of empty space inside the card. Switching to natural-height + token-tuned dock removed that whitespace without breaking the dock.
+**Why this changed.** The original architecture locked `min-height: calc(var(--hero-top) - var(--short-top))` so the card always filled the dock space at every breakpoint. That worked when the short-copy was the long-form three-clause paragraph it used to be, but the current copy is a single short line (it has only shrunk further since), and the locked min-height left dead space inside the card. Switching to natural-height + token-tuned dock removed that whitespace without breaking the dock.
 
 **If the copy ever grows back.** Either bump `--hero-top` (desktop and mobile) by the new card-height delta, or restore the calc + min-height approach. Don't ship a hardcoded `px` min-height without a tuned `--hero-top` — they'll desync.
 
-`--long-top` and `--projects-top` are part of the cascade — they were shifted by the same delta when `--hero-top` moved, so:
+`--long-top` and `--projects-top` are part of the cascade — they shift with `--hero-top` per viewport (current: `--long-top: 339` / `--projects-top: 368` desktop, `--long-top: 315` / `--projects-top: 320` mobile). The desktop and mobile hero-overlap behaviors differ in KIND, not just amount — see "Mobile about-short can't overlap the hero" below.
 
-- desktop: long-top 385 sits **33px above** hero-bottom 418 (the long card peeks 33px behind the hero from the bottom edge). projects-top 414 sits 4px above hero-bottom.
-- mobile: long-top 347 sits **9px above** hero-bottom 356 (a tighter overlap — there's less space behind the hero on mobile, and only the nav-pill row has to clear). projects-top 352 sits 4px above hero-bottom.
+`--long-top` is about-long's expanded resting top; since the practice-timeline redesign about-long is a Group B card (opacity 0 when collapsed, settles from above on expand — see "Two-group card system"), so the overlap figures describe the expanded layout, not a collapsed peek-behind. `--long-top` itself was NOT changed by that redesign — only the settle-stack tops below it moved (see "Group B order"). If `--hero-top` changes again, move both `--long-top` and `--projects-top` by the same delta per viewport — they're a linked set, not independent values. Don't unify the desktop and mobile hero docking; they're intentionally different in kind (desktop overlaps about-short, mobile sits just below it — see "Mobile about-short can't overlap the hero").
 
-If `--hero-top` changes again, move both `--long-top` and `--projects-top` by the same delta per viewport — they're a linked set, not independent values. Don't unify the desktop and mobile overlap figures; the 9px vs 33px split is intentional.
+### Mobile about-short can't overlap the hero — the offsets differ in KIND
 
-### About-long horizontal padding is pinned to the discipline copy
+The desktop and mobile hero↔about-short relationships are not the same offset at different magnitudes — they are different in kind. **Desktop OVERLAPS:** `--hero-top` docks the hero ~27px into about-short's bottom, which is safe because `.about-card--short` carries bottom padding plus a divider (`.about-card__divider`, hidden on mobile) below the text — that padding + divider act as a clip buffer, so the hero overlapping the card edge eats only dead space, not text.
 
-`.about-card--long` has `padding-left/right: var(--space-24)` (instead of the standard about-card 32). The reason is that "Studio-building and creative direction" + a trailing `<Monostamp>` chip would not fit on one line at `t-p3` with 32 horizontal padding (text width 320 too narrow). The tighter 24 padding gives text-width 336, which fits.
+**Mobile does NOT overlap — it docks just below (~6px gap).** On mobile (`max-width: 767px`), `.about-card--short` sets `padding-bottom: 0` and the divider is `display: none` (see "Mobile about-short — divider hidden, padding dropped"), so the copy runs right to the card's bottom edge with no buffer. Any hero overlap would CLIP the live text. So mobile sits the hero just below about-short's bottom instead of overlapping it.
 
-The mobile `.about-card` rule already uses `var(--space-24)` padding all around, so the two viewports happen to agree — but the *intent* differs. If desktop copy ever changes and you need to widen the inner area further, scope the change with a viewport guard so mobile doesn't follow.
-
-### About-long copy is centered
-
-`.about-card--long .about-card__text` is `text-align: center` — a lead paragraph (`.about-card__lead`, added v0.89) above three discipline rows (row 3 wraps to two lines) reads as a centered list of authored typographic units, with each chip sitting inline after its anchor word. This was a deliberate move *away* from right-edge chip docking; an earlier ledger composition right-aligned the chips, which read as "paying too much attention to the numbers." Don't propose tabular right-alignment again without re-checking that design intent.
-
-### "Growth experiments" is a single typographic unit on row 3
-
-`app/page.tsx` wraps the words "growth experiments" in a `<span style={{ whiteSpace: 'nowrap' }}>` inside row 3 of about-long. This is load-bearing for the wrap shape: with the wrap, line 1 breaks after "and" and line 2 reads "growth experiments [3y]" — keeping the two words together feels like one verbal cluster. Without the wrap, "growth" lands at the end of line 1 and "experiments" sits alone on line 2 next to the chip. Don't remove this `nowrap` span when editing the copy; if you replace "growth experiments" with a different phrase, decide whether the new phrase wants the same treatment.
-
-### Collapsed about-long tuck differs per viewport (v0.90)
-
-The desktop collapsed state lifts about-long **above** the hero top (`top: calc(var(--hero-top) - 20px)`) and scales it to `0.82`, so the card's center aligns with the hero's center and the scaled height fits inside the hero's bounds — the card grew with the v0.89 lead paragraph and the old recipe let it peek out from behind the hero. Mobile keeps the original recipe (`top: var(--hero-top)`, `scale(0.9)`). Both offsets are hand-tuned against the current copy (the inline comment in `landing.css` carries the math); if the card's content changes, re-measure. Don't unify the two viewports' collapsed recipes.
+**Don't "fix" the mobile gap into an overlap to match desktop** — it would clip the last line of about-short. The gap is the correct read for a card with no bottom buffer. This is why the two `--hero-top` dock figures (relative to about-short's bottom) read as overlap vs gap rather than just two different overlap depths — relates to "`about-short` is natural-height; dock is manual per viewport" above.
 
 ### Mobile about-short — divider hidden, padding dropped
 
@@ -115,7 +162,7 @@ On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop c
 - `padding-top` is `var(--space-16)`
 - `--short-top` is `var(--space-24)` (vs desktop `var(--space-56)`)
 
-**Why.** Above-hero space on mobile is tight (`--hero-top: 116px`) and the about-short card needs every pixel for the centered copy. The hero's top edge already serves as the visual seam below the short card, so the decorative divider isn't load-bearing here. Don't restore it on mobile without re-measuring above-hero space and bumping `--hero-top` to absorb the extra height.
+**Why.** Above-hero space on mobile is tight (`--hero-top: 84px`) and the about-short card needs every pixel for the centered copy. The hero's top edge already serves as the visual seam below the short card, so the decorative divider isn't load-bearing here. Don't restore it on mobile without re-measuring above-hero space and bumping `--hero-top` to absorb the extra height.
 
 ### Landing scrollbar hidden
 
@@ -127,7 +174,7 @@ The Startooth canvas must reach the true screen edges on mobile Safari. By defau
 
 **It's global, not landing-scoped** — the landing is a `'use client'` page with no layout of its own (it sits directly under the root layout), so a per-route viewport export isn't possible without a route-group restructure. Acceptable because interior pages are light + scrollable (cover reads seamlessly) and `/marks` already guards its edges with `env(safe-area-inset-*)`. **Cost of cover:** any element pinned to a screen edge now sits under the notch/home-indicator unless it guards with `env(safe-area-inset-*)`. The landing's only edge element is the decorative bottom `CaptionTag` — left unguarded on purpose: its show/hide is a JS-measured `translateY` tuck (`--tuck`/`--tuck-hidden` from `offsetHeight`), and folding a safe-area offset into that risks a sliver of the "hidden" caption peeking. If it ever needs guarding, adjust the tuck math and `--tuck-hidden` together, verified on a real device.
 
-**Cover alone is NOT enough — the page background shows in the bars.** iOS Safari paints the backdrop behind its translucent status bar (top) and bottom toolbar with the **page background** (`<html>`/`<body>`), not the fixed canvas — a browser can't render a live `<canvas>` behind its own chrome. So with the first-paint `#000` page bg, those bands stay black even under `viewport-fit: cover`. Fix: once `.landing--built`, swap the page background (`html:has(.landing--built)` + its `body`) from `#000` to `var(--surface-bg)` (the pattern's structural ground), eased over `--dur-place`, so the bands blend into the settled field. It's gated on `.landing--built` rather than applied at first paint **on purpose**: the canvas is `ssr:false` (client-only), so the page bg IS the whole-viewport first-paint color — recolouring it before the canvas mounts would flash `#000`→ground as the black-starting canvas appears. Keep the `#000` base; only the built-state swap is safe. (theme-color isn't the lever here — iOS uses the page bg for these bands, which is why the light global `#f2f3ef` theme-color never showed in them.)
+**Cover alone is NOT enough — the page background shows in the bars.** iOS Safari paints the backdrop behind its translucent status bar (top) and bottom toolbar with the **page background** (`<html>`/`<body>`), not the fixed canvas — a browser can't render a live `<canvas>` behind its own chrome. So with the first-paint `#000` page bg, those bands stay black even under `viewport-fit: cover`. Fix: once `.landing--built`, swap the page background (`html:has(.landing--built)` + its `body`) from `#000` to `var(--workbench-bg)` (the `/all` desk colour, matching the framed-sheet matte margins — see "Framed sheet" below), eased over `--dur-place`, so the bands blend into the settled field. **The swap target is now `--workbench-bg`, not `--surface-bg`** — it was retargeted when the canvas became the framed sheet sitting on the `/all` desk ground. It's gated on `.landing--built` rather than applied at first paint **on purpose**: the canvas is `ssr:false` (client-only), so the page bg IS the whole-viewport first-paint color — recolouring it before the canvas mounts would flash `#000`→ground as the black-starting canvas appears. Keep the `#000` base; only the built-state swap is safe. (theme-color isn't the lever here — iOS uses the page bg for these bands, which is why the light global `#f2f3ef` theme-color never showed in them.)
 
 ## Don't-touch list
 
@@ -142,6 +189,36 @@ The Startooth canvas must reach the true screen edges on mobile Safari. By defau
 
 The Startooth canvas replaces the old static `.landing-pattern-bg` SVG div. It consists of three files: `app/_landing/StartoothField.ts` (engine), `app/_landing/StartoothCanvas.tsx` (React shell), and `app/_landing/startooth-canvas.css` (canvas layout). The canvas is dynamically imported in `app/page.tsx` with `ssr: false`.
 
+### Framed sheet — the canvas is a centered "page", not full-bleed (DESKTOP-ONLY for now)
+
+**What it is.** The Startooth canvas is no longer full-bleed. It's clipped into a centered "page": a 3:4 portrait (the Linotype Bulletin cover ratio) with a brown double-frame, sitting on the `/all` desk ground. Two cooperating fixed elements build it (both in `startooth-canvas.css`, rendered by `StartoothCanvas.tsx`):
+
+- **`.startooth-canvas-root`** (z:0) — the sheet itself. `overflow: hidden` clips the pattern to the sheet; the engine sizes the canvas to this host, so narrowing the host clips the field.
+- **`.startooth-sheet-matte`** (z:15, `pointer-events: none`) — the passe-partout. Its transparent centre is the sheet "window"; a `box-shadow: 0 0 0 9999px var(--workbench-bg)` floods the surrounding margins with the `/all` desk colour. This is what produces the framed read AND the clip-on-scroll: content still scrolls via the page, but anything that scrolls past the sheet edges is covered by the matte's flooded margins (the clip is purely VISUAL, not a scroll change).
+
+**Mobile is deferred.** The `@media (max-width: 767px)` framed sheet is NOT done — the geometry tokens and overrides below are tuned for desktop only. A future editor adapting mobile needs to re-derive the sheet width/shift and the caption/footer insets for the narrow viewport, and likely move mobile onto the self-adjusting cascade (see "Self-adjusting cascade").
+
+**Sheet geometry — HEIGHT-DRIVEN, on `:root` in `startooth-canvas.css`.** Don't restate the numbers the tokens own; the structure is:
+
+- `--sheet-margin` — top/bottom inset of the sheet from the viewport edge.
+- `--sheet-width` = `min(calc((100vh − 2*--sheet-margin) / 1.3333), 760px, calc(100vw − 64px))`. The width is DERIVED FROM VIEWPORT HEIGHT at the 3:4 ratio (divisor = 4÷3) — so the proportion is identical on every screen and the sheet scales with the viewport at a constant ratio. The `760px` cap matters: above tall viewports the height-driven width would keep growing, so it holds at the cap, which keeps the fixed hero card at ~76% of the sheet on large/4K monitors (the sheet just gains a taller pattern field below) instead of the card shrinking proportionally.
+- `--sheet-shift` = `16px`, **hardcoded** = the `.landing`-scoped `--gutter`. It's a literal, not `var(--gutter)`, because `.startooth-canvas-root`/`.startooth-sheet-matte` sit OUTSIDE `.landing` and can't read its scoped token. It centres the sheet on the hero/cards axis. If `--gutter` changes, this literal must change with it.
+
+Both the root and the matte read the SAME `--sheet-*` tokens (same `top`/`bottom`/`left`/`width`/`transform`) — that's what keeps the window and the clipped pattern locked together. Don't give one its own geometry.
+
+**The frame (matte) is a double-frame.** The matte's `4px solid var(--surface-bg)` border is the outer frame, drawn on top (z:15) so cards can never cover it; `--surface-bg` is the same structural brown as the "Startooth Pattern" caption tab. Its `::after` is a 1px `--terra-80` hairline inset `3px` — the lighter inner keyline. Together they read as the engraved double-frame (dark outer rule + light inner keyline), the `/all` bench-card idiom.
+
+**The body background swap target is now `--workbench-bg`.** `html:has(.landing--built)` + `body` swap to `var(--workbench-bg)` (the `/all` desk colour, matching the matte margins), NOT `--surface-bg` — see "Full-bleed canvas needs viewport-fit: cover" for why the swap exists; this just notes the retargeted value.
+
+**Caption + footer were pulled INTO the frame.** Both sat at the viewport edge (in the void margin below the sheet) and were lifted inside the bottom edge:
+
+- `.caption-tag` (colophon tab) gets `bottom: 30px` + `z-index: 12` — below the matte's z:15 so any overflow past the sheet bottom is TRIMMED by the matte, keeping it "within" the sheet. Its JS tuck/peek (`--tuck`/`--tuck-hidden`) rides on top of this anchor.
+- `.footer--caption` (the colophon slab, a shared component) gets `bottom: 44px` via `html:has(.landing) .footer--caption` — the `:has()` scope out-specifies the shared `footer.css` rule (which loads AFTER landing.css), and the slab sits above the matte so it reads as a deliberate slab rather than being trimmed like the tab.
+
+**The trap — caption/footer overrides MUST stay on their own selectors (was a real bug).** These positional overrides (`bottom`, `z-index`) are deliberately NOT folded into the shared `.hero-card, .landing-nav-row, .caption-tag { pointer-events: auto }` rule. Doing so applied `bottom: 32px` to the relatively-positioned `.hero-card`, which shifted the WHOLE card up ~32px (effectively `top: -32`), floating the markers and silently throwing off the cascade. Keep positional props out of the pointer-events opt-in rule.
+
+**What breaks if removed.** Drop the matte and the pattern bleeds full-bleed again and scrolled content shows in the margins (no clip). Give the matte different geometry than the root and the frame desyncs from the clipped pattern. Read both `startooth-canvas.css` (geometry + matte) and the caption/footer override block in `landing.css` before touching any sheet dimension or edge element.
+
 ### Canvas is `position: fixed`, not `position: absolute`
 
 **What it is.** `.startooth-canvas-root` (in `startooth-canvas.css`) uses `position: fixed`.
@@ -149,6 +226,16 @@ The Startooth canvas replaces the old static `.landing-pattern-bg` SVG div. It c
 **Why.** The landing expands to its full `--expanded-h` height when the user clicks through. An `absolute`-positioned canvas would scroll away with the document, leaving the expanded state with no background. `fixed` keeps the canvas anchored to the viewport behind the landing at all scroll positions.
 
 **What breaks if removed.** Changing to `position: absolute` causes the canvas to disappear as the user scrolls the expanded landing, leaving a white or black gap behind the lower Group B cards.
+
+### Expand-dissolve — the field cross-fades to a line drawing when expanded
+
+**What it is.** On expand the Startooth field cross-fades from the filled pattern to a **line-only twin**, and back on collapse. `bakeSettled()` bakes two offscreen canvases: `settled` (filled) and `settledLines` (a `--surface-bg` ground + a terra-toned stroke). The two values are read from CSS at mount into `lineGround` / `lineStroke`. `drawInteractive()` blits `settled`, then blits `settledLines` at `globalAlpha = expandAmt` over it — both bakes share the same `linePath` so the wireframe holds steady through the fade while only the fills come and go.
+
+**How it's driven.** React passes the `expanded` prop to `StartoothCanvas`, whose effect calls `field.setExpanded(on)` → sets `expandTarget` (0 filled / 1 line). `stepFocus()` eases `expandAmt` toward it on a **time-based smootherstep over `EXPAND_DUR` (800 ms)** — NOT a per-frame exponential. The exponential was tried first and front-loaded the change (~60 % in the first 0.25 s): fine fading the fills *out* (expand), but it "popped" them back *in* on collapse. The time-based curve makes expand and collapse mirror exactly. `setExpanded(true)` also calls `resetFocus()`.
+
+**Interaction gate.** While expanded (`expandTarget === 1`), `pointer()` early-returns — hover lamps, click ripples, and the void-rupture easter egg are all suppressed so the field reads as a quiet backdrop behind the framed sheet. `resetFocus()` (above) clears any key lit just before the expand.
+
+**What breaks if changed.** Reverting to a per-frame exponential reintroduces the collapse "pop". Dropping the `expandTarget === 1` guard in `pointer()` lets the canvas light up / ripple under the expanded content. `lineGround` / `lineStroke` must stay read at mount so they track the `--surface-bg` / terra tokens.
 
 ### CSS transition must live in the before-change rule, not the `:not()` guard
 
@@ -166,11 +253,13 @@ The Startooth canvas replaces the old static `.landing-pattern-bg` SVG div. It c
 
 **What breaks if either layer is removed.** Removing the body rule produces a white flash on first load on slow connections or large screens. Removing the canvas root rule produces a brief flicker between element mount and first draw.
 
-### Pointer-events inversion — landing passes through, sections opt in
+### Pointer-events inversion — landing passes through, interactive ELEMENTS opt in (not sections)
 
-**What it is.** `html.fonts-ready .landing { pointer-events: none }` in `landing.css` overrides the `globals.css` rule of the same specificity (same selector, later cascade position — `landing.css` loads after `globals.css`). Three elements explicitly re-enable: `.landing__section--hero`, `.landing__section--projects`, and `.caption-tag`.
+**What it is.** `html.fonts-ready .landing { pointer-events: none }` in `landing.css` overrides the `globals.css` rule of the same specificity (same selector, later cascade position — `landing.css` loads after `globals.css`). The opt-in re-enable is scoped to the actual interactive ELEMENTS — `.hero-card`, `.landing-nav-row`, `.caption-tag` — **not** their sections.
 
 **Why.** The canvas sits below the landing in z-order and needs to receive pointer events in empty areas (the engine uses hover for parallax/interaction). If `.landing` absorbed all clicks (as `globals.css`'s `pointer-events: auto` would give it), nothing would reach the canvas. Group B sections (spectrum, about-practice, contact) already self-manage their pointer-events in their own landing.css rules and are not affected by the `.landing` inversion.
+
+**Why the opt-in is on the card/row, NOT the section (load-bearing — was a bug).** `.landing__section--hero` and `.landing__section--projects` have boxes that run FAR taller than their content (the hero section measured 132→878px). Giving the *sections* `pointer-events: auto` made their empty area swallow clicks meant for the docked tabs AND the expanded cards below them. Scoping the opt-in to `.hero-card` + `.landing-nav-row` (the genuinely interactive elements) means only they capture; the empty section area passes through to the tabs/canvas. Do not revert the opt-in to the `.landing__section--*` selectors.
 
 **Why CaptionTag is in the opt-in list.** `.caption-tag` uses `position: fixed` which removes it from normal document flow, but it is still a DOM descendant of `.landing` and inherits `pointer-events: none` through the tree. It must be in the explicit opt-in list or its links and hover states stop working.
 

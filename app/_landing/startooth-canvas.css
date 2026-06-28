@@ -1,19 +1,84 @@
 /* ---- Startooth Canvas — fixed field behind the landing ---- */
 
-/* Root: fixed full-screen, below all landing content (z:0).
+/* Root: fixed, below all landing content (z:0).
    background:#000 closes the first-paint gap — body is also set to #000
    via landing.css, but this provides a second layer for older browsers
    that paint the canvas root before the body rule applies.
    pointer-events:none — the root div must not block landing content;
    the canvas element itself restores auto so it receives interaction events
-   in empty areas (voids, gaps between cards). */
+   in empty areas (voids, gaps between cards).
+
+   ── Framed sheet ────────────────────────────────────────────────────────────
+   The pattern is clipped into a centered "page" (a 3:4 portrait, the Linotype
+   Bulletin cover ratio) with a brown double-frame, instead of full-bleed. The
+   engine sizes the canvas to this host, so narrowing it clips the pattern; the
+   matte (below) floods the margins with the /all desk colour and clips the
+   scrolling content on expand. */
+/* ── Sheet geometry ──────────────────────────────────────────────────────────
+   HEIGHT-DRIVEN: the sheet fills the available viewport height (minus the
+   top/bottom margin) and its WIDTH follows the 3:4 ratio (height ÷ 1.3333). So
+   the proportion is identical on every screen and the sheet SCALES WITH THE
+   VIEWPORT — bigger monitor, bigger sheet, same ratio (capped at 760px below).
+   The canvas root and the matte both read these tokens, so they stay locked. */
+:root {
+  --sheet-margin: 30px;
+  /* 3:4 portrait (≈0.75) — the Linotype Bulletin cover ratio. Divisor = 4 ÷ 3.
+     Capped at 760px: above ~1014px-tall viewports the height-driven width would
+     exceed this, so it holds at 760 (keeps the fixed hero card at ~76% of the
+     sheet instead of shrinking proportionally on 4K/large monitors — the sheet
+     just gains a taller pattern field below). Normal monitors scale as before. */
+  --sheet-width: min(
+    calc((100vh - 2 * var(--sheet-margin)) / 1.3333),
+    760px,
+    calc(100vw - 64px)
+  );
+  /* +16px = the landing --gutter (hardcoded; that token is .landing-scoped and
+     these elements sit outside it) — centres the sheet on the hero/cards axis. */
+  --sheet-shift: 16px;
+}
+
 .startooth-canvas-root {
   position: fixed;
-  inset: 0;
+  top: var(--sheet-margin);
+  bottom: var(--sheet-margin);
+  left: 50%;
+  transform: translateX(calc(-50% + var(--sheet-shift)));
+  width: var(--sheet-width);
   z-index: 0;
   pointer-events: none;
   background: #000;
-  overflow: hidden;
+  overflow: hidden;   /* clips the pattern to the sheet */
+}
+
+/* Matte (passe-partout) — a fixed overlay ABOVE the scrolling content (z:15).
+   Its transparent centre is the sheet "window"; the 9999px spread box-shadow
+   floods the surrounding margins with the /all desk ground (--workbench-bg), so
+   any content that scrolls past the sheet edges is hidden behind it — that IS
+   the clip-on-scroll. The 4px rule is the sheet's frame in the void/structural
+   brown (--surface-bg, same as the "Startooth Pattern" tab), drawn on top so
+   cards can never cover it. pointer-events:none keeps the window interactive. */
+.startooth-sheet-matte {
+  position: fixed;
+  top: var(--sheet-margin);
+  bottom: var(--sheet-margin);
+  left: 50%;
+  transform: translateX(calc(-50% + var(--sheet-shift)));
+  width: var(--sheet-width);
+  z-index: 15;
+  pointer-events: none;
+  border: 4px solid var(--surface-bg);
+  box-shadow: 0 0 0 9999px var(--workbench-bg);
+}
+
+/* Engraved double-frame — a light hairline drawn just inside the brown outer
+   border (the /all bench-card idiom: dark outer rule + lighter inner keyline).
+   Kept tight to the border so it reads as a second rule, not an inset mat. */
+.startooth-sheet-matte::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--terra-80);
+  pointer-events: none;
 }
 
 /* Centered + tilted -15°, sized by the engine via JS (ResizeObserver).

@@ -3,6 +3,19 @@
    Grid: 1440px frame, 88px margins, 48px unit, 16px gutter
    ========================================================================== */
 
+/* Geist Pixel — pixel display font, route-local (mirrors the @font-face in
+   app/(works)/rr/rr.css; routes don't share via imports, so the landing
+   redeclares it against the same public asset). Used only for the practice
+   timeline's numerals, where the pixel digits read as a recording counter
+   alongside the REC/NOW motif. */
+@font-face {
+  font-family: 'Geist Pixel';
+  src: url('/images/rr/GeistPixel-Grid.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ---- Layout variables ---- */
 .landing {
   --frame-w: 1440px;
@@ -31,12 +44,21 @@
      transition-delay to var(--stack-stagger-start) + N * 0.02s.
      (Per-card random rotation was removed — do not reintroduce --<name>-rot
      custom props; see app/_landing/ANOMALIES.md.) */
-  --hero-top: 178px;
-  --hero-h: 240px;
-  --projects-top: 414px;
-  --short-top: var(--space-56);
-  --long-top: 385px;
-  --spectrum-top: 688px;
+  /* SELF-ADJUSTING CASCADE (desktop). Only --hero-top + --hero-h are free
+     measurements; everything below is DERIVED as a chain of offsets off the
+     settled hero bottom (= --hero-top + --hero-h). Change the hero's height and
+     the markers + the whole Group-B stack re-dock themselves — no manual
+     re-tuning. Each offset is "the block above's height + its gap"; only those
+     need touching if a CARD's height changes (rare), vs the hero (common).
+     Mobile overrides all of these with its own px values in the @media block. */
+  --hero-top: 132px;
+  --hero-h: 243px;
+  /* Markers tuck 6px up under the hero's bottom edge (hero z:10 > content z:5),
+     reading as docked into the card. */
+  --projects-top: calc(var(--hero-top) + var(--hero-h) - 6px);
+  /* about-long tucks 31px under the hero; its statement clears the markers. */
+  --long-top:     calc(var(--hero-top) + var(--hero-h) - 31px);
+  --spectrum-top: calc(var(--long-top) + 477px);   /* + about-long block (447 + 30 gap) */
 
   /* Group B spacing + choreography tokens */
   --stack-gap: 40px;
@@ -44,15 +66,10 @@
   /* Downward settle distance — short enough to read as "placed", not "dropped" */
   --stack-settle: var(--space-24);
 
-  /* Expanded offsets for Group B. Order after the spectrum/practice swap:
-     spectrum (#1, height ~362 with stack-gap), about-practice (#2, the
-     tallest at ~470px — 4 paragraphs + divider — drives the gap to contact),
-     contact (#3). --contact-top and --expanded-h are unchanged by the swap
-     because the sum of spectrum-block + practice-block stays the same; only
-     the order flipped. */
-  --practice-top: 1050px;
-  --contact-top: 1527px;
-  --expanded-h: 1872px;
+  /* Group B stack continues the chain (post spectrum/practice swap). */
+  --practice-top: calc(var(--spectrum-top) + 362px);  /* + spectrum block */
+  --contact-top:  calc(var(--practice-top) + 477px);  /* + about-practice block */
+  --expanded-h:   calc(var(--contact-top) + 345px);   /* + contact block + footer margin */
 }
 
 /* ---- Viewport ---- */
@@ -97,7 +114,9 @@ html:has(.landing), html:has(.landing) body {
    so the black build-intro is untouched; eased over --dur-place so it settles with
    the card. See _landing/ANOMALIES.md → "Full-bleed canvas needs viewport-fit". */
 html:has(.landing--built), html:has(.landing--built) body {
-  background-color: var(--surface-bg);
+  /* Framed sheet:backmost ground = the /all desk colour (matches the matte
+     margins), so the sheet sits on the same light ground as the works hub. */
+  background-color: var(--workbench-bg);
   transition: background-color var(--dur-place) var(--ease-paper);
 }
 
@@ -173,13 +192,36 @@ html.fonts-ready .landing.landing--skip {
 }
 
 /* Sections always interactive regardless of collapsed/expanded state.
-   hero: pill-btn + card click; projects: NavMarker row (expand + Works link).
+   hero: the CARD (not the section) opts in — the section's box runs far taller
+   than the card, so giving the section pointer-events:auto made its empty area
+   swallow clicks meant for the docked tabs below it. Scoping to .hero-card means
+   only the card + pill capture; the empty area passes through to the tabs/canvas.
+   projects: NavMarker row (expand + Works link).
    CaptionTag: position:fixed but still inherits pointer-events via DOM tree.
    Group B sections self-manage: explicit none in default, auto in expanded. */
-.landing__section--hero,
-.landing__section--projects,
+.hero-card,
+.landing-nav-row,
 .caption-tag {
   pointer-events: auto;
+}
+
+/* Framed sheet:lift the colophon up to sit just inside the sheet's bottom
+   edge. The JS tuck/peek rides on top of this anchor; z-index below the matte
+   (15) so anything that overflows the sheet's bottom edge is trimmed by the
+   matte to keep it "within". Scoped to .caption-tag ONLY — folding bottom/z into
+   the pointer-events rule above shifted the relative .hero-card up 32px. */
+.caption-tag {
+  bottom: 30px;
+  z-index: 12;
+}
+
+/* Framed sheet:the colophon footer slab is fixed at the viewport bottom
+   (bottom:0) so it landed in the void margin BELOW the frame. Lift it up so the
+   whole slab sits inside the sheet's bottom edge. (z:20 keeps it above the matte
+   — it's a deliberate slab, not trimmed like the caption tab.) The :has() scope
+   out-specifies the shared footer.css rule (which loads after landing.css). */
+html:has(.landing) .footer--caption {
+  bottom: 44px;
 }
 
 /* Hide scrollbar on the landing route — native scroll is preserved, only the
@@ -207,7 +249,6 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
 .landing__section--hero,
 .landing__section--projects,
-.landing__section--about-short,
 .landing__section--about-long,
 .landing__section--about-practice,
 .landing__section--spectrum,
@@ -234,17 +275,15 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
     transform var(--dur-settle) var(--ease-paper);
 }
 
-/* About-short tucks fully behind hero — no opacity fade, slides out top. */
-.landing__section--about-short {
-  transition:
-    top var(--dur-settle) var(--ease-paper),
-    transform var(--dur-settle) var(--ease-paper);
-}
-
-/* About-long — same mechanism as about-short: slide + scale, no fade. */
+/* About-long — Group B (settle-from-above + fade), NOT the about-short tuck.
+   The practice-timeline redesign made the card 357px tall — too tall to hide
+   behind the 240px hero (the same reason about-practice is Group B). It was
+   already invisible on the home screen when tucked; as Group B it stays hidden
+   (opacity 0) collapsed and settles in on expand, with no poke below the hero. */
 .landing__section--about-long {
   transition:
     top var(--dur-settle) var(--ease-paper),
+    opacity var(--dur-slide) var(--ease-paper),
     transform var(--dur-settle) var(--ease-paper);
 }
 
@@ -286,27 +325,15 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   z-index: 5;
 }
 
-/* About cards tuck behind the hero — no opacity, same top as hero so the
-   hero's terra-480 fill fully occludes them. On expand, they slide out
-   top/bottom with their scale settling to 1. Reads as paper slid out from
-   under the hero rather than a fade-in. */
-.landing--default .landing__section--about-short {
-  top: var(--hero-top);
-  transform: translateX(calc(-50% + var(--gutter))) scale(0.9);
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Collapsed about-long is taller than hero (the lead line "I never tried
-   to become a generalist…" added in v0.89.0 pushed the card to ~273px,
-   above hero's 240px). To keep the card fully tucked behind hero in the
-   collapsed state, lift the top above --hero-top so the card's center
-   aligns with hero's center, and reduce the scale-down so the scaled
-   height fits inside hero's vertical bounds. Both offsets are tuned
-   against the current copy — if the card grows again, re-measure. */
+/* About-long is Group B: holds the full collapsed contract (top at final
+   expanded position, opacity 0, pointer-events none, translateY(-stack-settle)
+   offset) so it settles ~24px from above on expand rather than tucking behind
+   the hero. translateX uses --gutter (16px) to center-align with the hero, not
+   the +12px about-practice nudge. */
 .landing--default .landing__section--about-long {
-  top: calc(var(--hero-top) - 20px);
-  transform: translateX(calc(-50% + 12px)) scale(0.82);
+  top: var(--long-top);
+  transform: translateX(calc(-50% + var(--gutter))) translateY(calc(-1 * var(--stack-settle)));
+  opacity: 0;
   pointer-events: none;
   z-index: 3;
 }
@@ -331,7 +358,9 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    ghost cards descending). Final translateX/rotate already match expanded. */
 .landing--default .landing__section--spectrum {
   top: var(--spectrum-top);
-  transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle))) rotate(-1deg);
+  /* No rotate here — the spectrum's tilt is now scroll-driven on the frame
+     (page.tsx). The section keeps only its Group B settle transform. */
+  transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
   opacity: 0;
   pointer-events: none;
   z-index: 4;
@@ -346,7 +375,6 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 }
 
 /* Collapse: no stagger */
-.landing--default .landing__section--about-short,
 .landing--default .landing__section--about-long,
 .landing--default .landing__section--about-practice,
 .landing--default .landing__section--spectrum,
@@ -363,17 +391,6 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   height: var(--expanded-h);
 }
 
-/* About Short: peeks above hero */
-.landing--expanded .landing__section--about-short {
-  top: var(--short-top);
-  transform: translateX(calc(-50% + var(--gutter))) scale(1);
-  pointer-events: auto;
-  z-index: 2;
-  transition:
-    top var(--dur-slide) var(--ease-paper) 0.02s,
-    transform var(--dur-slide) var(--ease-paper) 0.02s;
-}
-
 /* Projects: stays behind hero */
 .landing--expanded .landing__section--projects {
   top: var(--projects-top);
@@ -381,15 +398,22 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   z-index: 5;
 }
 
-/* About Long: first split card, slides down below hero */
+/* About Long — Group B, but SYNCED to about-short (the top sheet) instead of
+   the Group B cascade. It's the first sheet below the hero and reads as the
+   bottom half of the same expand gesture, so it shares about-short's 0.02s
+   delay / --dur-slide / --ease-paper rather than trailing at the stagger start.
+   (User-directed; a deliberate exception to "Group B continues the cascade" for
+   THIS card only — spectrum/practice/contact still stagger below it.) */
 .landing--expanded .landing__section--about-long {
   top: var(--long-top);
-  transform: translateX(calc(-50% + 12px)) scale(1);
+  transform: translateX(calc(-50% + var(--gutter))) translateY(0);
+  opacity: 1;
   pointer-events: auto;
   z-index: 3;
   transition:
-    top var(--dur-slide) var(--ease-paper) 0.04s,
-    transform var(--dur-slide) var(--ease-paper) 0.04s;
+    top var(--dur-slide) var(--ease-paper) 0.02s,
+    opacity var(--dur-slide) var(--ease-paper) 0.02s,
+    transform var(--dur-slide) var(--ease-paper) 0.02s;
 }
 
 /* Group B — secondary stack. Delays all start AFTER Group A has tucked out
@@ -400,7 +424,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    rotate. Sits centered like the rest of Group B. */
 .landing--expanded .landing__section--spectrum {
   top: var(--spectrum-top);
-  transform: translateX(-50%) translateY(0) rotate(-1deg);
+  transform: translateX(-50%) translateY(0);
   opacity: 1;
   pointer-events: auto;
   z-index: 4;
@@ -442,7 +466,8 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    ============================================================ */
 
 .hero-card {
-  width: 528px;
+  /* 12 grid units — widened from 11 so the serif headline sits on two lines. */
+  width: calc(12 * var(--unit));
   position: relative;
 }
 
@@ -514,26 +539,64 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   right: 16px;
 }
 
+/* Inner keyline — a matted frame inset from the card edge, the same idiom as
+   the timeline + about-practice cards. terra-960 ink for a crisp frame on the
+   amber ground; non-interactive, painted behind the content. */
+.hero-card__bg::before {
+  content: '';
+  position: absolute;
+  inset: var(--space-8);
+  border: 1px solid var(--terra-560);
+  pointer-events: none;
+}
+
 .hero-card__content {
   text-align: center;
+  position: relative;
 }
 
 .hero-card__greeting {
   color: var(--terra-960);
-  margin-bottom: var(--space-16);
+  /* Trimmed from space-56 toward a shorter, banner-like card (the Linotype
+     title-block proportion) — the cascade below re-docks to the new height. */
+  margin-top: var(--space-24);
+  margin-bottom: var(--space-24);
+  /* Letterspaced eyebrow plate — the time greeting and the name share one caps
+     line, bracketed and split by matching Startooth diamonds (◆ GREETING ◆ NAME ◆),
+     a symmetric Wes-Anderson label. */
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+}
+.hero-card__greeting::before,
+.hero-card__greeting::after,
+.hero-card__greeting-sep {
+  content: '';
+  width: 4px;
+  height: 4px;
+  flex: none;
+  background: var(--terra-720);
+  transform: rotate(45deg);
 }
 
+/* Serif headline — Fraunces (the display face shared with the timeline
+   statement + numerals), replacing t-h2's sans so the hero speaks the same
+   editorial voice as the long-form cards. */
 .hero-card__headline {
   color: var(--terra-960);
-  max-width: 400px;
+  max-width: 450px;
   margin: 0 auto 24px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
 }
 
-.hero-card__sub {
-  color: var(--terra-960);
-  max-width: 250px;
-  margin: 0 auto;
-}
 
 
 /* ---- Pill Button ---- */
@@ -651,48 +714,304 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
   animation-delay: -0.24s;
 }
 
-/* Natural-height card — shrinks to text + divider + tight padding. The
-   --hero-top token is set so the hero docks against this card's natural
-   bottom edge (no explicit min-height needed; if the copy ever grows back,
-   bump --hero-top by the delta). Copy is centered; all vertical paddings
-   are tight (eyeballed at 1440) so the card reads as a snug label. */
-.about-card--short {
-  padding-top: var(--space-24);
-  padding-bottom: var(--space-16);
-}
-
-.about-card--short .about-card__text {
-  text-align: center;
-}
-
-.about-card--short .about-card__divider {
-  margin-top: var(--space-24);
-  margin-bottom: 0;
-}
-
-/* Long card — first paragraph needs to clear the hero's nav pill row when
-   expanded. The card top sits 33px behind the hero's bottom edge
-   (--long-top vs --hero-top + --hero-h), so the text needs enough top padding to appear below
-   the nav pill edge while keeping the text close to the nav pill's bottom.
-   Horizontal padding is tighter (24) than the standard about-card (32) so
-   the discipline rows have enough room for "Studio-building and creative
-   direction" + chip on a single line at t-p3. */
+/* ---- About Long — practice timeline ----
+   A proportional data-viz: each segment's WIDTH encodes the years spent in
+   that specialization (Interface 2 / Brand 3 / Product 5), running end-to-end
+   so "one thing at a time" reads literally. Recomposed from the 800×480
+   handoff (reference/design_handoff_practice_card) to the landing column:
+   widened to spectrum's 458 so the bar has room; the handoff's black 2px
+   frame + heavy drop shadow shed for our terra keyline + resting shadow;
+   ground kept on terra-160. Stays Group A (tucks behind hero).
+   Token map: ramp terra-320/560/800, cream terra-80, ink terra-960,
+   accent terra-720, greys grey-480/grey-320. The REC/NOW red (#D23A02) is a
+   route-local recording-signal accent, deliberately outside the terra ramp —
+   see app/_landing/ANOMALIES.md. */
 .about-card--long {
-  padding-top: var(--space-80);
-  padding-left: var(--space-24);
-  padding-right: var(--space-24);
+  position: relative;
+  /* A tad narrower than the hero with tighter margins: the width holds the bar
+     at its 512px content while side + bottom padding drop from 32 to 24. */
+  width: 560px;
+  /* Extra top padding clears the Nihar/Works nav pill row above the card. */
+  padding: var(--space-80) var(--space-24) var(--space-24);
+
+  /* Group B: the section transition owns the entrance — opt the inner card out
+     of the .about-card hero-glide-up mount keyframe (same reason as
+     .about-card--practice) so an inner translateY can't compete with the
+     settle-from-above. */
+  animation: none;
+  /* Graph-paper grid — terra-tinted, 32px cell. Layered as background-IMAGE so
+     the base .about-card terra-160 ground (set via `background:` shorthand)
+     shows through. Keep it longhand: the shorthand would reset the colour. */
+  background-image:
+    linear-gradient(rgba(140, 110, 45, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 110, 45, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-.about-card--long .about-card__text {
-  width: auto;
-  text-align: center;
+/* Terra keyline mat — echoes the about-practice frame idiom (a hairline set in
+   from the edge), standing in for the handoff's black inner keyline. */
+.about-card--long::before {
+  content: '';
+  position: absolute;
+  inset: var(--space-8);
+  border: 1px solid var(--terra-560);
+  pointer-events: none;
+  z-index: 3;
 }
 
-/* Lead paragraph above the discipline list — same type scale as the
-   disciplines, with a gap below so the two text blocks read as related
-   but distinct. */
-.about-card--long .about-card__lead {
-  margin-bottom: var(--space-24);
+.practice-timeline__statement {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--terra-960);
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+}
+.practice-timeline__accent { color: var(--terra-720); }
+
+.practice-timeline__lower {
+  position: relative;
+  margin-top: var(--space-32);
+}
+
+/* ---- The bar: interactive focus graph ----
+   Segment width encodes duration (20/30/50, summing to 100). Click focuses a
+   phase (74%) — its question + range reveal over a hatch overlay; the other two
+   collapse to 13% grey spines (vertical label). Widths stay percentages that
+   always sum to 100 so the bar never gaps mid-transition (the handoff's one hard
+   rule). Motion on our --ease-paper / --dur-settle. The collapsed greys
+   (#c8c1b0 / #d6d0c1 hover / #867d6b text) and axis grey (#7a6a4a) are
+   route-local handoff values — no terra-ramp equivalent — like the NOW red. */
+.practice-timeline__bar {
+  display: flex;
+  height: 230px;
+  border: 1.5px solid var(--terra-960);
+  overflow: hidden;
+}
+
+.practice-timeline__seg {
+  position: relative;
+  flex: none;                 /* size is the inline % (--phase-size), no grow/shrink */
+  /* --phase-size is the duration percentage (set inline). Desktop maps it to
+     width (horizontal bar); the mobile block maps it to height (vertical stack). */
+  width: var(--phase-size);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    width var(--dur-settle) var(--ease-paper),
+    height var(--dur-settle) var(--ease-paper),
+    background-color var(--dur-settle) var(--ease-paper),
+    padding var(--dur-settle) var(--ease-paper);
+}
+.practice-timeline__seg--interface { background-color: var(--terra-320); color: var(--terra-960); }
+.practice-timeline__seg--brand     { background-color: var(--terra-560); color: var(--terra-80); border-left: 1.5px solid var(--terra-960); }
+.practice-timeline__seg--product   { background-color: var(--terra-800); color: var(--terra-80); border-left: 1.5px solid var(--terra-960); }
+
+/* Collapsed — light spine column in the hue's 160 variant (terra-160), with
+   readable terra ink. */
+.practice-timeline__seg.is-collapsed {
+  background-color: var(--terra-160);
+  color: var(--terra-720);
+  padding: 16px 6px;
+}
+
+/* Hover affordances: a non-focused default segment shows a faint hatch preview;
+   a collapsed spine warms a step to signal it reopens. */
+@media (hover: hover) and (min-width: 768px) and (min-height: 501px) {
+  .practice-timeline__seg.is-default:hover::after { opacity: 0.4; }
+  .practice-timeline__seg.is-collapsed:hover { background-color: var(--terra-240); }
+}
+
+/* Top block — label (+ reveal when focused); flex:1 pushes the numeral to the
+   bottom. Collapsed centers the vertical spine label. */
+.practice-timeline__seg-top {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+/* Spine label: horizontally centered in the column, top-aligned so it sits
+   inline with the focused segment's top label. */
+.practice-timeline__seg.is-collapsed .practice-timeline__seg-top {
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.practice-timeline__seg-label {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 640;
+  letter-spacing: -0.26px;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  transition: font-size var(--dur-settle) var(--ease-paper);
+}
+.practice-timeline__seg.is-focused .practice-timeline__seg-label { font-size: 17px; }
+.practice-timeline__seg.is-collapsed .practice-timeline__seg-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 17px;
+}
+
+/* Reveal (question + range) — hidden until focused, then fades/slides in a beat
+   after the bar opens. */
+.practice-timeline__seg-reveal {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  /* Leaving focus: hide fast (no delay) so the question is gone BEFORE the
+     segment narrows — otherwise it re-wraps into the shrinking column. */
+  transition:
+    max-height var(--dur-fast) var(--ease-paper),
+    opacity var(--dur-fast) var(--ease-paper),
+    margin-top var(--dur-fast) var(--ease-paper);
+}
+.practice-timeline__seg.is-focused .practice-timeline__seg-reveal {
+  max-height: 140px;
+  opacity: 1;
+  margin-top: var(--space-12);
+  /* Entering focus: wait for the width to finish opening (delay --dur-settle),
+     THEN reveal — so the question never renders in a still-narrow column. */
+  transition:
+    max-height var(--dur-slide) var(--ease-paper) var(--dur-settle),
+    opacity var(--dur-slide) var(--ease-paper) var(--dur-settle),
+    margin-top var(--dur-slide) var(--ease-paper) var(--dur-settle);
+}
+.practice-timeline__seg-question {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: inherit;
+}
+.practice-timeline__seg-range {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-top: var(--space-8);
+}
+
+/* Numeral — Geist Pixel, bottom-anchored, size driven by state. */
+.practice-timeline__seg-num {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-4);
+  font-family: 'Geist Pixel', monospace;
+  font-weight: 400;
+  line-height: 0.9;
+  font-size: 44px;
+  transition: font-size var(--dur-settle) var(--ease-paper);
+}
+/* Two sizes only: one default (all phases equal), one smaller when collapsed.
+   Focus doesn't grow the numeral — a bigger numeral is what crowded the reveal;
+   width + hatch + the revealed question carry the focus instead. */
+.practice-timeline__seg.is-collapsed .practice-timeline__seg-num { font-size: 28px; align-self: center; }
+/* "years" rides next to the numeral only when the phase is open — and morphs
+   in (slide + fade via max-width/opacity) rather than snapping via display. */
+.practice-timeline__seg-unit {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    opacity var(--dur-slide) var(--ease-paper),
+    max-width var(--dur-settle) var(--ease-paper);
+}
+.practice-timeline__seg.is-focused .practice-timeline__seg-unit { opacity: 0.7; max-width: 60px; }
+
+/* Focus hatch — same-hue texture over the focused fill (distinct per phase),
+   on a ::after overlay so it composes over background-color. */
+.practice-timeline__seg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-slide) var(--ease-paper);
+}
+.practice-timeline__seg.is-focused::after { opacity: 1; }
+/* Hatch alphas kept low so they read as texture, not noise, behind the
+   revealed question/label (legibility over density). */
+.practice-timeline__seg--interface::after {
+  background-image: radial-gradient(rgba(83, 51, 1, 0.16) 1px, transparent 1.4px);
+  background-size: 13px 13px;
+}
+.practice-timeline__seg--brand::after {
+  /* Vertical rules read heavier than the dots/crosshatch (continuous lines run
+     through the cream question text), so kept lighter + sparser than the other
+     two for matched subtlety: alpha 0.12 (vs 0.16) and a 10px period (vs 8). */
+  background-image: repeating-linear-gradient(90deg, rgba(83, 51, 1, 0.12) 0 1.5px, transparent 1.5px 10px);
+}
+.practice-timeline__seg--product::after {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(20, 20, 20, 0.16) 0 1.5px, transparent 1.5px 8px),
+    repeating-linear-gradient(-45deg, rgba(20, 20, 20, 0.16) 0 1.5px, transparent 1.5px 8px);
+}
+
+/* Year axis — flex cells mirroring the segment widths; boundary years of the
+   focused phase highlight. */
+.practice-timeline__axis {
+  display: flex;
+  height: 16px;
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.practice-timeline__axis-cell {
+  flex: none;
+  width: var(--phase-size);   /* mobile remaps to height (see mobile block) */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width var(--dur-settle) var(--ease-paper), height var(--dur-settle) var(--ease-paper);
+}
+.practice-timeline__axis-cell:last-child { justify-content: space-between; }
+.practice-timeline__year {
+  color: #7a6a4a;
+  opacity: 0.7;
+  transition:
+    color var(--dur-fast) var(--ease-paper),
+    opacity var(--dur-fast) var(--ease-paper);
+}
+.practice-timeline__year.is-active { color: var(--terra-720); opacity: 1; }
+.practice-timeline__year--now {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: #D23A02;
+  opacity: 0.78;
+}
+.practice-timeline__year--now.is-active { opacity: 1; }
+.practice-timeline__rec {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #D23A02;
+  animation: recpulse 1.4s ease-in-out infinite;
+}
+@keyframes recpulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.28; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .practice-timeline__rec { animation: none; }
 }
 
 /* Practice card — the second split sheet. Framed with a terra-560 hairline
@@ -716,7 +1035,7 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
 .about-card--practice::before {
   content: '';
   position: absolute;
-  inset: 4px;
+  inset: var(--space-8);
   border: 1px solid var(--terra-560);
   pointer-events: none;
 }
@@ -734,81 +1053,84 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
 }
 
 /* Full-width divider extends to the inner edge of the practice card's
-   ::before frame (inset 4px, 1px stroke) — same idiom as
-   .contact-card__footer-line ending at the inner edge of the contact
-   card's border. Math: card padding (36) − frame inset (4) − stroke (1)
-   = 31px past the content edge on each side. */
+   ::before keyline (inset var(--space-8), 1px stroke) and matches its colour
+   — same idiom as .contact-card__footer-line ending at the inner edge of the
+   contact card's border. Math: card padding (36) − frame inset (8) − stroke (1)
+   = 27px past the content edge on each side. */
 .about-card__divider--full {
-  width: calc(100% + 62px);
-  margin-left: -31px;
-  border-bottom: 1px dashed var(--terra-800);
-}
-
-
-/* ---- Discipline-year chips on about-long ----
-   Uses the shared `<Monostamp tone="terra">` primitive — terra ink comes
-   from the Monostamp tone (added alongside this consumer). Two route-local
-   concerns layered here:
-   1. Shell tint — the about-long card is terra-160; Monostamp's default
-      cream-grey shell reads as a white sticker on top of the card. Retint
-      to terra-240 fill + terra-560 hairline so the chip reads as a subtly
-      darker tile on the same surface. Lives in the consumer, not the
-      primitive, because the choice to tint depends on the surface, not the
-      tone (a future terra chip on a non-terra surface should still default
-      to the neutral shell).
-   2. `tabular-nums` so the year digits column stays stable across "2 years",
-      "3y", and any future format. */
-.year-chip {
-  background: var(--terra-240);
-  border-color: var(--terra-560);
-  font-variant-numeric: tabular-nums;
-  /* Nudge the chip a touch above the surrounding text baseline so the
-     bordered box sits visually centered against the cap-line of the
-     adjacent words, rather than dropping its descender past it. */
-  vertical-align: 2px;
-  /* Extra breathing room between the last word and the chip — beyond the
-     single inline space character that already sits there. */
-  margin-left: var(--space-4);
-}
-
-/* Each discipline is an inline-flow block — the chip flows right after the
-   last word of the sentence, no right-edge docking. Reads as a typographic
-   annotation rather than a tabular column. Gap goes between rows only. */
-.about-card--long .discipline {
-  display: block;
-}
-.about-card--long .discipline + .discipline {
-  margin-top: var(--space-12);
+  width: calc(100% + 54px);
+  margin-left: -27px;
+  border-bottom: 1px dashed var(--terra-560);
 }
 
 
 /* ---- Spectrum Visualization ---- */
+/* Scroll-driven base tilt: 0° at the top of the page → −1° rest, set as
+   --spec-scroll-tilt by a rAF scroll listener in page.tsx. Lives on .spectrum
+   (the parent) so it composes with the frame's click-reroll rotate below. No
+   transition — the rAF listener already tracks scroll smoothly; a transition
+   would lag the tilt behind the scroll. */
 .spectrum {
   width: 458px;
   cursor: pointer;
+  transform: rotate(var(--spec-scroll-tilt, 0deg));
 }
 
-/* Desktop hover affordance — a soft inset shadow on the inner surface.
-   No translate, no press pulse; the click reaction is the frame
-   re-rotating + the cell palette cycling, which is enough feedback. */
+/* Hover + press, on the site's micro choreo. The spectrum IS interactive
+   (cycles the palette), so the affordance is honest. Hover lifts the sheet a
+   touch (paper lift, on --ease-paper); press dips it in to acknowledge the
+   click (--dur-instant/--ease-snap). Lift/press ride the standalone
+   `translate:` / `scale:` properties so they COMPOSE with the frame's
+   `transform` (the click-reroll rotate) instead of overriding it — same idiom
+   as rr's StoryCard. The base tilt is scroll-driven on .spectrum (page.tsx). */
 @media (hover: hover) and (min-width: 768px) and (min-height: 501px) {
-  .spectrum:hover .spectrum__inner {
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.12);
+  .spectrum:hover .spectrum__frame {
+    translate: 0 -2px;
+    box-shadow: var(--shadow-raised);
   }
+  /* Hovering anywhere on the card gives the vertical gradient bar a subtle lift
+     — just a touch more opacity. The gradient shape is unchanged (transparent
+     top, so the top edge never fills); only the strength eases up. */
+  .spectrum:hover .spectrum__gradient {
+    opacity: 0.2;
+  }
+}
+.spectrum--pressed .spectrum__frame {
+  scale: 0.99;
 }
 
 .spectrum__frame {
   position: relative;
   width: 458px;
   height: 308px;
-  transition: transform var(--dur-settle) var(--ease-paper);
+  /* Transparent base of --shadow-raised so the hover shadow fades in (box-shadow
+     can't interpolate from `none`). transform = the inline click-reroll rotate. */
+  box-shadow: 0 3px 8px -1px rgba(0, 0, 0, 0);
+  transition:
+    transform var(--dur-settle) var(--ease-paper),
+    translate var(--dur-slide) var(--ease-paper),
+    box-shadow var(--dur-slide) var(--ease-paper),
+    scale var(--dur-instant) var(--ease-snap);
 }
 
 .spectrum__bg {
   position: absolute;
   inset: 0;
-  background: var(--surface-bg);
-  box-shadow: var(--shadow-inset);
+  background: var(--terra-160);
+}
+
+/* Inner keyline — matches the family idiom (about-long / about-practice): a
+   1px terra-560 hairline inset var(--space-8) from the card edge. Replaces the
+   spectrum's old dark surface-bg frame. z-index lifts it above the inner
+   content layer so the frame reads over the ground (the grid sits well inside
+   it); pointer-events:none keeps the card's hover/press affordance intact. */
+.spectrum__frame::before {
+  content: '';
+  position: absolute;
+  inset: var(--space-8);
+  border: 1px solid var(--terra-560);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .spectrum__inner {
@@ -828,8 +1150,9 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
   top: 8px;
   width: 64px;
   height: 258px;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--orange-800) 5%, transparent), var(--orange-800));
+  background: linear-gradient(to bottom, transparent, var(--orange-800));
   opacity: 0.1;
+  transition: opacity var(--dur-slide) var(--ease-paper);
 }
 
 .spectrum__grid {
@@ -1484,14 +1807,18 @@ textarea.contact-form__input {
 
 @media (max-width: 767px), (max-height: 500px) {
   .landing {
-    --hero-top: 116px;
-    --projects-top: 352px;
-    --short-top: var(--space-24);
-    --long-top: 347px;
-    --spectrum-top: 632px;
-    --practice-top: 996px;
-    --contact-top: 1510px;
-    --expanded-h: 1920px;
+    --hero-top: 84px;
+    --projects-top: 320px;
+    --long-top: 315px;
+    /* The about-long card is now the VERTICAL (portrait) timeline — far taller
+       than the old horizontal one (653px: 480 stack + headline + padding). Its
+       bottom lands at 315+653=968, so the Group B stack below is rebuilt from
+       there with ~40px gaps: spectrum 1008 (+308) → practice 1356 (+486) →
+       contact 1882 (+330) → expanded-h 2292. Linked set — moves together. */
+    --spectrum-top: 1008px;
+    --practice-top: 1356px;
+    --contact-top: 1882px;
+    --expanded-h: 2292px;
     min-height: 100svh;
   }
 
@@ -1506,7 +1833,6 @@ textarea.contact-form__input {
     width: calc(100% - 2 * var(--gutter));
   }
 
-  .landing__section--about-short,
   .landing__section--about-long,
   .landing__section--about-practice,
   .landing__section--contact {
@@ -1523,17 +1849,18 @@ textarea.contact-form__input {
     transform: translateX(-50%);
   }
 
-  .landing--default .landing__section--about-short,
+  /* About-long is Group B on mobile too — full collapsed contract, no tuck. */
   .landing--default .landing__section--about-long {
-    top: var(--hero-top);
-    transform: translateX(-50%) scale(0.9);
+    top: var(--long-top);
+    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
+    opacity: 0;
   }
 
   /* Spectrum + contact follow the Group B contract on mobile too —
      pre-positioned at final top, translateY(-stack-settle) offset. */
   .landing--default .landing__section--spectrum {
     top: var(--spectrum-top);
-    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle))) rotate(-1deg);
+    transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
   }
 
   .landing--default .landing__section--contact {
@@ -1547,12 +1874,6 @@ textarea.contact-form__input {
     opacity: 0;
   }
 
-  .landing--expanded .landing__section--about-short {
-    top: var(--short-top);
-    transform: translateX(-50%) scale(1);
-    transition-delay: 0.02s;
-  }
-
   .landing--expanded .landing__section--projects {
     top: var(--projects-top);
     transform: translateX(-50%);
@@ -1560,13 +1881,15 @@ textarea.contact-form__input {
 
   .landing--expanded .landing__section--about-long {
     top: var(--long-top);
-    transform: translateX(-50%) scale(1);
-    transition-delay: 0.04s;
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.02s;
   }
 
   .landing--expanded .landing__section--spectrum {
     top: var(--spectrum-top);
-    transform: translateX(-50%) translateY(0) rotate(-1deg);
+    transform: translateX(-50%) translateY(0);
     opacity: 1;
     pointer-events: auto;
     z-index: 4;
@@ -1598,22 +1921,76 @@ textarea.contact-form__input {
   .about-card { width: 100%; padding: var(--space-24); }
   /* Long card needs to clear the Nihar/Works pill row that sits on top of it */
   .about-card--long { padding-top: var(--space-56); }
+
+  /* ---- Practice timeline — vertical (portrait) layout ----
+     Rotated 90° from desktop per the mobile handoff: duration encodes as row
+     HEIGHT in a vertical stack, and the year axis becomes a left rail. Same
+     data / state / focus mechanic — only the layout branches. --phase-size (set
+     inline) maps to HEIGHT here instead of width. Our values are kept (Geist
+     numerals, terra-160 collapse, type sizes) and just reflowed vertically. */
+  .practice-timeline__statement { font-size: 20px; }
+
+  .practice-timeline__lower {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-12);
+    height: 480px;
+    margin-top: var(--space-24);
+  }
+
+  /* Bar fills the width beside the rail and stacks the rows top → bottom. */
+  .practice-timeline__bar {
+    flex: 1;
+    flex-direction: column;
+    height: 100%;
+  }
+  .practice-timeline__seg {
+    width: 100%;
+    height: var(--phase-size);
+    padding: 16px 18px;
+  }
+  /* Dividers run along the top edge between stacked rows, not the left. */
+  .practice-timeline__seg--brand,
+  .practice-timeline__seg--product {
+    border-left: none;
+    border-top: 1.5px solid var(--terra-960);
+  }
+
+  /* Collapsed rows are short-but-wide, so the label stays horizontal (no spine)
+     and content left-aligns. */
+  .practice-timeline__seg.is-collapsed { padding: 10px 18px; }
+  .practice-timeline__seg.is-collapsed .practice-timeline__seg-top {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .practice-timeline__seg.is-collapsed .practice-timeline__seg-label {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+  .practice-timeline__seg.is-collapsed .practice-timeline__seg-num { align-self: flex-start; }
+
+  /* Axis → left rail: a vertical column whose cells mirror the row heights, so
+     the years sit on the row boundaries (2016 at top → NOW at bottom). The
+     product cell keeps space-between, which now reads 2021-top / NOW-bottom. */
+  .practice-timeline__axis {
+    order: -1;
+    flex-direction: column;
+    width: 46px;
+    height: 100%;
+    margin-top: 0;
+  }
+  .practice-timeline__axis-cell {
+    width: 100%;
+    height: var(--phase-size);
+    flex-direction: column;
+    align-items: flex-start;
+  }
   .about-card__text { width: auto; }
   .about-card__divider { width: auto; }
   /* Mobile practice card padding is 24px (vs desktop 36) but frame ::before
      stays at inset 4 with 1px stroke, so the divider extends 24 − 4 − 1 = 19px
      past content edge to land at the frame's inner edge. */
   .about-card__divider--full { width: calc(100% + 38px); margin-left: -19px; }
-
-  /* About-short on mobile: above-hero space is tight (--hero-top: 116), so
-     drop the decorative divider (the hero edge already serves as the seam)
-     and remove the bottom padding. Keeps the paragraph fully visible above
-     the hero rather than tucking the last line behind it. */
-  .about-card--short {
-    padding-top: var(--space-16);
-    padding-bottom: 0;
-  }
-  .about-card--short .about-card__divider { display: none; }
 
   .spectrum { width: 100%; }
   .spectrum__frame { width: 100%; }
