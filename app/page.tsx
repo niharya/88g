@@ -196,6 +196,43 @@ export default function LandingPage() {
     }
   }, [])
 
+  /* Sheet-scale — couple the content to the frame (Phase 3, harmonization).
+     The frame is height-driven (--sheet-width, startooth-canvas.css) and caps at
+     760px; the content is authored at that 760 baseline (hero = 76% of the sheet).
+     On shorter viewports the frame shrinks below the content width, so the
+     fixed-px content pokes past the frame edges. Scale the whole content plate as
+     a unit to match: scale = min(1, frameWidth / 760). Written as --sheet-scale on
+     :root (so .landing's content AND the sibling colophon footer can both read it);
+     landing.css applies it via a transform on .landing__content, scales the scroll
+     height to match, and scales the footer slab into the frame. CSS can't divide
+     two lengths into the unitless number transform: scale() needs, hence this small
+     scalar (the deliberate "lighter touch" bridge, vs. a full cqi re-arch). Defaults
+     to 1 (no JS / SSR / pre-mount) so design size is the graceful fallback. Mobile
+     is full-bleed (no framed sheet) and handled separately — forced to 1 there so
+     the coupling is a no-op and the layout matches live. */
+  useEffect(() => {
+    const root = document.documentElement
+    const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
+    let raf = 0
+    const measure = () => {
+      raf = 0
+      if (mq.matches) { root.style.setProperty('--sheet-scale', '1'); return }
+      // Prefer the rendered frame width (single source of truth); fall back to the
+      // --sheet-width formula if the canvas (ssr:false) hasn't mounted yet.
+      const sheet = document.querySelector('.startooth-canvas-root') as HTMLElement | null
+      const w = sheet?.offsetWidth ||
+        Math.min((window.innerHeight - 60) / 1.3333, 760, window.innerWidth - 64)
+      root.style.setProperty('--sheet-scale', String(Math.min(1, w / 760)))
+    }
+    const onResize = () => { if (!raf) raf = requestAnimationFrame(measure) }
+    measure()
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
   /* ---- Contact state ---- */
   const [formOpen, setFormOpen] = useState(false)
   const [actionLabel, setActionLabel] = useState('Send A Note')

@@ -91,7 +91,10 @@
 /* Form-open height bump — keeps a breathing gap below the open contact card,
    which would otherwise overflow past the fixed --expanded-h. Bump tokenised
    as 6 × --space-96 + --space-24 (= 600px) — tuned to give ~96px gap below
-   the fully-open form at all breakpoints. */
+   the fully-open form at all breakpoints. (On iPad/desktop the .landing scroll
+   height is scaled by --sheet-scale in the sheet-scale media block above; the
+   .landing__content layout height stays unscaled — the transform shrinks it
+   visually.) */
 .landing--expanded:has(.contact-card--form-open),
 .landing--expanded:has(.contact-card--form-open) .landing__content {
   height: calc(var(--expanded-h) + 6 * var(--space-96) + var(--space-24));
@@ -224,6 +227,41 @@ html:has(.landing) .footer--caption {
   bottom: 44px;
 }
 
+/* The colophon slab is a FULL-WIDTH footer bar tucked into the framed sheet's
+   bottom edge, the same tuck as the Startooth caption tab (Phase 3, harmonization).
+   The slab is a sibling of .landing, fixed; base is a shrink-wrapped tag sitting
+   ABOVE the matte (z:20). On iPad+desktop it becomes a full-bleed bar inside the
+   frame:
+     • width = var(--sheet-width) — it spans the full rendered sheet width, so the
+       bar tracks the frame at every viewport (no scale needed; the width IS the
+       sheet). Its outer edges tuck under the brown frame border (brown-on-brown,
+       seamless); the row's own padding keeps the text clear of the border;
+     • the row spreads credit (left) ↔ links (right) across the full bar
+       (space-between), reading as a proper footer rather than a centred cluster;
+     • z-index 12 (below the matte's 15) so the frame border draws OVER the slab
+       and trims its bottom — the bar emerges from under the frame as it slides up,
+       exactly like the caption tab;
+     • bottom 30px = the matte's bottom edge, so it docks flush at the sheet's
+       bottom rule (caption-tag uses the same 30px);
+     • centred on the viewport (left:50% + --sheet-shift, which is 0 here) so it
+       aligns with the viewport-centred sheet + cards.
+   Desktop only: mobile is full-bleed (no framed sheet, no matte to tuck under) and
+   its cards centre on plain 50%, so none of this applies there — mobile keeps the
+   base shrink-wrapped tag at bottom:44 / z:20. The slab keeps its own `translate:`
+   slide (the dedicated property avoids the fixed-element matrix bug — footer.css). */
+@media (min-width: 768px) and (min-height: 501px) {
+  html:has(.landing) .footer--caption {
+    bottom: 30px;
+    left: calc(50% + var(--sheet-shift));
+    z-index: 12;
+    width: var(--sheet-width);
+  }
+  html:has(.landing) .footer--caption .footer__row {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
 /* Hide scrollbar on the landing route — native scroll is preserved, only the
    visual indicator goes away. macOS / iOS / Android already overlay-hide;
    this rule covers Windows / Linux Chrome/Edge/Firefox where the gutter is
@@ -240,6 +278,34 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   z-index: 5;
   width: 100%;
   height: 100%;
+}
+
+/* ── Sheet-scale: couple the content plate to the framed sheet ───────────────
+   iPad + desktop ONLY — gated to (min-width:768px) and (min-height:501px), the
+   exact complement of the mobile block below, so these rules never apply on
+   mobile and the mobile layout stays byte-identical to live (no resets needed).
+   The content is authored at the 760px sheet baseline (hero = 76% of the sheet);
+   on a shorter viewport the frame shrinks below the content width, so scale the
+   whole plate as ONE unit to keep it inside the frame at the authored proportion.
+   --sheet-scale (= min(1, frameWidth/760)) is written on :root by page.tsx and
+   defaults to 1 (SSR / no-JS) so design size is the graceful fallback. The
+   expanded scroll height scales with it so the shrunken plate leaves no dead
+   scroll. transform-origin = the viewport centre (content + frame are both
+   viewport-centred now) and the top edge, so the plate shrinks toward the
+   top-centre of the frame. The frame, matte, caption + footer sit OUTSIDE this
+   wrapper (unaffected); the sections' Group A/B translate settles compose under
+   the scale, just proportionally smaller (motion intact). */
+@media (min-width: 768px) and (min-height: 501px) {
+  .landing__content {
+    transform: scale(var(--sheet-scale, 1));
+    transform-origin: 50% top;
+  }
+  .landing--expanded {
+    height: calc(var(--expanded-h) * var(--sheet-scale, 1));
+  }
+  .landing--expanded:has(.contact-card--form-open) {
+    height: calc((var(--expanded-h) + 6 * var(--space-96) + var(--space-24)) * var(--sheet-scale, 1));
+  }
 }
 
 
@@ -264,7 +330,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 /* Hero: fixed position, never moves */
 .landing__section--hero {
   top: var(--hero-top);
-  transform: translateX(calc(-50% + var(--gutter)));
+  transform: translateX(-50%);
   z-index: 10;
 }
 
@@ -321,18 +387,19 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 /* Projects: tucked under hero, ~4px peeking */
 .landing--default .landing__section--projects {
   top: var(--projects-top);
-  transform: translateX(calc(-50% + var(--gutter)));
+  transform: translateX(-50%);
   z-index: 5;
 }
 
 /* About-long is Group B: holds the full collapsed contract (top at final
    expanded position, opacity 0, pointer-events none, translateY(-stack-settle)
    offset) so it settles ~24px from above on expand rather than tucking behind
-   the hero. translateX uses --gutter (16px) to center-align with the hero, not
-   the +12px about-practice nudge. */
+   the hero. translateX(-50%) — every card is dead-centred on the viewport now
+   (the old +16/+12 grid offsets were flattened so the sheet + content centre to
+   the viewport, matching the /cases sheet). */
 .landing--default .landing__section--about-long {
   top: var(--long-top);
-  transform: translateX(calc(-50% + var(--gutter))) translateY(calc(-1 * var(--stack-settle)));
+  transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
   opacity: 0;
   pointer-events: none;
   z-index: 3;
@@ -346,7 +413,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    card isn't being pulled from under anything, it's being placed). */
 .landing--default .landing__section--about-practice {
   top: var(--practice-top);
-  transform: translateX(calc(-50% + 12px)) translateY(calc(-1 * var(--stack-settle)));
+  transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
   opacity: 0;
   pointer-events: none;
   z-index: 2;
@@ -368,7 +435,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 
 .landing--default .landing__section--contact {
   top: var(--contact-top);
-  transform: translateX(calc(-50% + var(--gutter))) translateY(calc(-1 * var(--stack-settle)));
+  transform: translateX(-50%) translateY(calc(-1 * var(--stack-settle)));
   opacity: 0;
   pointer-events: none;
   z-index: 4;
@@ -394,7 +461,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 /* Projects: stays behind hero */
 .landing--expanded .landing__section--projects {
   top: var(--projects-top);
-  transform: translateX(calc(-50% + var(--gutter)));
+  transform: translateX(-50%);
   z-index: 5;
 }
 
@@ -406,7 +473,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
    THIS card only — spectrum/practice/contact still stagger below it.) */
 .landing--expanded .landing__section--about-long {
   top: var(--long-top);
-  transform: translateX(calc(-50% + var(--gutter))) translateY(0);
+  transform: translateX(-50%) translateY(0);
   opacity: 1;
   pointer-events: auto;
   z-index: 3;
@@ -437,7 +504,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 /* About Practice — Group B #2 (post-swap; was #1). */
 .landing--expanded .landing__section--about-practice {
   top: var(--practice-top);
-  transform: translateX(calc(-50% + 12px)) translateY(0);
+  transform: translateX(-50%) translateY(0);
   opacity: 1;
   pointer-events: auto;
   z-index: 2;
@@ -450,7 +517,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 /* Contact — Group B #3 */
 .landing--expanded .landing__section--contact {
   top: var(--contact-top);
-  transform: translateX(calc(-50% + var(--gutter))) translateY(0);
+  transform: translateX(-50%) translateY(0);
   opacity: 1;
   pointer-events: auto;
   z-index: 4;

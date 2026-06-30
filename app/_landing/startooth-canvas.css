@@ -32,9 +32,19 @@
     760px,
     calc(100vw - 2 * var(--sheet-gutter))   /* shared "always placed" margin (globals.css) */
   );
-  /* +16px = the landing --gutter (hardcoded; that token is .landing-scoped and
-     these elements sit outside it) — centres the sheet on the hero/cards axis. */
+  /* Legacy +16 shift = the old .landing --gutter. Kept as the BASE value so
+     mobile (full-bleed / deferred) stays exactly live; the iPad+desktop override
+     below zeroes it to centre the sheet on the viewport (matching /cases). One
+     token so the root, matte, and colophon footer all read the same centring. */
   --sheet-shift: 16px;
+}
+
+/* iPad + desktop: centre the sheet on the viewport (matching the /cases timeline
+   sheet). The content cards are viewport-centred too (translateX(-50%) in
+   landing.css), so the whole framed sheet sits dead-centre. Mobile keeps the base
+   +16 (live) — this is the exact complement of landing.css's mobile breakpoint. */
+@media (min-width: 768px) and (min-height: 501px) {
+  :root { --sheet-shift: 0px; }
 }
 
 .startooth-canvas-root {

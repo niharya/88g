@@ -20,6 +20,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **Fonts** — `app/layout.tsx` + `app/fonts/`; five next/font/local faces as `--font-*` tokens; NEVER redeclare `--font-*` in globals.css.
 - **Rail** — `app/(works)/rr/components/Rail.tsx`; stateless tuck-push-reveal drawer shell; rr-local; consumers: NoteRail, RulesRail.
 - **Sheet** — `app/components/Sheet.tsx`; paper chapter container (three-phase reveal, scroll-linked card glide, opt-in snap); every works route.
+- **Framed-sheet spine** — the cqi/`--bu` relative-sizing RECIPE shared by the three framed reading-surfaces (landing Startooth sheet, /all blue card, /all timeline mat); a documented pattern, not shared code (params differ per sheet). Archetypes: page / ledger. Distinct from the **Sheet** component above.
 - **useReveal** — `app/components/useReveal.ts`; one-shot `.revealed` intersection hook paired with `.section-reveal` CSS.
 - **Nav cluster** — `app/components/nav/`; docked-nav system; import from the barrel only; READ its CLAUDE.md/ANOMALIES.md before touching; every works route + /marks + /selected.
 - **SlideInOnNav** — `app/components/SlideInOnNav.tsx`; sessionStorage-flag directional entrance between / and /selected.
@@ -220,6 +221,38 @@ The paper chapter container used by every works route. Renders a `section.sheet.
 - **`snapIdleMs?: number` overrides the scroll-idle window.** Defaults `2000` so brief reading pauses do not trigger a snap. Both /biconomy and /rr pass `100` for the FIRST chapter only (`i === 0` in page.tsx) so the route lands docked from frame zero rather than two seconds in. Interior chapters keep the 2s default — a short idle there would yank readers during reading pauses. See each route's ANOMALIES → "First-chapter idleMs override".
 - What's route-specific: the children. Everything else (the chapter-marker wiring, the reveal, the scroll-linked glide) is identical across routes.
 - What's library-ready: the whole component.
+
+---
+
+## Framed-sheet spine (cqi / `--bu` relative sizing)
+
+The shared sizing RECIPE behind the three framed "sheets" — reading-surfaces that
+size their content *relative to the sheet* so the whole surface scales as one unit
+at every viewport ("real-world but digital"). **Not** the **Sheet** component above
+(that's the works-route scroll-reveal chapter container). This is a CSS PATTERN, not
+shared code: CSS has no mixins and each sheet's params differ, so every sheet
+instantiates the recipe itself — this entry is the shared contract + the rationale.
+
+The three members:
+- [app/(works)/all/bench.css](app/(works)/all/bench.css) — `.bench-stage` (`--bench-card-w`, `--bu: calc(100cqi / 820)`); **page** archetype; the reference implementation (pure cqi).
+- [app/(works)/all/selected.css](app/(works)/all/selected.css) — `.bench-cases` (`--tl-w`, `--bu: calc(100cqi / 688)`); **ledger** archetype (pure cqi).
+- [app/_landing/startooth-canvas.css](app/_landing/startooth-canvas.css) + [app/landing.css](app/landing.css) — `--sheet-width`; **page** archetype, currently via the transform-scale BRIDGE (see notes), not cqi yet.
+- [app/globals.css](app/globals.css) — `--sheet-gutter`, the shared "always placed" outer-margin token every sheet's width clamps to.
+
+The recipe (apply in order):
+1. **Name the archetype.** *page* = fixed `aspect-ratio`, scales as one unit (blue card; landing). *ledger* = content-driven height, scales width only (timeline). Don't force the pattern on genuinely reflowing/text-heavy content — that wants media queries.
+2. **Pick a baseline width** = the px width you design at (blue 820, timeline 688, landing 760). `--bu` resolves to exactly 1px there.
+3. **Clean container** — `container-type: inline-size`, NO border/padding, on a wrapper whose content box IS the sheet width (the STAGE, never the bordered card). `--bu: calc(100cqi / <baseline>)`.
+4. **Author every size as `calc(N * var(--bu))`** — N = the design px. Pixel-identical at the baseline, scales elsewhere. Pure CSS, no JS scalar.
+5. **Outer width** from the height-driven viewport formula `min(<height-term>, <cap>, calc(100vw - 2 * var(--sheet-gutter)))` — the gutter clamp is the shared "never touches the L/R edge" rule. Lock with `aspect-ratio` (page) or leave content-driven (ledger). All three are **viewport-centred** (no per-sheet shift).
+6. **Mark non-scalers** (1px hairlines, fixed condensed UI like a docked ticket).
+
+AI notes:
+- **Container = the STAGE, never the bordered card.** cqi resolves against the container's content box; a border/padding there is circular (cqi → content box minus the element's own `--bu` padding → resolves too small). The blue card learned this the hard way — `--bu` lives on the clean `.bench-stage`, not `.bench-card`.
+- **`--bu` is "one baseline pixel"** — 1px at the baseline, proportional elsewhere. The old JS `--card-scale` resize handler was REMOVED when cqi landed (cqi IS a container-relative length, so no JS scalar is needed for a true cqi member).
+- **Caps are model-specific — choose to the model.** The blue card is an aspect-locked card, so it uses a RELATIVE cap `min(80vw, 820)` to nest concentrically on iPads (a fixed cap froze it small). The landing sheet is FULL-HEIGHT (fills the viewport, content scrolls + the matte clips), so it keeps a FIXED 760 cap: the relative cap would shrink iPad portrait to a tall strip, and the fixed cap is exactly what holds the hero at 76% of the sheet. Same recipe, different cap because the height model differs.
+- **The landing is a page member via a transform-scale BRIDGE, not cqi yet.** Its content is fixed-px, scaled as one unit by a JS `--sheet-scale` (`= min(1, frameWidth / 760)`, written on `:root` in page.tsx) + `transform: scale()` on `.landing__content`, gated to `@media (min-width:768px) and (min-height:501px)` (mobile is full-bleed / deferred). For a *page* archetype this is VISUALLY identical to cqi (`N * --bu` == `N px * scale`); the wins of converting are pure-CSS (drop the JS scalar) + no transform caveats. **Why a bridge at all:** CSS can't derive the unitless `scale()` factor from a length, so a transform approach needs the JS scalar — going pure-CSS means the full cqi conversion (every width, the self-adjusting cascade tops, paddings, type, AND the Group A/B settle motion → `calc(N * --bu)`). That conversion is the tracked, motion-heavy follow-up; do it if the JS scalar or transform caveats ever bite. Until then the bridge is the sanctioned light path.
+- **Caveats** (choose knowingly): cqi type doesn't respond to browser zoom / font-size the way rem does (fine for a portfolio canvas, a real concern for an app); don't apply to reflowing content.
 
 ---
 
