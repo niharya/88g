@@ -30,7 +30,7 @@
   --sheet-width: min(
     calc((100vh - 2 * var(--sheet-margin)) / 1.3333),
     760px,
-    calc(100vw - 64px)
+    calc(100vw - 2 * var(--sheet-gutter))   /* shared "always placed" margin (globals.css) */
   );
   /* +16px = the landing --gutter (hardcoded; that token is .landing-scoped and
      these elements sit outside it) — centres the sheet on the hero/cards axis. */
@@ -56,7 +56,15 @@
    any content that scrolls past the sheet edges is hidden behind it — that IS
    the clip-on-scroll. The 4px rule is the sheet's frame in the void/structural
    brown (--surface-bg, same as the "Startooth Pattern" tab), drawn on top so
-   cards can never cover it. pointer-events:none keeps the window interactive. */
+   cards can never cover it. pointer-events:none keeps the window interactive.
+
+   Lift shadow — the sheet floats off the desk with the SAME two-layer drop
+   shadow geometry/opacity as the /all blue bench-card (so the two 3:4 sheets
+   read as siblings), re-tinted warm (terra-black) to sit under the brown frame
+   instead of the bench-card's cool navy. ORDER IS LOAD-BEARING: box-shadows
+   paint first-listed-on-top, so the two drop shadows MUST precede the 9999px
+   flood — the flood is opaque --workbench-bg and would otherwise bury them.
+   This is what lets a "hole cut in a matte" cast a shadow at all. */
 .startooth-sheet-matte {
   position: fixed;
   top: var(--sheet-margin);
@@ -67,7 +75,10 @@
   z-index: 15;
   pointer-events: none;
   border: 4px solid var(--surface-bg);
-  box-shadow: 0 0 0 9999px var(--workbench-bg);
+  box-shadow:
+    0 2px 5px 0 rgba(40, 24, 10, 0.10),
+    0 18px 40px -12px rgba(40, 24, 10, 0.28),
+    0 0 0 9999px var(--workbench-bg);
 }
 
 /* Engraved double-frame — a light hairline drawn just inside the brown outer

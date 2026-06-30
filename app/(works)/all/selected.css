@@ -50,56 +50,82 @@
 
 
 /* ── Mat ────────────────────────────────────────────────────────────────── */
-/* Smaller mat containing timeline, cards, and archive.                     */
+/* The mat is a FLOW sheet now — a framed page that holds the timeline grid.
+   It fills its host (`.bench-cases`, which owns the responsive --tl-w width +
+   the --bu relative-math spine, baseline 688) and is content-driven in height:
+   a collapsed min-height floors a 3:4 sheet; opening the Slangbusters dropdown
+   grows it DOWN by natural reflow (the children mount, the grid expands) — a
+   Framer-free CSS height settle on min-height, no hardcoded open height. */
 
 .selected-mat {
-  position: absolute;
-  /* Anchored to the stage's *right* edge (was `left: 536px`, a fixed   */
-  /* pixel offset from the left). With the right anchor, the mat tracks */
-  /* the stage's right rail as the stage shrinks — the gap between      */
-  /* AboutCard (anchored at `left: 0`) and the mat closes naturally on   */
-  /* narrower viewports instead of the mat drifting past the rail.       */
-  right: 0;
-  top: 24px;
-  width: 688px;
-  border: 2px solid var(--mint-100);
-  padding: 0;
-  padding-bottom: var(--space-48);
-  min-height: 958px;
+  position: relative;
+  width: 100%;
+  /* Sibling framing — the third framed sheet alongside the landing's framed
+     sheet and the /all invitation card. Thin pale `mint-100` 2px rule; the
+     framed-sheet read comes from the two-layer lift shadow (siblings'
+     geometry/opacity, green-tinted), not a heavy border. (Deep mint-720 and a
+     thicker band were both tried and rejected — keep the soft thin frame.) */
+  border: calc(1 * var(--bu)) solid var(--mint-100);
+  box-shadow:
+    0 2px 5px rgba(10, 48, 24, 0.10),
+    0 18px 40px -12px rgba(10, 48, 24, 0.28);
+  /* Collapsed floor = 3:4 (688 × 4/3 = 917), scaled on --bu. Content beyond the
+     floor grows the mat DOWN (expanded children); height is content-driven. */
+  min-height: calc(917 * var(--bu));
   transition: min-height var(--dur-settle) var(--ease-paper);
 }
 
-.selected-mat--archive-open {
-  min-height: 1238px;
-}
 
-
-/* ── Timeline ───────────────────────────────────────────────────────────── */
+/* ── Timeline (flow grid) ───────────────────────────────────────────────── */
+/* The timeline is a flowing column of blocks inside the mat: a cap, dot
+   clusters, two project GROUPS (each a rail column + cards column), and the
+   nameplates. Every size is `calc(N * var(--bu))` so the whole thing scales
+   with the sheet. The rail width (--rail-w) carries the year-label gutter +
+   the bar; the spine bar sits at its right edge, the cards begin after a gap. */
 
 .selected-tl {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+  --rail-w: calc(148 * var(--bu));      /* year gutter + bar offset */
+  --rail-gap: calc(16 * var(--bu));     /* rail → cards */
+  --card-w: calc(408 * var(--bu));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Generous top/bottom inset matching the live timeline (the sheet runs a touch
+     past 3:4 collapsed — accepted for the breathing room). */
+  padding: calc(56 * var(--bu)) 0 calc(48 * var(--bu));
+  gap: calc(10 * var(--bu));
 }
 
-/* Now dot — shape varies by time of day. The 16×16 box is constant so the
-   timeline alignment is fixed; what changes is what gets painted inside.
-   Morning: clip to a top-half dome (sun above horizon).
-   Afternoon: full disk (sun overhead).
-   Evening: a same-color pseudo-element offset to the top-right carves a
-   bite out of the disk, leaving a crescent opening to the bottom-left.
-   The carve paints in --mat-bg so it dissolves into the mat surface. */
+/* ── Cap — the living "Now" ─────────────────────────────────────────────── */
+/* Dot in the rail, "Now" label tucked to its left, greeting to its right. */
+.selected-tl__cap {
+  display: grid;
+  grid-template-columns: var(--rail-w) auto;
+  align-items: center;
+  column-gap: calc(20 * var(--bu));
+  width: 100%;
+}
+.selected-tl__cap-rail {
+  position: relative;
+  justify-self: end;
+  width: calc(16 * var(--bu));
+  height: calc(16 * var(--bu));
+  /* Centre the 16-wide Now dot on the 4-wide spine line (bars sit at the rail's
+     right edge, centred at rail-w − 2). Shift right by (8 − 2) so the dot's
+     CENTRE lands on the spine, not its right edge. */
+  margin-right: calc(-6 * var(--bu));
+}
+
+/* Now dot — shape varies by time of day. The box is constant so the rail
+   alignment is fixed; what changes is what gets painted inside.
+   Morning: clip to a top-half dome. Afternoon: full disk. Evening: a
+   same-color pseudo carves a crescent (painted in --mat-bg so it dissolves
+   into the mat surface). */
 .selected-tl__dot {
   position: absolute;
-  left: 143px;
-  top: 64px;
-  width: 16px;
-  height: 16px;
+  inset: 0;
   background: var(--yellow-240);
-  border-radius: 8px;
+  border-radius: 50%;
 }
 
 .selected-tl__dot--morning {
@@ -109,26 +135,21 @@
 .selected-tl__dot--evening::before {
   content: '';
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 14px;
-  height: 14px;
+  top: -12.5%;
+  right: -12.5%;
+  width: 87.5%;
+  height: 87.5%;
   border-radius: 50%;
   background: var(--mat-bg);
 }
 
-/* Living "Now" pulse — an expanding, fading amber ring on the dot, signalling
-   the timeline is anchored in the present. A separate element (not a pseudo)
-   so it never collides with the dot's morning clip-path / evening crescent.
-   Sits at the dot's box, behind it, non-interactive. The delay lets the dot's
-   entrance pop land first. Disabled under reduced-motion (route block below). */
+/* Living "Now" pulse — an expanding, fading amber ring on the dot. A separate
+   element (not a pseudo) so it never collides with the dot's clip-path /
+   crescent. Disabled under reduced-motion (route block below). */
 .selected-tl__pulse {
   position: absolute;
-  left: 143px;
-  top: 64px;
-  width: 16px;
-  height: 16px;
-  border-radius: 8px;
+  inset: 0;
+  border-radius: 50%;
   pointer-events: none;
   z-index: -1;
   animation: now-pulse 2.6s var(--ease-paper) 0.7s infinite;
@@ -148,12 +169,13 @@
 }
 
 .selected-tl__label-now {
+  /* Tucked left of the dot, in the rail's year-label gutter. */
   position: absolute;
-  left: 139px;
-  top: 72px;
-  transform: translate(-100%, -50%);
+  right: calc(100% + var(--space-4));
+  top: 50%;
+  transform: translateY(-50%);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: calc(10 * var(--bu));
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--yellow-720);
@@ -164,68 +186,170 @@
 
 .selected-tl__greeting {
   /* Typography from .t-h5 (applied via JSX). */
-  position: absolute;
-  left: 163px;
-  top: 72px;
-  transform: translateY(-50%);
   color: var(--yellow-720);
   white-space: nowrap;
   line-height: 1;
 }
 
-/* Dot clusters */
+/* ── Dot clusters ───────────────────────────────────────────────────────── */
+/* Even-gap flex column, sat in the rail at the bar's x (offset to align with
+   the spine: 148 − the cap dot is centred at 148, the cluster too). */
 .selected-tl__dots {
-  position: absolute;
-  left: 148px;
-  width: 4px;
+  width: var(--rail-w);
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  align-items: flex-end;   /* sit ON the spine (rail right edge), matching the bars */
+  gap: calc(8 * var(--bu));
 }
-
-.selected-tl__dots--top       { top: 92px; }
-.selected-tl__dots--bot       { top: 512px; }   /* Biconomy → Slangbusters */
-.selected-tl__dots--nameplate { top: 782px; }   /* Slangbusters → nameplates */
 
 .selected-tl__dots span {
   display: block;
-  width: 4px;
-  height: 2px;
+  width: calc(4 * var(--bu));
+  height: calc(2 * var(--bu));
   background: var(--grey-720);
   border-radius: 8px;
   flex-shrink: 0;
 }
 
-/* Timeline bars */
+/* ── Project groups (rail + cards) ──────────────────────────────────────── */
+/* The BLUE group is a 2-ROW × 2-COL grid. Bars + years + cards are DIRECT grid
+   items (no rail/cards wrapper cells): the cards live in col 2 (one per row),
+   and the bars are col-1 items that `align-self: stretch` to their card rows —
+   so each bar is EXACTLY as tall as its project, edges touching the card. The
+   MINT group is a relative wrapper of flow ROWS (parent + each child), each row
+   a 2-col rail+cards grid; the mint spine is one absolute bar over the wrapper,
+   grown to span the children when they mount. */
+.selected-tl__group--blue {
+  display: grid;
+  grid-template-columns: var(--rail-w) var(--card-w);
+  grid-auto-rows: auto;
+  row-gap: calc(22 * var(--bu));
+  column-gap: var(--rail-gap);
+  width: 100%;
+}
+.selected-tl__row {
+  display: grid;
+  grid-template-columns: var(--rail-w) var(--card-w);
+  column-gap: var(--rail-gap);
+  width: 100%;
+}
+
+.selected-tl__group--mint {
+  position: relative;   /* positioning context for the mint spine (spans the whole group) */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: calc(24 * var(--bu));   /* dropdown link → card breathing room */
+}
+
+/* The dropdown header aligns to the cards column (offset past the rail + gap). */
+.selected-tl__group--mint > .selected-tl__dropdown {
+  margin-left: calc(var(--rail-w) + var(--rail-gap));
+}
+
+/* Spine wrapper — the mint spine spans THIS box (card top → last child), not
+   the dropdown header above it. A flex column of the rail+card rows. */
+.selected-tl__mint-spinebox {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* No gap here — the children-wrap carries the inter-row + pre-card spacing
+     INSIDE its animated height, so the collapse fully closes with no end-jump
+     (a gap here would survive the height animation and snap on unmount). */
+  gap: 0;
+}
+
+/* Height-animated children wrapper — expand/collapse glides because the card
+   below, the mint spine, and the mat all follow this one flow change (CSS can't
+   transition height:auto; Framer animates it). overflow:hidden clips the rows as
+   the height closes. The gap-to-parent-card is a margin on the LAST child (not
+   padding): an explicit height:0 clips a child margin to true zero (no end-jump),
+   but at height:auto the flex box still includes it — so the last child's hover
+   hint sits in that margin and overflow:hidden never clips it. */
+.selected-tl__children-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: calc(40 * var(--bu));
+  overflow: hidden;
+}
+.selected-tl__children-wrap > :last-child {
+  margin-bottom: calc(40 * var(--bu));
+}
+
+.selected-tl__rail {
+  position: relative;
+  /* The spine sits at the rail's right edge (the year gutter is to its left). */
+}
+
+.selected-tl__cards {
+  display: flex;
+  flex-direction: column;
+  gap: calc(22 * var(--bu));
+  min-width: 0;
+}
+
+/* ── Bars (Biconomy group — grid items) ─────────────────────────────────── */
+/* Bars are grid items in col 1, pinned to the rail's right edge (the spine x)
+   via justify-self:end, and align-self:stretch so they're EXACTLY as tall as
+   their card row(s). They grow via scaleY on entrance (transform-origin top
+   center). Width is the 4·--bu spine. */
+.selected-tl__bar-blue,
+.selected-tl__bar-yellow {
+  grid-column: 1;
+  justify-self: end;
+  align-self: stretch;
+  width: calc(4 * var(--bu));
+  transform-origin: top center;
+}
+
+/* Blue bar — spans BOTH rows (Rug Rumble top → Biconomy bottom). */
 .selected-tl__bar-blue {
-  position: absolute;
-  left: 148px;
-  top: 126px;
-  width: 4px;
-  height: 374px;
+  grid-row: 1 / 3;
   background: var(--blue-80);
   border: 1px solid var(--blue-800);
-  transform-origin: top center;
 }
 
+/* Yellow bar — Rug Rumble is a brief project NESTED in the Biconomy span, so its
+   bar is a SHORT segment (not the full card height), sat at the role-row level
+   next to the Q4•25 label. align-self:end + a short fixed height (overrides the
+   shared align-self:stretch above). */
 .selected-tl__bar-yellow {
-  position: absolute;
-  left: 148px;
-  top: 256px;
-  width: 4px;
-  height: 46px;
+  grid-row: 1;
+  align-self: end;
+  height: calc(46 * var(--bu));
+  margin-bottom: calc(8 * var(--bu));
   background: var(--yellow-100);
   border: 1px solid var(--yellow-800);
-  transform-origin: top center;
 }
 
-/* Year labels */
-.selected-tl__year {
+/* Cards — col 2, one per row. */
+.selected-tl__group--blue > .selected-card-terra { grid-column: 2; grid-row: 1; }
+.selected-tl__group--blue > .selected-card-blue  { grid-column: 2; grid-row: 2; }
+
+/* Mint bar — one absolute spine over the whole mint group wrapper. Pinned to
+   the spine x (rail width from the left), inset top/bottom; grows to span the
+   children naturally as they mount (the wrapper reflows, the bottom follows). */
+.selected-tl__bar-mint {
   position: absolute;
-  left: 144px;
-  transform: translate(-100%, -50%);
+  left: calc(var(--rail-w) - calc(4 * var(--bu)));
+  /* Touch the Slangbusters card top and the last item's bottom (spinebox spans
+     card → last child); the parent span covers its nested children. */
+  top: 0;
+  bottom: 0;
+  width: calc(4 * var(--bu));
+  transform-origin: top center;
+  background: var(--mint-80);
+  border: 1px solid var(--mint-960);
+}
+
+/* ── Year labels ────────────────────────────────────────────────────────── */
+/* Base type. In the BLUE group years are grid items in col 1 (placed below);
+   in the MINT rail (parent + children) they're absolute within the rail. The
+   year tucks LEFT of the 4-wide spine via a right gutter. */
+.selected-tl__year {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: calc(10 * var(--bu));
   font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--blue-800);
@@ -234,37 +358,70 @@
   white-space: nowrap;
 }
 
-.selected-tl__year--2025  { top: 136px; }
-.selected-tl__year--q425  { top: 280px; color: var(--yellow-800); }
-.selected-tl__year--23    { top: 478px; }
+/* Biconomy years — grid items in col 1, tucked left of the spine
+   (justify-self:end → right edge at the spine x, then a margin clears the bar).
+   2025 sits at the Rug Rumble card TOP (the recent end / blue-bar top); Q4•25 at
+   the Rug Rumble ROLE ROW; 23 at the Biconomy ROLE ROW. The role row is the
+   card footer near the bottom, so align-self:end + a small lift lands on it. */
+.selected-tl__group--blue > .selected-tl__year {
+  grid-column: 1;
+  justify-self: end;
+  margin-right: calc(8 * var(--bu));   /* clear of the 4-wide spine */
+  z-index: 1;
+}
+.selected-tl__year--2025 {
+  grid-row: 1;
+  align-self: start;
+  margin-top: calc(20 * var(--bu));    /* ≈ the title cap-height, the card top */
+}
+.selected-tl__year--q425 {
+  grid-row: 1;
+  align-self: end;
+  margin-bottom: calc(22 * var(--bu)); /* ≈ the role-row line from the card bottom */
+  color: var(--yellow-800);
+}
+.selected-tl__year--23 {
+  grid-row: 2;
+  align-self: end;
+  margin-bottom: calc(22 * var(--bu)); /* ≈ the role-row line from the card bottom */
+}
+
+/* Mint rail years — absolute within the parent row's rail (positioning ctx).
+   slang-top at the mint card TOP, slang-bot at its ROLE ROW (card bottom-ish);
+   child years centre on their row (top:50% set in the child block below). */
+.selected-tl__year--slang-top,
+.selected-tl__year--sb-aleyr,
+.selected-tl__year--sb-eco,
+.selected-tl__year--sb-code {
+  position: absolute;
+  right: calc(8 * var(--bu));
+  transform: translateY(-50%);
+}
+.selected-tl__year--slang-bot {
+  position: absolute;
+  right: calc(8 * var(--bu));
+  bottom: calc(22 * var(--bu));   /* ≈ the role-row line from the card bottom */
+}
+.selected-tl__year--slang-top { top: calc(20 * var(--bu)); color: var(--mint-800); }
+.selected-tl__year--slang-bot { color: var(--mint-800); }
 
 
 /* ── Project cards ──────────────────────────────────────────────────────── */
-
-.selected-card-terra {
-  position: absolute;
-  left: 164px;
-  top: 126px;
-  pointer-events: auto;
-}
-
-.selected-card-blue {
-  position: absolute;
-  left: 164px;
-  top: 324px;
-  pointer-events: auto;
-}
-
+/* Content-driven height (no fixed px); constant width; the body wraps and the
+   card grows. Internal layout is flow (title → body → divider → footer), not
+   absolute, so it sizes to its copy. */
 .project-card {
   position: relative;
-  width: 408px;
-  height: 176px;
+  width: var(--card-w);
   border-width: 1px;
   border-style: solid;
   flex-shrink: 0;
   overflow: hidden;
   text-decoration: none;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  padding: calc(16 * var(--bu));
+  pointer-events: auto;
   transition: box-shadow var(--dur-slide) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
 }
 
@@ -293,38 +450,32 @@
 }
 
 .project-card__title {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 308px;
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: calc(24 * var(--bu));
   font-weight: 400;
   letter-spacing: -0.72px;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   line-height: 1.2;
+  max-width: calc(308 * var(--bu));
 }
 .project-card--terra .project-card__title { color: var(--terra-720); }
 .project-card--blue  .project-card__title { color: var(--blue-800); }
 
 .project-card__body {
-  position: absolute;
-  top: 88px;
-  left: 16px;
+  margin-top: calc(12 * var(--bu));
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: calc(12 * var(--bu));
   font-weight: 500;
   letter-spacing: -0.12px;
   line-height: 1.2;
 }
-.project-card--terra .project-card__body { color: var(--terra-720); width: 304px; }
-.project-card--blue  .project-card__body { color: var(--blue-800); width: 244px; }
+.project-card--terra .project-card__body { color: var(--terra-720); max-width: calc(304 * var(--bu)); }
+.project-card--blue  .project-card__body { color: var(--blue-800); max-width: calc(244 * var(--bu)); }
 
 .project-card__divider {
-  position: absolute;
-  top: 136px;
-  left: 16px;
-  width: 376px;
+  margin-top: calc(16 * var(--bu));
+  width: calc(376 * var(--bu));
+  max-width: 100%;
   height: 1px;
   opacity: 0.35;
 }
@@ -332,9 +483,7 @@
 .project-card--blue  .project-card__divider { background: var(--blue-800); }
 
 .project-card__footer {
-  position: absolute;
-  top: 144px;
-  left: 16px;
+  margin-top: calc(8 * var(--bu));
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -365,17 +514,9 @@
 }
 
 /* Illustrations — wrapped in <Sticker> for the family treatment (drop
-   shadow + hover lift). Sticker owns the rotation via `tilt`, so the
-   per-instance transform is set inline via --sticker-tilt rather than
-   on these positional classes. The illustrations stay interactive (no
-   pointer-events: none) so the sticker can receive hover; click events
-   bubble up to the parent <Link>.
-
-   Card-hover lift: hovering anywhere on the card (not just the sticker)
-   should trigger the sticker's lift, so the sticker reads as part of
-   the card's hover personality, not a separate hit zone. The card also
-   sets --sticker-jitter on pointerenter (see ProjectCard.tsx) for a
-   per-hover ±1° random offset that composes with the resting tilt. */
+   shadow + hover lift). Sticker owns the rotation via `tilt`. They sit
+   ABSOLUTELY over the flowing card body (the card is the positioning
+   context), so they don't disturb the content-driven height. */
 .project-card__illus {
   position: absolute;
 }
@@ -386,10 +527,10 @@
 }
 
 .project-card__illus--hov {
-  top: 20px;
-  right: 58px;
-  width: 27px;
-  height: 31px;
+  top: calc(20 * var(--bu));
+  right: calc(58 * var(--bu));
+  width: calc(27 * var(--bu));
+  height: calc(31 * var(--bu));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -399,13 +540,12 @@
 }
 
 /* Decorative sticker on the Biconomy (blue) card — hand-drawn paper-roll
-   illustration sitting in the empty space right of the body copy and
-   above the divider. Tilt comes from the Sticker `tilt` prop. */
+   illustration sitting in the empty space right of the body copy. */
 .project-card__illus--paperroll {
-  top: 60px;
-  right: 12px;
-  width: 120px;
-  height: 65px;
+  top: calc(60 * var(--bu));
+  right: calc(12 * var(--bu));
+  width: calc(120 * var(--bu));
+  height: calc(65 * var(--bu));
   transform-origin: bottom right;
 }
 
@@ -416,14 +556,13 @@
   display: block;
 }
 
-/* Mint variant (Slangbusters) — external link. Longer title, so the body
-   sits lower and runs full width. */
+/* Mint variant (Slangbusters) — external link. Longer title, full-width body. */
 .project-card--mint {
   background: var(--mint-100);
   border-color: var(--mint-800);
 }
-.project-card--mint .project-card__title  { color: var(--mint-800); width: 300px; }
-.project-card--mint .project-card__body   { color: var(--mint-800); top: 106px; width: 376px; }
+.project-card--mint .project-card__title  { color: var(--mint-800); max-width: calc(300 * var(--bu)); }
+.project-card--mint .project-card__body   { color: var(--mint-800); max-width: calc(376 * var(--bu)); }
 .project-card--mint .project-card__divider { background: var(--mint-800); }
 .project-card--mint .project-card__role   { color: var(--mint-800); }
 .project-card--mint .project-card__arrow  { color: var(--mint-800); }
@@ -433,31 +572,40 @@
 .project-card__arrow--ext .icon-ext-arrow {
   transition: translate var(--dur-slide) var(--ease-paper);
 }
-.project-card--mint[data-armed="true"]:hover .project-card__arrow--ext .icon-ext-arrow {
+.project-card[data-armed="true"]:hover .project-card__arrow--ext .icon-ext-arrow {
   translate: 2px -2px;
 }
 
 /* Startooth sparkle sticker — mint fill, white offset rim. */
 .project-card__illus--star {
-  top: 18px;
-  right: 50px;
-  width: 32px;
-  height: 32px;
+  top: calc(18 * var(--bu));
+  right: calc(50 * var(--bu));
+  width: calc(32 * var(--bu));
+  height: calc(32 * var(--bu));
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: visible;
 }
 
-/* "opens in new tab" hint — sibling below the mint card (the card's own
-   overflow:hidden would clip it), revealed on card hover. Neutral grey shell,
-   mint ink — same family treatment as the case-study hints. */
+/* "opens in new tab" hint — sibling below the card (the card's overflow:hidden
+   would clip it), revealed on card hover. Neutral grey shell, themed ink. */
+/* The mint card wrapper is the positioning context for its (now absolute) hint,
+   and — since the hint is out of flow — the wrapper's height equals the visible
+   card, so the mint spine's bottom lands on the card, not below it. */
+.selected-card-mint { position: relative; }
+
 .project-card__hint {
-  display: block;
+  /* Out of flow — revealed BELOW the card on hover. In flow it inflated the
+     card wrapper (the mint spine tracks the wrapper bottom), so the bar
+     overshot the visible card by the hint's height. */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: calc(4 * var(--bu));
   width: fit-content;
-  margin-top: var(--space-8);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: calc(10 * var(--bu));
   letter-spacing: 0.02em;
   line-height: 1;
   padding: 3px 6px;
@@ -476,111 +624,115 @@
 }
 
 
-/* ── Nameplates ─────────────────────────────────────────────────────────── */
-/* Individual positioned markers with dot clusters between them, maintaining  */
-/* the same vertical rhythm as the upper timeline.                          */
+/* ── Compact cards (Slangbusters case studies) ──────────────────────────── */
+/* The three children fold into ProjectCard as `compact`: title + role + the
+   external arrow + the hint pill. Smaller, simpler, borrowing the card's
+   title/role typography. External links. */
+.project-card--compact {
+  width: calc(300 * var(--bu));
+  /* Plain text entry — NOT a card (the sub-projects have no surface, per the
+     original). No background/border; aligns to the cards column. */
+  padding: calc(2 * var(--bu)) 0;
+  background: transparent;
+  border: none;
+  overflow: visible;
+  gap: 0;
+}
+/* No divider on the plain-text entries (title → role only). */
+.project-card--compact .project-card__divider { display: none; }
+.project-card--compact:hover,
+.project-card--compact:active { box-shadow: none; }
+.project-card--compact[data-armed="true"]:hover { box-shadow: none; }
 
-.selected-nameplate {
+.project-card--compact .project-card__title {
+  font-family: var(--font-body);
+  font-size: calc(14 * var(--bu));
+  font-weight: 500;
+  letter-spacing: -0.28px;
+  font-variation-settings: normal;
+  color: var(--grey-320);
+  line-height: 1.2;
+  max-width: none;
+}
+.project-card--compact .project-card__divider {
+  margin-top: calc(8 * var(--bu));
+  width: 100%;
+  opacity: 0.25;
+}
+/* (sub-projects are plain text — no surface/border) */
+
+.project-card--compact .project-card__footer { margin-top: calc(8 * var(--bu)); }
+.project-card--aleyr .project-card__role,
+.project-card--aleyr .project-card__arrow { color: var(--aleyr-800); }
+.project-card--eco   .project-card__role,
+.project-card--eco   .project-card__arrow { color: var(--ecochain-800); }
+.project-card--code  .project-card__role,
+.project-card--code  .project-card__arrow { color: var(--codezeros-800); }
+
+/* Out of flow so the hidden hint doesn't pad every compact card's height
+   (it was making each child ~20px taller / the whole stack sprawl). Revealed
+   below the card on hover. */
+.project-card--compact .project-card__hint {
+  /* Stays OUT OF FLOW (inherits the base absolute) — in flow it inflated each
+     row and the mint spine (which tracks the card bottom) overshot, AND a
+     max-height reveal animates jerkily. The spatial "react to each other" is a
+     contained transform repel below, NOT a flow push. */
+  left: calc(14 * var(--bu));
+  margin-top: calc(2 * var(--bu));
+}
+
+/* The case-study external-link glyph is smaller than the main cards' (matches live). */
+.project-card--compact .project-card__arrow {
+  width: calc(14 * var(--bu));
+  height: calc(14 * var(--bu));
+}
+.project-card--aleyr .project-card__hint { color: var(--aleyr-800); }
+.project-card--eco   .project-card__hint { color: var(--ecochain-800); }
+.project-card--code  .project-card__hint { color: var(--codezeros-800); }
+
+/* The hint is a CHILD of the compact card (not a sibling) — reveal on the
+   card's own hover. */
+.project-card--compact[data-armed="true"]:hover .project-card__hint {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* Child bars + years — each child is its own rail+card row, so the bar/year
+   sit in that row's rail, naturally aligned to the compact card. The bar is a
+   short segment on the spine, vertically centred on the row; the year tucks
+   left of it. (The continuous mint spine sits BEHIND these — they read as the
+   per-child colour over the parent mint line.) */
+/* Child bar — a SHORT segment on the continuous mint spine (the per-child colour
+   over the parent mint line), vertically centred on its row. Centred via `top`
+   (not a transform) so the scaleY entrance — transform-origin top — is clean. */
+.selected-tl__bar-sb {
   position: absolute;
-  left: 133px;
-  pointer-events: auto;
-}
-
-/* Below the Slangbusters stack. Marks and Symbols Made sits ABOVE Names
-   Coined (§2a swap). Both shift down by 280px when the dropdown is open
-   (see the Slangbusters section's `--archive-open` shift rules). */
-.selected-nameplate--marks { top: 816px; }
-.selected-nameplate--names { top: 870px; }
-
-/* Single dot between the two nameplates */
-.selected-tl__dot-single {
-  position: absolute;
-  left: 148px;
-  width: 4px;
-  height: 2px;
-  background: var(--grey-720);
-  border-radius: 8px;
-}
-
-.selected-tl__dot-single--mid { top: 856px; }
-
-
-/* ── Timeline hover highlights ─────────────────────────────────────────── */
-/* Same pattern as archive: filter: opacity() to avoid Framer inline clash */
-
-.selected-tl > * {
-  transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
-}
-
-/* Hover-driven highlight cascade — gated by [data-armed="true"] on the
-   inner .project-card link (set by ProjectCard.tsx after the cursor
-   actually moves). Without the gate, the cascade fires on stale-mount
-   hover when the cursor lands on a card via navigation. */
-
-/* Dim all when any project card is hovered */
-.selected-tl:has(.project-card--terra[data-armed="true"]:hover) > *,
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) > *,
-.selected-tl:has(.project-card--mint[data-armed="true"]:hover) > * {
-  filter: opacity(0.35);
-}
-
-/* Terra (Rug Rumble) — highlight yellow bar + card + Q4•25 */
-.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-card-terra,
-.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow,
-.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__year--q425 {
-  filter: opacity(1);
-}
-.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow {
-  background: var(--yellow-240);
-}
-
-/* Blue (Biconomy) — highlight blue bar + card + years 2025 & 23 */
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-card-blue,
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue,
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--2025,
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--23 {
-  filter: opacity(1);
-}
-.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue {
-  background: var(--blue-160);
-}
-
-
-/* ── Slangbusters stack (mint — second parent) ──────────────────────────── */
-/* A tall parent bar (like Biconomy's blue) with three case studies nested
-   under it, collapsed behind the inline dropdown. The bar + lower timeline
-   grow/shift when the dropdown opens (see the `--archive-open` block below). */
-
-/* Mint bar — parent span. scaleY for entrance; height transition on open. */
-.selected-tl__bar-mint {
-  position: absolute;
-  left: 148px;
-  top: 546px;
-  width: 4px;
-  height: 224px;
-  background: var(--mint-80);
-  border: 1px solid var(--mint-960);
+  right: 0;
+  top: calc(50% - 28 * var(--bu));
   transform-origin: top center;
+  width: calc(4 * var(--bu));
+  height: calc(56 * var(--bu));
+  z-index: 1;
 }
+.selected-tl__bar-sb--aleyr { background: var(--aleyr-100);     border: 1px solid var(--aleyr-960); }
+.selected-tl__bar-sb--eco   { background: var(--ecochain-100);  border: 1px solid var(--ecochain-960); }
+.selected-tl__bar-sb--code  { background: var(--codezeros-100); border: 1px solid var(--codezeros-960); }
 
-/* Slangbusters years — 20 at the top of the span, 18 at the bottom. */
-.selected-tl__year--slang-top { top: 556px; color: var(--mint-800); }
-.selected-tl__year--slang-bot { top: 748px; color: var(--mint-800); }
-
-/* Slangbusters card */
-.selected-card-mint {
-  position: absolute;
-  left: 164px;
-  top: 594px;
-  pointer-events: auto;
+.selected-tl__year--sb-aleyr,
+.selected-tl__year--sb-eco,
+.selected-tl__year--sb-code {
+  top: 50%;
+  z-index: 1;
 }
+.selected-tl__year--sb-aleyr { color: var(--aleyr-800); }
+.selected-tl__year--sb-eco   { color: var(--ecochain-800); }
+.selected-tl__year--sb-code  { color: var(--codezeros-800); }
 
-/* Inline dropdown header — plain text button on the mint spine (not a
+
+/* ── Inline dropdown header ─────────────────────────────────────────────── */
+/* Plain text button at the top of the Slangbusters cards column (not a
    NavMarker). Toggles the nested case studies + the mat growth. */
 .selected-tl__dropdown {
-  position: absolute;
-  left: 166px;
-  top: 550px;
   pointer-events: auto;
 }
 .selected-tl__dropdown-btn {
@@ -595,7 +747,7 @@
 }
 .selected-tl__dropdown-label {
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: calc(12 * var(--bu));
   font-weight: 720;
   font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
   letter-spacing: -0.24px;
@@ -607,7 +759,7 @@
   white-space: nowrap;
 }
 .selected-tl__dropdown-chevron {
-  font-size: 18px;
+  font-size: calc(18 * var(--bu));
   line-height: 1;
   color: var(--mint-800);
   flex-shrink: 0;
@@ -617,149 +769,76 @@
   transform: rotate(180deg);
 }
 
-/* Nested child bars (Aleyr / Ecochain / Codezeros) — short bars on the mint
-   spine. Resting fill is the pale `-100` tint so the bar stays legible;
-   hover saturates to `-240`. */
-.selected-tl__bar-sb {
-  position: absolute;
-  left: 148px;
-  width: 4px;
-  height: 56px;
-  transform-origin: top center;
-}
-.selected-tl__bar-sb--aleyr { top: 590px; background: var(--aleyr-100);     border: 1px solid var(--aleyr-960); }
-.selected-tl__bar-sb--eco   { top: 686px; background: var(--ecochain-100);  border: 1px solid var(--ecochain-960); }
-.selected-tl__bar-sb--code  { top: 782px; background: var(--codezeros-100); border: 1px solid var(--codezeros-960); }
 
-/* Child years — vertically centred on their bars. */
-.selected-tl__year--sb-aleyr { top: 618px; color: var(--aleyr-800); }
-.selected-tl__year--sb-eco   { top: 714px; color: var(--ecochain-800); }
-.selected-tl__year--sb-code  { top: 810px; color: var(--codezeros-800); }
-
-/* Child rows — reuse the case-entry treatment (title + meta + external link +
-   hint pill), positioned on the mint spine. Only mounted when expanded. */
-.sb-case {
-  position: absolute;
-  left: 166px;
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  text-decoration: none;
+/* ── Nameplates ─────────────────────────────────────────────────────────── */
+/* In flow at the foot of the timeline, on the spine's x (the dot cluster above
+   leads into them). Dot-single sits between the two plates. */
+.selected-nameplate {
+  margin-left: calc(133 * var(--bu));
   pointer-events: auto;
-  translate: 0 0;
-}
-.sb-case--aleyr { top: 590px; }
-.sb-case--eco   { top: 686px; }
-.sb-case--code  { top: 782px; }
-
-.sb-case__title {
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.28px;
-  color: var(--grey-320);
-  line-height: 1.2;
-  height: 36px;
 }
 
-.sb-case__meta {
-  /* Typography from .t-h5 (applied via JSX). */
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-}
-.sb-case--aleyr .sb-case__meta { color: var(--aleyr-800); }
-.sb-case--eco   .sb-case__meta { color: var(--ecochain-800); }
-.sb-case--code  .sb-case__meta { color: var(--codezeros-800); }
-
-.sb-case__meta .icon-ext {
-  flex-shrink: 0;
-  margin-left: var(--space-4);
-}
-.sb-case__meta .icon-ext .icon-ext-arrow {
-  transition: translate var(--dur-slide) var(--ease-paper);
-}
-a.sb-case:hover .icon-ext .icon-ext-arrow {
-  translate: 2px -2px;
-}
-
-/* Dissolving underline on hover */
-.sb-case__meta span:first-child {
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 2px;
-  transition: text-decoration-color var(--dur-slide) var(--ease-paper);
-}
-a.sb-case:hover .sb-case__meta span:first-child {
-  text-decoration-color: currentColor;
-}
-
-/* "opens in new tab" hint — hidden, slides in on row hover. Neutral shell,
-   themed ink (same family treatment as the mint card hint). */
-.sb-case__hint {
-  width: fit-content;
-  margin-top: var(--space-4);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  padding: 3px 6px;
-  border: 1px solid var(--grey-880);
-  border-radius: 4px;
-  background: var(--grey-960);
-  opacity: 0;
-  translate: 0 -4px;
-  pointer-events: none;
-  transition: opacity var(--dur-slide) var(--ease-paper), translate var(--dur-slide) var(--ease-paper);
-}
-.sb-case--aleyr .sb-case__hint { color: var(--aleyr-800); }
-.sb-case--eco   .sb-case__hint { color: var(--ecochain-800); }
-.sb-case--code  .sb-case__hint { color: var(--codezeros-800); }
-a.sb-case:hover .sb-case__hint {
-  opacity: 1;
-  translate: 0 0;
+.selected-tl__dot-single {
+  width: calc(4 * var(--bu));
+  height: calc(2 * var(--bu));
+  margin-left: calc(146 * var(--bu));   /* centre the dot on the spine */
+  background: var(--grey-720);
+  border-radius: 8px;
 }
 
 
-/* ── Expand: grow + shift ───────────────────────────────────────────────── */
-/* The mint bar's height and the lower timeline's `top`s animate together with
-   the mat's min-height when the dropdown opens, all on --dur-settle. These
-   override the filter/background-only transition from `.selected-tl > *`. */
-.selected-card-mint,
-.selected-tl__year--slang-bot,
-.selected-tl__dots--nameplate,
-.selected-nameplate--marks,
-.selected-tl__dot-single--mid,
-.selected-nameplate--names {
-  transition: filter var(--dur-slide) var(--ease-paper),
-              background var(--dur-slide) var(--ease-paper),
-              top var(--dur-settle) var(--ease-paper);
-}
-.selected-tl__bar-mint {
-  transition: filter var(--dur-slide) var(--ease-paper),
-              background var(--dur-slide) var(--ease-paper),
-              height var(--dur-settle) var(--ease-paper);
-}
-.sb-case {
-  transition: filter var(--dur-slide) var(--ease-paper),
-              translate var(--dur-slide) var(--ease-paper);
+/* ── Timeline hover highlights ─────────────────────────────────────────── */
+/* When a MAIN project card is hovered, dim every LEAF timeline element, then
+   re-light the hovered project's own card + bar + years. CRITICAL: dim and
+   re-light hit the SAME elements (the leaves themselves), NEVER a wrapper —
+   `filter:opacity()` on an ancestor COMPOUNDS with its descendants, so a
+   group-level dim would trap a re-lit child at 0.35 (that was the bug: a hovered
+   card stayed dimmed because its group carried the dim). `filter:opacity()` not
+   `opacity` so Framer's inline opacity can't clash. Gated on `data-armed`. */
+.selected-tl__cap,
+.selected-tl__dots,
+.selected-tl__dot-single,
+.selected-nameplate,
+.selected-tl__dropdown,
+.project-card,
+.selected-tl__bar-blue,
+.selected-tl__bar-yellow,
+.selected-tl__bar-mint,
+.selected-tl__year {
+  transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
 }
 
-/* Open state — mint bar grows 224→504; card + lower timeline shift down 280px. */
-.selected-mat--archive-open .selected-tl__bar-mint        { height: 504px; }
-.selected-mat--archive-open .selected-card-mint           { top: 874px; }
-.selected-mat--archive-open .selected-tl__year--slang-bot { top: 1028px; }
-.selected-mat--archive-open .selected-tl__dots--nameplate { top: 1062px; }
-.selected-mat--archive-open .selected-nameplate--marks    { top: 1096px; }
-.selected-mat--archive-open .selected-tl__dot-single--mid { top: 1136px; }
-.selected-mat--archive-open .selected-nameplate--names    { top: 1150px; }
+/* Base dim — any of the three main cards hovered → every leaf to 0.35. */
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover, .project-card--blue[data-armed="true"]:hover, .project-card--mint[data-armed="true"]:hover) :is(
+  .selected-tl__cap, .selected-tl__dots, .selected-tl__dot-single, .selected-nameplate,
+  .selected-tl__dropdown, .project-card, .selected-tl__bar-blue, .selected-tl__bar-yellow,
+  .selected-tl__bar-mint, .selected-tl__year
+) {
+  filter: opacity(0.35);
+}
 
+/* Re-light the hovered project's own card + bar + years (same elements as the
+   base dim → equal specificity, win by coming LATER in the file). */
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .project-card--terra,
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow,
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__year--q425 {
+  filter: opacity(1);
+}
+.selected-tl:has(.project-card--terra[data-armed="true"]:hover) .selected-tl__bar-yellow {
+  background: var(--yellow-240);
+}
 
-/* ── Mint card hover ────────────────────────────────────────────────────── */
-/* Light the Slangbusters group (card + mint bar + years 20 & 18). The
-   dim-all rule above already drops the rest to opacity(0.35). */
-.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-card-mint,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .project-card--blue,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--2025,
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__year--23 {
+  filter: opacity(1);
+}
+.selected-tl:has(.project-card--blue[data-armed="true"]:hover) .selected-tl__bar-blue {
+  background: var(--blue-160);
+}
+
+.selected-tl:has(.project-card--mint[data-armed="true"]:hover) .project-card--mint,
 .selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__bar-mint,
 .selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__year--slang-top,
 .selected-tl:has(.project-card--mint[data-armed="true"]:hover) .selected-tl__year--slang-bot {
@@ -771,41 +850,69 @@ a.sb-case:hover .sb-case__hint {
 
 
 /* ── Nested child hover ─────────────────────────────────────────────────── */
-/* Dim the OTHER children's rows + bars + years; light the hovered row's bar
-   (saturate to -240) + its year + hint + arrow; push siblings ±4px. The mint
-   card and the rest of the timeline stay lit (only the children dim among
-   themselves). */
-.selected-tl:has(.sb-case--aleyr:hover) .sb-case--eco,
-.selected-tl:has(.sb-case--aleyr:hover) .sb-case--code,
-.selected-tl:has(.sb-case--eco:hover)   .sb-case--aleyr,
-.selected-tl:has(.sb-case--eco:hover)   .sb-case--code,
-.selected-tl:has(.sb-case--code:hover)  .sb-case--aleyr,
-.selected-tl:has(.sb-case--code:hover)  .sb-case--eco,
-.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--eco,
-.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--code,
-.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--aleyr,
-.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--code,
-.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--aleyr,
-.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--eco,
-.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__year--sb-eco,
-.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__year--sb-code,
-.selected-tl:has(.sb-case--eco:hover)   .selected-tl__year--sb-aleyr,
-.selected-tl:has(.sb-case--eco:hover)   .selected-tl__year--sb-code,
-.selected-tl:has(.sb-case--code:hover)  .selected-tl__year--sb-aleyr,
-.selected-tl:has(.sb-case--code:hover)  .selected-tl__year--sb-eco {
+/* Dim the OTHER children's cards + bars + years; light the hovered row's bar
+   (saturate to -240). Scoped to the mint group; the parent mint card stays lit. */
+/* The child rows + bars aren't in the main filter-transition list above, so their
+   dim/recolor would SNAP while the years (which are listed) fade. Give them the
+   same --dur-slide settle so the whole reaction glides as one. (Framer drives the
+   rows' entrance via inline transform/opacity — not filter/background — so this
+   CSS transition can't fight it.) */
+.selected-tl__row--child,
+.selected-tl__bar-sb {
+  transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
+}
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-card-sb--eco,
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-card-sb--code,
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-card-sb--aleyr,
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-card-sb--code,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-card-sb--aleyr,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-card-sb--eco,
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-tl__bar-sb--eco,
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-tl__bar-sb--code,
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-tl__bar-sb--aleyr,
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-tl__bar-sb--code,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-tl__bar-sb--aleyr,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-tl__bar-sb--eco,
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-tl__year--sb-eco,
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-tl__year--sb-code,
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-tl__year--sb-aleyr,
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-tl__year--sb-code,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-tl__year--sb-aleyr,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-tl__year--sb-eco {
   filter: opacity(0.35);
 }
-.selected-tl:has(.sb-case--aleyr:hover) .selected-tl__bar-sb--aleyr { background: var(--aleyr-240); }
-.selected-tl:has(.sb-case--eco:hover)   .selected-tl__bar-sb--eco   { background: var(--ecochain-240); }
-.selected-tl:has(.sb-case--code:hover)  .selected-tl__bar-sb--code  { background: var(--codezeros-240); }
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .selected-tl__bar-sb--aleyr { background: var(--aleyr-240); }
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover)   .selected-tl__bar-sb--eco   { background: var(--ecochain-240); }
+.selected-tl:has(.project-card--code[data-armed="true"]:hover)  .selected-tl__bar-sb--code  { background: var(--codezeros-240); }
 
-/* Push siblings apart on hover (translate — separate from Framer's transform). */
-.selected-tl:has(.sb-case--aleyr:hover) .sb-case--eco,
-.selected-tl:has(.sb-case--aleyr:hover) .sb-case--code  { translate: 0 4px; }
-.selected-tl:has(.sb-case--eco:hover)   .sb-case--aleyr { translate: 0 -4px; }
-.selected-tl:has(.sb-case--eco:hover)   .sb-case--code  { translate: 0 4px; }
-.selected-tl:has(.sb-case--code:hover)  .sb-case--aleyr,
-.selected-tl:has(.sb-case--code:hover)  .sb-case--eco   { translate: 0 -4px; }
+/* Spatial repel — the two un-hovered case studies ease AWAY from the hovered one
+   (one above drifts UP, ones below drift DOWN). The translate rides the CARD (a
+   non-motion <a>), NOT the row: Framer keeps a persistent inline transform on the
+   motion row, so a CSS transform there is silently overridden (the same inline-
+   style trap the file documents for opacity). The rail spine stays fixed; only the
+   text entries lean. Contained to the trio — the Slangbusters parent card and
+   everything else never move. Subtle (6·--bu).
+   The dim cascade above sets `transition: filter, background` on every `.project-card`
+   (no transform), so without this the 6px repel would SNAP. This higher-specificity
+   rule (0,2,0 > the 0,1,0 dim rule, and later) restores a --dur-slide transform
+   settle so the nudge glides. */
+.selected-tl .project-card--compact {
+  transition: transform var(--dur-slide) var(--ease-paper);
+}
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .project-card--eco,
+.selected-tl:has(.project-card--aleyr[data-armed="true"]:hover) .project-card--code {
+  transform: translateY(calc(6 * var(--bu)));
+}
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover) .project-card--aleyr {
+  transform: translateY(calc(-6 * var(--bu)));
+}
+.selected-tl:has(.project-card--eco[data-armed="true"]:hover) .project-card--code {
+  transform: translateY(calc(6 * var(--bu)));
+}
+.selected-tl:has(.project-card--code[data-armed="true"]:hover) .project-card--aleyr,
+.selected-tl:has(.project-card--code[data-armed="true"]:hover) .project-card--eco {
+  transform: translateY(calc(-6 * var(--bu)));
+}
 
 
 /* ==========================================================================

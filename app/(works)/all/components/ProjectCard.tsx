@@ -4,7 +4,12 @@
 // Variants: 'terra' (Rug Rumble) and 'blue' (Biconomy) link to internal
 // routes; 'mint' (Slangbusters) is an EXTERNAL link — it opens in a new tab,
 // swaps the forward chevron for the external-link icon, and reveals an
-// "opens in new tab" hint pill below the card on hover.
+// "opens in new tab" hint pill below the card on hover. The three Slangbusters
+// case studies (aleyr / eco / code) render as `compact` cards — same component,
+// a smaller title + role + external arrow + hint, external links too.
+//
+// Heights are CONTENT-DRIVEN (no fixed height) so the flow grid sizes each row
+// to its copy. Width is constant; the body wraps and the card grows.
 //
 // Stale-hover gate: arriving on /all with the cursor parked over a
 // card otherwise lets :hover fire on mount, which would trigger the
@@ -22,18 +27,24 @@ import IconChevronRight from '../../../components/icons/IconChevronRight'
 import IconExternalLink from '../../../components/icons/IconExternalLink'
 import Sticker from '../../../components/Sticker'
 
+type Variant = 'terra' | 'blue' | 'mint' | 'aleyr' | 'eco' | 'code'
+
 interface ProjectCardProps {
-  variant: 'terra' | 'blue' | 'mint'
+  variant: Variant
   title: string
-  body: string
   role: string
   href: string
+  body?: string
+  compact?: boolean
 }
 
-export default function ProjectCard({ variant, title, body, role, href }: ProjectCardProps) {
+// The Slangbusters case-study variants are always external + compact.
+const COMPACT_VARIANTS = new Set(['aleyr', 'eco', 'code'])
+
+export default function ProjectCard({ variant, title, body, role, href, compact = false }: ProjectCardProps) {
   const [armed, setArmed] = useState(false)
   const lastPosRef = useRef<{ x: number; y: number } | null>(null)
-  const external = variant === 'mint'
+  const external = variant === 'mint' || COMPACT_VARIANTS.has(variant)
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -67,6 +78,30 @@ export default function ProjectCard({ variant, title, body, role, href }: Projec
   const onCardLeave = useCallback((e: ReactPointerEvent<HTMLElement>) => {
     e.currentTarget.style.setProperty('--sticker-jitter', '0deg')
   }, [])
+
+  // Compact (Slangbusters case-study) cards: title + role + external arrow,
+  // no illustration, no body.
+  if (compact) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`project-card project-card--compact project-card--${variant}`}
+        data-armed={armed || undefined}
+        onPointerEnter={onCardEnter}
+        onPointerLeave={onCardLeave}
+      >
+        <h3 className="project-card__title">{title}</h3>
+        <div className="project-card__divider" />
+        <div className="project-card__footer">
+          <span className="project-card__role t-h5">{role}</span>
+          <IconExternalLink size={18} className="project-card__arrow project-card__arrow--ext" />
+        </div>
+        <span className="project-card__hint">opens in new tab</span>
+      </a>
+    )
+  }
 
   const inner = (
     <>
@@ -127,7 +162,7 @@ export default function ProjectCard({ variant, title, body, role, href }: Projec
       )}
 
       <h3 className="project-card__title">{title}</h3>
-      <p className="project-card__body">{body}</p>
+      {body && <p className="project-card__body">{body}</p>}
       <div className="project-card__divider" />
       <div className="project-card__footer">
         <span className="project-card__role t-h5">{role}</span>

@@ -135,6 +135,13 @@
   --space-104: 104px;
   --space-112: 112px;
 
+  /* ---- Sheet gutter ----------------------------------------------------
+     The minimum margin every framed sheet (landing 3:4 window, /all invitation
+     card, /all timeline mat) keeps between itself and the viewport edge, so a
+     sheet always reads as "placed on the desk", never bleeding to the edge.
+     Each sheet's width formula clamps to `100vw - 2 * --sheet-gutter`. */
+  --sheet-gutter: 32px;
+
   /* ---- Elevation ladder ------------------------------------------------
      Four restrained tiers for paper/object surfaces. Depth should come from
      surface + edge + spacing first; shadow is a tuning aid, not the primary

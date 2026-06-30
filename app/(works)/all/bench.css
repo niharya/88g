@@ -46,20 +46,51 @@
 
 /* ── Stage ──────────────────────────────────────────────────────────────── */
 .bench-stage {
-  /* One knob scales the whole broadside (card + ticket) as a faithful uniform
-     reduction — width scales too, so line-breaks are preserved and the authored
-     proportions hold. This is a real layout scale (crisp text, working dock), NOT
-     transform:scale (which would make the card the containing block for the fixed
-     docked ticket and break the navbar). Tune --card-scale, then adjust from there. */
-  --card-scale: 0.75;
-  --card-rhythm: calc(var(--space-40) * var(--card-scale));
+  /* The card is a 3:4 PAGE sized off viewport height, in PURE CSS — no JS knob.
+     --bench-card-w is a height-driven width (the landing framed-sheet idiom):
+     fill the viewport height at 3:4, floored so type stays legible on short
+     viewports (then you scroll), capped at 615 (today's full size) on tall
+     monitors, and clamped to the shared --sheet-gutter so it never touches the
+     edge. The card reads this as its width; everything INSIDE the card then
+     scales relative to that width via container-query units (see .bench-card
+     --bu) — so the whole broadside scales together with zero JS. CHROME 104 =
+     the exit marker + workbench padding the page leaves above/below.
+
+     The cap is RELATIVE (`min(80vw, 820px)`), not a fixed 615: on a portrait /
+     tablet screen (3:4, like an iPad) the card and the screen share the ratio,
+     so the card should nest as a concentric page leaving a CONSISTENT ~10%
+     margin each side at every size — a fixed 615px froze it small on bigger
+     iPads (Pro 12.9 fell to 60% of width). 80vw keeps the ~80% nesting; the
+     820px ceiling = the scale-1 baseline (--bu resolves to exactly 1px there, so
+     the card renders at its true authored size). This self-targets to portrait:
+     in landscape/desktop the height term (height ÷ 1.333) is always smaller than
+     80vw, so the proportional cap never binds there and only the ceiling can —
+     desktop is unchanged until a window taller than ~1197px svh, where the card
+     reaches full scale-1 size. */
+  --bench-card-w: min(
+    clamp(508px, calc((100svh - 104px) / 1.3333), min(80vw, 820px)),
+    calc(100vw - 2 * var(--sheet-gutter))
+  );
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: calc(820px * var(--card-scale));
+  max-width: var(--bench-card-w);
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  /* RELATIVE-MATH SPINE lives HERE, on the stage, not on .bench-card. The stage
+     has no border/padding, so its content box is exactly the card width
+     (--bench-card-w) — `cqi` resolves against that cleanly. Putting the container
+     on .bench-card instead is circular: cqi → content box → minus the card's own
+     cqi-based padding → feedback loop (resolves too small). --bu = "one baseline
+     pixel": 1px at the 820px scale-1 baseline as a fraction of the card width, so
+     every size inside is `calc(N * var(--bu))`. At the 615 cap, --bu = 0.75px (=
+     the old --card-scale 0.75) → today's render exactly; it scales proportionally
+     below. (inline-size containment does NOT trap the fixed docked ticket —
+     verified: it still pins to the viewport.) */
+  container-type: inline-size;
+  --bu: calc(100cqi / 820);
+  --card-rhythm: calc(40 * var(--bu));
 }
 
 /* ── +Nihar marker (top-left, in-flow above the card) ─────────────────────── */
@@ -80,6 +111,16 @@
   position: relative;
   overflow: hidden;
   width: 100%;
+  /* Locked 3:4 portrait — the sibling of the landing's framed sheet (which is a
+     3:4 window). Width = --bench-card-w (height-driven, pure CSS); height follows
+     the ratio. Flex column + __main flex:1 centres the stack, splitting the small
+     box-vs-content slack top/bottom.
+
+     Sizes inside use --bu ("baseline pixels", defined on .bench-stage) so the
+     whole broadside scales with the page in pure CSS — see the stage rule. */
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
   background-color: var(--blue-80);
   border: 4px solid var(--blue-800);
   box-shadow:
@@ -87,7 +128,7 @@
     0 18px 40px -12px rgba(20, 40, 80, 0.28);
   /* Uniform vertical rhythm: --card-rhythm between every element (and as the top
      inset). Horizontal padding scales with the card so the reduction stays faithful. */
-  padding: var(--card-rhythm) calc(var(--space-48) * var(--card-scale));
+  padding: var(--card-rhythm) calc(48 * var(--bu));
 }
 
 /* Engraved double-frame — inner keyline. */
@@ -104,7 +145,14 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: calc(780px * var(--card-scale));
+  /* flex:1 fills the 3:4 frame height; justify centres the stack so the page's
+     small box-vs-content slack splits evenly above the crown and below the
+     ticket, reading as balanced inner margins. The ticket slot keeps its space
+     when the ticket pins out (useBenchDock pins slot min-height), so docking
+     doesn't recentre the stack. */
+  flex: 1;
+  justify-content: center;
+  max-width: calc(780 * var(--bu));
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -119,16 +167,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--space-12) * var(--card-scale));
+  gap: calc(12 * var(--bu));
 }
 
 .bench-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--space-16) * var(--card-scale));
+  gap: calc(16 * var(--bu));
   width: 100%;
-  max-width: calc(460px * var(--card-scale));
+  max-width: calc(460 * var(--bu));
   margin: var(--card-rhythm) 0;
 }
 
@@ -139,21 +187,21 @@
 }
 /* Marks shrink with the rest of the card (the SVGs carry fixed 48px attrs;
    CSS dimensions override them so the compaction stays proportional). */
-.bench-mark svg { width: calc(var(--space-32) * var(--card-scale)); height: calc(var(--space-32) * var(--card-scale)); }
+.bench-mark svg { width: calc(32 * var(--bu)); height: calc(32 * var(--bu)); }
 /* The crown star carries more weight than the divider diamond — sized up. */
-.bench-crown .bench-mark svg { width: calc(var(--space-48) * var(--card-scale)); height: calc(var(--space-48) * var(--card-scale)); }
+.bench-crown .bench-mark svg { width: calc(48 * var(--bu)); height: calc(48 * var(--bu)); }
 /* Divider diamond matched to the crown star's WIDTH. Both glyph paths span the
    same x:10→90 fraction of an identical 0 0 100 100 viewBox, so an equal (square)
    svg box yields equal rendered width; the box stays square so preserveAspectRatio
    doesn't clamp it back. The diamond stays flat (path only fills y:30→70). */
-.bench-divider .bench-mark svg { width: calc(var(--space-48) * var(--card-scale)); height: calc(var(--space-48) * var(--card-scale)); }
+.bench-divider .bench-mark svg { width: calc(48 * var(--bu)); height: calc(48 * var(--bu)); }
 
 /* Fading hairline rules either side of a mark. The crown uses fixed 46px
    stubs; the divider uses flex:1 rules that fill the row. */
 .bench-rule {
   height: 1px;
 }
-.bench-crown .bench-rule { width: calc(var(--space-48) * var(--card-scale)); }
+.bench-crown .bench-rule { width: calc(48 * var(--bu)); }
 .bench-divider .bench-rule { flex: 1; }
 .bench-rule--l {
   background: linear-gradient(90deg, rgba(144, 200, 254, 0) 0%, var(--blue-320) 100%);
@@ -173,9 +221,9 @@
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   font-weight: 400;
   /* 24px display step, scaled with the card (line-height/letter-spacing track). */
-  font-size: calc(24px * var(--card-scale));
+  font-size: calc(24 * var(--bu));
   line-height: 1.3;
-  letter-spacing: calc(-0.4px * var(--card-scale));
+  letter-spacing: calc(-0.4 * var(--bu));
   text-wrap: balance;
   color: var(--blue-720);
   background-image: linear-gradient(
@@ -218,15 +266,16 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: calc(var(--space-12) * var(--card-scale));
+  gap: calc(12 * var(--bu));
   width: 100%;
-  max-width: calc(780px * var(--card-scale));
+  max-width: calc(780 * var(--bu));
   text-align: center;
 }
 
 .bench-closing__eyebrow {
   font-family: var(--font-mono), monospace;
-  font-size: calc(11px * var(--card-scale));
+  /* 10 at baseline — all blue-card mono unified to 10 (was 11). */
+  font-size: calc(10 * var(--bu));
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--blue-560);
@@ -235,7 +284,10 @@
 .bench-closing__line {
   margin: 0;
   font-family: var(--font-pinyon), cursive;
-  font-size: calc(clamp(28px, 3.2vw, 40px) * var(--card-scale));
+  /* The old clamp(28,3.2vw,40) carried the fluidity off the viewport; the card
+     now scales fluidly itself, so this collapses to the desktop-resolved 40
+     expressed in --bu (it shrinks with the page like everything else). */
+  font-size: calc(40 * var(--bu));
   line-height: 1.14;
   letter-spacing: 0.01em;
   color: var(--blue-720);
@@ -252,21 +304,28 @@
   padding: 108px 8px 80px;
 }
 
-/* Longform → Timeline (SelectedContent). The mat is position:absolute
-   (anchored right:0 width:688), so it needs a sized relative host — `.bench-cases`
-   recreates the old `.selected-layout` context, including the dropdown-open
-   growth. Heights mirror `.selected-mat` / `.selected-mat--archive-open` in
-   selected.css; keep the pair in sync. */
+/* Longform → Timeline (SelectedContent). The mat is now a FLOW sheet (CSS grid
+   rail + cards, no absolute coordinates), responsive on its own --tl-w baseline
+   688. `.bench-cases` carries the width + the --bu relative-math spine; the mat
+   fills it 100% and its height is content-driven (collapsed min-height floors a
+   3:4 sheet; expanding the dropdown grows it DOWN via natural reflow + a Framer
+   height settle — no hardcoded open height, no mirror).
+
+   --tl-w lands ~688 at 1440×900 and grows on bigger/taller screens (iPads),
+   never touching the edge via the shared --sheet-gutter. container-type +
+   --bu (= 1px at the 688 baseline) scale every size inside the mat with the
+   sheet (the same spine as the invitation card's --bu, baseline 688 here). */
 .bench-cases {
+  --tl-w: min(
+    clamp(540px, calc(100svh / 1.31), min(80vw, 820px)),
+    calc(100vw - 2 * var(--sheet-gutter))
+  );
   position: relative;
-  width: 688px;
+  width: var(--tl-w);
   max-width: 100%;
   margin-inline: auto;
-  min-height: 958px;
-  transition: min-height var(--dur-settle) var(--ease-paper);
-}
-.bench-cases:has(.selected-mat--archive-open) {
-  min-height: 1238px;
+  container-type: inline-size;
+  --bu: calc(100cqi / 688);
 }
 
 /* Visual → the Showcase grid in its own 1224 flow section. The work panel
@@ -289,7 +348,7 @@
   position: relative;
   z-index: 200;
   width: 100%;
-  max-width: calc(460px * var(--card-scale));
+  max-width: calc(460 * var(--bu));
   margin: var(--card-rhythm) auto 0;
 }
 
@@ -302,12 +361,12 @@
      which makes width HOLD for a beat before it starts — so it lagged the height
      collapse. A definite width starts in lockstep. `max-width:100%` keeps it from
      overflowing a narrower container (mobile). */
-  width: calc(460px * var(--card-scale));
+  width: calc(460 * var(--bu));
   max-width: 100%;
   background: var(--terra-80);
   border: 1.5px solid var(--terra-240);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.10), 0 10px 24px -6px rgba(0, 0, 0, 0.14);
-  padding: calc(var(--space-8) * var(--card-scale));
+  padding: calc(8 * var(--bu));
   overflow: hidden;
   box-sizing: border-box;
   transition:
@@ -322,14 +381,14 @@
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
 }
 /* Condensed: a DEFINITE width (so width can interpolate from rest → here). NOT
-   scaled by --card-scale — the tab sub-labels are a fixed 10px and don't shrink
-   with the card, so a scaled-down box clips them. At a fixed 236 the content
+   scaled with the card (not in --bu) — the tab sub-labels are a fixed 10px and
+   don't shrink with the card, so a scaled-down box clips them. At a fixed 236 the content
    (~190 incl. gaps + the in-flow ✕) fills the box with tight, balanced ~23px
    left/right margins — retuned down from the old loose 290 (which left ~45px
    voids and let the ✕ float). The `min()` guards against inversion: if the rest
    width (460×scale) ever drops below 236 (scale < ~0.51) the condense would
    otherwise GROW the box; the cap keeps it a shrink (degenerate-but-safe). */
-.is-condensed .bench-ticket { width: min(236px, calc(460px * var(--card-scale))); padding: 0; }
+.is-condensed .bench-ticket { width: min(236px, calc(460 * var(--bu))); padding: 0; }
 
 .bench-ticket__frame {
   position: relative;
@@ -339,7 +398,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: calc(var(--space-56) * var(--card-scale)) calc(var(--space-16) * var(--card-scale)) calc(var(--space-24) * var(--card-scale));
+  padding: calc(56 * var(--bu)) calc(16 * var(--bu)) calc(24 * var(--bu));
   transition:
     padding var(--dur-slide) var(--ease-snap),
     border-width var(--dur-slide) var(--ease-snap),
@@ -352,12 +411,12 @@
 /* Eyebrow — fades opacity-only (absolute, out of flow → no reflow). */
 .bench-ticket__eyebrow {
   position: absolute;
-  top: calc(var(--space-20) * var(--card-scale));
+  top: calc(20 * var(--bu));
   left: 0;
   right: 0;
   display: flex;
   align-items: center;
-  gap: calc(var(--space-12) * var(--card-scale));
+  gap: calc(12 * var(--bu));
   justify-content: center;
   opacity: 1;
   transition:
@@ -365,12 +424,12 @@
     transform var(--dur-slide) var(--ease-snap);
 }
 .is-condensed .bench-ticket__eyebrow { opacity: 0; transform: translateY(-4px); pointer-events: none; }
-.bench-ticket__eyebrow-rule { height: 1px; width: calc(var(--space-56) * var(--card-scale)); }
+.bench-ticket__eyebrow-rule { height: 1px; width: calc(56 * var(--bu)); }
 .bench-ticket__eyebrow-rule--l { background: linear-gradient(90deg, rgba(226, 184, 119, 0) 0%, var(--terra-240) 100%); }
 .bench-ticket__eyebrow-rule--r { background: linear-gradient(90deg, var(--terra-240) 0%, rgba(226, 184, 119, 0) 100%); }
 .bench-ticket__eyebrow-label {
   font-family: var(--font-mono), monospace;
-  font-size: calc(10px * var(--card-scale));
+  font-size: calc(10 * var(--bu));
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--terra-720);
@@ -389,7 +448,7 @@
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  padding: 0 calc(var(--space-32) * var(--card-scale));
+  padding: 0 calc(32 * var(--bu));
 }
 .is-condensed .bench-ticket__tabs {
   display: flex;
@@ -397,8 +456,8 @@
   justify-content: center;
   /* Tighter than the rest-state 24: the whole row (both tabs · divider · ✕)
      centres as one unit with even inter-item gaps, filling the 236 box. */
-  gap: calc(var(--space-20) * var(--card-scale));
-  padding: 0 calc(var(--space-20) * var(--card-scale));
+  gap: calc(20 * var(--bu));
+  padding: 0 calc(20 * var(--bu));
 }
 
 .bench-tab {
@@ -412,24 +471,27 @@
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  padding: calc(var(--space-12) * var(--card-scale)) calc(var(--space-12) * var(--card-scale));
+  padding: calc(12 * var(--bu)) calc(12 * var(--bu));
   transition:
     padding var(--dur-slide) var(--ease-snap),
     transform var(--dur-instant) var(--ease-snap);
 }
 /* Condensed tab: content-sized (label = cell, so the gaps measure to the labels);
    vertical padding keeps a comfortable tap height. */
-.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: calc(var(--space-12) * var(--card-scale)) 0; }
+.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: calc(12 * var(--bu)) 0; }
 
 .bench-tab__title {
   font-family: var(--font-display), serif;
   font-variation-settings: 'WONK' 1;
   letter-spacing: -0.4px;
   line-height: 1.05;
-  font-size: calc(27px * var(--card-scale));
+  /* 24 at baseline — the shared "h1" Fraunces size, matched by the timeline
+     project-card titles so the Fraunces reads as ONE size across the Longform
+     view (was 27). */
+  font-size: calc(24 * var(--bu));
   transition: font-size var(--dur-slide) var(--ease-snap);
 }
-.is-condensed .bench-tab__title { font-size: calc(20px * var(--card-scale)); }
+.is-condensed .bench-tab__title { font-size: calc(20 * var(--bu)); }
 
 .bench-tab__ink {
   color: var(--terra-960);
