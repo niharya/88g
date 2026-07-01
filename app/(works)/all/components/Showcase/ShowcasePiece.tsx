@@ -87,16 +87,10 @@ export default function ShowcasePiece({
     const el = pieceRef.current
     if (!el) return
 
-    if (isMobileViewport()) {
-      // Mobile activation = scroll the tile to the top of the viewport
-      // with 24 px of breathing room. The bottom sheet (rendered by the
-      // Showcase parent) takes the lower half of the view from there.
-      requestAnimationFrame(() => {
-        const top = el.getBoundingClientRect().top + window.scrollY - 24
-        window.scrollTo({ top, behavior: 'smooth' })
-      })
-      return
-    }
+    // Mobile: no scroll-into-view. The bottom sheet opens in place and is
+    // scroll-dismissed (ShowcaseBottomSheet) — a programmatic scroll here would
+    // both fight that and immediately trigger the dismiss.
+    if (isMobileViewport()) return
 
     // Desktop / tablet — pick the side the inline SpecNote should open on.
     const grid = el.closest('.sc-grid') as HTMLElement | null

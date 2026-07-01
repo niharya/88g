@@ -934,19 +934,30 @@
   .cases-mobile {
     display: flex;
     flex-direction: column;
-    padding: 20px 18px 40px;
+    /* Relative-scaling spine for the whole mobile timeline (same idiom as the
+       blue card): the column is the query container; --bu = "one design pixel"
+       at the 327 design width (the card column at a 375 phone → --bu = 1, so N
+       reads as the Figma px). Capped at 1px so wider phones hold the 375 design
+       instead of growing; narrower phones scale down. Every .mcase/nest/now size
+       below is calc(N * var(--bu)); 1px hairlines + token classes stay fixed. */
+    container-type: inline-size;
+    --bu: min(calc(100cqi / 327), 1px);
+    /* Cards inset to the 24px gutter (the mat bleeds edge-to-edge, so the inset
+       is the card's margin on the graph paper — aligns with the intro card).
+       Horizontal stays the fixed sheet gutter; vertical rhythm scales. */
+    padding: calc(24 * var(--bu)) var(--sheet-gutter) calc(40 * var(--bu));
   }
 
   /* Living NOW cue — pulse dot + label + fading hairline (trimmed: no title). */
   .cases-mobile__now {
     display: flex;
     align-items: center;
-    gap: 9px;
-    margin-bottom: 20px;
+    gap: calc(9 * var(--bu));
+    margin-bottom: calc(20 * var(--bu));
   }
   .cases-mobile__now-dot {
-    width: 9px;
-    height: 9px;
+    width: calc(9 * var(--bu));
+    height: calc(9 * var(--bu));
     border-radius: 50%;
     background: var(--yellow-240);
     flex: none;
@@ -954,9 +965,9 @@
   }
   .cases-mobile__now-label {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: calc(11 * var(--bu));
     font-weight: 600;
-    letter-spacing: 0.4px;
+    letter-spacing: calc(0.4 * var(--bu));
     color: var(--yellow-720);
   }
   .cases-mobile__now-rule {
@@ -969,14 +980,14 @@
   .mcase {
     display: flex;
     flex-direction: column;
-    padding: 16px 16px 14px;
+    padding: calc(16 * var(--bu)) calc(16 * var(--bu)) calc(14 * var(--bu));
     border: 1px solid;
     text-decoration: none;
     box-shadow: var(--shadow-flat);
     transition: box-shadow var(--dur-slide) var(--ease-paper), transform var(--dur-fast) var(--ease-paper);
   }
   .mcase:active { transform: translateY(0); box-shadow: var(--shadow-flat); }
-  .mcase--hero { padding: 19px 18px 16px; box-shadow: var(--shadow-raised); }
+  .mcase--hero { padding: calc(19 * var(--bu)) calc(18 * var(--bu)) calc(16 * var(--bu)); box-shadow: var(--shadow-raised); }
 
   .mcase--blue  { background: var(--blue-80);    border-color: var(--blue-800);  color: var(--blue-800); }
   .mcase--terra { background: var(--yellow-100); border-color: var(--terra-720); color: var(--terra-720); }
@@ -984,99 +995,82 @@
 
   .mcase__year {
     font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.3px;
+    font-size: calc(10 * var(--bu));
+    letter-spacing: calc(0.3 * var(--bu));
     opacity: 0.7;
-    margin-bottom: 10px;
+    margin-bottom: calc(10 * var(--bu));
   }
   .mcase__title {
     font-family: var(--font-display);
     font-weight: 400;
     font-variation-settings: 'SOFT' 0, 'WONK' 1;
-    letter-spacing: -0.55px;
+    letter-spacing: calc(-0.55 * var(--bu));
     line-height: 1.16;
-    font-size: 17px;
+    font-size: calc(16 * var(--bu));
   }
-  .mcase--hero .mcase__title { font-size: 22px; }
-  .mcase--mint .mcase__title { font-size: 20px; }
+  .mcase--hero .mcase__title { font-size: calc(19 * var(--bu)); }
+  .mcase--mint .mcase__title { font-size: calc(18 * var(--bu)); }
   .mcase__body {
     font-family: var(--font-body);
-    font-size: 12px;
+    font-size: calc(12 * var(--bu));
     font-weight: 500;
-    letter-spacing: -0.12px;
+    letter-spacing: calc(-0.12 * var(--bu));
     line-height: 1.3;
-    margin-top: 9px;
+    margin-top: calc(9 * var(--bu));
   }
-  .mcase__divider { height: 1px; background: currentColor; opacity: 0.32; margin: 14px 0 12px; }
+  .mcase__divider { height: 1px; background: currentColor; opacity: 0.32; margin: calc(14 * var(--bu)) 0 calc(12 * var(--bu)); }
   .mcase__footer { display: flex; align-items: center; justify-content: space-between; }
-  .mcase__role-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .mcase__mini-slot { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .mcase__role-wrap { display: flex; align-items: center; gap: calc(8 * var(--bu)); min-width: 0; }
+  .mcase__mini-slot { width: calc(18 * var(--bu)); height: calc(18 * var(--bu)); display: flex; align-items: center; justify-content: center; flex: none; }
   .mcase__mini { display: block; }
-  .mcase__mini--paper { width: 20px; height: 13px; object-fit: contain; transform: rotate(-3deg); }
+  .mcase__mini--paper { width: calc(20 * var(--bu)); height: calc(13 * var(--bu)); object-fit: contain; transform: rotate(-3deg); }
   .mcase__role { line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .mcase__arrow { font-size: 18px; flex: none; }
+  .mcase__arrow { font-size: calc(18 * var(--bu)); flex: none; }
 
   /* Nested label (and the sheet trigger, which shares the treatment) */
   .cases-mobile__nest {
     display: flex;
     align-items: center;
-    gap: 6px;
-    margin: 18px 0 8px 22px;
+    gap: calc(6 * var(--bu));
+    margin: calc(18 * var(--bu)) 0 calc(8 * var(--bu)) calc(22 * var(--bu));
     background: none;
     border: none;
     padding: 0;
     text-align: left;
     cursor: pointer;
   }
-  .cases-mobile__nest-icon { font-size: 17px; }
+  .cases-mobile__nest-icon { font-size: calc(17 * var(--bu)); }
   .cases-mobile__nest-icon--terra { color: var(--terra-720); }
   .cases-mobile__nest-icon--mint { color: var(--mint-800); }
   .cases-mobile__nest-label {
     font-family: var(--font-ui);
-    font-size: 11px;
+    font-size: calc(11 * var(--bu));
     font-weight: 640;
     font-variation-settings: 'wdth' 120, 'wght' 640, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
-    letter-spacing: -0.22px;
+    letter-spacing: calc(-0.22 * var(--bu));
   }
   .cases-mobile__nest-label--terra { color: var(--terra-720); }
   .cases-mobile__nest-label--mint { color: var(--mint-800); }
-  .cases-mobile__indent { margin-left: 22px; }
-  .cases-mobile__slang { margin-top: 34px; }
+  .cases-mobile__indent { margin-left: calc(22 * var(--bu)); }
+  .cases-mobile__slang { margin-top: calc(34 * var(--bu)); }
 
-  .cases-mobile__trigger { margin: 18px 0 0 22px; }
+  .cases-mobile__trigger { margin: calc(18 * var(--bu)) 0 0 calc(22 * var(--bu)); }
   .cases-mobile__trigger-label {
     text-decoration: underline dotted;
     text-decoration-thickness: 2px;
     text-underline-offset: 3px;
   }
-  .cases-mobile__trigger-out { font-size: 16px; color: var(--mint-800); }
+  .cases-mobile__trigger-out { font-size: calc(16 * var(--bu)); color: var(--mint-800); }
 
-  /* Foot nameplates — Marks then Names (§2a), quiet underlined rows. */
-  .cases-mobile__foot { display: flex; flex-direction: column; margin-top: 36px; }
-  .cases-mobile__foot-row {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 13px 4px;
+  /* Foot nameplates — Marks then Names (§2a). Rendered with the shared NavMarker
+     primitive (navmarker.css owns their visuals — same as the desktop timeline);
+     here we only stack them with a divider above each so they read as a footer. */
+  .cases-mobile__foot { display: flex; flex-direction: column; margin-top: calc(36 * var(--bu)); }
+  .cases-mobile__foot > .nav-marker {
     border-top: 1px solid var(--grey-880);
-    color: var(--grey-560);
-    background: none;
-    text-decoration: none;
-    cursor: pointer;
-    text-align: left;
+    padding-top: calc(13 * var(--bu));
+    padding-bottom: calc(13 * var(--bu));
   }
-  .cases-mobile__foot-icon { font-size: 18px; }
-  .cases-mobile__foot-label {
-    flex: 1;
-    font-family: var(--font-ui);
-    font-size: 13px;
-    font-weight: 680;
-    font-variation-settings: 'wdth' 120, 'wght' 680, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
-    letter-spacing: -0.24px;
-    text-decoration: underline dotted;
-    text-underline-offset: 2px;
-  }
-  .cases-mobile__foot-tag { font-family: var(--font-mono); font-size: 9px; color: var(--grey-720); }
 
 
   /* The Cases tab renders MobileCases on mobile (gated in SelectedContent),
@@ -1087,9 +1081,13 @@
      `.selected-workbench`/`.selected-layout`/`.selected-nav-row`/`.about-card-p`
      mobile rules targeted classes that no longer render on this route.) */
 
-  /* ── Mat: edge-to-edge bleed ───────────────────────────────────────────── */
-  /* Mat extends beyond workbench padding and clips at viewport edges.       */
-  /* No visible left/right border — bleeds to the viewport edge.              */
+  /* ── Mat: edge-to-edge graph-paper surface ──────────────────────────────── */
+  /* The timeline reads as a full-bleed sheet of graph paper. Bleed past the
+     workbench's 24px pad to the true viewport edge (bench-work drops its side pad
+     on mobile, so -workbench-pad-x reaches 0). The grid comes from the .mat class
+     (background-image longhand) — do NOT set a `background` SHORTHAND here, it
+     resets background-image and wipes the grid (documented footgun). No lift
+     shadow, no border — the grid IS the surface. Cards inset via cases-mobile. */
 
   .selected-mat {
     position: relative;
@@ -1101,9 +1099,8 @@
     margin-bottom: calc(-1 * var(--workbench-pad-y));
     min-height: auto;
     flex: 1 0 auto;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
+    border: none;
+    box-shadow: none;
   }
 
   .selected-mat--archive-open {
@@ -1132,17 +1129,29 @@
   opacity: 0;
   transition: opacity var(--dur-settle) var(--ease-paper);
 }
+/* Panel — matches the showcase SpecNote sheet (.sc-note--sheet): a narrow,
+   SQUARED card docked at the bottom centre (width = --sc-obj-w), mint-themed
+   frame on the top + sides (no bottom — it runs off the bottom edge), upward
+   lift shadow, generous bottom buffer. The reveal stays its own translateY
+   (scrim + is-open) — no rounded corners anywhere. */
 .cases-sheet__panel {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 50%;
+  right: auto;
   bottom: 0;
+  margin-left: calc(-0.5 * var(--sc-obj-w));
+  width: var(--sc-obj-w);
+  max-width: var(--sc-obj-w);
+  max-height: 75vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   z-index: 70;
   background: var(--mat-bg);
-  border-top-left-radius: 22px;
-  border-top-right-radius: 22px;
-  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.22);
-  padding: 0 0 30px;
+  border: 1px solid var(--mint-800);
+  border-bottom: none;
+  box-shadow: 0 -16px 40px -8px rgba(20, 20, 20, 0.30);
+  padding: var(--space-20) var(--space-20)
+           calc(var(--space-40) + env(safe-area-inset-bottom, 0px));
   transform: translateY(101%);
   transition: transform var(--dur-settle) var(--ease-paper);
 }
@@ -1150,48 +1159,65 @@
 .cases-sheet.is-open .cases-sheet__scrim { opacity: 1; }
 .cases-sheet.is-open .cases-sheet__panel { transform: translateY(0); }
 
-.cases-sheet__handle {
-  width: 38px;
-  height: 5px;
-  border-radius: 3px;
-  background: var(--grey-720);
-  margin: 9px auto 4px;
-}
+/* Head — title + close, mirrors .sc-note__head (title is grey-80 deep ink like
+   the SpecNote title; the mint theme lives in the frame + row accents). */
 .cases-sheet__head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 8px 22px 14px;
+  gap: var(--space-12);
 }
 .cases-sheet__title {
   font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
-  font-size: 21px;
-  letter-spacing: -0.6px;
-  color: var(--mint-800);
+  letter-spacing: -0.72px;
+  line-height: 1;
+  color: var(--grey-80);
 }
+/* Close — mirrors .sc-note__close exactly. */
+.cases-sheet__close {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--grey-800);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--grey-320);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--dur-fast) var(--ease-snap),
+    color var(--dur-fast) var(--ease-snap),
+    transform var(--dur-instant) var(--ease-snap);
+}
+.cases-sheet__close:hover { background: var(--grey-880); color: var(--grey-160); }
+.cases-sheet__close:active { transform: scale(0.92); }
+/* Subtitle — the years, now a mono metadata line under the title (SpecNote's
+   whatis slot), landing on the first row's rule. */
 .cases-sheet__span {
+  display: block;
+  margin: var(--space-8) 0 var(--space-20);
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--grey-640);
 }
+/* Rows — mirror the SpecNote foot link: project title + themed meta (with ↗)
+   on the left, year on the right; grey-880 rule above each (dividers between). */
 .cases-sheet__row {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
-  padding: 17px 22px;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: var(--space-16) 0;
   border-top: 1px solid var(--grey-880);
   text-decoration: none;
 }
-.cases-sheet__swatch {
-  width: 9px;
-  height: 9px;
-  flex: none;
-  margin-top: 4px;
-}
-.cases-sheet__row--aleyr .cases-sheet__swatch { background: var(--aleyr-800); }
-.cases-sheet__row--eco   .cases-sheet__swatch { background: var(--ecochain-800); }
-.cases-sheet__row--code  .cases-sheet__swatch { background: var(--codezeros-800); }
 .cases-sheet__body { flex: 1; min-width: 0; }
 .cases-sheet__row-title {
   display: block;

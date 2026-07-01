@@ -326,9 +326,14 @@
 }
 
 /* Hover straightens the tile to 0° (no lift) — the sheet settles flat   */
-/* under the cursor while the caption row reacts.                        */
-.sc-piece:hover:not(.is-active) {
-  transform: rotate(0deg);
+/* under the cursor while the caption row reacts. Gated to hover-capable  */
+/* pointers: on touch, an ungated :hover makes the FIRST tap apply hover  */
+/* (no open) and only the second tap opens — the classic iOS two-tap.     */
+/* @media (hover: hover) skips these on touch so the first tap opens.     */
+@media (hover: hover) {
+  .sc-piece:hover:not(.is-active) {
+    transform: rotate(0deg);
+  }
 }
 
 /* Press feedback — brief nudge down so the tile responds to the click. */
@@ -366,8 +371,10 @@
 /* Hover on a tile with a controls bar desaturates the controls only —   */
 /* the media itself stays in its authored palette. On active, the        */
 /* controls bar regains colour with the rest of the artefact.            */
-.sc-piece:hover:not(.is-active) .sc-controls {
-  filter: grayscale(1);
+@media (hover: hover) {
+  .sc-piece:hover:not(.is-active) .sc-controls {
+    filter: grayscale(1);
+  }
 }
 .sc-controls {
   transition: filter var(--dur-fast) var(--ease-snap);
@@ -451,10 +458,12 @@
 }
 
 /* Hover lift — sheet rises off the mat. Wider, deeper, more diffuse.  */
-.sc-piece:hover .sc-media--framed {
-  box-shadow:
-    0 2px 0 rgba(20, 20, 20, 0.06),
-    0 16px 28px -10px rgba(20, 20, 20, 0.22);
+@media (hover: hover) {
+  .sc-piece:hover .sc-media--framed {
+    box-shadow:
+      0 2px 0 rgba(20, 20, 20, 0.06),
+      0 16px 28px -10px rgba(20, 20, 20, 0.22);
+  }
 }
 
 /* Active framed tile gets the deepest lift shadow. Plain (frameless)     */
@@ -549,12 +558,21 @@
     color var(--dur-fast) var(--ease-snap);
 }
 
-.sc-piece:hover .sc-cap__dot,
+/* .is-active applies on every device (the open tile's dot must expand on
+   touch too); only the :hover half is gated to hover-capable pointers. */
 .sc-piece.is-active .sc-cap__dot {
   width: 20px;
   height: 20px;
   background: var(--mat-bg);
   color: var(--sc-dotc);
+}
+@media (hover: hover) {
+  .sc-piece:hover .sc-cap__dot {
+    width: 20px;
+    height: 20px;
+    background: var(--mat-bg);
+    color: var(--sc-dotc);
+  }
 }
 
 /* Press state on the plus circle — squashes briefly when clicked so  */
@@ -585,8 +603,10 @@
 /* Underline the type (the "main title line" of the caption) on hover.*/
 /* The line stays put — only the dot expands and pushes it right; the */
 /* underline crossfades in under it.                                   */
-.sc-piece:hover .sc-cap__type {
-  text-decoration-color: var(--grey-320);
+@media (hover: hover) {
+  .sc-piece:hover .sc-cap__type {
+    text-decoration-color: var(--grey-320);
+  }
 }
 /* Press feedback on the caption text — shifts a hair down with the   */
 /* tile so the click registers across the whole row.                  */
@@ -628,10 +648,14 @@
 }
 /* Controls only register clicks when the tile is active. Hover preview   */
 /* shows them but doesn't unlock clicks — that aligns with the           */
-/* "first click opens, then interactivity unlocks" model.                */
-.sc-piece:hover .sc-controls {
-  opacity: 1;
-  transform: translateY(0);
+/* "first click opens, then interactivity unlocks" model. Gated to hover  */
+/* pointers so touch doesn't reveal-on-first-tap (which forced a 2nd tap  */
+/* to open); on touch the controls appear with .is-active below.          */
+@media (hover: hover) {
+  .sc-piece:hover .sc-controls {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .sc-piece.is-active .sc-controls {
   opacity: 1;
@@ -1614,9 +1638,13 @@
   .sc-poster {
     transition: none;
   }
-  .sc-piece:hover,
   .sc-piece.is-active {
     transform: none;
+  }
+  @media (hover: hover) {
+    .sc-piece:hover {
+      transform: none;
+    }
   }
   .sc-note {
     animation: none;
@@ -1646,15 +1674,42 @@
 }
 
 @media (max-width: 767px), (max-height: 500px) {
+  /* The single relative "standard object width" on mobile — the one width
+     every showcase object (and the docked info card) conforms to. Tied to the
+     shared --sheet-gutter so objects sit the same distance from the viewport
+     edge as the framed sheets; at 375px it resolves to 311px. Defined on :root
+     (not .sc-grid) because the info card portals to <body> and must read it
+     from outside the grid subtree. Not hardcoded — scales with the viewport. */
+  :root {
+    --sc-obj-w: calc(100vw - 2 * var(--sheet-gutter));
+  }
+
   /* Mobile — 1-col stack. All tiles span the full width regardless of */
-  /* `width` setting. Smaller gap (1.5× the previous 16 → 24).           */
+  /* `width` setting. Roomy gap between artifacts. NOTE: if you change   */
+  /* this value, update MOBILE_GAP_PX in Showcase.tsx to match (the JS   */
+  /* row-span measurement mirrors it).                                   */
   .sc-grid {
-    --sc-gap: 24px;
+    --sc-gap: 40px;
     grid-template-columns: 1fr;
   }
   /* Mobile — every slot spans the single column regardless of cols. */
   .sc-slot {
     grid-column: span 1;
+  }
+  /* Extra scroll room below the grid WHILE an artifact is open (toggled by
+     ShowcaseBottomSheet), so even the last tile can scroll up to clear the
+     docked card. A full viewport is always enough; it's off-screen + covered by
+     the backdrop, and removed on close. */
+  .sc-grid.sc-scroll-room {
+    padding-bottom: 100vh;
+  }
+  /* Reset the desktop wide-tile inset (.sc-slot--wide .sc-piece: max-width 84%,
+     which reads too dominant at full desktop span). On a single mobile column
+     every tile is already one width, so the two wide heroes (paymaster,
+     ecochain) must fill it like the rest — otherwise they render ~50px narrower
+     than their neighbours. */
+  .sc-slot--wide .sc-piece {
+    max-width: 100%;
   }
   .sc-prelude {
     grid-template-columns: 1fr;
@@ -1676,21 +1731,28 @@
 /* while the sheet is up (ShowcasePiece useEffect).                     */
 .sc-note.sc-note--sheet {
   position: fixed;
-  inset: auto 0 0 0;          /* docked: bottom/left/right flush, no radius */
-  width: 100vw;
-  max-width: 100vw;
+  /* Docked to the bottom but NARROWED to the standard object width (--sc-obj-w)
+     and centred, so it reads as a card rising from the tray rather than a
+     full-bleed sheet. Centred via margin (not transform) so transform stays free
+     for the rise animation. */
+  inset: auto auto 0 50%;
+  margin-left: calc(-0.5 * var(--sc-obj-w));
+  width: var(--sc-obj-w);
+  max-width: var(--sc-obj-w);
   max-height: 75vh;
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--mat-bg);
-  /* Viewport-edge dock seam — picks up the dot tint (DEEP / 720) so   */
-  /* the sheet reads as the same card-edge as the desktop variant,    */
-  /* now docked instead of free.                                       */
-  border: none;
-  border-top: 1px solid var(--sc-dotc, var(--grey-880));
+  /* A docked card now (not a bleeding sheet): dot-tinted (DEEP / 720) frame.
+     SQUARED — no rounded corners anywhere on this site. NO bottom border — the
+     card runs off the bottom viewport edge, so a bottom rule would be a stray
+     line; the top + sides frame it. Generous bottom padding leaves buffer
+     whitespace under the content before the edge. */
+  border: 1px solid var(--sc-dotc, var(--grey-880));
+  border-bottom: none;
   border-radius: 0;
   padding: var(--space-20) var(--space-20)
-           calc(var(--space-24) + env(safe-area-inset-bottom, 0px));
+           calc(var(--space-48) + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -16px 40px -8px rgba(20, 20, 20, 0.30);
   /* Sits above .sc-backdrop (50) and the active piece (60). Portal at  */
   /* body level means no ancestor stacking context interferes.          */
@@ -1708,4 +1770,34 @@
 @keyframes sc-sheet-rise {
   from { opacity: 0; transform: translateY(100%); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ── Mobile open choreography ────────────────────────────────────────────── */
+/* When a tile opens on a phone, the focused artifact settles DOWN a touch
+   (not the desktop lift-UP), and its IMMEDIATE top + bottom neighbours in the
+   single column fade away — clearing space around the artifact above the docked
+   info card. All smooth; everything restores when the sheet closes. Placed last
+   so the active-transform override beats both the base lift and the earlier
+   reduced-motion reset (the nested guard below re-zeros it for reduced motion).
+   Single-column grid ⇒ DOM order == visual order, so + / :has(+ …) reach the
+   real top/bottom neighbours. */
+@media (max-width: 767px), (max-height: 500px) {
+  .sc-slot {
+    transition: opacity var(--dur-slide) var(--ease-paper);
+  }
+  /* Focused artifact nudges down instead of up. */
+  .sc-piece.is-active {
+    transform: rotate(0deg) translateY(10px) scale(1.02);
+  }
+  /* Immediate neighbour below (+ .sc-slot) and above (:has(+ …)) fade out. */
+  .sc-slot:has(.sc-piece.is-active) + .sc-slot,
+  .sc-slot:has(+ .sc-slot .sc-piece.is-active) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sc-slot { transition: none; }
+    .sc-piece.is-active { transform: none; }
+  }
 }

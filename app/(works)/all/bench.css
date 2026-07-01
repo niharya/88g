@@ -372,13 +372,24 @@
   transition:
     width var(--dur-slide) var(--ease-snap),
     padding var(--dur-slide) var(--ease-snap),
-    box-shadow var(--dur-slide) var(--ease-snap);
+    box-shadow var(--dur-slide) var(--ease-snap),
+    opacity var(--dur-slide) var(--ease-snap);
 }
 /* Pinned: fixed navbar at the top + a deeper floating shadow. */
 .is-pinned .bench-ticket {
   position: fixed;
   top: var(--space-16);
   box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.18), 0 18px 44px -10px rgba(0, 0, 0, 0.24);
+}
+
+/* When a showcase artifact is open on mobile (`.sc-artifact-open` toggled on
+   <html> by Showcase), the docked nav ticket recedes WITH the hidden neighbour
+   tiles — it fades out and drops its shadow so nothing competes with the focused
+   artifact + its info card. Restores when the sheet closes. */
+html.sc-artifact-open .bench-ticket {
+  opacity: 0;
+  box-shadow: none;
+  pointer-events: none;
 }
 /* Condensed: a DEFINITE width (so width can interpolate from rest → here). NOT
    scaled with the card (not in --bu) — the tab sub-labels are a fixed 10px and
@@ -668,22 +679,52 @@
     padding-top: var(--space-8);
   }
 
+  /* Drop the work panel's 8px side padding on mobile so the tab content
+     (timeline + showcase) aligns to the SAME 24px gutter as the intro card,
+     which sits one level up (on the workbench's 24px pad only). One consistent
+     sheet edge across the whole page. */
+  .bench-work {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Mobile keeps the SAME cqi/--bu spine as desktop + iPad — no fixed-px
+     exception. The only change is the BASELINE: the 820 scale-1 baseline makes
+     --bu ≈ 0.38 at phone width (poem → ~9px, unreadable — which is why this
+     block used to hardcode px). Re-basing to a phone design width (~375) puts
+     --bu ≈ 0.83 at 375vw, so the poem lands ~20px and the whole broadside
+     (padding, crown, divider, closing) scales together as ONE unit, exactly
+     like the wider viewports. Smaller phones scale down proportionally. */
+  .bench-stage {
+    /* Re-based to a phone width so the whole card scales as one cqi unit. The
+       BASELINE sets the type's proportion of the card (poem = 24/baseline of the
+       width): 460 lands the poem ~15px and keeps that ratio close to the wide
+       card's, so the card breathes instead of the glyphs eating it. A smaller
+       baseline (e.g. 375) makes type proportionally ~2× bigger → cramped.
+       CAP at the portrait value (~0.62px) so a landscape phone (wider stage via
+       the max-height clause) widens the column instead of ballooning the type. */
+    --bu: min(calc(100cqi / 460), 0.62px);
+  }
+
+  /* Release the 3:4 lock on phones — a portrait viewport can't hold a legible
+     3:4 card at this width without clipping (the retained ratio was what cut
+     the poem off). Content-driven height; the framed-sheet read comes from the
+     border + lift, not the exact ratio (the same call the timeline ledger
+     makes). __main's flex:1 becomes inert at auto height, which is fine — the
+     stack no longer needs centring in a fixed box. */
   .bench-card {
-    padding: var(--space-40) var(--space-24) var(--space-48);
+    aspect-ratio: auto;
+    height: auto;
   }
 
-  /* Natural wrap — drop the broadside's hand-set line breaks. */
+  /* Natural wrap — the broadside's hand-set line breaks are tuned for the wide
+     card; on a phone they break awkwardly. */
   .bench-poem br { display: none; }
-  .bench-poem {
-    font-size: 20px;
-    line-height: 1.5;
-    letter-spacing: -0.3px;
-    max-width: 300px;
-  }
-  .bench-poem--second { margin-top: var(--space-40); }
 
-  .bench-crown { margin: var(--space-4) 0 var(--space-32); }
-  .bench-divider { margin: var(--space-32) 0 var(--space-32); }
+  /* Rest-state tab row inset trimmed from 32·--bu (sized for the wide desktop
+     ticket) so both tabs clear the narrow frame. Internal to the ticket — does
+     not touch the card's breathing padding. Condensed row keeps its own. */
+  .bench-ticket__tabs { padding: 0 calc(16 * var(--bu)); }
 
   /* Tighter ticket on small screens. */
   .bench-ticket-slot { margin-top: clamp(var(--space-40), 6vh, var(--space-64)); }

@@ -53,7 +53,7 @@ function shuffle<T>(arr: T[]): T[] {
 // here too.
 const ROW_HEIGHT_PX = 8
 const GAP_PX = 44
-const MOBILE_GAP_PX = 24
+const MOBILE_GAP_PX = 40
 
 function measureSpans(grid: HTMLElement): Record<string, number> {
   const gap = isMobileViewport() ? MOBILE_GAP_PX : GAP_PX
@@ -88,6 +88,9 @@ export default function Showcase({ filter = 'all' }: { filter?: ShowcaseFilter }
     if (id) analytics.workOpened(id)
     setActiveId(id)
   }, [])
+  // Stable close — passed to the mobile bottom sheet so its scroll-dismiss
+  // baseline is captured once (a new closure each render would reset it).
+  const closeSheet = useCallback(() => setActiveId(null), [])
   // Measured row spans, keyed by piece id. Kept in state (not set imperatively
   // on the slot) so that React re-renders — which re-apply slotStyle to each
   // .sc-slot — can't wipe the span back to the CSS fallback.
@@ -103,6 +106,15 @@ export default function Showcase({ filter = 'all' }: { filter?: ShowcaseFilter }
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [])
+  // Signal an open artifact to elements OUTSIDE the grid (the docked nav ticket
+  // lives in the bench shell, not this subtree). While a tile is open on mobile,
+  // the ticket fades + drops its shadow to recede with the hidden neighbours —
+  // see `html.sc-artifact-open .bench-ticket` in bench.css.
+  useEffect(() => {
+    const open = !!activeId && isMobile
+    document.documentElement.classList.toggle('sc-artifact-open', open)
+    return () => document.documentElement.classList.remove('sc-artifact-open')
+  }, [activeId, isMobile])
   const [toggles, setToggles] = useState<Record<string, string>>(() => {
     const t: Record<string, string> = {}
     for (const p of PIECES) {
@@ -335,7 +347,7 @@ export default function Showcase({ filter = 'all' }: { filter?: ShowcaseFilter }
       {activeId && isMobile && (
         <ShowcaseBottomSheet
           piece={piecesWithDots.find((p) => p.id === activeId)!}
-          onClose={() => setActiveId(null)}
+          onClose={closeSheet}
         />
       )}
     </section>

@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import MaterialIcon from '../../../components/MaterialIcon'
+import NavMarker from '../../../components/NavMarker'
 import { useCrossShellNav } from '../../../components/CrossShellVeil'
 import CasesSheet from './CasesSheet'
 
@@ -177,22 +178,31 @@ export default function MobileCases() {
         <MaterialIcon name="arrow_outward" className="cases-mobile__trigger-out" />
       </motion.button>
 
-      {/* Foot — Marks and Symbols Made, then Names Coined (§2a order) */}
+      {/* Foot — Marks and Symbols Made, then Names Coined (§2a order). Uses the
+          shared NavMarker primitive (same as the desktop timeline nameplates) so
+          the visuals match and the Names button gets a proper W.I.P. chip. */}
       <motion.div
         className="cases-mobile__foot"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...RISE, delay: 0.62 }}
       >
-        <a className="cases-mobile__foot-row" href="/marks" onClick={onMarksClick}>
-          <MaterialIcon name="category" className="cases-mobile__foot-icon" />
-          <span className="cases-mobile__foot-label">Marks and Symbols Made</span>
-        </a>
-        <button type="button" className="cases-mobile__foot-row">
-          <MaterialIcon name="title" className="cases-mobile__foot-icon" />
-          <span className="cases-mobile__foot-label">Names Coined</span>
-          <span className="cases-mobile__foot-tag">W.I.P</span>
-        </button>
+        <NavMarker
+          as="a"
+          href="/marks"
+          role="chapter"
+          icon="category"
+          label="Marks and Symbols Made"
+          onClick={onMarksClick}
+        />
+        <NavMarker
+          as="button"
+          role="chapter"
+          icon="title"
+          label="Names Coined"
+          wipHint="W.I.P."
+          aria-label="Names Coined — work in progress"
+        />
       </motion.div>
 
       <CasesSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />

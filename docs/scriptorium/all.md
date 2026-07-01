@@ -25,34 +25,27 @@ Top-left marker above the invitation card; links home.
 
 ## Invitation card — manifesto {#card-manifesto}
 
-The two-stanza poem in gradient-clipped Fraunces. Authored `<br>` line breaks shown as line breaks below; they are suppressed on mobile (the poem wraps naturally).
+The three-paragraph manifesto in gradient-clipped Fraunces. Natural wrap — no authored `<br>` line breaks.
 
-First stanza:
-> "Over the past 10 years, I
-> have made posters, brands,
-> a culture, interfaces, even
-> names and games."
-> — [`Essay/InvitationCard.tsx:53-58`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L53)
+First paragraph:
+> "Over the past 10 years I’ve made interfaces, brands, a culture, posters, even names and games."
+> — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
-Second stanza:
-> "Behind the scenes, all I have truly done is
-> protected the process:
-> the brief and its refinement,
-> the people and their environment,
-> agendas and budgets,
-> timelines and communication,
-> and any other force that can inhibit or
-> support the plant growth."
-> — [`Essay/InvitationCard.tsx:60-68`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L60)
+Second paragraph:
+> "None of it came from a fixed method. Every project sets its own conditions, from the briefs to the timelines and agendas, and reading those forces is the work."
+> — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
+
+Third paragraph:
+> "This portfolio, for instance: no rounded corners, no dark mode, to see what it would make me build instead."
+> — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
 ## Invitation card — closing {#card-closing}
 
-> "One project at a time" (eyebrow)
-> — [`Essay/InvitationCard.tsx:79`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L79)
+> "The method bends to the problem" (eyebrow — monospace)
+> — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
-> "that practice has
-> become my craft."
-> — [`Essay/InvitationCard.tsx:80-83`](../../app/(works)/all/components/Essay/InvitationCard.tsx#L80)
+> "That’s my craft" (pinyon signature)
+> — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
 ## Ticket — browse control {#ticket}
 

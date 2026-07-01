@@ -211,6 +211,20 @@
 
 }
 
+/* Mobile narrows the sheet gutter — on a phone the sheets (invitation card,
+   timeline mat) and showcase objects want to run wider and take the screen,
+   with breathing room coming from the smaller cqi type + internal padding, not
+   from a fat outer margin. Every mobile sheet width clamps to
+   `100vw - 2 * --sheet-gutter`, so this one knob insets them all consistently
+   (still a real margin — sheets never bleed to the edge). Safe globally: the
+   landing's framed sheet is desktop-only (min-width:768), so its mobile view
+   doesn't read this token. */
+@media (max-width: 767px), (max-height: 500px) {
+  :root {
+    --sheet-gutter: 24px;
+  }
+}
+
 
 /* ==========================================================================
    Typography

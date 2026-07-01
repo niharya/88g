@@ -12,6 +12,14 @@
 import { useEffect } from 'react'
 import MaterialIcon from '../../../components/MaterialIcon'
 
+// Matches the showcase SpecNote sheet's close glyph so the two docked cards
+// read as one family.
+const CloseGlyph = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+)
+
 const STUDIES = [
   {
     id: 'aleyr',
@@ -72,11 +80,18 @@ export default function CasesSheet({ open, onClose }: { open: boolean; onClose: 
         aria-modal="true"
         aria-label="Slangbusters case studies"
       >
-        <div className="cases-sheet__handle" />
         <div className="cases-sheet__head">
           <span className="cases-sheet__title">Slangbusters</span>
-          <span className="cases-sheet__span">2018 — 2020</span>
+          <button
+            type="button"
+            className="cases-sheet__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <CloseGlyph />
+          </button>
         </div>
+        <span className="cases-sheet__span">2018 — 2020</span>
         {STUDIES.map(s => (
           <a
             key={s.id}
@@ -85,7 +100,6 @@ export default function CasesSheet({ open, onClose }: { open: boolean; onClose: 
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span className="cases-sheet__swatch" />
             <span className="cases-sheet__body">
               <span className="cases-sheet__row-title">{s.title}</span>
               <span className="cases-sheet__meta">
