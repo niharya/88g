@@ -24,11 +24,11 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 
 ## Hero — headline {#hero-headline}
 
-> "I’m Nihar. I’ve designed brands, cultures, and products."
-> — [`page.tsx:491-493`](../../app/page.tsx#L491)
+> "I build tools for developers and traders who work in complex environments. Mostly it’s infra, dashboards, and work you can’t see really."
+> — [`page.tsx`](../../app/page.tsx) — `.hero-card__headline`
 
-> "What connected all of it was systems thinking."
-> — [`page.tsx:494`](../../app/page.tsx#L494)
+> "So that settles it. Thanks for coming." (sub-line)
+> — [`page.tsx`](../../app/page.tsx) — `.hero-card__sub`
 
 ## Hero — expand pill aria {#hero-pill-aria}
 

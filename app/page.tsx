@@ -685,8 +685,9 @@ export default function LandingPage() {
                     <span>I&rsquo;m Nihar</span>
                   </p>
                   <h1 className="hero-card__headline t-h2">
-                    I believe well-made tools and systems can bring clarity, calm, and even delight to people working through complexity.
+                    I build tools for developers and traders who work in complex environments. Mostly it&rsquo;s infra, dashboards, and work you can&rsquo;t see really.
                   </h1>
+                  <p className="hero-card__sub t-p3">So that settles it. Thanks for coming.</p>
                 </div>
                 <button
                   className="pill-btn"

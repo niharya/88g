@@ -52,7 +52,7 @@
      need touching if a CARD's height changes (rare), vs the hero (common).
      Mobile overrides all of these with its own px values in the @media block. */
   --hero-top: 132px;
-  --hero-h: 243px;
+  --hero-h: 289px;   /* headline + sub-line height; the self-adjusting cascade re-docks the nav + Group-B stack off this */
   /* Markers tuck 6px up under the hero's bottom edge (hero z:10 > content z:5),
      reading as docked into the card. */
   --projects-top: calc(var(--hero-top) + var(--hero-h) - 6px);
@@ -686,6 +686,14 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   /* Typography is the shared t-h2 token (Google Sans, 24px, weight 500, −0.48px) —
      no local font overrides; matches live/main. Was wrongly overridden to Fraunces
      display / weight 400. */
+}
+
+/* Sub-line under the headline — the live format (t-p3), narrow measure, centred.
+   The gap comes from the headline's margin-bottom (24px), same as live. */
+.hero-card__sub {
+  color: var(--terra-960);
+  max-width: 250px;
+  margin: 0 auto;
 }
 
 
@@ -1908,7 +1916,7 @@ textarea.contact-form__input {
 @media (max-width: 767px), (max-height: 500px) {
   .landing {
     --hero-top: 84px;
-    --projects-top: 320px;
+    --projects-top: 350px;   /* headline + sub-line grow the mobile hero; keeps the nav peeking below it */
     --long-top: 315px;
     /* The about-long card is now the VERTICAL (portrait) timeline — far taller
        than the old horizontal one (653px: 480 stack + headline + padding). Its
