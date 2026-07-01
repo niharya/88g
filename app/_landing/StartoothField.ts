@@ -135,6 +135,7 @@ export class StartoothField {
   private readonly EXPAND_DUR = 800   // ms — filled↔line dissolve duration (both directions)
   private lineGround   = '#4C2B18'                  // line-version ground = the void/structural brown (--surface-bg), read at mount
   private lineStroke   = 'rgba(205, 134, 7, 0.28)'  // line-version grid ink — a terra-toned line (terra-560 @ ~28%) on the void ground
+  private ground       = '#141414'                  // filled/build/settled ground = --grey-80 (darkest grey, read at mount) — the intro inks grey→this, not black
 
   // Build origin (parametrized for future 9-click break/rebuild)
   private buildOriginX: number | undefined
@@ -225,6 +226,8 @@ export class StartoothField {
     }
     const lineGround = style.getPropertyValue('--surface-bg').trim()
     if (lineGround) this.lineGround = lineGround
+    const ground = style.getPropertyValue('--grey-80').trim()
+    if (ground) this.ground = ground
 
     this.lockedKeys  = new Map()
     this.crossRipples = []
@@ -740,7 +743,9 @@ export class StartoothField {
     c.width = Math.round(W); c.height = Math.round(H)
     const x = c.getContext('2d')!
     x.lineJoin = 'round'; x.lineCap = 'round'
-    x.fillStyle = '#000'; x.fillRect(0, 0, W, H)
+    // Ground = --grey-80 (this.ground), NOT #000 — the pattern's dark ground reads
+    // as the darkest grey, not a hard black. (The line twin below keeps the void brown.)
+    x.fillStyle = this.ground; x.fillRect(0, 0, W, H)
     const col = this.COL
     for (const r of this.regs) if (r.kind !== 'top') { x.fillStyle = r.kind === 'face' ? col.face : col.core; x.fill(r.path) }
     for (const r of this.regs) if (r.kind === 'top')  { x.fillStyle = col.top; x.fill(r.path) }
@@ -1007,7 +1012,8 @@ export class StartoothField {
         ctx.globalAlpha = 1
       }
     } else {
-      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, dev.width, dev.height)
+      // Pre-settle ground = --grey-160 (this.ground), not #000.
+      ctx.fillStyle = this.ground; ctx.fillRect(0, 0, dev.width, dev.height)
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.lineJoin = 'round'; ctx.lineCap = 'round'
@@ -1225,7 +1231,7 @@ export class StartoothField {
     const { core, face, top } = this.COL
 
     ctx.setTransform(1, 0, 0, 1, 0, 0)
-    ctx.fillStyle = '#000'
+    ctx.fillStyle = this.ground   // --grey-80 build/hold ground (was #000) — the "black on page load"
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.lineJoin = 'round'; ctx.lineCap = 'round'

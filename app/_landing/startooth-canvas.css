@@ -23,12 +23,14 @@
 :root {
   --sheet-margin: 30px;
   /* 3:4 portrait (≈0.75) — the Linotype Bulletin cover ratio. Divisor = 4 ÷ 3.
-     Capped at 760px: above ~1014px-tall viewports the height-driven width would
-     exceed this, so it holds at 760 (keeps the fixed hero card at ~76% of the
-     sheet instead of shrinking proportionally on 4K/large monitors — the sheet
-     just gains a taller pattern field below). Normal monitors scale as before. */
+     This is the PORTRAIT base (iPad / vertical tablets); horizontal displays flip
+     to 4:3 landscape in the orientation override below. Capped at 760px: above
+     ~1014px-tall viewports the height-driven width would exceed this, so it holds
+     at 760 (keeps the fixed hero card at ~76% of the sheet instead of shrinking
+     proportionally on 4K/large monitors — the sheet just gains a taller pattern
+     field below). The cap is portrait-only — landscape drops it (see override). */
   --sheet-width: min(
-    calc((100vh - 2 * var(--sheet-margin)) / 1.3333),
+    calc((100svh - 2 * var(--sheet-margin)) / 1.3333),
     760px,
     calc(100vw - 2 * var(--sheet-gutter))   /* shared "always placed" margin (globals.css) */
   );
@@ -45,6 +47,23 @@
    +16 (live) — this is the exact complement of landing.css's mobile breakpoint. */
 @media (min-width: 768px) and (min-height: 501px) {
   :root { --sheet-shift: 0px; }
+}
+
+/* Horizontal displays → 4:3 LANDSCAPE. Same height-driven size, but the width
+   relationship flips: width = height × ratio (× 1.3333) instead of ÷, so the
+   sheet turns wide and the hero column centres on a broader pattern field. The
+   fixed 760 cap is DROPPED here — it would clamp the wide sheet back to a strip;
+   only the shared gutter bounds the width. Scoped to the framed-sheet gate
+   (min-width:768 + min-height:501) so landscape PHONES stay full-bleed mobile
+   (min-height:501 is the guard — a landscape phone is >768 wide but <501 tall).
+   Portrait (iPad / vertical) keeps the 3:4 + 760-cap base rule above. */
+@media (orientation: landscape) and (min-width: 768px) and (min-height: 501px) {
+  :root {
+    --sheet-width: min(
+      calc((100svh - 2 * var(--sheet-margin)) * 1.3333),
+      calc(100vw - 2 * var(--sheet-gutter))
+    );
+  }
 }
 
 .startooth-canvas-root {
@@ -91,15 +110,122 @@
     0 0 0 9999px var(--workbench-bg);
 }
 
-/* Engraved double-frame — a light hairline drawn just inside the brown outer
-   border (the /all bench-card idiom: dark outer rule + lighter inner keyline).
-   Kept tight to the border so it reads as a second rule, not an inset mat. */
-.startooth-sheet-matte::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border: 1px solid var(--terra-80);
-  pointer-events: none;
+/* Mobile — NO framed sheet: the Startooth field is FULL-BLEED, as on main. The
+   sheet geometry above is ungated, so reset the canvas to fill the viewport and
+   drop the matte (frame + flood + the whole staged intro) entirely. This is the
+   exact complement of the desktop framed-sheet gate; landscape phones
+   (max-height:500) are included so they stay full-bleed too. Content is the
+   mobile composition (landing.css @media block); --sheet-scale is forced to 1. */
+@media (max-width: 767px), (max-height: 500px) {
+  .startooth-canvas-root {
+    inset: 0;
+    width: auto;
+    transform: none;
+  }
+  .startooth-sheet-matte {
+    display: none;
+  }
+}
+
+/* ── Staged intro (DESKTOP-ONLY — gated to the framed-sheet complement so mobile
+   is byte-identical). Nothing is on the grey desk at first; the sheet then
+   arrives as a blank grey card and earns its pattern + frame in sequence:
+     1. nothing — just the grey desk (the card is opacity:0 pre-entrance).
+     2. the card PLACES itself — fades in with a mild scale-up + slight rotate
+        settling to straight (sheet-place), ROUNDED corners, thin darker-grey
+        hairline, lifted by the shadow. No brown frame.
+     3. it holds grey for a beat (the JS grey-hold delays the build; StartoothCanvas).
+     4. build is CUED (.landing--building) → the fill inks grey→black and the
+        corners straighten rounded → square as the pattern begins.
+     5. objects (hero + footer) + caption reveal (owned by landing.css).
+     6. the brown frame is the LAST thing in — border-color transparent → brown at
+        .landing--frame (after the caption), and the grey hairline fades with it.
+   All keyed off the landing stage classes via html:has() because the matte +
+   canvas-root are SIBLINGS of .landing (its classes don't cascade to them). */
+@media (min-width: 768px) and (min-height: 501px) {
+  /* Placement entrance — runs on mount for both sheet layers so they move as one.
+     Individual scale/rotate props compose with the centring translateX; `both` +
+     the delay = the desk shows alone first, then the card appears. */
+  .startooth-canvas-root,
+  .startooth-sheet-matte {
+    border-radius: 12px;                 /* rounded intro; straightens at build start */
+    animation: sheet-place var(--dur-place) var(--ease-paper) 0.2s both;
+  }
+
+  .startooth-canvas-root {
+    background: var(--workbench-bg);      /* blank grey card; inks to black at build start */
+    box-shadow: inset 0 0 0 1px rgba(30, 20, 12, 0.10);   /* thin slightly-darker-grey edge */
+    transition:
+      border-radius var(--dur-place) var(--ease-paper),
+      background-color var(--dur-place) var(--ease-paper),
+      box-shadow var(--dur-place) var(--ease-paper);
+  }
+
+  .startooth-sheet-matte {
+    border-color: transparent;           /* no brown frame in the intro (4px kept for layout) */
+    transition:
+      border-color var(--dur-place) var(--ease-paper),
+      border-radius var(--dur-place) var(--ease-paper);
+  }
+
+  /* The grey → black ink is the CANVAS itself fading up over the grey card — NOT
+     a bg swap (the canvas paints its black opaquely on top, so a bg transition is
+     invisible and the cut reads abrupt). The canvas holds opacity:0 through the
+     grey hold; at build start it eases to 1, so the black + growing pattern rise
+     smoothly out of the grey. */
+  .startooth-canvas-root canvas {
+    opacity: 0;
+    transition: opacity var(--dur-place) var(--ease-paper);
+  }
+
+  /* Build CUED → the canvas inks up (grey→black) and the corners straighten to
+     square, as the pattern begins to grow (drops the grey-hold; see StartoothCanvas). */
+  html:has(.landing--building) .startooth-canvas-root canvas {
+    opacity: 1;
+  }
+  html:has(.landing--building) .startooth-canvas-root {
+    border-radius: 0;
+  }
+  html:has(.landing--building) .startooth-sheet-matte {
+    border-radius: 0;
+  }
+
+  /* Frame LAST — the brown rule fades in after the caption; the grey hairline
+     retires as it lands (so they never read as a double-frame). */
+  html:has(.landing--frame) .startooth-sheet-matte {
+    border-color: var(--surface-bg);
+  }
+  html:has(.landing--frame) .startooth-canvas-root {
+    box-shadow: none;
+  }
+
+  /* Skip-on-return (client-side back from /all): the sheet is already settled —
+     no placement, no ink. --building + --frame are set synchronously so square /
+     black / brown are the initial (untransitioned) values; just silence sheet-place. */
+  html:has(.landing--skip) .startooth-canvas-root,
+  html:has(.landing--skip) .startooth-sheet-matte {
+    animation: none;
+  }
+}
+
+@keyframes sheet-place {
+  from { opacity: 0; scale: 0.94; rotate: -2deg; }
+  to   { opacity: 1; scale: 1;    rotate: 0deg;  }
+}
+
+/* Reduced motion: no placement scale/rotate/fade — the sheet is simply THERE
+   (animation:none → opacity resolves to 1, scale/rotate to identity) and the
+   canvas shows without the ink fade. Also the safe fallback if the entrance ever
+   can't run: neither the card nor the canvas can strand invisible. */
+@media (prefers-reduced-motion: reduce) {
+  .startooth-canvas-root,
+  .startooth-sheet-matte {
+    animation: none;
+  }
+  .startooth-canvas-root canvas {
+    opacity: 1;
+    transition: none;
+  }
 }
 
 /* Centered + tilted -15°, sized by the engine via JS (ResizeObserver).

@@ -46,25 +46,21 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 > "Collapse content" / "Expand content" (aria-label on Nihar marker)
 > — [`page.tsx:522`](../../app/page.tsx#L522)
 
-## About long — disciplines list {#about-long-disciplines}
+## About long — practice timeline {#about-long-practice-timeline}
 
-> "UI and interaction design"
-> — [`page.tsx:543`](../../app/page.tsx#L543)
+The about-long card was rebuilt into the practice timeline (v0.114–116); the old
+disciplines-list copy is retired. Referenced by symbol (line refs drift).
 
-> "2 years" (Monostamp chip)
-> — [`page.tsx:543`](../../app/page.tsx#L543)
+> "Started with standup comedy. Then graphic design."
+> — [`page.tsx`](../../app/page.tsx) — `.practice-timeline__statement`
 
-> "Studio-building and creative direction"
-> — [`page.tsx:546`](../../app/page.tsx#L546)
+> "Since then I have been overusing my talent. Like with these graphs." (accent)
+> — [`page.tsx`](../../app/page.tsx) — `.practice-timeline__accent`
 
-> "3y" (Monostamp chip)
-> — [`page.tsx:546`](../../app/page.tsx#L546)
-
-> "Developer tooling, tech infrastructure, and growth experiments"
-> — [`page.tsx:549`](../../app/page.tsx#L549)
-
-> "3y" (Monostamp chip)
-> — [`page.tsx:549`](../../app/page.tsx#L549)
+> "Interface" · "How do people interact with technology?" · "2016 – 2018"
+> "Brand" · "How do ideas shape an organization?" · "2018 – 2021"
+> "Product" · "How do complex products become usable?" · "2021 – Now"
+> — [`page.tsx`](../../app/page.tsx) — `TIMELINE_PHASES`
 
 ## Spectrum labels {#spectrum-labels}
 

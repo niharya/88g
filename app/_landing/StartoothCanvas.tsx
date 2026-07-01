@@ -21,15 +21,22 @@ import { useRef, useEffect, useCallback } from 'react'
 import { StartoothField } from './StartoothField'
 import './startooth-canvas.css'
 
+/* Grey-hold: how long the blank grey card holds before the build is cued, on a
+   fresh DESKTOP load. Mobile (full-bleed) and skip (return) don't hold. */
+const GREY_HOLD_MS = 1800
+
 export interface StartoothCanvasProps {
   onBuildComplete: () => void
+  /* Fires the instant the build is cued (after the grey hold) — page.tsx uses it
+     to straighten the sheet corners + ink grey→black as the pattern begins. */
+  onBuildStart?: () => void
   skipBuild: boolean
   /* When the landing expands, the engine dissolves its filled pattern down to a
      bare wireframe so the busy field quiets behind the bento. */
   expanded: boolean
 }
 
-export default function StartoothCanvas({ onBuildComplete, skipBuild, expanded }: StartoothCanvasProps) {
+export default function StartoothCanvas({ onBuildComplete, onBuildStart, skipBuild, expanded }: StartoothCanvasProps) {
   const rootRef   = useRef<HTMLDivElement>(null)
   const wrapRef   = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -50,7 +57,23 @@ export default function StartoothCanvas({ onBuildComplete, skipBuild, expanded }
     )
     fieldRef.current = field
 
-    const mount = () => field.mount()
+    const mount = () => { onBuildStart?.(); field.mount() }
+
+    // Grey-hold intro (DESKTOP framed sheet only): the sheet arrives as a blank
+    // grey card and holds a beat before the build is cued — so we DELAY the engine
+    // mount by GREY_HOLD_MS. Hydration is long done by then, so no idle-defer is
+    // needed. On skip (return) or mobile (full-bleed, timing unchanged) there's no
+    // hold: keep the original post-hydration idle-slot mount exactly as before.
+    const framedSheet = window.matchMedia('(min-width: 768px) and (min-height: 501px)').matches
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (!skipBuild && framedSheet && !prefersReduced) {
+      const id = window.setTimeout(mount, GREY_HOLD_MS)
+      return () => {
+        clearTimeout(id)
+        field.destroy()
+        fieldRef.current = null
+      }
+    }
 
     // Defer to a post-hydration idle slot to avoid competing with the
     // React hydration pass and the font-gate inline script.

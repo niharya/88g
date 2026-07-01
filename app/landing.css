@@ -69,7 +69,7 @@
   /* Group B stack continues the chain (post spectrum/practice swap). */
   --practice-top: calc(var(--spectrum-top) + 362px);  /* + spectrum block */
   --contact-top:  calc(var(--practice-top) + 477px);  /* + about-practice block */
-  --expanded-h:   calc(var(--contact-top) + 345px);   /* + contact block + footer margin */
+  --expanded-h:   calc(var(--contact-top) + 345px + var(--space-48));   /* contact block + footer margin + clearance so the footer bar never tucks under the contact card */
 }
 
 /* ---- Viewport ---- */
@@ -106,6 +106,17 @@
    The canvas engine starts on black, so this closes the FOUC gap. */
 html:has(.landing), html:has(.landing) body {
   background-color: #000;
+}
+
+/* DESKTOP framed sheet: first paint is the GREY desk, not black — the sheet
+   arrives as a blank grey card on the desk and inks itself to black
+   (startooth-canvas.css → "Staged intro"), so there's no black flash before the
+   matte floods the margins. Gated to the framed-sheet complement so MOBILE keeps
+   the black full-bleed first paint (main behaviour, byte-identical). */
+@media (min-width: 768px) and (min-height: 501px) {
+  html:has(.landing), html:has(.landing) body {
+    background-color: var(--workbench-bg);
+  }
 }
 
 /* Once built, blend the page background into the canvas ground tone. iOS Safari
@@ -214,8 +225,24 @@ html.fonts-ready .landing.landing--skip {
    matte to keep it "within". Scoped to .caption-tag ONLY — folding bottom/z into
    the pointer-events rule above shifted the relative .hero-card up 32px. */
 .caption-tag {
-  bottom: 30px;
+  /* z-index below the matte (15) so overflow past the sheet bottom is trimmed.
+     The bottom/tuck is DESKTOP-ONLY (below): on desktop the matte trims the
+     caption to the sheet edge; MOBILE is full-bleed with NO matte, so it keeps
+     the component's base bottom:0 (dock to the viewport edge) and the --tuck
+     pushes the description fully off-screen — no trimming needed, nothing spills. */
   z-index: 12;
+}
+
+/* DESKTOP framed sheet: dock the caption at the sheet's bottom EDGE. The
+   CaptionTag's own --tuck peeks the title a fixed amount above the dock line;
+   docking at the FULL --sheet-margin floated it ~24px up ("too up"), while 10px
+   BELOW over-tucked it under the matte ("too in"). −4px sits the title just above
+   the edge. The −4px is the dial (larger = more tucked). Gated so mobile (no matte)
+   never inherits it — else the tucked description spills into the untrimmed gap. */
+@media (min-width: 768px) and (min-height: 501px) {
+  .caption-tag {
+    bottom: calc(var(--sheet-margin, 30px) - 4px);
+  }
 }
 
 /* Framed sheet:the colophon footer slab is fixed at the viewport bottom
@@ -656,12 +683,9 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   color: var(--terra-960);
   max-width: 450px;
   margin: 0 auto 24px;
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  /* Typography is the shared t-h2 token (Google Sans, 24px, weight 500, −0.48px) —
+     no local font overrides; matches live/main. Was wrongly overridden to Fraunces
+     display / weight 400. */
 }
 
 
@@ -726,6 +750,15 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
 .landing-nav-row {
   display: inline-flex;
   align-items: flex-start;
+
+  /* Normalize the tabs to a constant size — counter the plate's --sheet-scale so
+     the Nihar/Works nav stays readable/tappable on small frames instead of
+     shrinking with the content (the /all docked-ticket precedent: fixed UI inside
+     scaled content). `scale` is the individual property so it composes with the
+     works-tuck-out `transform`; origin top-centre keeps it docked under the hero
+     and viewport-centred. No-op at scale 1 (wide desktop, mobile). */
+  scale: calc(1 / var(--sheet-scale, 1));
+  transform-origin: top center;
 
   /* Tuck-out entrance — the nav row sits hidden beneath the hero card
      (hero is z:10, landing__content z:5) and slides down into view once
@@ -1885,7 +1918,7 @@ textarea.contact-form__input {
     --spectrum-top: 1008px;
     --practice-top: 1356px;
     --contact-top: 1882px;
-    --expanded-h: 2292px;
+    --expanded-h: calc(2292px + var(--space-48));   /* + footer clearance (mirrors desktop) */
     min-height: 100svh;
   }
 
@@ -1982,7 +2015,7 @@ textarea.contact-form__input {
   /* Component overrides */
   .hero-card { width: 100%; }
   .hero-card__bg { padding: 24px 24px 32px; }
-  .hero-card__headline { max-width: none; }
+  .hero-card__headline { max-width: none; font-size: 20px; }
   .hero-card__sub { max-width: none; }
 
   .about-card { width: 100%; padding: var(--space-24); }
@@ -1996,6 +2029,16 @@ textarea.contact-form__input {
      inline) maps to HEIGHT here instead of width. Our values are kept (Geist
      numerals, terra-160 collapse, type sizes) and just reflowed vertically. */
   .practice-timeline__statement { font-size: 20px; }
+
+  /* Type recompose — desktop runs a big display numeral (44px) + labels sized for
+     the wide horizontal bar; the vertical mobile bar is narrow, so bring the type
+     down to the mobile scale (the layout was already recomposed vertical, the type
+     wasn't). Tunable. */
+  .practice-timeline__seg-num { font-size: 30px; }
+  .practice-timeline__seg-label { font-size: 11px; }
+  .practice-timeline__seg.is-focused .practice-timeline__seg-label,
+  .practice-timeline__seg.is-collapsed .practice-timeline__seg-label { font-size: 13px; }
+  .practice-timeline__seg-question { font-size: 10px; }
 
   .practice-timeline__lower {
     display: flex;
@@ -2034,7 +2077,7 @@ textarea.contact-form__input {
     writing-mode: horizontal-tb;
     transform: none;
   }
-  .practice-timeline__seg.is-collapsed .practice-timeline__seg-num { align-self: flex-start; }
+  .practice-timeline__seg.is-collapsed .practice-timeline__seg-num { align-self: flex-start; font-size: 22px; }
 
   /* Axis → left rail: a vertical column whose cells mirror the row heights, so
      the years sit on the row boundaries (2016 at top → NOW at bottom). The

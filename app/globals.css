@@ -142,6 +142,14 @@
      Each sheet's width formula clamps to `100vw - 2 * --sheet-gutter`. */
   --sheet-gutter: 32px;
 
+  /* ---- Sheet content inset --------------------------------------------
+     The gutter the landing's content PLATE keeps inside its own frame, so the
+     cards never touch the sheet border. Read by the --sheet-scale bridge in
+     page.tsx: the plate scales to (frameWidth − 2*inset), leaving this margin
+     each side at every viewport (chiefly portrait/iPad, where the frame is at
+     the 760 cap and the plate would otherwise fill it edge-to-edge). */
+  --sheet-content-inset: 24px;
+
   /* ---- Elevation ladder ------------------------------------------------
      Four restrained tiers for paper/object surfaces. Depth should come from
      surface + edge + spacing first; shadow is a tuning aid, not the primary

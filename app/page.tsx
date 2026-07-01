@@ -46,6 +46,14 @@ const EMAILJS_SERVICE  = 'service_76t20oq'
 const EMAILJS_TEMPLATE = 'template_t3lbcfn'
 const EMAILJS_KEY      = '6EYXpRRlRsj0pe00B'
 
+/* Intro stage delays — standardized + trimmed so the reveal reads quicker.
+   STAGE_SETTLE ≈ --dur-place (0.9s): the nav tabs stage in as the hero card
+   finishes settling. REVEAL_BEAT is the single uniform beat for the trailing
+   reveals (caption, then frame). FAILSAFE clears grey-hold + build with margin. */
+const STAGE_SETTLE_MS = 900
+const REVEAL_BEAT_MS   = 400
+const FAILSAFE_MS      = 10000
+
 /* ---- Spectrum palettes — precomputed from Munsell color system ---- */
 // 8 cols × 7 rows diamond grid. 4 complementary hue pairs.
 // Generated via mhvcToHex() with chroma fallback for gamut safety.
@@ -98,19 +106,27 @@ export default function LandingPage() {
   // refresh (fresh module) always replays the build.
   const [built, setBuilt] = useState(false)
   const [skipBuild, setSkipBuild] = useState(false)
+  // `buildStarted` fires when the (grey-held) build is cued — drives .landing--building,
+  // which straightens the sheet corners rounded→square and inks the fill grey→black.
+  const [buildStarted, setBuildStarted] = useState(false)
   // The entrance reads as a clean sequence — the hero card settles, THEN the nav
   // tabs slide out, THEN the Startooth caption follows a beat later. `staged`
   // gates the nav tabs (and about-cards); `captionIn` trails it for the caption.
   // On client-side return everything is already settled, so both flip immediately.
   const [staged, setStaged] = useState(false)
   const [captionIn, setCaptionIn] = useState(false)
+  // `frameIn` is the LAST beat: the brown sheet frame fades in after the caption.
+  // Drives .landing--frame, read by startooth-canvas.css (matte border-color).
+  const [frameIn, setFrameIn] = useState(false)
 
   useLayoutEffect(() => {
     if (builtThisLoad) {
       setBuilt(true)
       setSkipBuild(true)
+      setBuildStarted(true)
       setStaged(true)
       setCaptionIn(true)
+      setFrameIn(true)
     }
   }, [])
 
@@ -120,7 +136,7 @@ export default function LandingPage() {
   // The skip path above sets staged synchronously, so this no-ops on return.
   useEffect(() => {
     if (!built || staged) return
-    const id = setTimeout(() => setStaged(true), 1300)
+    const id = setTimeout(() => setStaged(true), STAGE_SETTLE_MS)
     return () => clearTimeout(id)
   }, [built, staged])
 
@@ -129,18 +145,32 @@ export default function LandingPage() {
   // steps rather than arriving together.
   useEffect(() => {
     if (!staged || captionIn) return
-    const id = setTimeout(() => setCaptionIn(true), 700)
+    const id = setTimeout(() => setCaptionIn(true), REVEAL_BEAT_MS)
     return () => clearTimeout(id)
   }, [staged, captionIn])
 
+  // The brown sheet frame is the LAST thing to arrive — a beat after the caption
+  // has slid up, the frame fades in (border-color transparent → brown) and the
+  // grey intro hairline retires. Skip path sets frameIn synchronously above.
+  useEffect(() => {
+    if (!captionIn || frameIn) return
+    const id = setTimeout(() => setFrameIn(true), REVEAL_BEAT_MS)
+    return () => clearTimeout(id)
+  }, [captionIn, frameIn])
+
   // Failsafe: if onBuildComplete never fires (canvas error, no WebGL context,
-  // network failure on the dynamic chunk), reveal the landing after 8 s so
-  // the user isn't stranded at a black screen.
+  // network failure on the dynamic chunk), reveal the landing so the user isn't
+  // stranded. Sized past the grey hold (~1.8s) + the ~6.2s build so it can't fire
+  // before a healthy build completes (build-complete lands ~7.4s on desktop).
   useEffect(() => {
     if (built) return
-    const id = setTimeout(() => setBuilt(true), 8000)
+    const id = setTimeout(() => setBuilt(true), FAILSAFE_MS)
     return () => clearTimeout(id)
   }, [built])
+
+  const handleBuildStart = useCallback(() => {
+    setBuildStarted(true)
+  }, [])
 
   const handleBuildComplete = useCallback(() => {
     builtThisLoad = true
@@ -213,6 +243,10 @@ export default function LandingPage() {
   useEffect(() => {
     const root = document.documentElement
     const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
+    // The plate keeps a gutter inside the frame so cards never touch the border:
+    // scale to (frameWidth − 2*inset) / 760. Value owned by --sheet-content-inset
+    // (globals.css) so it stays tunable in one place.
+    const inset = parseFloat(getComputedStyle(root).getPropertyValue('--sheet-content-inset')) || 0
     let raf = 0
     const measure = () => {
       raf = 0
@@ -222,7 +256,7 @@ export default function LandingPage() {
       const sheet = document.querySelector('.startooth-canvas-root') as HTMLElement | null
       const w = sheet?.offsetWidth ||
         Math.min((window.innerHeight - 60) / 1.3333, 760, window.innerWidth - 64)
-      root.style.setProperty('--sheet-scale', String(Math.min(1, w / 760)))
+      root.style.setProperty('--sheet-scale', String(Math.min(1, (w - 2 * inset) / 760)))
     }
     const onResize = () => { if (!raf) raf = requestAnimationFrame(measure) }
     measure()
@@ -632,11 +666,12 @@ export default function LandingPage() {
       />
       <StartoothCanvas
         onBuildComplete={handleBuildComplete}
+        onBuildStart={handleBuildStart}
         skipBuild={skipBuild}
         expanded={expanded}
       />
 
-      <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}${built ? ' landing--built' : ''}${skipBuild ? ' landing--skip' : ''}${staged ? ' landing--staged' : ''}`}>
+      <div className={`landing ${expanded ? 'landing--expanded' : 'landing--default'}${slideIn ? ' landing--slide-in' : ''}${buildStarted ? ' landing--building' : ''}${built ? ' landing--built' : ''}${skipBuild ? ' landing--skip' : ''}${staged ? ' landing--staged' : ''}${frameIn ? ' landing--frame' : ''}`}>
         <div className="landing__content">
 
           {/* Hero */}
@@ -705,8 +740,8 @@ export default function LandingPage() {
           <div className="landing__section--about-long">
             <div className="about-card about-card--long">
               <p className="practice-timeline__statement">
-                Ten years.<br />
-                <span className="practice-timeline__accent">Each thing I learn opens a bigger system.</span>
+                Started with standup comedy. Then graphic design.<br />
+                <span className="practice-timeline__accent">Since then I have been overusing my talent. Like with these graphs.</span>
               </p>
 
               <div className="practice-timeline__lower">
