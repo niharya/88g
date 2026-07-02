@@ -74,11 +74,11 @@ Current (mobile pass, whole route):
 
 **What it is.** Deep-link entry (`/cases`, `/showcase`, `/all?showcase`, `/all?cases`, and case-study EXIT) reads the bare query flags (`'showcase' in sp` / `'cases' in sp`) SERVER-side in `page.tsx` → `/showcase` selects the Visual tab, `/cases` selects Longform.
 
-**Where.** `page.tsx` (server component) computes `initialView` from the search params; `BenchEssay` calls `useBenchDock(initialView ?? 'lf')`.
+**Where.** `page.tsx` (server component) computes `initialView` from the search params; `BenchEssay` calls `useBenchDock(initialView ?? 'vis')`.
 
 **Why server-side.** The `/cases` and `/showcase` rewrites (`next.config.mjs`) deliver the flags as the DESTINATION query — client-side `useSearchParams` never sees them, so the read has to happen server-side in `page.tsx`. If both flags are present, showcase wins.
 
-**Defaults + order.** With NEITHER flag, the default tab is Longform (case studies) — `initialView` is `null`, and `useBenchDock(initialView ?? 'lf')` falls back to `'lf'`. Tab ORDER in the ticket is Longform-LEFT, Visual-RIGHT (`Ticket.tsx`) — don't swap the order without updating this note.
+**Defaults + order — current (supersedes the original Longform-default/Longform-left authoring).** With NEITHER flag, the default tab is Visual (showcase) — `initialView` is `null`, and `useBenchDock(initialView ?? 'vis')` falls back to `'vis'` (was `?? 'lf'`). Tab ORDER in the ticket is Visual-LEFT, Longform-RIGHT (`Ticket.tsx`'s two `<button>`s were reordered in JSX to match — only DOM position moved, each button's `onClick`/`aria-current` stayed attached through the swap). `Ticket.tsx`'s file-header comment carries the same framing ("Tab order: Visual (showcase) first, Longform (case studies) second. Visual is the default tab.") — treat it as the live source of truth if this note and the code ever drift. Don't swap the order or default without updating both. The Longform-return seam (`/all?cases`, "Return seam" above) is untouched — it still explicitly forces Longform via the flag, independent of the bare-URL default.
 
 **What breaks.** It does NOT auto-scroll into the work (rests at the card) — auto-scroll-into-content is a deferred follow-up, not a bug. Moving the query read to the client breaks deep-link tab selection because the rewrite-delivered query never reaches `useSearchParams`.
 
@@ -113,6 +113,7 @@ Current (mobile pass, whole route):
 - The **eyebrow** still fades `opacity`-only out of flow (`position:absolute`, rest space reserved by the frame top padding) + a small `translateY` — NOT a `max-height`/`margin` collapse.
 - Reduced motion zeroes the ticket condense transitions (`.bench-ticket`/frame/eyebrow/tab/title/perf-line/close) so the morph snaps to its end-state.
 - **The condense only animates on REAL wheel/trackpad scroll.** An instant programmatic `scrollTo` jump (reduced-motion, or a headless harness) bypasses the CSS transition (the state flips in one frame) — mid-flight width measurements after a jump are unreliable; the SETTLED end-state values are correct.
+- **Condensed tabs' left padding is authored asymmetric (`calc(20 * var(--bu))` right, `calc(24 * var(--bu))` left) on `.is-condensed .bench-ticket__tabs` — an OPTICAL correction, not a box error.** Confirmed via live DOM measurement (`getBoundingClientRect`) that the structural padding was already numerically symmetric (~24px both sides at 1440px) — it still read left-heavy because the left tab's serif title glyph (Fraunces, `-0.4px` letter-spacing) has almost no left side-bearing so its ink hugs the true box edge, while the right-side close (`×`) icon carries visible internal glyph padding, making the right margin look more generous at equal box padding. Fix is a hand-tuned dial value (same family as the landing caption tuck's `-4px`, see `app/_landing/ANOMALIES.md`) — **do not "fix" this back to symmetric padding**; that reintroduces the left-heavy read. Re-verify by eye (not just by measuring the box) before touching it.
 
 **What breaks.** Don't revert the condensed tabs to grid, don't make either width `fit-content`/`%`, don't pull the close back out of flow when condensed, and don't bring back an eyebrow max-height collapse.
 

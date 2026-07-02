@@ -50,9 +50,17 @@
      the markers + the whole Group-B stack re-dock themselves — no manual
      re-tuning. Each offset is "the block above's height + its gap"; only those
      need touching if a CARD's height changes (rare), vs the hero (common).
-     Mobile overrides all of these with its own px values in the @media block. */
+     Mobile overrides --hero-top + the rest of the Group-B stack (long/spectrum/
+     practice/contact) with its own px values in the @media block; --projects-top
+     is NOT among them — it shares this same relationship on mobile too (see the
+     mobile block), fed by the same live --hero-h. */
   --hero-top: 132px;
-  --hero-h: 289px;   /* headline + sub-line height; the self-adjusting cascade re-docks the nav + Group-B stack off this */
+  /* Bootstrap default only — overwritten immediately by a ResizeObserver on
+     .hero-card__bg (page.tsx) once mounted, so the cascade tracks the REAL
+     rendered height (headline cycle, greeting length, font load all vary it)
+     instead of drifting from a hand-typed guess. This literal is what SSR/
+     first-paint renders before that measurement lands. */
+  --hero-h: 240px;
   /* Markers tuck 6px up under the hero's bottom edge (hero z:10 > content z:5),
      reading as docked into the card. */
   --projects-top: calc(var(--hero-top) + var(--hero-h) - 6px);
@@ -1915,7 +1923,13 @@ textarea.contact-form__input {
 @media (max-width: 767px), (max-height: 500px) {
   .landing {
     --hero-top: 84px;
-    --projects-top: 350px;   /* headline + sub-line grow the mobile hero; keeps the nav peeking below it */
+    /* Was a hand-typed literal (350px) tuned against a since-changed headline —
+       drifted the instant the hero's real height moved (headline cycle, greeting
+       length), leaving the nav row visibly off the card. Now shares desktop's
+       self-adjusting relationship (--hero-top + --hero-h - 6px tuck), fed by the
+       same live-measured --hero-h (page.tsx) — the ONLY mobile stack member that
+       does; --long-top/--spectrum-top/etc below stay their own hardcoded set. */
+    --projects-top: calc(var(--hero-top) + var(--hero-h) - 6px);
     --long-top: 315px;
     /* The about-long card is now the VERTICAL (portrait) timeline — far taller
        than the old horizontal one (653px: 480 stack + headline + padding). Its

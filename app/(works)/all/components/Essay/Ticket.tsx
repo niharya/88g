@@ -4,8 +4,8 @@
 // and `.is-condensed` (the visual condense) together, as one unit. This component
 // is structural — no inline state.
 //
-// Tab order: Longform (case studies) first, Visual (showcase) second.
-// Case studies is the default tab.
+// Tab order: Visual (showcase) first, Longform (case studies) second.
+// Visual is the default tab.
 
 import type { Ref } from 'react'
 import MaterialIcon from '../../../../components/MaterialIcon'
@@ -34,18 +34,18 @@ export default function Ticket({ engaged, active, onShowcase, onLongform, onClos
             <span className="bench-ticket__eyebrow-rule bench-ticket__eyebrow-rule--r" />
           </div>
 
-          {/* Tabs — Longform (case studies) first, then Visual (showcase). The
+          {/* Tabs — Visual (showcase) first, then Longform (case studies). The
               close is absolute (not a grid cell), so the label pair stays centred
               in both states with no horizontal reflow. */}
           <div className="bench-ticket__tabs">
             <button
               type="button"
               className="bench-tab"
-              onClick={onLongform}
-              aria-current={engaged && active === 'lf' ? 'true' : undefined}
+              onClick={onShowcase}
+              aria-current={engaged && active === 'vis' ? 'true' : undefined}
             >
-              <div className="bench-tab__title"><span className="bench-tab__ink">Longform</span></div>
-              <span className="bench-tab__sub">case studies</span>
+              <div className="bench-tab__title"><span className="bench-tab__ink">Visual</span></div>
+              <span className="bench-tab__sub">showcase</span>
             </button>
 
             {/* Divider + diamond bead */}
@@ -61,11 +61,11 @@ export default function Ticket({ engaged, active, onShowcase, onLongform, onClos
             <button
               type="button"
               className="bench-tab"
-              onClick={onShowcase}
-              aria-current={engaged && active === 'vis' ? 'true' : undefined}
+              onClick={onLongform}
+              aria-current={engaged && active === 'lf' ? 'true' : undefined}
             >
-              <div className="bench-tab__title"><span className="bench-tab__ink">Visual</span></div>
-              <span className="bench-tab__sub">showcase</span>
+              <div className="bench-tab__title"><span className="bench-tab__ink">Longform</span></div>
+              <span className="bench-tab__sub">case studies</span>
             </button>
 
             {/* Close — appears condensed, returns to the invitation */}

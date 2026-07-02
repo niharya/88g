@@ -19,6 +19,7 @@ entries load per-section, on demand.
 - **Form-open height bump** — the `:has(.contact-card--form-open)` +600px height compensation.
 - **Contact form `inert` when closed** — `aria-hidden` + `inert` both required to block keyboard focus.
 - **Self-adjusting cascade (desktop) — tops derive off the settled hero bottom** — the desktop `calc()` chain vs mobile's hardcoded tops.
+- **`--hero-h` is JS-measured (ResizeObserver), not hand-authored** — why `--hero-h` is a live `offsetHeight` read, not a hand-typed literal; the `contentRect`/`getBoundingClientRect` traps to avoid.
 - **`--expanded-h` follows practice card height** — desktop/mobile expanded scroll-height tails.
 - **About-long is the practice timeline** — the practice-timeline card's framing, shared bento keyline, grid footgun, REC accent, Geist Pixel numerals, mobile type recompose.
 - **Responsive anomalies** — wrapper: mobile-only landing behaviors below.
@@ -142,6 +143,16 @@ Group B cards transition `top`, `opacity`, and `transform` on expand. All three 
 **Mobile is NOT on the chain.** The `@media (max-width: 767px)` block overrides all of these with its own hardcoded px values — so on mobile the old "remeasure the linked set together, per viewport" discipline still holds. (The framed sheet is desktop-only for now; mobile's framed-sheet adaptation, and likely its migration to the same derived chain, is deferred.)
 
 **What breaks if flattened back to literals.** Hardcoding the derived tops back to px (as mobile still is) means a hero-height change silently floats the markers and throws off every Group-B dock until each is re-measured by hand — the exact failure the chain was built to remove. Don't "simplify" the desktop `calc()` chain to fixed values.
+
+## `--hero-h` is JS-measured (ResizeObserver), not hand-authored
+
+**What it is.** `--hero-h` (the one free measurement the whole cascade above derives from) used to be a hand-typed literal in `landing.css` (`289px`) — a guess that drifted the moment the hero's real rendered height changed (the headline cycle, the time-of-day greeting, font load, viewport reflow). A drifted `--hero-h` desyncs the entire derived chain even though the chain math itself is correct — this is exactly what left the Nihar/Works nav row visibly offset from the card. Now a `ResizeObserver` in `page.tsx` (`heroBgRef`, attached to `.hero-card__bg`) writes the element's REAL height to `--hero-h` on `.landing` (the var's declared scope — not `:root`, matching the `--sheet-scale` bridge) every time it changes. `landing.css`'s `--hero-h: 240px` is now just the SSR/pre-mount bootstrap value (matches `.hero-card__bg`'s own `min-height: 240px` floor) — overwritten the instant the effect mounts.
+
+**The measurement must be `offsetHeight`, not `contentRect.height` or `getBoundingClientRect()`.** `entry.contentRect.height` (the observer's own callback arg) is CONTENT-BOX only — it undercounts by the card's own padding (`32px 64px 40px`), so it fed the chain a value ~72px too short (measured: 168px instead of 240px). `getBoundingClientRect()` is wrong for a different reason: `--hero-h` feeds the UNSCALED `calc()` chain, but `getBoundingClientRect()` would pick up the `--sheet-scale` transform applied to an ancestor (`.landing__content`, Phase-3 harmonization) — double-applying the scale. `el.offsetHeight` is border-box, in the element's own untransformed coordinate space — the one reading that matches what the chain expects.
+
+**Mobile joins partially.** `--projects-top` (the nav marker) now derives off the same live `--hero-h` on mobile too (`calc(var(--hero-top) + var(--hero-h) - 6px)`, replacing a hand-typed `350px` that had the identical drift bug). The rest of the mobile Group-B stack (`--long-top`/`--spectrum-top`/`--practice-top`/`--contact-top`) stays its own hardcoded set, untouched — scoped deliberately to the nav marker, since that's what the change was asked to fix; migrating the rest of the mobile stack onto the chain is a separate, larger pass.
+
+**Don't** revert to a hand-typed `--hero-h` literal, and don't swap the ResizeObserver callback to read `contentRect.height` or measure via `getBoundingClientRect()`.
 
 ## `--expanded-h` follows practice card height
 

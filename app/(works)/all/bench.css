@@ -342,7 +342,7 @@
    divider width/height — and the eyebrow + bead fade opacity-only. The tabs swap
    grid→flex (a known one-frame rearrange — the centred diamond and the tight
    condensed fit both depend on it; smoothing it in pure CSS regresses one or the
-   other, so it stays). The condensed width is a DEFINITE 290 (see below) so width
+   other, so it stays). The condensed width is a DEFINITE 236 (see below) so width
    can interpolate. */
 .bench-ticket-slot {
   position: relative;
@@ -468,7 +468,13 @@ html.sc-artifact-open .bench-ticket {
   /* Tighter than the rest-state 24: the whole row (both tabs · divider · ✕)
      centres as one unit with even inter-item gaps, filling the 236 box. */
   gap: calc(20 * var(--bu));
-  padding: 0 calc(20 * var(--bu));
+  /* Deliberately asymmetric (24 left / 20 right) — the row's structural padding
+     IS even, but the left tab's serif glyph has almost no left side-bearing
+     while the close icon carries visible padding baked into its own glyph, so
+     an even split reads left-heavy (Longform/Visual hugs the edge, the ✕ sits
+     comfortably inset). The extra 4·--bu rebalances the OPTICAL margin; don't
+     "correct" it back to even without re-checking by eye. */
+  padding: 0 calc(20 * var(--bu)) 0 calc(24 * var(--bu));
 }
 
 .bench-tab {

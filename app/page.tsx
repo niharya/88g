@@ -94,6 +94,7 @@ export default function LandingPage() {
   const [slideIn, setSlideIn] = useState(false)
   const [greeting] = useState(getGreeting)
   const [headlineIdx, setHeadlineIdx] = useState(0)
+  const heroBgRef = useRef<HTMLDivElement>(null)
 
   /* Slide-in entrance — reads the session flag set by NiharHomeLink on
      /all. Owned by React state so the class survives className
@@ -247,6 +248,34 @@ export default function LandingPage() {
       window.removeEventListener('scroll', onScroll)
       if (raf) cancelAnimationFrame(raf)
     }
+  }, [])
+
+  /* Hero-height bridge — feeds the self-adjusting nav/Group-B cascade a REAL
+     measurement instead of a hand-authored guess. `--hero-h` (landing.css) is
+     the one free measurement the whole `--projects-top`/`--long-top`/etc chain
+     derives from; a static px value drifts the instant hero content changes
+     height (headline cycle, greeting length, font load, viewport reflow) —
+     which is exactly what left the nav row visibly offset from the card.
+     ResizeObserver keeps it live across content AND viewport changes; written
+     on `.landing` (the var's declared scope, not :root) matching the
+     --sheet-scale bridge below. Runs on both desktop and mobile — mobile's
+     --projects-top now shares the same calc() relationship as desktop (see
+     landing.css), so this single measurement fixes both. */
+  useEffect(() => {
+    const el = heroBgRef.current
+    const landing = el?.closest('.landing') as HTMLElement | null
+    if (!el || !landing) return
+    // Read `offsetHeight` (border-box, in the element's own untransformed
+    // coordinate space) on every callback rather than the observer's own
+    // `contentRect` (content-box only — undercounts by the card's padding)
+    // or `getBoundingClientRect` (would pick up the sheet-scale transform on
+    // an ancestor; --hero-h feeds the UNSCALED calc() chain, same space the
+    // scale transform is applied on top of afterward).
+    const ro = new ResizeObserver(() => {
+      landing.style.setProperty('--hero-h', `${el.offsetHeight}px`)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [])
 
   /* Sheet-scale — couple the content to the frame (Phase 3, harmonization).
@@ -700,7 +729,7 @@ export default function LandingPage() {
           {/* Hero */}
           <div className="landing__section--hero">
             <div className="hero-card">
-              <div className="hero-card__bg">
+              <div className="hero-card__bg" ref={heroBgRef}>
                 <div className="hero-card__content">
                   <p className="hero-card__greeting t-p4">
                     <span>{greeting}</span>

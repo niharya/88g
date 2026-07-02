@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 // destination query reaches the server, but the browser URL (and
 // useSearchParams) doesn't carry it. Precedence: showcase wins if both flags
 // are somehow present; neither flag → null, and the bench defaults to the
-// Longform (case studies) tab.
+// Visual (showcase) tab.
 export default async function BenchPage({
   searchParams,
 }: {

@@ -4,7 +4,7 @@
 // it) → the active tab's work, always present. The ticket pins at the top and
 // condenses into a smaller version of itself on scroll (useBenchDock); a tab
 // click scroll-glides to the work; scrolling back up returns to the card.
-// Case studies (Longform) is the default tab.
+// Visual (showcase) is the default tab.
 //
 // `initialView` (server-read in page.tsx for the /cases & /showcase rewrites +
 // case-study EXIT) selects the active tab so a deep-link lands on the right
@@ -25,7 +25,7 @@ import { useBenchDock, type BenchActive } from './useBenchDock'
 // resize handler was removed when the card moved to the cqi relative-math spine.
 
 export default function BenchEssay({ initialView }: { initialView?: BenchActive | null }) {
-  const d = useBenchDock(initialView ?? 'lf')
+  const d = useBenchDock(initialView ?? 'vis')
 
   return (
     <>
