@@ -9,6 +9,12 @@
 //   3. Every family CLAUDE.md carries the family header and (for route digests)
 //      a "Don't-touch digest" section.
 //   4. Relative markdown links inside family files resolve to real files.
+//   5. Digests paired with an archive stay under the word budget — the digest
+//      is the seatbelt, not a second archive.
+//   6. Every "## Don't-touch digest" bullet ends with an ANOMALIES.md anchor
+//      pointer, and that anchor resolves to a real heading in the archive.
+//   7. Every ANOMALIES.md carries an "## Index" section (the cheap map that
+//      lets a reader grep one entry instead of loading the whole file).
 //
 // Run directly (`node scripts/doc-census.mjs`) or via /release.
 // Exit code 0 = court is whole; 1 = someone is missing from the roll.
@@ -98,6 +104,51 @@ for (const f of [...digests, ...anomalies]) {
     if (!existsSync(target))
       failures.push(`DANGLING LINK: ${relative(ROOT, f)} → ${m[1]} does not exist`)
   }
+}
+
+// ── 5. Digest word budget ─────────────────────────────────────────────────
+// A digest is the seatbelt, not a second archive. Cap set above the largest
+// currently-compliant digest (rr, ~1300w) with headroom for growth.
+const DIGEST_WORD_CAP = 1500
+for (const d of digests) {
+  if (!existsSync(join(dirname(d), 'ANOMALIES.md'))) continue // unpaired digests aren't route digests
+  const body = readFileSync(d, 'utf8')
+  const words = body.trim().split(/\s+/).length
+  if (words > DIGEST_WORD_CAP)
+    failures.push(
+      `DIGEST OVER BUDGET: ${relative(ROOT, d)} is ${words}w (cap ${DIGEST_WORD_CAP}w) — ` +
+      `move rationale into the sibling ANOMALIES.md under an anchored heading, leave a one-line pointer`
+    )
+}
+
+// ── 6. Digest bullets anchor into the archive ─────────────────────────────
+const ANCHOR_RE = /ANOMALIES\.md\s*→\s*"([^"]+)"/
+for (const d of digests) {
+  const archivePath = join(dirname(d), 'ANOMALIES.md')
+  if (!existsSync(archivePath)) continue
+  const body = readFileSync(d, 'utf8')
+  const archiveBody = readFileSync(archivePath, 'utf8')
+  const headings = new Set(
+    [...archiveBody.matchAll(/^##\s+(.+)$/gm)].map((m) => m[1].trim())
+  )
+  const section = body.match(/## Don't-touch digest[\s\S]*/)
+  if (!section) continue
+  for (const line of section[0].split('\n')) {
+    if (!line.trim().startsWith('-')) continue
+    const anchor = line.match(ANCHOR_RE)
+    if (!anchor) {
+      failures.push(`UNANCHORED DIGEST LINE: ${relative(ROOT, d)} → "${line.trim().slice(0, 60)}…" has no ANOMALIES.md → "…" pointer`)
+    } else if (!headings.has(anchor[1])) {
+      failures.push(`DANGLING ANCHOR: ${relative(ROOT, d)} points at ANOMALIES.md → "${anchor[1]}" — no such "## ${anchor[1]}" heading in ${relative(ROOT, archivePath)}`)
+    }
+  }
+}
+
+// ── 7. Archive index section ──────────────────────────────────────────────
+for (const a of anomalies) {
+  const body = readFileSync(a, 'utf8')
+  if (!/^## Index/m.test(body))
+    failures.push(`INDEXLESS ARCHIVE: ${relative(ROOT, a)} has no "## Index" section — a reader can't tell what's inside without loading the whole file`)
 }
 
 // ── Report ────────────────────────────────────────────────────────────────

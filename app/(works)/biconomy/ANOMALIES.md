@@ -9,9 +9,43 @@ For project-level rules see `CLAUDE.md`.
 
 ---
 
+## Index
+
+- [Flows title + toggle blur-swap on flow change (v0.38.0)](#flows-title--toggle-blur-swap-on-flow-change-v0380)
+- [Demos video-item tilt + radius pair (v0.28.0)](#demos-video-item-tilt--radius-pair-v0280)
+- [Mat clipping (v0.10.0)](#mat-clipping-v0100)
+- [Section reveal shadow vs. scroll-linked shadow](#section-reveal-shadow-vs-scroll-linked-shadow)
+- [Chapter dominance-snap (v0.55.0)](#chapter-dominance-snap-v0550)
+- [API card images use `fill` mode, not `intrinsic`](#api-card-images-use-fill-mode-not-intrinsic)
+- [Shadow token migration (v0.17.0)](#shadow-token-migration-v0170)
+- [Flows HUD mode (legacy dev authoring tool — retained as artifact)](#flows-hud-mode-legacy-dev-authoring-tool--retained-as-artifact)
+- [Standby → active choreography (Flows)](#standby--active-choreography-flows)
+- [Reciprocal hover (Flows ↔ BeforeAfter)](#reciprocal-hover-flows--beforeafter)
+- [StayingAnchored notes USB is the family rolodex](#stayinganchored-notes-usb-is-the-family-rolodex)
+- [Web3-abstractor tooltip slides out from under the sticker](#web3-abstractor-tooltip-slides-out-from-under-the-sticker)
+- [NavPill is biconomy-local-shared](#navpill-is-biconomy-local-shared)
+- [No `scale()` / `!important` outside named gates](#no-scale--important-outside-named-gates)
+- [Documented motion deviations (off-token easings)](#documented-motion-deviations-off-token-easings)
+- [Responsive anomalies (mobile ≤767px)](#responsive-anomalies-mobile-767px)
+- [Mobile notes accordions (BIPs + Flows)](#mobile-notes-accordions-bips--flows)
+- [`display: contents` mobile reorder (BIPs + Flows)](#display-contents-mobile-reorder-bips--flows)
+- [BIPs — notes rail re-authored as inline accordion (Shape 10)](#bips--notes-rail-re-authored-as-inline-accordion-shape-10)
+- [Flows — crafted-lite pass (UX Audit)](#flows--crafted-lite-pass-ux-audit)
+- [Demos — crafted-lite pass (tabs + videos)](#demos--crafted-lite-pass-tabs--videos)
+- [Intro — first-mat top bleed + open-travel + toggle anchor (UX Audit)](#intro--first-mat-top-bleed--open-travel--toggle-anchor-ux-audit)
+- [StayingAnchored photostack (v0.35.0)](#stayinganchored-photostack-v0350)
+- [BiconomyChip dice-shake (v0.62.0 rebuild)](#biconomychip-dice-shake-v0620-rebuild)
+- [Tweet-card hover chain via `:has()` (v0.35.0)](#tweet-card-hover-chain-via-has-v0350)
+- [Multiverse — crafted-lite pass](#multiverse--crafted-lite-pass)
+- [API — layout, palette, and crafted-lite pass](#api--layout-palette-and-crafted-lite-pass)
+- [`#1DA1F2` (v0.35.0)](#1da1f2-v0350)
+- [UI flow scans flatten alpha to `#181818` (v0.70)](#ui-flow-scans-flatten-alpha-to-181818-v070)
+
+---
+
 ## Known anomalies
 
-### Flows title + toggle blur-swap on flow change (v0.38.0)
+## Flows title + toggle blur-swap on flow change (v0.38.0)
 
 `components/Flows.tsx` wraps the flow title and before/after pill in a single
 `AnimatePresence mode="popLayout"` block keyed on `currentSlide`. On flow
@@ -41,7 +75,7 @@ The `.ba__note-pointer` rule in `biconomy.css` uses `0.14s cubic-bezier(0.3, 1.3
 with a peak >1 for a dampened springy nudge on hover. Intentional. Same rule:
 do not flatten to paper/snap.
 
-### Demos video-item tilt + radius pair (v0.28.0)
+## Demos video-item tilt + radius pair (v0.28.0)
 
 The figma-tab video pair in `.demos__media-row--figma` is load-bearing in three ways:
 
@@ -49,7 +83,7 @@ The figma-tab video pair in `.demos__media-row--figma` is load-bearing in three 
 - **Matched 24px radius pair.** `.demos__video-frame` and `.demos__video-player` both carry `border-radius: 24px`. The outer frame clips the inner player — if they drift, the poster/video corners expose under the frame shadow.
 - **`tabIndex={-1}` on the `<video>` element.** The entire `.demos__video-item` is a single `<button>`; the inner video must not be focusable or the tab order double-stops. Looks removable — is not.
 
-### Mat clipping (v0.10.0)
+## Mat clipping (v0.10.0)
 
 `overflow: clip` was added to the `.mat` base class in `globals.css` during `/rr` work. This is the correct containment rule — all content should live within its mat. Two biconomy sections have pre-existing content that now clips at the mat edge:
 
@@ -58,7 +92,7 @@ The figma-tab video pair in `.demos__media-row--figma` is load-bearing in three 
 
 These were not regressions — the content was always overflowing, just never visually caught because nothing was containing it. Both were addressed in later fine-tuning passes; the entry stays as the record of *why* `.mat` clips. If clipping at a mat edge ever reappears, this is the mechanism.
 
-### Section reveal shadow vs. scroll-linked shadow
+## Section reveal shadow vs. scroll-linked shadow
 
 The `.section-reveal` CSS animation (globals.css) includes a shadow phase on
 `.surface` elements during entrance. After the reveal completes and the user
@@ -75,7 +109,7 @@ during the reveal entrance on all biconomy sections.
 **What breaks if the inline shadow is removed:** surface shadow does not respond
 to scroll position; cards feel static during reading.
 
-### Chapter dominance-snap (v0.55.0)
+## Chapter dominance-snap (v0.55.0)
 
 All six biconomy chapters opt in to `useDominanceSnap` via `<Sheet snap>` in [page.tsx](page.tsx). On **2 seconds** of scroll-idle, if a chapter's top edge is within **80px** of the dock position **and** ≥72% of the section is visible, the page glides to the chapter's top over **800ms** with `--ease-paper`. Mid-chapter scrolling does not snap — the tight 80px proximity gate keeps tall chapters from yanking the reader back to the top during a long read, and the 2s idle keeps brief reading pauses from triggering anything.
 
@@ -99,7 +133,7 @@ All six biconomy chapters opt in to `useDominanceSnap` via `<Sheet snap>` in [pa
 
 **First-chapter idleMs override (v0.62.0).** The first chapter (`ux-audit`) passes `snapIdleMs={100}` from [page.tsx](page.tsx); all other chapters keep the 2000ms default. Reason: on direct load and on transition-in, the route lands at `scrollY = 50` (DOCK_OFFSET) but the section's top edge is ~50px below the dock — with a 2s idle, the reader sat in a half-docked state for two full seconds before the snap landed it flush. The 100ms override fires the snap almost immediately on entry so the page reads as docked from frame zero. The mid-chapter snap-back protection (`topProximityPx: 80` + `is-overlay-open` gate) still applies, so a fast idle does not yank the reader back to the top once they've scrolled past the boundary. **Do not extend the 100ms idle to interior chapters** — they're entered by scrolling, and a near-zero idle would feel snappy/aggressive against a reading pause.
 
-### API card images use `fill` mode, not `intrinsic`
+## API card images use `fill` mode, not `intrinsic`
 
 `.api__card-img` (the slide images inside `.api__card-frame`) is wired with `<Img fill />` so the wrapper covers the full 4:3 black monitor frame; `object-fit: contain` on `.img.api__card-img .img__inner` letterboxes the image inside it. **Do not switch back to `intrinsic`** — that mode shrinks the wrapper to the image's natural dimensions and exposes the frame's black background as a wide bezel around the screenshot. The `--raw` variant (Navigation & Signing flow) reuses the same `fill + contain` setup; the 1px grey border on `.api__stack-wrap--raw .api__card-img` outlines the wrapper rect, which is acceptable because the raw frame strips the black bg / shadow / border.
 
@@ -107,7 +141,7 @@ The `.api__trailing-img` further down (closing zhao.eth artifact) is a *differen
 
 See `LIBRARY.md` → "Img" → "Object-fit lives on `.img__inner`" for the cascade detail.
 
-### Shadow token migration (v0.17.0)
+## Shadow token migration (v0.17.0)
 
 Four biconomy card outers (`.bips__card-outer`, `.multiverse__card-outer`,
 `.demos__card-outer`, `.api__card-outer`) previously carried a hardcoded
@@ -126,7 +160,7 @@ If you find yourself authoring a new shadow on a biconomy surface, use the
 ladder first. Only introduce a new hardcoded value if it expresses a mechanic
 the ladder cannot (motion-state, glow, inset press) and document why inline.
 
-### Flows HUD mode (legacy dev authoring tool — retained as artifact)
+## Flows HUD mode (legacy dev authoring tool — retained as artifact)
 
 **Status:** retired. The HUD was used once to author the chip coordinates for
 the audit Flows (before/after number overlays), and those coordinates now
@@ -157,7 +191,7 @@ positions survive page reloads during an authoring session.
 - Leave `__hudAllCaptures` under that exact key; the rehydrate-on-mount path
   reads it literally.
 
-### Standby → active choreography (Flows)
+## Standby → active choreography (Flows)
 
 Flows has two composed states per slide: a standby layout and an active
 reading layout. The transition is driven by `useScroll({ target: frameRef })`
@@ -188,7 +222,7 @@ it will update at 60fps driven by the same spring — no separate JS needed.
 - `isActive` *must* flip at the midpoint, not at `activeT === 1`. Flipping at
   completion leaves a window where both layouts are pointer-interactive.
 
-### Reciprocal hover (Flows ↔ BeforeAfter)
+## Reciprocal hover (Flows ↔ BeforeAfter)
 
 The notes rail and the BeforeAfter overlay chips share a single
 `hoveredNoteIndex` in `Flows.tsx`. Both sides write to it: the notes rail list
@@ -218,7 +252,7 @@ rail-driven case. Removing either breaks one direction of the pairing.
   baseline; don't drop it.
 - Keep both `:hover` and `.is-hovered` as activators.
 
-### StayingAnchored notes USB is the family rolodex
+## StayingAnchored notes USB is the family rolodex
 
 The trailing sticker on the closing section (`.sa__trailing-sticker`) is
 not just the notes USB — it's a **rolodex of the three image stickers
@@ -249,7 +283,7 @@ recap moment is intentional and load-bearing for the closing beat.
 
 ---
 
-### Web3-abstractor tooltip slides out from under the sticker
+## Web3-abstractor tooltip slides out from under the sticker
 
 The "How we aspired to be known as" tooltip in Demos lives inside
 `.demos__web3-wrap` next to the `.demos__web3-sticker`. The reveal must
@@ -277,7 +311,7 @@ the block — the cascade is what sells the metaphor.
 
 ---
 
-### NavPill is biconomy-local-shared
+## NavPill is biconomy-local-shared
 
 `app/(works)/biconomy/components/NavPill.tsx` is used by both Flows and the
 API section. Despite appearing twice, it has NOT been promoted to
@@ -287,6 +321,31 @@ moves into shared the *second* time it's needed"), the count is measured
 across routes, not call sites. Promote NavPill to `app/components/` the
 moment a third consumer outside `/biconomy` needs it, and flag the move
 before doing it.
+
+---
+
+## No `scale()` / `!important` outside named gates
+
+Two cross-cutting bans hold across every biconomy chapter:
+
+- **No `transform: scale()` on any authored biconomy canvas.** This is the
+  crafted-lite stance (see "Responsive anomalies" below and
+  `docs/responsive-playbook.md` → Banned hacks): scaling crushes pixel
+  fidelity and shrinks interaction hit-targets out of proportion. Every
+  mobile re-composition in this route (BIPs, StayingAnchored photostack,
+  Multiverse poster, Demos video strip) re-authors static values instead of
+  scaling the desktop canvas down.
+- **No `!important` outside the two named gates.** The only sanctioned uses
+  in this route are the Flows mobile overrides — `transform: none
+  !important` on `.flows__header-left` and `.flows__nav`, and `--active-t: 1
+  !important` on `.flows` (see "Flows — crafted-lite pass (UX Audit)") —
+  which exist solely to neutralize Framer-written inline styles that would
+  otherwise win at equal specificity. BIPs' notes rail needs no such gate:
+  its open/closed state is className-driven (`BIPs.tsx:104` toggles
+  `is-open`), not inline-style-driven, so the React-inline-style conflict
+  the gate exists for never arises there. If you reach for `!important`
+  anywhere else in biconomy, you are fighting specificity from a different
+  source — fix that instead.
 
 ---
 
@@ -321,6 +380,56 @@ blockers):
 - Situational Awareness chip-row / prose spacing audit (only photostack
   scale touched this pass).
 
+## Mobile notes accordions (BIPs + Flows)
+
+Both notes rails (BIPs' Notion-embed rail and Flows' before/after notes
+rail) re-author their desktop absolute-positioned drawer as an inline
+accordion on mobile, and both share the same three load-bearing details —
+documented in full inside "BIPs — notes rail re-authored as inline
+accordion (Shape 10)" and "Flows — crafted-lite pass (UX Audit)" →
+Notes rail subsection:
+
+- **No CSS `max-height` transition.** A transition between `max-height: 0`
+  and a fixed-px value was tried first on both rails and behaved
+  unreliably on the first toggle — the animation registered in
+  `getAnimations()` but never advanced. Both rails keep an **instant**
+  toggle (`max-height: 0 ↔ none`); the tactile feedback comes from the
+  class change, padding jump, and outline delta. Do not re-add a
+  transition without a measured-`scrollHeight` JS hook.
+- **`flex: 0 0 auto` on the content, not `flex: 1 1 0%`.** Desktop's
+  `flex: 1 1 0%` fills the rail because the rail has a real height to
+  grow into. On mobile the rail is `height: auto` with no parent height
+  to distribute, so `flex: 1 1 0%` resolves to zero and the content
+  collapses even with `max-height` set. `flex: 0 0 auto` lets the
+  content size to itself, capped by `max-height`.
+- **Arrow rotations are correct as authored — old comments lied.** Both
+  `.flows__notes-arrow` and `.bips__notes-arrow` want closed = ↓ (expand),
+  open = ↑ (collapse): open state (no `is-flipped`) is
+  `rotate(90deg)` → ↑, `.is-flipped` (closed) is `rotate(-90deg)` → ↓.
+  An earlier version of the section comments had these reversed relative
+  to what the CSS actually renders; the CSS was correct, the comments
+  were fixed to match. Don't flip the rotations back based on the old
+  comment text.
+
+## `display: contents` mobile reorder (BIPs + Flows)
+
+Three wrappers flip to `display: contents` on mobile so their children
+become flex items of a shared parent and can be repositioned purely via
+CSS `order`, without touching JSX: `.bips__notion-wrap` (see "BIPs —
+notes rail re-authored as inline accordion (Shape 10)" → section reorder
+notes) and `.flows__main` + `.flows__header` (see "Flows — crafted-lite
+pass (UX Audit)" → DOM flattening notes).
+
+This is load-bearing for the mobile reading order in both chapters —
+BIPs interleaves label → iframe → footnote → rail; Flows interleaves
+title/toggle → image → counter/NavPill → notes. **Adding any box
+property (background, border, padding) to any of these three wrappers
+in the mobile scope breaks the interleaving** — `display: contents`
+strips the element's own box entirely, so a box property on it either
+does nothing (if it stays `contents`) or silently re-promotes it to a
+real box and un-interleaves the children. Desktop DOM and styling on
+all three wrappers are untouched — this is a mobile-scoped override only.
+
 ### BIPs — grid unbind (Shape 1)
 
 Desktop is a 4-col grid with two deliberate overlaps on row 1: the header
@@ -352,7 +461,7 @@ Desktop uses `padding-left: 128px; padding-right: 128px` on
 viewport minus 24px workbench pad-x per side, no content would fit under
 that cushion. The mobile block zeroes both padding values.
 
-### BIPs — notes rail re-authored as inline accordion (Shape 10)
+## BIPs — notes rail re-authored as inline accordion (Shape 10)
 
 This is the main composition decision. On desktop the notes rail is an
 **absolute-positioned rotated drawer** — `position: absolute; right: 0;
@@ -475,7 +584,7 @@ the surrounding composition stays legible.
 
 *Reference pass: 19 April 2026 (playbook v1).*
 
-### Flows — crafted-lite pass (UX Audit)
+## Flows — crafted-lite pass (UX Audit)
 
 Mobile re-composes the Flows section into a four-row vertical
 sequence, mirroring BIPs Shape 10 for the notes rail but with an
@@ -560,7 +669,7 @@ Implementation:
 - Snap fires on open only — not close. Closing in place preserves
   the user's reading position.
 
-### Demos — crafted-lite pass (tabs + videos)
+## Demos — crafted-lite pass (tabs + videos)
 
 Two composition moves — tab re-stack and video scroll strip — plus
 two collapsed-cushion fixes for `.demos__title-header` and
@@ -727,7 +836,7 @@ don't widen the marker past comfortable at 375px. Mirrors the `/rr` pattern
 not full-bleed (Shape 12 hasn't been applied), so the shared sled formula
 still aligns to the project marker. Revisit when the mat-bleed pass lands.
 
-### Intro — first-mat top bleed + open-travel + toggle anchor (UX Audit)
+## Intro — first-mat top bleed + open-travel + toggle anchor (UX Audit)
 
 First chunk of the UX Audit chapter's mobile pass. Three changes:
 
@@ -923,7 +1032,7 @@ Two small but non-obvious moves in the BIPs card footer on mobile.
   the desktop placement vertically — the triad reads the same left →
   center → right cadence, just down instead of across.
 
-### Multiverse — crafted-lite pass
+## Multiverse — crafted-lite pass
 
 Composition moves:
 
@@ -954,7 +1063,7 @@ Composition moves:
   reverted because it disconnected the captions from the centered
   poster column above them.
 
-### API — layout, palette, and crafted-lite pass
+## API — layout, palette, and crafted-lite pass
 
 The section runs as two blocks on desktop and one stacked column on mobile.
 Layout, palette, and motion all carry constraints that aren't obvious from

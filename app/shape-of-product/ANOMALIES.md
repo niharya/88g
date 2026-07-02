@@ -3,6 +3,23 @@
 Architectural anomalies, cross-file wiring, and don't-touch items.
 Read before editing the route.
 
+**How to read this file: grep the heading named by the digest's pointer and
+read only that section.** Never read the whole archive — the Index below is
+the cheap map; full entries load per-section, on demand.
+
+## Index
+
+- **Layout & shell** — route lives outside `(works)/`; defensive `CrossShellEntryFader`; `themeColor` override.
+- **Nav pair (`SopNavRow`)** — center-aligned fixed nav; title casing/wrap overrides; landing nav-direction flag.
+- **Inline chapter chips (`.sop__chip`)** — icon-unfurl collapse trick; NavMarker padding override; hard-coupled biconomy hrefs.
+- **Actor stickers (`ActorStickers`)** — frozen (non-random) tilt/offset constants; server-rendered; per-slot translateY wrapper.
+- **Roles ↔ Approach stack (`RoleApproachStack`)** — shared grid cell; scoped `aria-hidden`; tablist ARIA pattern; asymmetric offsets.
+- **Sign-off card (`SignOffCard`)** — inline-style tilt (class-based variant is broken); one-way settle; shared greeting util.
+- **Editorial chunks + dividers** — flex-gap rhythm across chunks; decorative hairline dividers.
+- **Tokens & cascade** — route-local `--sop-prose-ink`; doubled bottom padding tokens.
+- **Responsive** — mobile stack narrowing; halved bottom padding; stickers not responsively scaled.
+- **Editorial register** — deliberately quiet page: no scroll choreography, no auto-anything, no CTA cluster.
+
 ---
 
 ## Layout & shell
@@ -248,3 +265,21 @@ in 24px Fraunces (desktop) / 20px Fraunces (mobile). Three pills at
 12px t-h5 + overlap fits comfortably in both contexts. If the prose
 ever wraps awkwardly around them on narrow viewports, that's a copy
 adjustment, not a sticker-sizing one.
+
+---
+
+## Editorial register
+
+**The page is deliberately quiet.** No scroll choreography, no
+reveal-on-intersection, no auto-anything, no contact form / CTA
+cluster. Other routes in the family (`/all`, the works shell) use
+scroll-mapped reveals and nav-sled choreography; this musings layer
+intentionally opts out — the register is closer to reading an essay
+than touring a case study, and the restraint is part of the tone,
+not an unfinished state.
+
+**Don't add "engagement" affordances.** A newsletter prompt, a
+scroll-progress indicator, an intersection-triggered fade-in — any
+of these would read as generic portfolio polish and fight the quiet
+register. If a future musing wants motion, it should earn it
+explicitly rather than inherit it as a default.

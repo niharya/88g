@@ -7,30 +7,87 @@ architectural decision changes — not on every edit.
 
 For project-level rules see `CLAUDE.md`.
 
+**How to read this file: grep the heading named by the digest's pointer and read
+only that section.** Never read the whole archive — the Index below is the cheap
+map; full entries load per-section, on demand.
+
+## Index
+
+- **Mechanics scene — scroll-bound mat split** — intro to the sticky-pin scene; see its subsections below for specific guards.
+- **Sticky scene pattern** — 200vh scene + sticky stage gives 100vh of choreography room; `#mechanics::after` disabled so mats render their own noise.
+- **CSS variable cascade** — `--rr-mech-progress` lives on the stage, not a mat, because CSS vars don't cross sibling boundaries.
+- **The mats translate, they do not resize** — fixed 678px width; resizing clipped grid cells mid-animation.
+- **`.is-split` visibility gate** — hides the secondary mat's stray border seam at p=0.
+- **Auto-advance on game over** — `handleGameOver` scroll target must use `rect.top + window.scrollY`, not `scene.offsetTop`.
+- **Chapter dominance-snap (Mechanics excluded)** — why Mechanics opts out of `useDominanceSnap`, and why Intro's `snapIdleMs` override is not extended to other chapters.
+- **Global nav coupling — `[data-arrow-target]`** — ChapterMarker's arrow-target opt-in and the `?? sheet` fallback other routes depend on.
+- **Note rail reveal latch** — `noteRevealed`/`justRevealed` localStorage-persisted reveal state and its Strict-Mode double-invoke smell.
+- **Rails use inline `transform`, not Framer Motion or class-based CSS rules** — why FM and CSS-class transitions stall inside `.rr-mech-family`.
+- **Cross-rail follow-nudge** — the board-nudge / rail-transform load-bearing triple that must be recomputed together.
+- **Mobile open transforms live inline, not in CSS** — mobile `OPEN_TRANSFORM_MOBILE` constants and why CSS overrides stall the same way.
+- **Rejected approaches** — mat resize model, per-session scroll lock, flex-centering, stiffness/damping spring tuning.
+- **Cards section — shader + grid stacking** — intro to the Cards mat's shader/grid layering.
+- **RugShader is a mat-level sibling, not a canvas child** — nesting it in the canvas leaves 114px gaps top/bottom.
+- **Grid is promoted to `::before`** — the shared grid is redrawn above the shader since `background-image` can't be z-indexed over it.
+- **Card fan vertical stagger (`BASE_Y`)** — hand-tuned, Figma-matched per-card offsets; do not normalize to a curve.
+- **Tab typography is inlined, not `.t-btn1`** — `'wght' 800` avoids a Chrome dotted/solid underline width mismatch present at 720.
+- **Global mat containment (`overflow: clip`)** — base `.mat` clip rule and why `clip`, not `hidden`, is required for ChapterMarker's sticky behavior.
+- **Hand overlay always clips at mat bottom** — the deck-fan overlay's generous negative `bottom` offset is a layout rule, not a tuning value.
+- **Overlay backseat choreography** — shared dim/scale/pointer-events recede pattern for enlarged scans and the rules panel.
+- **Overlay primitive — `useExpand` (in-flow, not `<dialog>`)** — why `<dialog>`/`showModal()` was reverted, and the two-layer backseat + `inert` semantic it replaced it with.
+- **`is-overlay-open` body class — cross-file coupling** — the setter (`useExpand`) and reader (`useDominanceSnap.maybeSnap`) must change together.
+- **Close-cascade timing — JS setTimeout matches CSS animation sum** — `Intro.tsx`'s 550ms timeout must equal the CSS stagger sum.
+- **Outcome ticker — unified translate + scrollLeft** — the JS state machine that replaced CSS `@keyframes` and the scroll/translate coordinate fold.
+- **Intentional overshoot — deviation from `bounce: 0`** — the ~12% hover-out overshoot is a documented user-requested deviation, shared with `/marks` autoScroll.
+- **`overscroll-behavior-x: contain`** — stops Mac/iOS rubber-band from bouncing the whole page horizontally.
+- **Section entrance animations** — hard-load/scroll vs client-side-nav entrance systems and route-specific timing overrides.
+- **RR card shadow tokens — route-scoped, not the global ladder** — `--rr-card-shadow-*` tuned for the dark rug shader, not cream paper.
+- **RugShader palette is CSS-coupled** — changing GLSL colors requires re-checking card surfaces, text contrast, and shadow alphas.
+- **Responsive anomalies** — intro to the retrofit-lite mobile pass (≤767px); see subsections below.
+- **Nav-sled left — route-scoped override on mobile** — `/rr`'s mobile sheet margin breaks the shared sled formula, requiring a route-scoped override.
+- **Mechanics — rails: tab peeks past board's right edge; opens onto board** — mobile rail tuck/open positions, the local z-index ladder, and the gated mobile-only JS affordances.
+- **Cards — whole canvas scaled to viewport** — `--rr-cards-scale` canvas scaling, positioning, and the scaled-px/physical-px `-33px` lift term split.
+- **Cards — interface tab stays inside the scaled canvas** — constant-chrome contract; body content repositions in canvas-px instead of escaping scale.
+- **Post-game storycard mat — scaled card, re-anchored deck-fan** — mobile height formula locked to the 384×688 card aspect.
+- **Intro storycard — biconomy-style natural flow** — flex-column flattening, the `:has()` constraint-overlay negative-margin trick, and the North Star z-index/ease pairing.
+- **Dotted path (StoryCard) — scale-corrected measurement** — `measure()`'s scale-correction divisor and the `ResizeObserver` re-fire.
+- **Don't-touch list (without reading why first)** — flat summary appendix of desktop guards already detailed above.
+- **Img materialize animation stalls inside `.rr-canvas`** — scroll-linked transform ancestors stall the shared `Img` reveal keyframe.
+- **CardFan + interface image — `object-fit` lives on `.img__inner`** — the `<Img>` wrapper makes `object-fit` on the outer class a no-op.
+- **`rr-hand-deck-fan.webp` placeholder is auto-resolved** — never force `placeholder='color'` on the transparent deck-fan asset.
+- **Mechanics card sheet rotation uses `rotate:`, not `transform:`** — composes with `useMatSettle`'s scroll-driven inline `transform`.
+- **RulesRail first-visit open is gated on `.rr-game-board` intersection** — `IntersectionObserver` threshold 0.6, single-fire, one-way cue.
+- **Mechanics card button-press pulse — shared keyframe, snap tier** — shared `card-press` keyframe, `--ease-snap` tier, React-driven trigger.
+- **Outcome canvas height override (860 vs 900)** — the 40px trim keeps the ticker in the reading band.
+- **StoryCard one-trail unification (underline + descent)** — one arc-length-parameterized SVG path; suppressing `text-decoration` prevents a doubled line.
+- **Rules-rail vertical tab — t-btn1 underline suppressed** — `writing-mode: vertical-lr` turns `t-btn1`'s decoration into a stray vertical line.
+- **Constraints-card title vertical centering** — asymmetric padding compensates for Google Sans Flex's high-sitting caps.
+- **Decorative fonts — local, not external** — three route fonts via `next/font/local`, never a fonts.googleapis.com link.
+
 ---
 
 ## Mechanics scene — scroll-bound mat split
 
 Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (the "Phase 2 — Mechanics" comment block — search the header, line numbers drift).
 
-### Sticky scene pattern
+## Sticky scene pattern
 - `.rr-mech-scene` is **200vh** tall; `.rr-mech-stage` is `position: sticky; height: 100vh`.
 - This gives the choreography 100vh of scroll distance while both mats stay glued to the viewport.
 - The section itself (`#mechanics`) is structural only: `padding:0; border:none; background:none`.
 - `#mechanics::after { display: none }` — the section inherits `.mat`, but its paper-noise pseudo-element would scroll with the 200vh wrapper. Visible mats inside render their own noise via the `.mat` class from `globals.css`.
 
-### CSS variable cascade
+## CSS variable cascade
 - `--rr-mech-progress` is set on the **stage**, not on either mat.
 - Reason: the two mats are siblings, and CSS variables do not cross sibling boundaries. Both mats must inherit from a shared ancestor.
 - `Mechanics.tsx` writes to `stageRef.current.style`. Do not move this write to a mat.
 
-### The mats translate, they do not resize
+## The mats translate, they do not resize
 - Both mats are **fixed at 678px wide from the start**.
 - Primary slides from stage-center → flush-left (`left` interpolated by progress).
 - Secondary slides from off-right → 28px-gap from primary's right edge.
 - Why: an earlier model resized the primary mat from 100% width down to 678px. It made the grid cells inside the mat appear to be clipped mid-animation, which read as the *paper itself* shrinking. Translating instead of resizing means the grid is never disturbed. Do not reintroduce the resize model.
 
-### `.is-split` visibility gate
+## `.is-split` visibility gate
 - `Mechanics.tsx` toggles `.is-split` on the primary mat when progress crosses ~0.0005.
 - The CSS selector `.rr-mat--primary.is-split ~ .rr-mat--secondary` flips the secondary from `visibility: hidden` to `visible`.
 - Why: at p=0 the secondary is at `left: 100%` (off the right edge) but its border still renders. Without the gate, you see a stray vertical line at the seam. Do not remove the gate.
@@ -41,7 +98,7 @@ Lives in `app/(works)/rr/components/Mechanics.tsx` + `app/(works)/rr/rr.css` (th
 - `useSpring` uses the `duration`/`bounce` API (not stiffness/mass) — easier to tune by feel.
 - The spring still chases scrollYProgress, so the choreography remains 100% scroll-bound. The spring just adds lag + overshoot.
 
-### Auto-advance on game over
+## Auto-advance on game over
 - When the game ends *and* the split hasn't completed *and* the scene is in view, `handleGameOver` smooth-scrolls to the end of the pin.
 - Target is computed as `rect.top + window.scrollY + offsetHeight - innerHeight`.
 - Do **not** use `scene.offsetTop` — the offset parent is the section, not the document, so `offsetTop` resolves to 0 and the scroll jumps backward. (We hit this bug on the first attempt.)
@@ -111,7 +168,7 @@ Initially the board's nudge was driven by a CSS `:has(.rr-{rules,note}-rail.is-o
 
 So the board transform lives on the React side: rail open state is lifted to `Mechanics.tsx` (`rulesOpen`, `noteOpen`), and the `.rr-game-board` div carries an inline `transform: translate(-Npx, 0)` driven by that state. The two rails require asymmetric nudges — **rules-open is -12px**, **note-open is -50px** — so the open note has breathing room on the right side of the mat.
 
-### Cross-rail follow-nudge
+## Cross-rail follow-nudge
 When one rail opens, the game board nudges left (amount depends on which rail — see above). The **other, tucked** rail also has to translate the same amount so it still reads as glued to the board edge.
 
 Each rail accepts `otherOpen` + `onOpenChange` props and folds `otherOpen` into its own inline transform calculation:
@@ -126,7 +183,7 @@ All three elements (board, rules, note) use the same 0.55s `--ease-paper` transi
 - Keep the `transition: transform 0.55s var(--ease-paper)` on the base CSS rule, not on `is-open`. Transitions need to live on the element state that's present at both endpoints.
 - Do not reintroduce `motion.div` for the rail's open/close. If it seems tempting, re-read this note and test in a preview *inside* the mat-settle family.
 
-### Mobile open transforms live inline, not in CSS
+## Mobile open transforms live inline, not in CSS
 Mobile (<768px) needs different open-state offsets than desktop — desktop's `translateX(163px)` for rules and `translateX(210px)` for note run the panels off the right edge of the 520px-wide mech-family. Early mobile work overrode these via CSS `.route-rr .rr-rules-rail.is-open { transform: … !important }` rules; they appeared to *land* on the final transform but never transitioned — the exact stall described above. The rails sat inside `.rr-mech-family` so the CSS-driven transition hit `playState: pending / currentTime: 0` and the class swap looked instant.
 
 Current path: each consumer (`RulesRail.tsx`, `NoteRail.tsx`) reads `matchMedia('(max-width: 767px)')` into state and branches to an `OPEN_TRANSFORM_MOBILE` constant. Closed-state nudges (`CLOSED_NUDGED_TRANSFORM`) are skipped on mobile — the board doesn't nudge there. The transform channel stays the same inline `style.transform` the browser accepts as a fresh declaration, so the `transition: transform var(--dur-glide) var(--ease-paper)` on the base CSS rule actually runs.
@@ -161,22 +218,22 @@ Lives in `app/(works)/rr/components/Cards.tsx` + `app/(works)/rr/components/RugS
 - `#cards.mat` uses `overflow: clip` to contain the shader within the mat boundary.
 - **Do not change to `overflow: hidden`.** `hidden` creates a scroll container that breaks `position: sticky` on ChapterMarker. `clip` clips visually without affecting scroll/sticky behavior.
 
-### RugShader is a mat-level sibling, not a canvas child
+## RugShader is a mat-level sibling, not a canvas child
 - `Cards.tsx` returns a Fragment: `<RugShader />` + `<div className="rr-canvas ...">`.
 - Both are direct children of the mat (via Sheet's `{children}`).
 - Why: the shader must fill the entire mat height (1128px), but `.rr-canvas` is only 900px tall. Placing the shader inside the canvas left 114px gaps top and bottom. Do not nest the shader back inside the canvas.
 
-### Grid is promoted to `::before`
+## Grid is promoted to `::before`
 - `#cards.mat` sets `background-image: none` to suppress the default `.mat` grid.
 - The grid is redrawn on `#cards::before` at `z-index: 1` with `mix-blend-mode: color-burn; opacity: 0.4`.
 - Why: the shader sits at `z-index: 0`. The default grid is part of `background-image` and can't be z-indexed above the shader. The pseudo-element solves this. Paper noise (`::after`) stays at `z-index: 2`.
 
-### Card fan vertical stagger (`BASE_Y`)
+## Card fan vertical stagger (`BASE_Y`)
 - `CardFan.tsx` uses `BASE_Y = [-4, -12, -14, -9, 2]` alongside `BASE_ROT` for per-card vertical offsets.
 - `BASE_Y` feeds into all three transform functions: `restTransform`, `hoverTransform`, `spreadTransform`.
 - Values are hand-tuned to match the Figma reference — do not normalize to a computed curve.
 
-### Tab typography is inlined, not `.t-btn1`
+## Tab typography is inlined, not `.t-btn1`
 - `.rr-cards-tab` (rr.css ~line 1429) inlines the full typography stack — `font-family: var(--font-ui)`, `font-size: 12px`, `font-weight: 800`, `font-variation-settings: 'wdth' 120, 'wght' 800, 'GRAD' 64, 'opsz' 18`, `text-transform: capitalize`, plus the dotted-underline + 2px-thick + offset properties — instead of composing with the shared `.t-btn1` utility (which uses `'wght' 720`).
 - **Why:** `text-decoration-style: solid` (active tab) and `text-decoration-style: dotted` (inactive tab) span the same inline-box per spec, but Chrome paints them at slightly different visual widths — the dotted run insets by half a dot-spacing so the first/last dots aren't clipped, while the solid line fills edge-to-edge. At lighter weights (e.g. `'wght' 720`) the visible glyphs leave more side-bearing whitespace at each edge of the inline box, and that gap exposes the rendering quirk: the active solid underline reads as visibly longer than the inactive dotted run on the same tab. At `'wght' 800` the heavier glyphs collapse the side-bearing, the gap shrinks below perception, and the two underlines align visually. The cards section was authored at 800 originally and switching to `.t-btn1` (720) regressed the visual.
 - **Do not migrate these tabs to `.t-btn1`** without first verifying the underline width parity across active and inactive states. If `.t-btn1` is ever bumped back to 800, this can be dropped — but the inlined stack is intentional today.
@@ -279,7 +336,7 @@ The hook also owns:
 
 If you ever revisit `<dialog>` for this: the deal-breakers are scroll-with-canvas, the route header staying reachable, and the Outcome scroll-linked entrance. Top-layer fights all three.
 
-### `is-overlay-open` body class — cross-file coupling
+## `is-overlay-open` body class — cross-file coupling
 
 `useExpand` adds `document.body.classList.add('is-overlay-open')` on expand and removes it on collapse-end. `useDominanceSnap.maybeSnap()` (in `app/components/hooks/useDominanceSnap.ts`) early-returns when that class is present. Result: while a reader has the enlarged scans or the rules card open on /rr, the chapter dominance-snap is paused — no yank to the next chapter on idle.
 
@@ -292,7 +349,7 @@ If you change the class name on one side, change it on the other. If you delete 
 
 Why a body class and not a context/store? The hook needs to gate code that runs outside React's render path (`window` scroll listener), and `useExpand` is a generic primitive that shouldn't know about /rr's snap config. A DOM signal at the document level is the cheapest plumbing.
 
-### Close-cascade timing — JS setTimeout matches CSS animation sum
+## Close-cascade timing — JS setTimeout matches CSS animation sum
 
 `Intro.tsx`'s `setTimeout(markEnlargedClosed, 550)` mirrors the longest-finishing image's CSS animation: `5 × 60ms stagger + 250ms duration = 550ms`. If you change either side (the `--idx`-based `animation-delay` in `rr.css` or the timeout in `Intro.tsx`), update both. There's a comment on each side flagging the dependency.
 
@@ -329,7 +386,7 @@ The JS version unifies them into a single state machine (`running`,
 The modulo is load-bearing: without it, folding `scrollLeft` straight
 into `trackX` would snap the visible copy backward by up to `segW`.
 
-### Intentional overshoot — deviation from `bounce: 0`
+## Intentional overshoot — deviation from `bounce: 0`
 
 The hover-out spring is `CRUISE_SPRING` from `app/lib/motion.ts`, tuned
 for **~12% overshoot** — a kick on restart — at the user's explicit
@@ -341,7 +398,7 @@ overshoot. Do not normalize it to a critically damped spring or to the
 `/marks` autoScroll (same train-start semantic), so any retune affects
 both consumers.
 
-### `overscroll-behavior-x: contain`
+## `overscroll-behavior-x: contain`
 
 On `.rr-outcome-ticker` to stop Mac/iOS rubber-band from bouncing the
 whole page horizontally when the user flicks the ticker at its extremes.
@@ -431,7 +488,7 @@ loop. See also the `COLOPHON.md` at the repo root.
 
 `/rr` carries a retrofit-lite pass (≤767px). Desktop is unchanged. The page grows taller on mobile — each chapter recomposes vertically and preserves its desktop content instead of collapsing or replicating the scaled canvas. Anything below is a deviation or constraint future passes should inherit rather than reinvent.
 
-### Nav-sled left — route-scoped override on mobile
+## Nav-sled left — route-scoped override on mobile
 
 The shared formula in `nav.css` positions the sled relative to the sheet's viewport-left, which it derives as `workbench-pad-x − sheet-bleed` (i.e. the sheet bleeds out by `--sheet-bleed`). On `/rr` mobile the sheet is recomposed so its margin-left is `-workbench-pad-x` instead of `-sheet-bleed` (see `.route-rr .mat` and sheet overrides in rr.css) — this puts the sheet's viewport-left at 0. The shared formula assumes −24px, lands 10px short, and a visible gap opens between the project marker and the chapter marker when docked.
 
@@ -455,7 +512,7 @@ One documented carve-out exists: **`.route-rr .nav-sled { left }`** — see the 
 
 **Do not reintroduce per-route marker positioning beyond that.** A previous pass centre-docked Project + Exit as a pair (via measured `--rr-project-marker-w` / `--rr-exit-marker-w` tokens), pulled the chapter marker into flow inside each mat, and added per-chapter absolute overrides for `#intro` and `#mechanics` — all deleted in v0.30.0. See `LIBRARY.md` → "Nav marker system" and `app/components/nav/README.md` for the full rationale and rejected approaches.
 
-### Mechanics — rails: tab peeks past board's right edge; opens onto board
+## Mechanics — rails: tab peeks past board's right edge; opens onto board
 
 The scroll-bound 200vh mat split is unbound on mobile: scene height goes `auto`, `useScroll`-driven progress is inert, primary and secondary mats stack as flow siblings. Rails (`.rr-rules-rail`, `.rr-note-rail`) keep their desktop content and click-to-flip behavior, but the open transforms are swapped to mobile-specific **inline** values (`OPEN_TRANSFORM_MOBILE` in each consumer — see "Mobile open transforms live inline, not in CSS" above) so the visible rest position has the rail body tucked under the board with only the tab peeking past the board's right edge:
 
@@ -473,7 +530,7 @@ Two JS affordances are gated off by `window.matchMedia('(max-width: 767px), (max
 
 Arrow/icon states: when open on mobile, `.rr-rules-rail__arrow` rotates 180° and `.rr-note-rail__tab-icon::before` swaps content to `'close'`.
 
-### Cards — whole canvas scaled to viewport
+## Cards — whole canvas scaled to viewport
 
 Instead of recomposing the cards/interface layout, the entire authored 1440×900 canvas is preserved and scaled. `--rr-cards-scale: 0.5` on `#cards.mat` sets the rendered scale; `.rr-canvas--cards-evo` keeps its desktop dimensions and gets `transform: translateY(...) scale(var(--rr-cards-scale)) !important; transform-origin: top left` (the `!important` beats the sweeping `.route-rr .rr-canvas` mobile reset above). Canvas is positioned at `left: calc(50vw - 720px * var(--rr-cards-scale))` so the title (canvas-x 720) sits on viewport midline. Mat is `min-height: 100vh; height: max(scaled-canvas + 96px, 100vh)` so the shader background reads full-bleed.
 
@@ -489,7 +546,7 @@ Title and tab font-sizes are bumped (44/22/24px) inside `.rr-canvas--cards-evo` 
 
 `.rr-rules-group` (the 1349×653 rule-card grid) becomes a native horizontal scroll strip on mobile: `overflow-x: auto; overflow-y: visible; overscroll-behavior-x: contain; touch-action: pan-x pan-y` (page-vertical scroll still works). Scrollbar is hidden via `scrollbar-width: none` + `::-webkit-scrollbar { display: none }`. The inner panel keeps `transform: scale(0.5); transform-origin: top left` so rules read at half scale, with `margin-right: calc(-1349px * 0.5)` and `margin-bottom: calc(-653px * 0.5)` collapsing the layout box to the visual size. The `.rr-rules-label` uses `position: sticky; left: 0; width: calc(100vw - 2 * var(--rr-safe-x))` so the caption stays viewport-wide and pinned to the left edge while the panel scrolls independently. An earlier iteration used Framer drag with elastic spring-back (`.rr-rules-dragwrap` wrapper, `dragConstraints`, `bounceStiffness/Damping`) — reverted because the drag felt laggy vs. native momentum scroll.
 
-### Cards — interface tab stays inside the scaled canvas
+## Cards — interface tab stays inside the scaled canvas
 
 The interface tab does **not** escape the scale(0.5) canvas. This is deliberate: the title, tabs, subtitle slot, shader background, and mat height must stay identical between the cards tab and the interface tab. Switching tabs should feel seamless — only the body content changes, and the body content is repositioned in canvas-px so it fits inside the scaled viewport.
 
@@ -505,13 +562,13 @@ Earlier iterations let the interface tab exit scale (flex-column flow, auto heig
 - Note, label, arrow, and pill font-sizes/paddings are **boosted in canvas-px** (notes 22px, label 22px, arrow 36×36, pill padding 20/28) so rendered output at scale 0.5 lands in mobile-readable range.
 - Notes label switches from vertical writing mode to horizontal; arrow rotates `-90deg` closed / `90deg` open. Details row uses `justify-content: space-between` so label is left, arrow right.
 
-### Post-game storycard mat — scaled card, re-anchored deck-fan
+## Post-game storycard mat — scaled card, re-anchored deck-fan
 
 The secondary mat (`.rr-mat--secondary`, fed by `<StoryCard>` after game-over) preserves the desktop 384×688 card dimensions and scales the whole card via transform: `transform: translateX(-50%) scale(calc((100vw - 2 * var(--rr-safe-x)) / 384px * 0.85))` with `transform-origin: top center`. The 0.85 multiplier trims ~15% off a strict fit-to-viewport scale so the card has breathing room. Mat height is computed from the scaled card height: `calc((100vw - 2 * var(--rr-safe-x)) * 688 / 384 + 112px)`.
 
 The `.rr-story-card__deck-fan` overlay (hand holding card fan) is re-anchored from the desktop bottom-pinned position to the card's mid-left: `top: 42%; left: 0; transform-origin: 0% 50%; transform: translate(...) rotate(90deg) scale(0.88)`. The translate is driven by `--rr-mech-progress` so the hand slides in as the scene scrolls into view (this CSS variable is inert on mobile since the scroll choreography is unbound, so the fan rests at its end position).
 
-### Intro storycard — biconomy-style natural flow
+## Intro storycard — biconomy-style natural flow
 
 `#intro` on mobile mirrors the biconomy blue-card pattern: the mat becomes a flex container centering a single column (`max-width: 430px`). `.rr-canvas` drops its absolute frame (`position: relative; width: 100%; height: auto; transform: none`). `.rr-story-card` becomes a vertical `flex-direction: column; gap: 32px` stack; its three absolute-positioned children (body, constraints, north-star) are flattened to relative flow and ordered via CSS `order` (body:1, constraints:2, north-star:3) so reading order on mobile matches desktop visual order (constraints above north-star). Peripheral embellishments — expand affordance, card stack, enlarged artwork — drop out (`display: none`) per the lite decorative-drop-out rule.
 
@@ -519,7 +576,7 @@ The `.rr-story-card__deck-fan` overlay (hand holding card fan) is re-anchored fr
 
 **Margin-top ease must match the constraint height ease.** The North Star `margin-top` transition uses `var(--ease-snap)` (not `--ease-paper`) because the constraint hidden-div height is animated by Framer with `EASE = [0.45, 0, 0.15, 1]` — the same curve as `--ease-snap`. If the two curves diverge, the subtraction (`constraint_h + NS_margin = 8px` constant) only holds at t=0 and t=1; mid-animation the storycard's total height briefly pulses by a few pixels, which reads as "the whole card animating on toggle." Keep both on the snap curve.
 
-### Dotted path (StoryCard) — scale-corrected measurement
+## Dotted path (StoryCard) — scale-corrected measurement
 
 `StoryCard.tsx` measures the link ("only test") and North Star positions via `getBoundingClientRect()` to compute path origin and endpoint. On mobile, `.rr-story-card--mechanics` has a CSS scale transform (`translateX(-50%) scale(calc(...))` with ~0.777 factor). `getBoundingClientRect` returns post-transform screen coordinates, but `pathPos.top/left` and `dotEnd.dx/dy` are set as CSS `top/left` and SVG coordinates — which live in the card's **local (pre-transform) space**. Without correction, dots are ~110px below and ~40px left of target.
 

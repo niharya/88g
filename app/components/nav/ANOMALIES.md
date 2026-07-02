@@ -14,6 +14,34 @@ Treat changes here as load-bearing for **every consumer**: `/biconomy`, `/rr`,
 For project-level rules see `CLAUDE.md`. For route-specific consumers see
 `app/<route>/ANOMALIES.md`.
 
+## Index
+
+<!-- One line per entry, in the same order as the sections below:
+       - **<Heading>** — one-clause summary of what it protects. -->
+
+- **Every marker routes through `NavMarker`** — every visible marker renders through the shared primitive; CSS split and flyout/dim exceptions.
+- **Docked fill covers both markers of the pair** — the mat-coloured shell rule that unifies chapter + project marker while docked/open.
+- **`ProjectMarker` click — two modes** — scroll-to-top vs. infoCard-toggle branching.
+- **Module structure (post-restructure)** — file-by-file role map for the nav cluster.
+- **`containerRef` replaces `.closest('.sheet')`** — arrow rotation + tray alignment target, and why the 4 `.closest('.sheet-stack')` calls stay.
+- **MarkerSlot measurement replaces ProjectMarker useEffect** — the four `--project-marker-right` publish triggers and the `.project-marker` class location (4 CSS sites).
+- **Static mode on ChapterMarker** — inert marker mode and its unconditional border-halving companion rules.
+- **Nav-sled formula** — the viewport→sheet-relative calc(), the 2px border term, the first-paint fallback.
+- **`[data-arrow-target]` — opt-in for arrow rotation** — the `?? sheet` fallback and its scoped query.
+- **`MARKER_TOP` is read live from the nav element, not documentElement** — why the read can't be cached or moved to `document.documentElement`.
+- **Tray open requires the marker to be docked** — `openTray`'s fresh `getBoundingClientRect` check, why `.is-docked` isn't trusted.
+- **`Chapter.shortTitle` — two-span swap for mobile** — the two-span title markup and its `:has()` visibility swap.
+- **Never author per-route marker positioning math** — the three rejected per-route positioning approaches tried and deleted on /rr.
+- **Mobile second-row wrap of chapter and project markers** — why the pair wraps instead of center-docking or flowing into the mat.
+- **Outside-click uses `pointerdown`, not `click`** — single-listener dismiss, why `touchstart` isn't added alongside it.
+- **Sheet tilt on tray open** — the randomised `--tilt` "tilted papers" effect; protected visual identity.
+- **Sheet.tsx is a client component** — why `'use client'` is required despite children being server components.
+- **Sheet.tsx section reveal (useReveal)** — the three-phase entrance and the `.section-reveal`/`.transitioning` TransitionSlot handshake.
+- **Responsive breakpoints — override the token, not the consumer** — the token list and the rule that caused the sled stale-variable bug.
+- **TransitionSlot scroll/ghost positioning (TransitionSlot.tsx)** — scrollY capture timing, ghost positioning, minHeight, scrollbar-gutter, effect timing.
+- **Sheet scroll-linked card placement (Sheet.tsx)** — the `useScroll` offset thresholds, `surfaceRef` querySelector, seeded rotation.
+- **Section reveal shadow override (globals.css + Sheet.tsx)** — the two coexisting shadow systems and the `--shadow-flat`-matched endpoint.
+
 ---
 
 ## Every marker routes through `NavMarker`
@@ -104,8 +132,9 @@ route transitions and media-query crossings (fixed April 2026 — caused a
 10px horizontal gap between project and chapter markers on `/rr` mobile).
 
 The `.project-marker` CSS class lives on MarkerSlot's wrapper div, not on
-ProjectMarker itself. All existing CSS selectors (nav.css, selected.css, rr.css)
-target `.project-marker` and continue to work.
+ProjectMarker itself, and is targeted by 4 CSS sites (nav.css, navmarker.css,
+selected.css, rr.css) — don't rename or relocate it, and all of them continue
+to work unchanged as long as the class stays put.
 
 ---
 
@@ -301,6 +330,36 @@ omit the second span and the `:has()` rule never matches.
 
 ---
 
+## Never author per-route marker positioning math
+
+Consume the token defaults (`--project-marker-right`, the nav-sled formula,
+`--marker-top`) instead of writing per-route positioning math or per-route
+mobile marker compositions. Three approaches were tried on `/rr` and deleted:
+
+- **Measured-pair centering** — a per-route JS measurement to center the
+  chapter + project marker pair.
+- **Per-route badge with external font link** — a standalone badge component
+  that pulled in its own web font.
+- **In-flow chapter marker per mat** — rendering the chapter marker inline
+  inside each mat instead of through the shared fixed-position system.
+
+**What breaks:** per-route positioning math drifts from the shared token
+system the moment any of the underlying tokens change, and re-introduces the
+class of bug the token-override rule (see "Responsive breakpoints — override
+the token, not the consumer") exists to prevent.
+
+## Mobile second-row wrap of chapter and project markers
+
+On mobile, the chapter marker wraps to a second row next to the project
+marker rather than being center-docked with it or pulled into flow inside
+each mat. This is intentional.
+
+**Don't:** center-dock the pair, or move the chapter marker into flow inside
+each mat — both were rejected approaches (see "Never author per-route marker
+positioning math").
+
+---
+
 ## Outside-click uses `pointerdown`, not `click`
 
 `pointerdown` covers mouse, touch, and stylus in one listener. Don't add a
@@ -370,23 +429,6 @@ the token will silently break. This is how the sled stale-variable bug
 The `.workbench::before` viewport frame is an exception: its
 `border-width` is a direct CSS declaration (no token), and the mobile
 block legitimately overrides it inline (8px → 4px).
-
----
-
-## Don't-touch list (without reading why first)
-
-- The `?? sheet` fallback in the arrow target query
-- `MARKER_TOP` / `--marker-top` synchronisation
-- The `.is-docked` precondition for opening the tray (measured fresh, not from
-  the class)
-- The sheet tilt behavior on tray open
-- `pointerdown` (not `click`) for outside-click dismiss
-- The 4 `.closest('.sheet-stack')` calls in useDockedMarker
-- `.project-marker` class name on MarkerSlot (targeted by 4 CSS sites)
-- `.section-reveal` class on Sheet — consumed by globals.css and by TransitionSlot
-- `.transitioning` on `.workbench` — the contract between TransitionSlot and useReveal
-- The two-span title markup in `ChapterMarker` (full + optional short) and the `:has()` swap rule in `nav.css` — both required for per-chapter mobile labels
-- The `.chapter-nav.is-docked > .nav-marker:not(.nav-marker--flyout)` scope on the mat-fill rule in `navmarker.css` — widening it to flyouts pours the mat fill into the tray items
 
 ---
 

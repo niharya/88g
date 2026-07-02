@@ -10,6 +10,57 @@ rules see `CLAUDE.md`.
 
 ---
 
+## Index
+
+- **Route sits outside the (works) shell** — no `TransitionSlot`/`ShellNav` wiring; standalone layout imports its own nav CSS.
+- **/marks bridges to /all via CrossShellVeil** — EXIT routes through the shared cross-shell primitive, not `TransitionSlot`.
+- **Route-local marks, not shared** — the six mark SVGs stay under `app/marks/components/marks/` until a second consumer appears.
+- **The six marks** — inventory shape in `data/marks.ts`; first slide is always `{ kind: 'mark' }`; array order is Essay reading order.
+- **Video slides** — `muted`/`playsInline`/`loop` are all load-bearing; the showcase timer, not `onEnded`, cuts slides.
+- **Route-local CSS scoping** — every token in `marks.css` hangs off `.route-marks`.
+- **Background layering** — fixed `z-index: 0` background, all phases `z-index: 1` via source order.
+- **Title is two cooperating elements** — HeroText (hero) + MarksTitle (docked marker) share `--hero-recede`, never merge into one morph.
+- **Section reveal hysteresis** — `data-settled` flips at 0.85 / releases at 0.60.
+- **scrollGlide — singleton rAF tween** — shared paper-physics scroller; singleton cancel prevents overlapping glides.
+- **Title reel-roll runs below motion vocabulary** — the reel-roll hover/width/transform durations sit intentionally below the paper tier.
+- **Clone-and-teleport infinite reel** — BlankSection + HeroClone + Background co-author the loop-closing teleport.
+- **MarkSection horizontal nav thresholds** — tuned wheel/touch/keyboard constants, all routed through `nudge()`.
+- **Showcase timer — two pause sources with different semantics** — click-pause (consumed) vs hover-pause (freeze) on `.mark-chrome`.
+- **MarkChrome paginator — two-level key split** — stable outer `key={i}` + inner `${index}-${active}` fill key prevents snap and premature fill.
+- **Dominance-based landing-snap (not CSS scroll-snap)** — shared `useDominanceSnap`, dominance-only heuristic, 72% threshold, idle debounce.
+- **Paginator click glides at --dur-settle, not --dur-glide** — direct UI response vs cinematic auto-advance handoff.
+- **Credits-reel auto-scroll — intro scroll + outro veil** — `autoScroll.ts` intro cruise vs veil-only outro; showcase-timer gate via `subscribeAutoScroll`.
+- **Showcase timer extends dwell to video duration when > 8s** — three-file wiring (`useShowcaseTimer`, `MarkCarousel`, `MarkSection`) for video-length dwell.
+- **Showcase timer ticks on single-slide marks** — guard is `total < 1`, not `<= 1`.
+- **Cursor-idle slowdown on the reel** — cruise rate drops on mousemove, rides `CRUISE_SPRING` both directions.
+- **Subpixel scroll accumulator** — `scrollAccum` keeps the slow-rate cruise from stalling below the `scrollBy` rounding floor.
+- **HeroText two-stage fade + veil-lock** — `--hero-recede` two-stage opacity math, parked at 0 during the outro veil.
+- **Essay geometry is HeroText's anchor — don't move it casually** — `.marks-essay` rect drives both fade stages; no negative `margin-top`.
+- **Aleyr/Furrmark is the canonical mark-view composition** — change the primitive there first, never fork a per-mark variant.
+- **Auto-scroll opts out on reduced-motion and coarse pointer** — `startAutoScroll` short-circuits on both; HeroClone's manual path still closes the loop.
+- **Mobile drops mix-blend-mode and restores per-mark colors** — Safari/Chrome isolation groups sever the blend; per-`data-mark-id` ink rules mirror `previewColor`/`previewAccent`.
+- **Viewport height: svh in CSS, window.innerHeight in JS** — phase heights use `svh` for iOS URL-bar stability; JS intentionally still reads `window.innerHeight`.
+- **Blank + Hero-clone stay full-viewport** — `100svh` so visibility can clear `DOMINANCE_RATIO` for the wrap-on-dock teleport.
+- **iOS safe-area insets on EXIT + mark chrome** — `max()` overrides on `.exit-marker` and `.mark-chrome`.
+- **Mobile hero title two-line wrap** — `.marks-hero-text__break` flips to `display: block` under the mobile media query.
+- **Mobile Essay preview rows and glyph sizing** — recomposed flex-wrap rows with asymmetric gap; standardized glyph widths accept thin Codezeros.
+- **Responsive anomalies (misc)** — remaining mobile-only tuning: preview-btn rest opacity, carousel media caps, no tucked marker.
+
+---
+
+Entry format — every entry is its own `##` heading (the heading text is the
+anchor the digest and Index point at — keep it short and stable) and states:
+
+- **what** the constraint is (present tense — git history holds the archaeology)
+- **where** it lives (file + selector/symbol anchor; never line numbers)
+- **why** it exists (including approaches tried and rejected)
+- **what breaks** if violated
+
+Out of scope: codebase tours, general explanations, changelog entries,
+restating values the code owns (name the token/constant and its home instead).
+
+---
+
 ## Route sits outside the (works) shell
 
 `/marks` is at `app/marks/`, **not** `app/(works)/marks/`. It is a continuous
@@ -29,6 +80,8 @@ Consequences:
 - `nav.css` **and** `navmarker.css` are imported directly from the marks
   layout because they used to come from the works shared layout. Keep both
   imports if EXIT marker / `.nav-icon` / nav-marker styles are touched.
+  Without both imports, EXIT/`.nav-icon` styles have no source — they no
+  longer arrive via the works layout.
 
 ---
 
@@ -50,6 +103,8 @@ Load-bearing details:
 - The veil ID `cross-shell-veil` is a cross-route contract. Both the
   outgoing hook (in `/all`'s Timeline + here) and the incoming
   fader (in `/marks/layout.tsx` and `(works)/layout.tsx`) reference it.
+  Consolidating into the shared `ExitMarker` or duplicating the timing
+  locally breaks this contract.
 - Future "consolidate with shared `ExitMarker`" passes are still risky:
   the shared marker has no `onClick` hook for this; touching it would
   drop the cross-shell bridge. Keep this route-local marker until the
@@ -86,14 +141,13 @@ media (`kind: 'image' | 'video'`) or flipped-mark placeholders until real
 media lands. Slide media paths follow `public/marks/<id>/NN.ext` with
 filename ordering preserved.
 
-Video slides render a plain `<video autoPlay muted loop playsInline>` in
-`MarkCarousel.tsx`. `muted` and `playsInline` are load-bearing for iOS —
-without them Safari blocks autoplay or takes the video fullscreen. Do not
-drop them. Video files live alongside stills in `public/marks/<id>/NN.mp4`.
-
 Essay reading order is encoded by array order: divider (Furrmark/Aleyr) →
 wordmarks (Codezeros, Slangbusters, Beringer) → glyphs (Ecochain, Kilti).
-Reordering the array re-lays the Essay preview row.
+Reordering the array re-lays the Essay preview row. The array order also
+drives the intro auto-scroll hand-off target: `FIRST_MARK_ID` in
+`autoScroll.ts` (see "Credits-reel auto-scroll — intro scroll + outro veil")
+names the first mark by id, so reordering the array without updating that
+constant desyncs the intro hand-off from the actual first mark.
 
 Source SVGs live in `app/marks/_source/` (underscore prefix — Next.js App
 Router ignores it at routing time). Kept as the in-repo source archive for
@@ -101,27 +155,62 @@ the six marks.
 
 ---
 
-## Don't-touch list
+## Video slides
 
-- `.route-marks` class on the top-level wrapper — all route-local CSS tokens
-  are scoped to this selector in `marks.css`. Removing or renaming it strips
-  every token from the subtree.
-- `<Background />` sits at the top of the route's JSX and renders a `fixed`
-  layer at `z-index: 0`. Every phase should stay at `z-index: 1` so the
-  background reads through but never covers content.
-- Title system is **two cooperating elements**, not one morphing element.
-  `HeroText.tsx` owns the big 120px hero presentation at 37vh; `MarksTitle.tsx`
-  owns the always-docked 24px marker at `--marker-top`. HeroText writes
-  `--hero-recede` (0 → 1 over the first 60vh of scroll) to the `.route-marks`
-  wrapper; both consume it via CSS (HeroText fades out + grows a text-shadow
-  halo; MarksTitle fades in). Do NOT reintroduce a single morphing element —
-  the earlier `--marks-s` interpolation conflated two responsibilities (the
-  hero visual moment and the docked nav marker) and made both harder to reason
-  about. The `--hero-recede` inverse-fade keeps the two elements from
-  competing for attention when they would otherwise overlap at y=0.
-- Per-section reveal latch: `data-settled="true"` flips at `p ≥ 0.85` and
-  releases at `p ≤ 0.60`. The hysteresis gap is deliberate — narrowing it
-  causes visible flicker when a section parks mid-reveal.
+Video slides render a plain `<video autoPlay muted loop playsInline>` in
+`MarkCarousel.tsx`. Video files live alongside stills in
+`public/marks/<id>/NN.mp4`.
+
+- `muted` and `playsInline` are load-bearing for iOS — without them Safari
+  blocks autoplay or takes the video fullscreen. Do not drop them.
+- `loop` is also load-bearing, for a different reason: the showcase timer's
+  duration advance is what cuts to the next slide (see "Showcase timer
+  extends dwell to video duration when > 8s") — playback doesn't listen for
+  `onEnded`. Setting `loop=false` would create a visible flicker (video
+  freezing on its last frame) whenever a slide stays active past the
+  video's natural end.
+
+---
+
+## Route-local CSS scoping
+
+`.route-marks` class on the top-level wrapper — all route-local CSS tokens
+are scoped to this selector in `marks.css`. Removing or renaming it strips
+every token from the subtree.
+
+---
+
+## Background layering
+
+`<Background />` sits at the top of the route's JSX and renders a `fixed`
+layer at `z-index: 0`. Every phase should stay at `z-index: 1` (via source
+order, not explicit stacking) so the background reads through but never
+covers content. Adding explicit z-indexes or new stacking contexts on
+sections severs this layering and the blend modes that depend on it.
+
+---
+
+## Title is two cooperating elements
+
+Title system is **two cooperating elements**, not one morphing element.
+`HeroText.tsx` owns the big 120px hero presentation at 37vh; `MarksTitle.tsx`
+owns the always-docked 24px marker at `--marker-top`. HeroText writes
+`--hero-recede` (0 → 1 over the first 60vh of scroll) to the `.route-marks`
+wrapper; both consume it via CSS (HeroText fades out + grows a text-shadow
+halo; MarksTitle fades in). Do NOT reintroduce a single morphing element —
+the earlier `--marks-s` interpolation conflated two responsibilities (the
+hero visual moment and the docked nav marker) and made both harder to reason
+about. The `--hero-recede` inverse-fade keeps the two elements from
+competing for attention when they would otherwise overlap at y=0.
+
+---
+
+## Section reveal hysteresis
+
+Per-section reveal latch: `data-settled="true"` flips at `p ≥ 0.85` and
+releases at `p ≤ 0.60` (in `MarkSection.tsx`). The hysteresis gap is
+deliberate — narrowing it causes visible flicker when a section parks
+mid-reveal.
 
 ---
 
@@ -176,13 +265,15 @@ while the duplicate is on screen. Three components cooperate:
    background already matches the destination.
 3. **OutroVeil.tsx** covers the teleport for the autonomous reel. Outro
    no longer cruises through Blank / HeroClone — it fades a black overlay
-   to opaque, teleports, then fades back. See "Outro veil" below for the
-   full timeline. The manual path (reader coasts in under their own power)
-   still routes through HeroClone.onDocked.
+   to opaque, teleports, then fades back. See "Credits-reel auto-scroll —
+   intro scroll + outro veil" below for the full timeline. The manual path
+   (reader coasts in under their own power) still routes through
+   HeroClone.onDocked.
 
 All three pieces are co-authored. Touch one, verify the other two. In
 particular: if the clone's CSS class changes, update Background's
-selector list to match.
+selector list to match. HeroClone's `armedRef` 8px re-arm threshold
+(above) is deliberate — don't simplify it away.
 
 The reader can't scroll up from the real Hero because the browser has
 nothing above `y=0` — the reel only goes forward, and the infinity is
@@ -263,6 +354,9 @@ and `app/lib/useExpand.ts`. On 150ms scroll idle, if the section's
 visibility ratio is ≥ 0.72 (DOMINANCE_RATIO) AND it isn't already docked
 (|rect.top| > SNAPPED_TOL_PX = 2), glide to the section top via
 `scrollGlide(--dur-settle)`.
+
+It is SHARED — constant changes also hit `/biconomy` and `/rr` Sheet
+chapters; don't replace it with CSS scroll-snap.
 
 Load-bearing choices:
 
@@ -416,6 +510,12 @@ Outro veil timeline (outro mode):
   to hidden, so a route unmount or reduced-motion flip during the fade
   doesn't leave the screen covered in black.
 
+`VEIL_FADE_IN_MS` (900) must stay in sync with the CSS `--marks-veil-in`
+token; the fade-out duration is CSS-only via `--marks-veil-out`
+(`.marks-outro-veil` transition). The in/out asymmetry is deliberate:
+fade-in needs a firm landing on opaque before teleport; fade-out rides
+over the hero-hold so it can breathe faster without rushing the reveal.
+
 BlankSection + HeroClone remain in the DOM. They are no longer part of
 the autonomous reel — they're the manual-scroll fallback path. If the
 reader scrolls past Kilti under their own power (faster than the auto-
@@ -444,17 +544,14 @@ Load-bearing constants in `autoScroll.ts`:
   the reel forward by seconds of accumulated time on the first tick
   after return.
 - `FIRST_MARK_ID = 'furrmark'` — intro hand-off target. If the first
-  mark is ever reordered in `data/marks.ts`, update this constant.
-- `VEIL_FADE_IN_MS = 900` — outro fade-to-opaque duration. **It must match
-  the CSS `--marks-veil-in` token**; the fade-out duration is CSS-only via
-  `--marks-veil-out` (`.marks-outro-veil` transition). The in/out asymmetry
-  is deliberate: fade-in needs a firm landing on opaque before teleport;
-  fade-out rides over the hero-hold so it can breathe faster without
-  rushing the reveal.
+  mark is ever reordered in `data/marks.ts`, update this constant (see
+  "The six marks").
+- `VEIL_FADE_IN_MS = 900` — outro fade-to-opaque duration, see above.
 
 Reduced-motion contract: `startAutoScroll()` short-circuits entirely
-under `prefers-reduced-motion: reduce` regardless of mode. Readers keep
-the route fully navigable via manual scroll; the showcase timer is
+under `prefers-reduced-motion: reduce` regardless of mode (see also
+"Auto-scroll opts out on reduced-motion and coarse pointer"). Readers
+keep the route fully navigable via manual scroll; the showcase timer is
 already gated by the same media query; the manual HeroClone onDocked
 fallback still runs, so the loop closes when the reader reaches the
 clone on their own.
@@ -480,10 +577,10 @@ Wiring across three files (`useShowcaseTimer.ts`, `MarkCarousel.tsx`,
   the deps so its identity flips on every duration update. The timer
   effect depends on `durationFor`; without the version-bumped identity
   it wouldn't re-evaluate when a video's metadata loads mid-tick.
-- Videos keep their `loop` attribute. The timer's duration advance is
-  what cuts to the next slide — we don't listen on `onEnded`. Setting
-  `loop=false` would create flickers when a slide stays past the natural
-  end.
+- Videos keep their `loop` attribute (see "Video slides"). The timer's
+  duration advance is what cuts to the next slide — we don't listen on
+  `onEnded`. Setting `loop=false` would create flickers when a slide
+  stays past the natural end.
 
 Adjacent CSS in `marks.css`: `.mark-carousel__media > video` has
 `min-width: 480px; min-height: 270px; background: rgba(245, 245, 245, 0.06)`
@@ -513,7 +610,9 @@ Load-bearing details:
 
 - Both directions ride `CRUISE_SPRING` (shared with /rr Outcome ticker).
   `springUp()` animates `velocity` toward `targetRate()`; a raw `velocity.set`
-  on either transition would read as a step change, not a settle.
+  on either transition would read as a step change, not a settle. This is
+  the same ~12% overshoot `bounce: 0` deviation documented under
+  "Credits-reel auto-scroll".
 - The idle timer resets on every mousemove — the reader must truly stop
   moving for 450 ms before the reel accelerates. This matters: a reader
   tracking the cursor along with the text should not fight with a reel that
@@ -550,7 +649,8 @@ essay. It exposes a CSS custom property `--hero-recede` (0 → 1) that drives
 opacity between 1 and `WATERMARK_FLOOR` (0.12) — the essay reads on top, but
 the hero title is still legible behind it.
 
-Two stages, both anchored to the essay element (not the viewport):
+Two stages, both anchored to the essay element (not the viewport — see
+"Essay geometry is HeroText's anchor" for the exact formulas):
 
 - **Stage A** runs from essay-top-enters-viewport → essay-top-at-40%-of-viewport.
   Opacity falls from 1 to `WATERMARK_FLOOR`. This is the "drop well below
@@ -590,96 +690,157 @@ change and re-verify the watermark hand-off on the live route.
 
 ---
 
-## Responsive anomalies
+## Aleyr/Furrmark is the canonical mark-view composition
+
+Aleyr/Furrmark (the divider mark) is the reference composition for the
+mark-view primitive — the first place any layout/behavior change to a
+mark's presentation should land. Change the primitive there first, then
+verify it propagates to the other five marks; never fork a per-mark
+variant of the mark-view composition. Forking produces five slightly
+different implementations of what should be one shared shape and makes
+future changes need five edits instead of one.
+
+---
+
+## Auto-scroll opts out on reduced-motion and coarse pointer
+
+`startAutoScroll` (in `autoScroll.ts`) short-circuits entirely on both
+`prefers-reduced-motion: reduce` AND `pointer: coarse` — not reduced-motion
+alone. On touch devices the cinematic reel fights the reader's natural
+scroll gesture, and the cursor-idle slowdown (see "Cursor-idle slowdown on
+the reel") never engages anyway, since there's no mousemove on a coarse
+pointer.
+
+For both opt-out populations, the manual `HeroClone.onDocked` path (see
+"Clone-and-teleport infinite reel") must keep closing the loop — it's the
+only mechanism left that re-arms the intro after Kilti, since neither the
+intro cruise nor the outro veil ever run for these readers.
+
+---
+
+## Mobile drops mix-blend-mode and restores per-mark colors
+
+Desktop renders the mark glyph, paginator dots, and EXIT label with
+`mix-blend-mode: overlay` (or `color-dodge` for the dots) over the fixed
+`.marks-background` gradient. Mobile Safari/Chrome form isolation groups
+around transformed/scrolled ancestors that sever the blend from the
+fixed gradient — the result is flat-grey or invisible ink.
+
+The mobile block (in the `@media (max-width: 767px)` block at the end of
+`marks.css`) sets `mix-blend-mode: normal` on those three targets and then
+re-injects each mark's original ink via per-`data-mark-id` rules
+(`#F04E6B`, `#FF2633` + `#FF9933`, etc.) so section identity survives
+without the blend. Values mirror `previewColor` / `previewAccent` in
+`app/marks/data/marks.ts` — keep them in sync if either side changes.
+
+Re-enabling overlay on mobile in a future cleanup pass will silently
+break this; use the desktop gradient sparingly, the blend isn't a
+cross-platform mechanism here.
+
+---
+
+## Viewport height: svh in CSS, window.innerHeight in JS
 
 `/marks` is built responsive-ready (per CLAUDE.md). The mobile pass lives in
-one `@media (max-width: 767px)` block at the end of `marks.css`. Documented
-deviations / drop-outs:
+one `@media (max-width: 767px)` block at the end of `marks.css`, but the
+svh/innerHeight split below applies at all viewport widths.
 
-- **Hero title splits to two lines on mobile** (`MARKS &` / `SYMBOLS`) at
-  `clamp(48px, 16vw, 80px)` with `letter-spacing: -0.03em` and
-  `line-height: 0.95`. Implementation: `HeroText.tsx` renders three spans
-  (line / break / line); the `.marks-hero-text__break` span flips to
-  `display: block` inside the mobile media query to force the wrap, while
-  desktop ignores the break and renders the lockup on one line. Single-line
-  at 56px overflowed below ~390px viewports, and shrinking further made the
-  watermark feel decorative — the two-line stack keeps editorial scale.
-- **Essay preview rows recompose, don't column-stack.** Mobile sets
-  `flex-direction: row; flex-wrap: wrap; justify-content: center` with
-  asymmetric `gap: 64px 48px` (row > column). Wordmarks pair Codezeros +
-  Slangbusters on row 1 and Beringer wraps centered to row 2; glyphs pair
-  Ecochain + Kilti. The 64px row-gap is deliberately larger than the 48px
-  column-gap so the wrapped Beringer reads as a distinct line, not a third
-  item crammed under the pair. Caption + preview vertical rhythm uses 80px
-  (vs desktop 120px) so a 375px viewport doesn't feel cavernous between
-  blocks.
-- **Mark-section glyph sizes are standardized on mobile.** Wide marks
-  (codezeros, slangbusters, beringer) all render at width 230px (matching
-  Slangbusters' natural mobile width); squarish marks (furrmark, ecochain,
-  kilti) all render at width 120px (matching Ecochain). Both also reset
-  `height: auto` because the desktop rules pin the opposite axis. Side
-  effect: Codezeros's 7.8:1 aspect renders quite thin (~29px tall) at
-  width 230px — accepted as the cost of the standardization.
-- **Mobile drops `mix-blend-mode` and restores per-mark colors directly.**
-  Desktop renders the mark glyph, paginator dots, and EXIT label with
-  `mix-blend-mode: overlay` (or `color-dodge` for the dots) over the fixed
-  `.marks-background` gradient. Mobile Safari/Chrome form isolation groups
-  around transformed/scrolled ancestors that sever the blend from the
-  fixed gradient — the result is flat-grey or invisible ink. The mobile
-  block sets `mix-blend-mode: normal` on those three targets and then
-  re-injects each mark's original ink via per-`data-mark-id` rules
-  (`#F04E6B`, `#FF2633` + `#FF9933`, etc.) so section identity survives
-  without the blend. Values mirror `previewColor` / `previewAccent` in
-  `app/marks/data/marks.ts` — keep them in sync if either side changes.
-  Re-enabling overlay on mobile in a future cleanup pass will silently
-  break this; use the desktop gradient sparingly, the blend isn't a
-  cross-platform mechanism here.
+- **Phase heights use `svh`, not `vh` or `dvh`.** `--marks-hero-h`,
+  `--marks-section-h`, `.marks-essay min-height`, `.marks-blank` /
+  `.marks-hero-clone min-height`, the hero text `top`, and the carousel
+  `max-height` all use `svh`. Reason: iOS Safari's URL bar collapse/expand
+  resizes `vh` mid-scroll, jumping every section and fighting the
+  dominance-snap engine. `svh` is the small viewport — stable across URL
+  bar state. `dvh` would resize dynamically (same problem as `vh`), so
+  don't switch to it.
+- **JS deliberately still reads `window.innerHeight`.** `useDominanceSnap`,
+  `MarksTitle`, `HeroText`, `Background`, and `autoScroll` all normalize
+  against `window.innerHeight`, which on iOS Safari tracks the *large*
+  viewport (URL bar collapsed) — not the small viewport CSS renders
+  against. The mismatch is benign: when the URL bar is expanded, the
+  dominance ratio caps near 0.85–0.95 — still well above the 0.72
+  threshold — and scroll-progress math (`--mark-p`, `--hero-recede`)
+  normalizes both numerator and denominator against the same `vh`, so the
+  reveal still hits 1 at the right scroll position. Don't switch the JS to
+  `visualViewport.height` or any svh-equivalent without re-deriving the
+  dominance threshold (0.72 in `useDominanceSnap.ts`).
+
+---
+
+## Blank + Hero-clone stay full-viewport
+
+`.marks-blank` and `.marks-hero-clone` render at `100svh` at every
+viewport width, mobile included. They're dominance candidates for the
+wrap-on-dock teleport (see "Clone-and-teleport infinite reel") — they
+need to fully fill the (small) viewport so visibility climbs past
+`DOMINANCE_RATIO` (0.72) and the teleport actually fires.
+
+---
+
+## iOS safe-area insets on EXIT + mark chrome
+
+Mobile-only: `.exit-marker` overrides `top` / `right` to
+`max(<token>, env(safe-area-inset-*))` and `.mark-chrome` overrides
+`bottom` to `max(32px, env(safe-area-inset-bottom))`. `max()` falls
+through to the existing tokens on devices without insets, so non-iOS
+browsers see no change.
+
+Without these, the EXIT label can sit under the iPhone notch in
+landscape, and the paginator chrome can collide with the home indicator.
+If a future change scopes the EXIT marker outside `.exit-marker` or
+moves the chrome out of `.mark-chrome`, mirror the insets in the new
+selector.
+
+---
+
+## Mobile hero title two-line wrap
+
+Hero title splits to two lines on mobile (`MARKS &` / `SYMBOLS`) at
+`clamp(48px, 16vw, 80px)` with `letter-spacing: -0.03em` and
+`line-height: 0.95`. Implementation: `HeroText.tsx` renders three spans
+(line / break / line); the `.marks-hero-text__break` span flips to
+`display: block` inside the mobile media query to force the wrap, while
+desktop ignores the break and renders the lockup on one line. Single-line
+at 56px overflowed below ~390px viewports, and shrinking further made the
+watermark feel decorative — the two-line stack keeps editorial scale.
+
+---
+
+## Mobile Essay preview rows and glyph sizing
+
+**Essay preview rows recompose, don't column-stack.** Mobile sets
+`flex-direction: row; flex-wrap: wrap; justify-content: center` with
+asymmetric `gap: 64px 48px` (row > column). Wordmarks pair Codezeros +
+Slangbusters on row 1 and Beringer wraps centered to row 2; glyphs pair
+Ecochain + Kilti. The 64px row-gap is deliberately larger than the 48px
+column-gap so the wrapped Beringer reads as a distinct line, not a third
+item crammed under the pair. Caption + preview vertical rhythm uses 80px
+(vs desktop 120px) so a 375px viewport doesn't feel cavernous between
+blocks.
+
+**Mark-section glyph sizes are standardized on mobile.** Wide marks
+(codezeros, slangbusters, beringer) all render at width 230px (matching
+Slangbusters' natural mobile width); squarish marks (furrmark, ecochain,
+kilti) all render at width 120px (matching Ecochain). Both also reset
+`height: auto` because the desktop rules pin the opposite axis. Side
+effect: Codezeros's 7.8:1 aspect renders quite thin (~29px tall) at
+width 230px — accepted as the cost of the standardization.
+
+---
+
+## Responsive anomalies (misc)
+
+Remaining mobile-only tuning that doesn't have a dedicated digest tripwire:
+
 - **Essay preview-btn at rest sits at `opacity: 0.8`** and lifts to 1.0
   on hover/focus. Marks read a touch quieter against the dark field at
   rest; hover/focus brings them back to full presence. The opacity
   transition rides `--dur-slide` + `--ease-paper` alongside the existing
   color transition. Removing the dim would re-balance the essay rhythm
   toward "marks dominant" — not the intended editorial weight.
-- **Phase heights use `svh`, not `vh`.** `--marks-hero-h`, `--marks-section-h`,
-  `.marks-essay min-height`, `.marks-blank` / `.marks-hero-clone min-height`,
-  the hero text `top`, and the carousel `max-height` all use `svh`. Reason:
-  iOS Safari's URL bar collapse/expand resizes `vh` mid-scroll, jumping
-  every section and fighting the dominance-snap engine. `svh` is the small
-  viewport — stable across URL bar state. `dvh` would resize dynamically
-  (same problem as `vh`), so don't switch to it. The dominance ratio is
-  preserved because `useDominanceSnap` uses `window.innerHeight` at runtime,
-  which scales with the section together.
-- **Blank + Hero-clone are still full-viewport** (now `100svh`). Dominance
-  candidates for the wrap-on-dock teleport — they need to fully fill the
-  small viewport so visibility climbs past `DOMINANCE_RATIO` (0.72).
 - **Mark carousel media** caps at `min(70vw, 900px)` desktop / `min(86vw, 900px)`
   mobile. The mobile override prevents the artifact from feeling cramped at
   narrow widths (70vw of 375px = 262px); border + tilt unchanged.
 - **No tucked marker** — `/marks` does not use the `ProjectMarker` /
   `ChapterMarker` shell. The `MarksTitle` itself is the nav; it already
   docks to `--marker-top` at any viewport width.
-- **Auto-scroll opts out on coarse pointer.** `startAutoScroll` short-circuits
-  on both `prefers-reduced-motion: reduce` AND `pointer: coarse`. On touch
-  devices the cinematic reel fights the reader's natural scroll gesture and
-  the cursor-idle slowdown never engages (no mousemove). The HeroClone
-  teleport still closes the loop manually.
-- **iOS safe-area insets on EXIT + mark chrome (mobile only).**
-  `.exit-marker` overrides `top` / `right` to `max(<token>, env(safe-area-inset-*))`
-  and `.mark-chrome` overrides `bottom` to `max(32px, env(safe-area-inset-bottom))`.
-  `max()` falls through to the existing tokens on devices without insets, so
-  non-iOS browsers see no change. Without these, the EXIT label can sit under
-  the iPhone notch in landscape, and the paginator chrome can collide with
-  the home indicator. If a future change scopes the EXIT marker outside
-  `.exit-marker` or moves the chrome out of `.mark-chrome`, mirror the
-  insets in the new selector.
-- **JS reads `window.innerHeight` (dvh-equivalent) while CSS uses `svh`.**
-  `useDominanceSnap`, `MarksTitle`, `HeroText`, `Background`, and `autoScroll`
-  all normalize against `window.innerHeight`, which on iOS Safari tracks the
-  *large* viewport (URL bar collapsed). Sections render at `100svh` (the
-  *small* viewport). The mismatch is benign: when the URL bar is expanded,
-  the dominance ratio caps near 0.85–0.95 — still well above the 0.72
-  threshold — and scroll-progress math (`--mark-p`, `--hero-recede`)
-  normalizes both numerator and denominator against the same `vh`, so the
-  reveal still hits 1 at the right scroll position. Don't switch the JS to
-  `visualViewport.height` or any svh-equivalent without re-deriving the
-  dominance threshold.

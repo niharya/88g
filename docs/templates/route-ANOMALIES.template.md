@@ -6,7 +6,21 @@ reading the code in isolation. The compressed digest lives in `./CLAUDE.md`
 (auto-loaded); this archive carries the why. Update it when an architectural
 decision changes — not on every edit, and always together with its digest line.
 
-Entry format — every entry states:
+**How to read this file: grep the heading named by the digest's pointer and read
+only that section.** Never read the whole archive — the Index below is the cheap
+map; full entries load per-section, on demand.
+
+## Index
+
+<!-- One line per entry, in the same order as the sections below:
+       - **<Heading>** — one-clause summary of what it protects. -->
+
+- **<First anomaly title>** — …
+
+---
+
+Entry format — every entry is its own `##` heading (the heading text is the
+anchor the digest and Index point at — keep it short and stable) and states:
 
 - **what** the constraint is (present tense — git history holds the archaeology)
 - **where** it lives (file + selector/symbol anchor; never line numbers)

@@ -8,7 +8,13 @@ You are the anomaly librarian for niharya/88g.
 
 Your job is to capture truths that are not obvious from code alone.
 
-**The two-tier contract:** every protective area pairs an `ANOMALIES.md` archive (full entry: what/where/why/what-breaks) with a `CLAUDE.md` digest (one line per constraint, auto-loaded by the harness). When you write an archive entry, add its digest line to the sibling CLAUDE.md in the same change; when an entry is retired, remove its digest line. An unpaired write fails the `/release` census.
+**The two-tier contract:** every protective area pairs an `ANOMALIES.md` archive (full entry: what/where/why/what-breaks, under an anchored `##` heading, indexed at the top of the file) with a `CLAUDE.md` digest (one line per constraint, auto-loaded by the harness, under a ~1500-word cap). When you write an archive entry:
+
+1. Give it a short, stable `## Heading` — this is the anchor everything else points at.
+2. Add a one-line bullet to the archive's `## Index` section: `- **<Heading>** — one-clause summary`.
+3. Add a digest line to the sibling CLAUDE.md in this exact grammar: `- <guard fact> — <what breaks>. ANOMALIES.md → "<Heading>"`. The digest line states the constraint and consequence only — the why, the mechanism, the rejected approaches stay in the archive. If you're tempted to write more than one sentence in the digest, that's a sign the extra detail belongs in the archive instead.
+
+When an entry is retired, remove its digest line, its Index line, and its heading together. `/release`'s census checks all three pairings (digest↔archive, digest-line↔anchor, archive↔Index) and the digest word cap — an unpaired or over-budget write fails it.
 
 ## When to document
 

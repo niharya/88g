@@ -4,6 +4,53 @@ Route-level architectural anomalies, cross-file wiring, and don't-touch items fo
 
 Read this before touching the expand choreography or anything in the secondary stack.
 
+**How to read this file: grep the heading named by the digest's pointer and read only
+that section.** Never read the whole archive — the Index below is the cheap map; full
+entries load per-section, on demand.
+
+## Index
+
+- **Two-group card system** — Group A (hero-tuck) vs Group B (settle-from-above) idioms, choreography tokens, cascade offsets, Group B order.
+- **Group B card rotation — pinned to 0deg** — Group B cards rest at 0deg; what's required to restore random tilt.
+- **Spectrum scroll-driven tilt** — scroll-mapped `--spec-scroll-tilt` CSS var; why Framer Motion was rejected here.
+- **Spectrum hover + press affordance** — desktop-gated lift/press on `.spectrum__frame`, composing `translate:`/`scale:` over the click reroll.
+- **Group B collapsed-state contract** — the four required properties on every collapsed Group B card; historical ghost-cards regression.
+- **Expanded-state transition timing** — top/opacity/transform must move together per card; spectrum's mobile deviation.
+- **Form-open height bump** — the `:has(.contact-card--form-open)` +600px height compensation.
+- **Contact form `inert` when closed** — `aria-hidden` + `inert` both required to block keyboard focus.
+- **Self-adjusting cascade (desktop) — tops derive off the settled hero bottom** — the desktop `calc()` chain vs mobile's hardcoded tops.
+- **`--expanded-h` follows practice card height** — desktop/mobile expanded scroll-height tails.
+- **About-long is the practice timeline** — the practice-timeline card's framing, shared bento keyline, grid footgun, REC accent, Geist Pixel numerals, mobile type recompose.
+- **Responsive anomalies** — wrapper: mobile-only landing behaviors below.
+- **`about-short` is natural-height; dock is manual per viewport** — no min-height; hero docks via hand-tuned `--hero-top`.
+- **Mobile about-short can't overlap the hero — the offsets differ in KIND** — desktop overlaps, mobile gaps; don't unify.
+- **Mobile hero headline is 20px — sized to clear the docked nav** — load-bearing size tied to the hardcoded mobile `--projects-top`.
+- **Mobile about-short — divider hidden, padding dropped** — mobile-only card recipe deviation for tight above-hero space.
+- **Landing scrollbar hidden** — `html:has(.landing)` hides the scroll indicator; native scroll unaffected.
+- **Full-bleed canvas needs `viewport-fit: cover` (global)** — the root layout viewport export + the `.landing--built` background swap, together.
+- **Don't-touch list** — quick-reference summary of the Two-group card system constraints.
+- **Startooth canvas** — wrapper: the three canvas files and how they're loaded.
+- **Framed sheet — the canvas is a centered page, not full-bleed (DESKTOP-ONLY for now)** — the desktop framed-sheet geometry, matte, mobile full-bleed reset, caption/footer tuck.
+- **Staged sheet intro — the sheet PLACES itself, holds grey, inks at build-start, frame last (DESKTOP-ONLY)** — the six-beat desktop sheet arrival sequence and its JS grey-hold.
+- **Sheet harmonization (Phase 3) — content coupled + centred to the frame** — the `--sheet-scale` JS bridge, viewport-centring, footer bar, portrait/landscape cap rules.
+- **Nav row is scale-exempt (counter-scales the plate)** — the nav row's constant-size counter-scale trick.
+- **Canvas is `position: fixed`, not `position: absolute`** — why `absolute` breaks the expanded state.
+- **Expand-dissolve — the field cross-fades to a line drawing when expanded** — the filled↔line cross-fade and its time-based easing.
+- **CSS transition must live in the before-change rule, not the `:not()` guard** — why the build-gate fade transition can't move to the `:not()` selector.
+- **Black first-paint gap — two layers required, breakpoint-split** — the two `#000` layers, and the desktop-only grey override.
+- **Pointer-events inversion — landing passes through, interactive ELEMENTS opt in (not sections)** — why the opt-in is scoped to elements, not sections.
+- **Build gate — three triggers and a JS failsafe** — the three paths to `.landing--built`, and why `builtThisLoad` is module-level.
+- **Hero headline cycling — localStorage (not module state/sessionStorage), useLayoutEffect with a default-0 initializer (not a lazy one)** — persistence choice and the hydration-safe swap pattern.
+- **Failsafe fires before build completes on slow-connection mobile — expected degradation** — why the failsafe timer shouldn't be lowered.
+- **A rebuild always animates — `reduced` splits from `skipBuild`** — why `StartoothField` keeps two reduced-motion flags.
+- **Staged entrance — card settles first, then the tabs, then the caption** — the six-beat reveal sequence and its linked timing knobs.
+- **Skip-on-return reveal must be instant — `.landing--skip` defeats a transition pin** — why the skip path needs `transition: none`.
+- **Hover-release fade — three deliberate divergences from the handoff (no jerk)** — `stepFocus()`'s fade-from-capture, lit-key hold, and linger/smootherstep.
+- **Touch uses press-and-hold for the lamp effect — intentional, not a hover state** — the touch substitute for hover on keys.
+- **Icon subset — system Python fallback for `icon_subset.py`** — the `pyexpat` Homebrew breakage workaround.
+- **Idle breathing** — the self-scheduling idle-swell timer and its guards.
+- **Void rupture (the 9-click easter egg)** — the hidden interaction's loop ordering, charge model, stale-pointer clearing, haptic, and asymmetric tile range.
+
 ---
 
 ## Two-group card system
@@ -104,7 +151,9 @@ On desktop `--expanded-h` is the tail of the self-adjusting cascade (`calc(var(-
 
 `.about-card--long` is no longer a centered lead-paragraph + discipline-year-chip list. It was redesigned as the **practice timeline**: a proportional data-viz where each segment's WIDTH encodes years in a specialization (Interface ~20% / Brand / Product), running end-to-end so "one thing at a time" reads literally. Recomposed from the 800×480 handoff at `reference/design_handoff_practice_card` into the landing column. Migration to Group B and the retuned linked tops are covered above ("Two-group card system" → "`about-long` migrated A→B"; "Group B order"). The framing, accent, and footgun notes specific to this card:
 
-**Framing recompose — black border shed, terra keyline kept.** Width is 458px (= spectrum's, to give the timeline room). The handoff's black 2px border + heavy drop shadow were dropped in favor of our `--shadow-resting` plus a `terra-560` keyline `::before` (inset 6px, echoing the about-practice mat idiom). Ground stays `--terra-160`. Don't reintroduce the handoff's hard border/shadow — it reads as a foreign card, not part of the mat family.
+**Framing recompose — black border shed, terra keyline kept.** Width is 458px (= spectrum's, to give the timeline room). The handoff's black 2px border + heavy drop shadow were dropped in favor of our `--shadow-resting` plus a `terra-560` keyline `::before` (inset `var(--space-8)`, echoing the about-practice mat idiom). Ground stays `--terra-160`. Don't reintroduce the handoff's hard border/shadow — it reads as a foreign card, not part of the mat family.
+
+**The bento tiles share ONE keyline idiom.** about-long, about-practice, and spectrum all draw the same 1px hairline keyline inset `var(--space-8)` in `terra-560` — this card's `::before` is one instance of that shared idiom, not a one-off. Contact's keyline is deliberately DISTINCT: its own ground `terra-100` + a different border colour (`terra-800`) — don't unify contact's keyline with the other three. Spectrum's old dark `--surface-bg` frame was replaced by this same keyline (`.spectrum__frame::before`, `z-index: 2`, sitting over the terra-160 `.spectrum__bg`); spectrum's hover/press affordance still rides `.spectrum__frame` independently (see "Spectrum hover + press affordance"). Don't reintroduce spectrum's old dark frame, and don't drift any of the three shared-idiom cards off the `terra-560` inset value.
 
 **Graph-paper grid MUST stay `background-image` longhand (footgun).** A terra-tinted graph-paper grid (`rgba(140,110,45,0.06)`, 32px cell) is layered via the `background-image` longhand. The base `.about-card` rule owns the ground color through a `background:` **shorthand**, and the shorthand resets `background-image`. If you fold this grid into a shorthand on `.about-card--long`, or move the ground to a shorthand here, the grid is wiped. Keep it longhand.
 
@@ -130,7 +179,7 @@ The segment numerals (`.practice-timeline__seg-num`, the 02 / 03 / 05) render in
 
 ## Responsive anomalies
 
-### `about-short` is natural-height; dock is manual per viewport
+## `about-short` is natural-height; dock is manual per viewport
 
 `.about-card--short` has **no** `min-height`. The card shrinks to its natural content height (a single short centered line — wrapping to ~2 lines on mobile — + tight padding + a divider above the bottom edge on desktop), and the hero docks against that natural bottom via a manually-tuned `--hero-top` per viewport:
 
@@ -145,7 +194,7 @@ The segment numerals (`.practice-timeline__seg-num`, the 02 / 03 / 05) render in
 
 `--long-top` is about-long's expanded resting top; since the practice-timeline redesign about-long is a Group B card (opacity 0 when collapsed, settles from above on expand — see "Two-group card system"), so the overlap figures describe the expanded layout, not a collapsed peek-behind. `--long-top` itself was NOT changed by that redesign — only the settle-stack tops below it moved (see "Group B order"). If `--hero-top` changes again, move both `--long-top` and `--projects-top` by the same delta per viewport — they're a linked set, not independent values. Don't unify the desktop and mobile hero docking; they're intentionally different in kind (desktop overlaps about-short, mobile sits just below it — see "Mobile about-short can't overlap the hero").
 
-### Mobile about-short can't overlap the hero — the offsets differ in KIND
+## Mobile about-short can't overlap the hero — the offsets differ in KIND
 
 The desktop and mobile hero↔about-short relationships are not the same offset at different magnitudes — they are different in kind. **Desktop OVERLAPS:** `--hero-top` docks the hero ~27px into about-short's bottom, which is safe because `.about-card--short` carries bottom padding plus a divider (`.about-card__divider`, hidden on mobile) below the text — that padding + divider act as a clip buffer, so the hero overlapping the card edge eats only dead space, not text.
 
@@ -153,7 +202,7 @@ The desktop and mobile hero↔about-short relationships are not the same offset 
 
 **Don't "fix" the mobile gap into an overlap to match desktop** — it would clip the last line of about-short. The gap is the correct read for a card with no bottom buffer. This is why the two `--hero-top` dock figures (relative to about-short's bottom) read as overlap vs gap rather than just two different overlap depths — relates to "`about-short` is natural-height; dock is manual per viewport" above.
 
-### Mobile hero headline is 20px — sized to clear the docked nav
+## Mobile hero headline is 20px — sized to clear the docked nav
 
 On mobile (`max-width: 767px`), `.hero-card__headline` is set to `font-size: 20px` (+ `max-width: none`), overriding the desktop `font-size: 24px`. This is **not** a cosmetic size tweak — it is load-bearing on the hero→nav dock.
 
@@ -161,7 +210,7 @@ On mobile (`max-width: 767px`), `.hero-card__headline` is set to `font-size: 20p
 
 **What breaks.** Bumping the mobile headline back toward 24px — or any change that grows the mobile hero height (longer copy, larger padding, added lines) — re-swallows the nav row, UNLESS `--projects-top` is retuned in the same pass to push the nav down by the height delta. The clean fix (deferred with the rest of the mobile framed-sheet work) is to convert the mobile hero→nav dock to self-adjust like desktop (measure the hero's height and derive `--projects-top` off its bottom), which would make the headline size a free variable again. Until then, treat the mobile headline size and `--projects-top` as a linked pair.
 
-### Mobile about-short — divider hidden, padding dropped
+## Mobile about-short — divider hidden, padding dropped
 
 On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop card recipe:
 
@@ -172,11 +221,11 @@ On mobile (`max-width: 767px`), `.about-card--short` deviates from the desktop c
 
 **Why.** Above-hero space on mobile is tight (`--hero-top: 84px`) and the about-short card needs every pixel for the centered copy. The hero's top edge already serves as the visual seam below the short card, so the decorative divider isn't load-bearing here. Don't restore it on mobile without re-measuring above-hero space and bumping `--hero-top` to absorb the extra height.
 
-### Landing scrollbar hidden
+## Landing scrollbar hidden
 
 `html:has(.landing)` hides the scrollbar via `scrollbar-width: none` + `::-webkit-scrollbar { display: none }` + `-ms-overflow-style: none`. Native scroll is preserved; only the visual indicator goes away. macOS/iOS/Android already overlay-hide, so the rule is mainly for Windows/Linux. The expand-on-click affordance carries the "more content" signal that the scrollbar would otherwise telegraph — if that affordance changes, reconsider.
 
-### Full-bleed canvas needs `viewport-fit: cover` (global)
+## Full-bleed canvas needs `viewport-fit: cover` (global)
 
 The Startooth canvas must reach the true screen edges on mobile Safari. By default (`viewport-fit: auto`) iOS insets the viewport to the safe area, so the fixed canvas (`inset: 0`) only covers that — the status-bar band (top) and home-indicator/toolbar band (bottom) fall outside it and show the landing's `#000` body background as **black bars**. `viewport.viewportFit = 'cover'` in `app/layout.tsx` makes the layout viewport span the whole screen so the canvas fills behind the chrome.
 
@@ -199,7 +248,7 @@ The Startooth canvas must reach the true screen edges on mobile Safari. By defau
 
 The Startooth canvas replaces the old static `.landing-pattern-bg` SVG div. It consists of three files: `app/_landing/StartoothField.ts` (engine), `app/_landing/StartoothCanvas.tsx` (React shell), and `app/_landing/startooth-canvas.css` (canvas layout). The canvas is dynamically imported in `app/page.tsx` with `ssr: false`.
 
-### Framed sheet — the canvas is a centered "page", not full-bleed (DESKTOP-ONLY for now)
+## Framed sheet — the canvas is a centered page, not full-bleed (DESKTOP-ONLY for now)
 
 **What it is.** The Startooth canvas is no longer full-bleed. It's clipped into a centered "page" with a brown frame, sitting on the `/all` desk ground. The ratio is **orientation-dependent: 3:4 portrait (the Linotype Bulletin cover ratio) on iPad/vertical tablets, 4:3 landscape on horizontal displays** (see the geometry section). Two cooperating fixed elements build it (both in `startooth-canvas.css`, rendered by `StartoothCanvas.tsx`):
 
@@ -234,7 +283,7 @@ Both the root and the matte read the SAME `--sheet-*` tokens (same `top`/`bottom
 
 **What breaks if removed.** Drop the matte and the pattern bleeds full-bleed again and scrolled content shows in the margins (no clip). Give the matte different geometry than the root and the frame desyncs from the clipped pattern. Read both `startooth-canvas.css` (geometry + matte) and the caption/footer override block in `landing.css` before touching any sheet dimension or edge element.
 
-### Staged sheet intro — the sheet PLACES itself, holds grey, inks at build-start, frame last (DESKTOP-ONLY)
+## Staged sheet intro — the sheet PLACES itself, holds grey, inks at build-start, frame last (DESKTOP-ONLY)
 
 **What it is.** The framed sheet doesn't arrive finished — it places itself onto the desk, then earns its pattern and frame in sequence. A "Staged intro" block in `startooth-canvas.css`, gated to `@media (min-width: 768px) and (min-height: 501px)` (the framed-sheet complement, so mobile is byte-identical), plus a JS mount delay in `StartoothCanvas.tsx`, run the sheet through six beats:
 
@@ -259,7 +308,7 @@ Both the root and the matte read the SAME `--sheet-*` tokens (same `top`/`bottom
 
 **What breaks if changed.** Drop the `@media` gate → the intro leaks onto mobile (which must stay full-bleed live). Fold `sheet-place` into `transform` → the card jumps off-centre during the place (loses the centring translateX). Remove the JS grey-hold → the sheet snaps straight to the engine's BUILD_HOLD (the `--grey-80` ink ground), no grey beat. Move the ink/corners back to `.landing--built` → they fire when the pattern FINISHES instead of when it begins. Fold the frame colour into a width change → the sheet reflows when the frame lands. Remove the `.landing--skip` animation kill → returning visitors watch the placement replay. Move the stage rules off `html:has()` (e.g. try to scope them under `.landing`) → they never reach the sibling matte/root.
 
-### Sheet harmonization (Phase 3) — content coupled + centred to the frame
+## Sheet harmonization (Phase 3) — content coupled + centred to the frame
 
 The framed sheet (above) is height-driven; the landing CONTENT (`.landing__section--*`) is authored at FIXED px on a **760px baseline** (hero = 76% of a 760 sheet). They agree only at the sheet's 760 cap — below it (any viewport shorter than ~828 CSS px, i.e. most laptops) the frame shrinks but the content doesn't, so without coupling the fixed-px cards would poke past the frame and the matte flood would clip them. Phase 3 couples them: the plate scales to fit the frame AND keeps a constant `--sheet-content-inset` gutter inside it (Scale bridge, below), so the cards keep that margin off the sheet border at every viewport — including portrait/iPad (frame at the 760 cap), where at scale 1 the plate would otherwise run edge-to-edge and touch/overflow the border. **All of it is gated to `@media (min-width: 768px) and (min-height: 501px)`** — the exact COMPLEMENT of the mobile block — so mobile keeps its full-bleed composition (enforced by the reset block — see "Framed sheet") and the base rules carry no Phase-3 changes. This sheet is a *page* member of the shared family (LIBRARY.md → "Framed-sheet spine"), via the bridge below.
 
@@ -273,7 +322,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if violated.** Remove the `@media` gate → the scale/centring leak onto mobile (which must stay full-bleed). Set `--sheet-scale` on `.landing` instead of `:root` → the sibling footer can't read it. Move a fixed edge element inside `.landing__content` → the scale traps it. Forget to scale `.landing--expanded` height → the shrunken plate leaves dead scroll below it. Restore the footer to `z:20` → it floats over the frame again instead of tucking under it. Drop the `− 2 * inset` term (or set `--sheet-content-inset: 0`) → the plate runs edge-to-edge and the cards touch/overflow the sheet border on portrait/iPad.
 
-### Nav row is scale-exempt (counter-scales the plate)
+## Nav row is scale-exempt (counter-scales the plate)
 
 **What it is.** The landing nav row (`.landing-nav-row` in `landing.css` — the Nihar + Works tabs docked under the hero) holds a CONSTANT size instead of shrinking with the plate on small/portrait frames. It rides `.landing__content`'s `transform: scale(var(--sheet-scale))` (the Phase-3 scale bridge above) like everything else, then cancels it locally: `scale: calc(1 / var(--sheet-scale, 1))` + `transform-origin: top center`. Net constant size; a no-op at scale 1 (wide desktop, and mobile where `--sheet-scale` is forced to 1). Fixed the tabs reading "too small" on scaled-down frames.
 
@@ -285,7 +334,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **Trade-off (accepted).** At very small plate scales (~0.6, rare short viewports) the constant nav reads a touch large against the shrunken hero. Acceptable: real devices sit ~0.86+, and the goal is a readable/tappable nav. Don't "fix" this by letting the nav ride the scale — it reintroduces the too-small tabs. Don't fold the counter-scale into `transform` or change the `top center` origin without reading this + the tuck-out entrance.
 
-### Canvas is `position: fixed`, not `position: absolute`
+## Canvas is `position: fixed`, not `position: absolute`
 
 **What it is.** `.startooth-canvas-root` (in `startooth-canvas.css`) uses `position: fixed`.
 
@@ -293,7 +342,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if removed.** Changing to `position: absolute` causes the canvas to disappear as the user scrolls the expanded landing, leaving a white or black gap behind the lower Group B cards.
 
-### Expand-dissolve — the field cross-fades to a line drawing when expanded
+## Expand-dissolve — the field cross-fades to a line drawing when expanded
 
 **What it is.** On expand the Startooth field cross-fades from the filled pattern to a **line-only twin**, and back on collapse. `bakeSettled()` bakes two offscreen canvases: `settled` (filled) and `settledLines` (a `--surface-bg` ground + a terra-toned stroke). The two values are read from CSS at mount into `lineGround` / `lineStroke`. `drawInteractive()` blits `settled`, then blits `settledLines` at `globalAlpha = expandAmt` over it — both bakes share the same `linePath` so the wireframe holds steady through the fade while only the fills come and go.
 
@@ -303,7 +352,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if changed.** Reverting to a per-frame exponential reintroduces the collapse "pop". Dropping the `expandTarget === 1` guard in `pointer()` lets the canvas light up / ripple under the expanded content. `lineGround` / `lineStroke` must stay read at mount so they track the `--surface-bg` / terra tokens.
 
-### CSS transition must live in the before-change rule, not the `:not()` guard
+## CSS transition must live in the before-change rule, not the `:not()` guard
 
 **What it is.** The build-gate in `landing.css` (`html.fonts-ready .landing:not(.landing--built)` selector) sets `opacity: 0` and `pointer-events: none` to hold the landing invisible during the 7s canvas build. The `transition` declaration lives only in the sibling base rule `html.fonts-ready .landing` (specificity 0,0,2,1), not inside the `:not()` rule.
 
@@ -311,7 +360,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if violated.** Adding any `transition` override to the `:not(.landing--built)` rule — or moving the `transition` declaration out of the base rule — kills the opacity fade and makes the landing snap in.
 
-### Black first-paint gap — two layers required, breakpoint-split
+## Black first-paint gap — two layers required, breakpoint-split
 
 **What it is.** `html:has(.landing), html:has(.landing) body { background-color: #000 }` in `landing.css`, and separately `background: #000` on `.startooth-canvas-root` in `startooth-canvas.css`.
 
@@ -321,7 +370,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if either layer is removed.** Removing the body rule produces a white flash on first load on slow connections or large screens. Removing the canvas root rule produces a brief flicker between element mount and first draw. Removing the desktop grey override brings back the black flash before the sheet inks.
 
-### Pointer-events inversion — landing passes through, interactive ELEMENTS opt in (not sections)
+## Pointer-events inversion — landing passes through, interactive ELEMENTS opt in (not sections)
 
 **What it is.** `html.fonts-ready .landing { pointer-events: none }` in `landing.css` overrides the `globals.css` rule of the same specificity (same selector, later cascade position — `landing.css` loads after `globals.css`). The opt-in re-enable is scoped to the actual interactive ELEMENTS — `.hero-card`, `.landing-nav-row`, `.caption-tag` — **not** their sections.
 
@@ -333,7 +382,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if the inversion is removed.** Restoring `pointer-events: auto` on `.landing` blocks all canvas interaction. Removing `.caption-tag` from the opt-in list makes caption links unclickable even though the element is visually present.
 
-### Build gate — three triggers and a JS failsafe
+## Build gate — three triggers and a JS failsafe
 
 **What it is.** The `landing--built` class (gates the landing reveal via the `:not()` rule) is set via three code paths in `app/page.tsx`:
 
@@ -351,7 +400,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if `useLayoutEffect` is changed to `useEffect`.** The `builtThisLoad` read would happen after paint, meaning a client-side return would flash hidden→visible at first paint before `built` is set. `useLayoutEffect` ensures the class is applied before the browser paints (paired with `.landing--skip` — see the skip-pin entry).
 
-### Hero headline cycling — localStorage (not module state/sessionStorage), useLayoutEffect with a default-0 initializer (not a lazy one)
+## Hero headline cycling — localStorage (not module state/sessionStorage), useLayoutEffect with a default-0 initializer (not a lazy one)
 
 **What it is.** `.hero-card__headline` alternates between two lines (`HERO_HEADLINES`, a module-level array just above `TIMELINE_PHASES` in `app/page.tsx`) on each hard reload. `headlineIdx` state defaults to `0`; a `useLayoutEffect` (placed right after the existing nav-direction slide-in `useLayoutEffect`) reads `localStorage.getItem('hero-headline-idx')`, calls `setHeadlineIdx(next)`, and writes `(next + 1) % HERO_HEADLINES.length` back for the NEXT load. Both the read and the write are wrapped in try/catch (non-fatal), matching the sessionStorage try/catch idiom already used elsewhere in this file (e.g. the nav-direction read).
 
@@ -361,7 +410,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if changed.** Moving the read to `sessionStorage` makes the headline reset every new tab instead of truly cycling across reloads. Moving it to module state makes it reset on every hard refresh (same headline every time, defeating the feature). Reading localStorage in a lazy `useState` initializer (or in a plain `useEffect`) reintroduces a hydration mismatch / visible flash respectively.
 
-### Failsafe fires before build completes on slow-connection mobile — expected degradation
+## Failsafe fires before build completes on slow-connection mobile — expected degradation
 
 **What it is.** The failsafe `setTimeout` in `page.tsx` sets `built = true` to prevent a stranded black screen if the canvas engine fails. On a slow mobile connection (3G, cold load), the dynamic `import('./_landing/StartoothCanvas')` bundle may not arrive until 3–5s after hydration. Combined with the `BUILD_HOLD_MS` ink-ground hold and the build animation, the engine can take longer than the failsafe gate to fire `onBuildComplete`. (Mobile has no grey-hold, so its failsafe budget is the raw `FAILSAFE_MS` — extra headroom helps here too.)
 
@@ -369,13 +418,13 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if you change the timer.** Do not lower the failsafe timer to fix perceived slow loads. Doing so would fire the failsafe during the build on normal connections, permanently cutting the build animation short for all users. `FAILSAFE_MS` accounts for the full normal-path window including the desktop grey-hold (see "Build gate" → "Why `FAILSAFE_MS` must clear the grey-hold + build"); early firing is not a fix.
 
-### A rebuild always animates — `reduced` splits from `skipBuild`
+## A rebuild always animates — `reduced` splits from `skipBuild`
 
 **What it is.** `StartoothField` keeps two flags, not one: `prefersReduced` (from `matchMedia('(prefers-reduced-motion: reduce)')`, permanent, accessibility) and `reduced` (the per-build "collapse to one frame" switch). At mount `reduced = prefersReduced || skipBuild`. `rebuildFrom(x, y)` (the public re-grow seam — see the void-rupture spec) resets `reduced` to `prefersReduced` alone.
 
 **Why.** A rebuild is an explicit request to WATCH the field regrow. If `reduced` stayed conflated with `skipBuild`, a page that loaded in skip mode (client-side return) would rebuild *instantly* — invisibly. Splitting the flags lets a rebuild animate even on a skip-loaded page while still honouring a genuine reduced-motion preference. `rebuildFrom` also subtracts `HOLD` from `buildStart` so the rebuild begins immediately rather than flashing ~900ms of black behind the visible content (the black HOLD is initial-load anticipation, pointless on a re-grow). There is currently no UI calling `rebuildFrom` — it is the wired seam the deferred void-rupture feature will drive.
 
-### Staged entrance — card settles first, then the tabs, then the caption
+## Staged entrance — card settles first, then the tabs, then the caption
 
 **The sequence.** Build reveals (as the last visible corner paints) → the hero card *settles* onto the field → after it lands the nav row (Nihar/Works) slides in → then a beat later the Startooth caption follows → then (desktop) the brown sheet frame fades in LAST. Distinct gated steps, not one block fade:
 
@@ -392,7 +441,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if a pause gate is removed.** That stage's entrance is spent behind the build curtain and never seen — the card flat-fades in, or the tabs appear already-present instead of snapping in after the card.
 
-### Skip-on-return reveal must be instant — `.landing--skip` defeats a transition pin
+## Skip-on-return reveal must be instant — `.landing--skip` defeats a transition pin
 
 **What it is.** On client-side return (`builtThisLoad` is set), `page.tsx` adds `.landing--skip` alongside `.landing--built`, and `landing.css` sets `html.fonts-ready .landing.landing--skip { transition: none }`.
 
@@ -400,7 +449,7 @@ The framed sheet (above) is height-driven; the landing CONTENT (`.landing__secti
 
 **What breaks if `.landing--skip` is removed.** Returning visitors land on a permanently invisible page (`opacity: 0`, pinned transition) until something forces a style recalc. This is a silent, intermittent-looking failure — it only reproduces on the skip path, so it is easy to miss in a first-load test.
 
-### Hover-release fade — three deliberate divergences from the handoff (no jerk)
+## Hover-release fade — three deliberate divergences from the handoff (no jerk)
 
 The original handoff's key-hover release jerked. `stepFocus()` reworks it in three ways; all are improvements over the reference — **do NOT "restore" the handoff behaviour:**
 
@@ -408,7 +457,7 @@ The original handoff's key-hover release jerked. `stepFocus()` reworks it in thr
 2. **Keep the released key lit through the fade (`fadeUnit`).** The handoff clears `focusUnit` to null the instant you leave, so the lit key + its lamp snap dark on the first fade frame while only the veil eases out. We capture `fadeUnit = prevDu` at release and `drawInteractive` reads `focusUnit ?? fadeUnit`, so the key dims *with* the veil instead of snapping.
 3. **Linger + smootherstep.** A short `LINGER` holds the dim before the fade begins (it doesn't collapse the instant you leave), and the fade uses `smoother(t)` so it starts at zero velocity — no jerk at the hand-off from the ramp-up. `fadeUnit` clears when the fade completes.
 
-### Touch uses press-and-hold for the lamp effect — intentional, not a hover state
+## Touch uses press-and-hold for the lamp effect — intentional, not a hover state
 
 **What it is.** On `pointerType === 'touch'`, keys activate the lamp focus effect via `pressFocus = true` on `pointerdown`. There is no hover state on touch devices (pointer devices only). The `pointerType === 'touch'` branch in `pointer()` is a deliberate design decision: a touch press activates the same lamp-dim effect a mouse hover does, making keys feel tactile and pressable.
 
@@ -416,13 +465,23 @@ The original handoff's key-hover release jerked. `stepFocus()` reworks it in thr
 
 **What breaks if removed.** Removing or no-op-guarding the `pointerType === 'touch'` branch means touch presses on keys produce no lamp effect and never trigger a lock. Do not remove it, unify it with mouse handling, or add a guard that skips `pressFocus` for touch.
 
-### Icon subset — system Python fallback for `icon_subset.py`
+## Icon subset — system Python fallback for `icon_subset.py`
 
 **What it is.** When the landing's icon set changes (`ICON_NAMES` in `app/lib/icons.ts`), the font subset is rebuilt with `/usr/bin/python3 scripts/icon_subset.py`. (History: the `replay` icon was added here for the canvas replay button, then removed with the button — leaving 15 icons.)
 
 **Why the fallback exists.** The project's `npm run icons` script invokes the Homebrew-managed `python3.14`, which has a broken `pyexpat.so` on this machine — it errors out before fontTools can run. The system Python at `/usr/bin/python3` has fontTools installed and works correctly. The pre-push hook runs `npm run icons:check` and will block a push with a stale subset.
 
 **What to do when changing icons.** Run `npm run icons` first. If it fails with "fontTools not found" or a `pyexpat` import error, fall back to `/usr/bin/python3 scripts/icon_subset.py` directly. Never skip the subset rebuild — the pre-push hook will catch it, but catching it at push time is later than catching it locally.
+
+## Idle breathing
+
+**What it is.** Full intent + spec live in [`./DESIGN.md`](./DESIGN.md) → "Idle breathing"; this entry carries the implementation constraints. After `IDLE_BREATH` (~9s) of no user activity, random key-tops swell gently — a low-`mag` version of the same `topScatter` path used elsewhere, wrapped in a `swell` envelope so the motion reads as a breath rather than a poke.
+
+**Self-scheduling, not a continuous rAF.** The effect is driven by `idleTick`/`scheduleIdle`, a self-scheduling timer that kicks the animation loop only once per breath — it does NOT run a continuous `requestAnimationFrame` loop waiting to check idle state every frame. `lastActivity` (updated on both pointer input and build-complete) resets the idle clock, so any interaction pushes the next breath out by a fresh `IDLE_BREATH` window.
+
+**Guards.** Skipped entirely under `prefers-reduced-motion: reduce` (same `prefersReduced` flag used across the engine — see "A rebuild always animates"). `idleTimer` is cleared in `destroy()` so a torn-down field can't fire a breath into a dead canvas.
+
+**What breaks if changed.** Converting `idleTick`/`scheduleIdle` to a continuous rAF loop burns idle CPU for no visual gain (the breath only needs to fire once per window). Forgetting to clear `idleTimer` in `destroy()` risks a breath firing against a torn-down field. Dropping the `lastActivity` reset on build-complete would let a breath fire immediately after the build finishes, before the user has had a chance to look at the settled field.
 
 ## Void rupture (the 9-click easter egg)
 

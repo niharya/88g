@@ -1,5 +1,47 @@
 # /all — Route Notes
 
+This file is the protective archive for `/all`. The compressed digest lives in `./CLAUDE.md`
+(auto-loaded); this archive carries the why. **How to read: grep the heading named by the
+digest's pointer and read only that section** — the Index below is the cheap map.
+
+## Index
+
+Current (bench essay + Cases/Longform timeline + Showcase/Visual tab):
+- **Scroll-dock + shell contract** — the ticket's coupled pin+condense scroll state and its one down-only assist.
+- **Deep-link entry & tab order** — `/cases`/`/showcase` rewrite-driven tab selection, default, and tab order.
+- **TransitionSlot exit-dim selector** — the `.bench-workbench > *` wrapper class the shared exit-dim depends on.
+- **`--bu` container-query spine** — why the cqi container lives on `.bench-stage`, not `.bench-card`.
+- **Condense** — the docked ticket's rest↔pinned width/tabs/close morph.
+- **Press states — condensed touch targets** — tap feedback scoped to `.is-condensed` only.
+- **Containing-block guards** — what keeps the fixed ticket from getting trapped by a transformed ancestor.
+- **Viewport-driven 3:4 card** — the invitation card's height-driven width + relative scale cap.
+- **Bench-exit +Nihar marker — the shared ReturnMarker primitive** — why the exit arrow points left, by specificity not source order.
+- **Tab swap animates** — the Visual↔Longform `AnimatePresence` swap and why the scale is safe.
+- **Mat as a framed sheet (sibling of the landing sheet + invitation card)** — the timeline mat's lift/frame/responsive spine.
+- **Desktop timeline — FLOW layout** — the Cases tab's grid/flex FLOW layout (bars, years, groups, hover cascades).
+- **Timeline type + `--bu` sizing** — every timeline size as `calc(N * var(--bu))`.
+- **Expand/collapse is a height-animated wrapper** — the Slangbusters children mount/height-glide mechanism.
+- **Sibling-repel on child hover** — why the repel transform rides the card, not the Framer motion row.
+- **Mobile cases (MobileCases.tsx + CasesSheet.tsx)** — the separate mobile composition + inline (non-portaled) sheet.
+- **Tablet cases layout** — why the stale tablet `@media` block was removed.
+- **Index-card copy split + dev editor** — `card-copy.ts` as the single source of truth for reader-facing copy.
+- **Filter strip** — the Visual-tab category radiogroup and its pure-CSS recede/emphasis.
+- **Layout idiom — 9-col CSS Grid with JS-measured row spans** — the bento grid's span math and state-driven row spans.
+- **Click + focus interaction** — tile open/close, stacking, and z-index contract.
+- **Spec note** — the index-card layout, spacing, and per-piece colour cascade.
+- **Caption content** — the tile caption shows dot + type + year only, no project name.
+- **Bento reading order** — the `num`-driven reading order and the cardstack/furrmark swap.
+- **Hint pill — neutral shell across all cards** — the "opens in new tab" pill stays a neutral shell, themed text only.
+
+Historical (retired archive panel — kept for archaeology, not load-bearing on the live route):
+- **Archive timeline model**, **Spacing system**, **Main timeline positions**, **Now dot — time-of-day shapes**, **Typography**, **Spacing grid**, **Icons**, **Pending migration — `.ap-entry__hint` → `<Monostamp>`**, **Component ownership**, **Animation: train metaphor**, **Hover system**, **Recipe: adding a new project**, **Don't-touch items**, **Responsive anomalies (mobile ≤767px)** — document the retired `ArchivePanel`/absolute-coordinate timeline. Read only if working archaeology, not for the live route.
+- **Stale-hover gate — `data-armed` on ProjectCard** — still current; the gate mechanism `ProjectCard.tsx` relies on today.
+
+Current (mobile pass, whole route):
+- **Responsive anomalies — mobile pass** — the cohesive mobile pass: intro card cqi re-base, one shared 24px gutter, timeline mat FOOTGUN, MobileCases/CasesSheet, showcase open interaction.
+
+---
+
 ## Overview (Work Essay redesign) — current
 
 `/all` (renamed from `/selected`; "bench"/"selected" are internal codenames) is the "Work Essay" invitation. Full spec:
@@ -11,7 +53,7 @@
 - **Ticket** — "BROWSE IN TWO WAYS", two tabs (Visual / Longform). Foots the card; pins out into a condensed navbar on scroll.
 - **Work panel** (always present below the card) — **Visual** (default) → the Showcase bento (`.sc-section`, headed by the category **FilterStrip**; HeaderBlock AND HintRow both dropped); **Longform** → `SelectedContent` (Timeline + Archive, hosted in `.bench-cases`).
 
-### Scroll-dock + shell contract (load-bearing)
+## Scroll-dock + shell contract
 
 - **`useBenchDock`** (mirrors the nav cluster's `useDockedMarker`): `active` (vis|lf, default vis) + **ONE coupled state, `engaged`** — the "native-scroll + one down-only assist" model. `engaged` applies `.is-pinned` (position) AND `.is-condensed` (the visual condense) **together as a single unit** — `Ticket.tsx` derives both classes from the one boolean, so pin and condense fire at the same instant. `engaged` flips by READING the scroll position only (`slot.getBoundingClientRect().top <= DOCK_TOP+1`, `DOCK_TOP=16` mirroring `.is-pinned .bench-ticket { top: var(--space-16) }`) → `position:fixed; top:16`, centred via `left:50%` + a constant `transform:translateX(-50%)`. It NEVER hijacks scroll to flip; native scroll stays fully in charge. There is NO scale — an earlier `scale(0.96→1)` "rise" read as an odd enlarge mid-condense and was removed; `transform` stays a constant `translateX(-50%)` so only `width`/`padding`/`box-shadow` animate. The hook also pins the slot's `min-height` (rest footprint, `useLayoutEffect`) so the card doesn't collapse when the ticket pins out, and runs the clearPane effect (see "Containing-block guards").
   - **One assist, DOWN only, "finish a committed descent."** Native scroll is the model — the ticket docks/condenses purely by reading position. The single programmatic move is an idle-settle in the scroll `update` effect: on scroll-idle (`IDLE_MS` = 150ms after the last scroll event, by which momentum has stopped) it fires **only if** (1) no glide is already active (`!isGlideActive()`), (2) `engaged` is already true (the ticket has ALREADY docked), (3) the last scroll direction was **down**, (4) reduced motion is off, and (5) we're not already at/past the target (`scrollY < workY() − EPSILON`). It then `glideTo(workY())` to carry the card the rest of the way off-screen. `workY()` = the **work panel's top** (`.bench-work` rect top + scrollY) — i.e. the card has scrolled FULLY away; there is **no SEAT cushion and no midpoint**.
@@ -21,23 +63,72 @@
   - **Superseded approach — the two-anchor midpoint commit (kept so the reasoning isn't lost).** The hook previously had two rest anchors (Anchor 0 = invitation; Anchor 1 = `workY` defined as the dock line + a `SEAT` cushion) and committed a one-shot `scrollGlide` whenever the reader crossed the **midpoint** of the no-man's-land between them, in either direction. **That whole machinery is removed.** Why it was replaced: the midpoint commit was a *programmatic-scroll commit fired mid-gesture* — it fought native momentum, so the settle read as springy/unreliable and could fire against the reader. The current model only ever assists **on idle, down, after the ticket has already docked**, and aborts on any contrary scroll — so it never fights native scroll. (Before that, the split was even finer: separately-toggled `pinned`/`condensed` states with condense hysteresis; that too is gone.) **`engaged` stays ONE unit (pin + condense together) — do NOT re-split it, and do NOT reintroduce the midpoint commit or the SEAT cushion.**
   - **The condense only animates on REAL scroll.** The width/padding/title-size interpolation is a CSS transition that only fires when wheel/trackpad scroll crosses the dock line over several frames. An instant programmatic `scrollTo` (reduced-motion, or a headless harness) bypasses the transition (the state flips in one frame) — so preview/instrumentation that measures mid-flight width after a jump reads unreliable values; the SETTLED end-state values are the correct ones.
   - **Entry paths.** Raw scroll docks the ticket natively, then the idle-settle finishes the descent (down only). A **tab click** (`openTab`) glides to `workY()` only when still resting at the invitation (`!engaged`), else just swaps content (keeps scroll position). **✕** (`close`) is `glideTo(0, '--dur-settle')` back to the card.
-- **`--bu` container-query spine (the whole broadside) — pure CSS, no JS.** Every dimension on the card + ticket is authored as `calc(N * var(--bu))`, a real **layout** scale (line-breaks and authored proportions hold, text crisp). `--bu` ("one baseline pixel") = `calc(100cqi / 820)` — 1px at the 820px scale-1 baseline expressed as a fraction of the query container's width. **The query container is `.bench-stage`, NOT `.bench-card`** (`container-type: inline-size` on the stage): the stage has no border/padding, so its content box == the card width (`--bench-card-w`); putting the container on `.bench-card` is circular — `cqi` → the card's content box → minus the card's own `--bu`-based padding → a feedback loop that resolves too small (observed: ~0.53× instead of 0.75×). At the 615 cap, `--bu` = 0.75px, so `24 * var(--bu)` = 18px etc. — reproducing the old `--card-scale: 0.75` render exactly, and scaling proportionally below. This SUPERSEDES the old JS `--card-scale` knob (a `BenchEssay` resize handler), now **removed**. It is NOT `transform: scale()` — a transform would make the card the containing block for the fixed docked ticket and break the navbar (see "Containing-block guards"); `container-type: inline-size` does NOT trap the fixed ticket (verified — it still pins to the viewport, and `--bu` resolves to the stage width even on the fixed ticket). Tune via the `--bench-card-w` clamp on `.bench-stage`.
-- **Condense — definite width that interpolates, flex content-hug centred, in-flow close.** The condense animates as one snappy settle on **`--dur-slide`/`--ease-snap`** (was `--dur-settle`): the `.bench-ticket` transitions `width`/`padding`/`box-shadow`, and the frame `padding`/`border-width`, tab title `font-size`, eyebrow `opacity`+`translateY`, close `opacity`, the divider, and the bead all ride the same `--dur-slide` beat so they read as a single gesture.
-  - **REST width is now DEFINITE, `calc(460 * var(--bu))` + `max-width:100%`** (NOT `width:100%`). **This SUPERSEDES the old "`max-width:460` is load-bearing / the dock explodes the ticket" item.** That bug came from `width:100%`: once the ticket pinned (`position:fixed`) the percentage re-resolved against the **viewport** (~1433px) and the width transition animated FROM there, so the ticket visibly exploded toward full width before snapping in. A *definite* px width can't explode — and because it's px→px from the first frame, the width transition starts immediately at the pin (no re-resolution hold) so width + height collapse in **lockstep**. The definite width IS the guard now; `max-width:100%` only keeps it from overflowing a narrower container (mobile).
-  - **The condensed width is `min(236px, calc(460 * var(--bu)))` — a definite ~236px**, not `fit-content` and not a percentage; width can only interpolate between two definite lengths, so the transition runs a clean rest→236. `fit-content` was tried and rejected (intrinsic sizes don't animate; the box snapped). The `min()` is an **inversion guard**: if the rest width (`460 × --bu`) ever dropped below 236 (card width < ~510) the condense would otherwise GROW the box; the cap keeps it a shrink. **Retuned down from 290** (the owner found 290 too loose — ~45px dead voids and a ✕ that floated off to the right).
-  - **Why 236 is FIXED and not scaled by `--bu`:** the tab sub-labels are a fixed **10px** that does NOT scale with the card, so a scaled-down condensed box clipped them. At a definite 236 the content (~190px incl. gaps + the in-flow ✕) **fills the box with tight, balanced ~23px left/right margins** — the whole row (both tabs · divider · ✕) centres as ONE unit on even inter-item gaps (`gap`/edge-pad `20 * var(--bu)`, down from 24). **This REVERSES the prior "comfortable wide-edge margins, don't re-tune to even gaps" intent** — that read as too much space on the left and a loose, satellite ✕; the tight even-gap row is now the target.
-  - **The rest tabs are a grid (`1fr auto 1fr`), centring the divider diamond; CONDENSED tabs switch to centred flex** (`justify-content:center`, gap + edge padding on the within-element scale, each item `flex:0 0 auto`). The grid→flex swap is a **known one-frame tab rearrange** — a JS FLIP to smooth it was tried and REVERTED (pure CSS can't smooth it without regressing the centred diamond or the tight condensed fit), so the swap stays; the surrounding detail (divider, bead) is smoothed instead. **Don't revert the condensed tabs to grid.**
-  - **Detail smoothing.** The divider diamond **bead fades** (`opacity`) instead of `display:none`; the `.bench-perf__line` transitions its **`width` (4→1)** alongside `height`; the `.bench-perf` container width is **definite** (transitions, not `auto`) so its footprint interpolates rather than snapping.
-  - **The close is IN-FLOW when condensed (`position:static`, a real flex item), absolute + `opacity:0` at rest.** This is deliberate — it has to occupy a flex cell in the condensed row (it's the row's quiet end-mark, NOT a floated corner ✕). Condensed it's `width:auto` (hugs its glyph so it doesn't widen into a cell), `height var(--space-32)` (tap target without dictating row height), icon `18px` (down from 20, proportional to the shrunk titles). At rest it's `position:absolute` (right edge) with `opacity:0`/`pointer-events:none` so it reserves no rest-state space.
-  - The **eyebrow** still fades `opacity`-only out of flow (`position:absolute`, rest space reserved by the frame top padding) + a small `translateY` — NOT a `max-height`/`margin` collapse.
-  - Reduced motion zeroes the ticket condense transitions (`.bench-ticket`/frame/eyebrow/tab/title/perf-line/close) so the morph snaps to its end-state.
-  - Don't revert the condensed tabs to grid, don't make either width `fit-content`/`%`, don't pull the close back out of flow when condensed, and don't bring back an eyebrow max-height collapse.
-- **Press (onclick) states on the condensed touch targets.** The three condensed tap targets get a tactile settle, scoped to `.is-condensed` only (micro tier, `--dur-instant`/`--ease-snap`, no bounce, no pill): `.is-condensed .bench-tab:active` → `scale(0.95)` + ink deepen + accent underline; `.is-condensed .bench-ticket__close:active` → `scale(0.88)` + colour deepen. Don't extend these to the rest (invitation) state — the press cue belongs to the navbar affordance, not the broadside.
-- **Containing-block guards** (the docked ticket is `position:fixed`; a transformed/will-change ancestor would pin it to that ancestor instead of the viewport, so it scrolls away): (1) `.transition-pane:has(.bench-workbench){will-change:auto}` in bench.css (the shared pane carries `will-change:transform`); (2) `useBenchDock` cancels the pane's retained WAAPI entrance transform (TransitionSlot's `fill:both` leaves `translateY(0)`) once `.workbench.transitioning` clears; (3) the slide-in entrance uses `backwards` fill so `.bench-card` retains no transform. Don't reintroduce any retained transform on a ticket ancestor.
-- **`?view` ⇄ state**: `page.tsx` reads `view` server-side (the `/cases`,`/showcase` rewrites deliver it as the destination query; client `useSearchParams` doesn't carry it) → `initialView` selects the active tab. It does NOT auto-scroll into the work (the bench rests at the card) — auto-scroll-into-content is a deferred follow-up.
+- The container-query scaling mechanism (why the container lives on `.bench-stage`, not `.bench-card`) is its own entry — see "`--bu` container-query spine" below.
+- The condense morph (rest↔pinned width/tabs/close interpolation) is its own entry — see "Condense" below.
+- The condensed-state press feedback is its own entry — see "Press states — condensed touch targets" below.
+- The fixed-ticket containing-block guards are their own entry — see "Containing-block guards" below.
+- Deep-link entry and default-tab selection are their own entry — see "Deep-link entry & tab order" below.
 - **Return seam**: all EXITs (shell `ExitMarker`, `MarksExitMarker`) point at `/all?cases` so a case-study exit returns with the Longform tab active.
 
-### Viewport-driven 3:4 card — current
+## Deep-link entry & tab order
+
+**What it is.** Deep-link entry (`/cases`, `/showcase`, `/all?showcase`, `/all?cases`, and case-study EXIT) reads the bare query flags (`'showcase' in sp` / `'cases' in sp`) SERVER-side in `page.tsx` → `/showcase` selects the Visual tab, `/cases` selects Longform.
+
+**Where.** `page.tsx` (server component) computes `initialView` from the search params; `BenchEssay` calls `useBenchDock(initialView ?? 'lf')`.
+
+**Why server-side.** The `/cases` and `/showcase` rewrites (`next.config.mjs`) deliver the flags as the DESTINATION query — client-side `useSearchParams` never sees them, so the read has to happen server-side in `page.tsx`. If both flags are present, showcase wins.
+
+**Defaults + order.** With NEITHER flag, the default tab is Longform (case studies) — `initialView` is `null`, and `useBenchDock(initialView ?? 'lf')` falls back to `'lf'`. Tab ORDER in the ticket is Longform-LEFT, Visual-RIGHT (`Ticket.tsx`) — don't swap the order without updating this note.
+
+**What breaks.** It does NOT auto-scroll into the work (rests at the card) — auto-scroll-into-content is a deferred follow-up, not a bug. Moving the query read to the client breaks deep-link tab selection because the rewrite-delivered query never reaches `useSearchParams`.
+
+## TransitionSlot exit-dim selector
+
+**What it is.** TransitionSlot's exit-dim selector includes `.bench-workbench > *`.
+
+**Where.** TransitionSlot's ghost-dim CSS (shared shell layer, not route-local).
+
+**What breaks.** Renaming or dropping the `.bench-workbench` wrapper class means the outgoing `/all` ghost no longer dims on exit — the cross-route transition reads as a hard cut instead of a fade.
+
+## `--bu` container-query spine
+
+**What it is.** Every dimension on the card + ticket is authored as `calc(N * var(--bu))`, a real **layout** scale (line-breaks and authored proportions hold, text crisp). `--bu` ("one baseline pixel") = `calc(100cqi / 820)` — 1px at the 820px scale-1 baseline expressed as a fraction of the query container's width.
+
+**Where.** **The query container is `.bench-stage`, NOT `.bench-card`** (`container-type: inline-size` on the stage).
+
+**Why.** The stage has no border/padding, so its content box == the card width (`--bench-card-w`); putting the container on `.bench-card` is circular — `cqi` → the card's content box → minus the card's own `--bu`-based padding → a feedback loop that resolves too small (observed: ~0.53× instead of 0.75×). At the 615 cap, `--bu` = 0.75px, so `24 * var(--bu)` = 18px etc. — reproducing the old `--card-scale: 0.75` render exactly, and scaling proportionally below. This SUPERSEDES the old JS `--card-scale` knob (a `BenchEssay` resize handler), now **removed**. It is NOT `transform: scale()` — a transform would make the card the containing block for the fixed docked ticket and break the navbar (see "Containing-block guards"); `container-type: inline-size` does NOT trap the fixed ticket (verified — it still pins to the viewport, and `--bu` resolves to the stage width even on the fixed ticket).
+
+**What breaks.** Moving the container back onto `.bench-card`, or swapping to `transform: scale()`, both re-break the math or the fixed ticket. Tune via the `--bench-card-w` clamp on `.bench-stage`.
+
+## Condense
+
+**What it is.** The docked ticket's rest→pinned width/tabs/close morph. The condense animates as one snappy settle on **`--dur-slide`/`--ease-snap`** (was `--dur-settle`): the `.bench-ticket` transitions `width`/`padding`/`box-shadow`, and the frame `padding`/`border-width`, tab title `font-size`, eyebrow `opacity`+`translateY`, close `opacity`, the divider, and the bead all ride the same `--dur-slide` beat so they read as a single gesture.
+
+- **REST width is DEFINITE, `calc(460 * var(--bu))` + `max-width:100%`** (NOT `width:100%`). **This SUPERSEDES the old "`max-width:460` is load-bearing / the dock explodes the ticket" item.** That bug came from `width:100%`: once the ticket pinned (`position:fixed`) the percentage re-resolved against the **viewport** (~1433px) and the width transition animated FROM there, so the ticket visibly exploded toward full width before snapping in. A *definite* px width can't explode — and because it's px→px from the first frame, the width transition starts immediately at the pin (no re-resolution hold) so width + height collapse in **lockstep**. The definite width IS the guard now; `max-width:100%` only keeps it from overflowing a narrower container (mobile).
+- **The condensed width is `min(236px, calc(460 * var(--bu)))` — a definite ~236px**, not `fit-content` and not a percentage; width can only interpolate between two definite lengths, so the transition runs a clean rest→236. `fit-content` was tried and rejected (intrinsic sizes don't animate; the box snapped). The `min()` is an **inversion guard**: if the rest width (`460 × --bu`) ever dropped below 236 (card width < ~510) the condense would otherwise GROW the box; the cap keeps it a shrink. **Retuned down from 290** (the owner found 290 too loose — ~45px dead voids and a ✕ that floated off to the right).
+- **Why 236 is FIXED and not scaled by `--bu`:** the tab sub-labels are a fixed **10px** that does NOT scale with the card, so a scaled-down condensed box clipped them. At a definite 236 the content (~190px incl. gaps + the in-flow ✕) **fills the box with tight, balanced ~23px left/right margins** — the whole row (both tabs · divider · ✕) centres as ONE unit on even inter-item gaps (`gap`/edge-pad `20 * var(--bu)`, down from 24). **This REVERSES the prior "comfortable wide-edge margins, don't re-tune to even gaps" intent** — that read as too much space on the left and a loose, satellite ✕; the tight even-gap row is now the target.
+- **The rest tabs are a grid (`1fr auto 1fr`), centring the divider diamond; CONDENSED tabs switch to centred flex** (`justify-content:center`, gap + edge padding on the within-element scale, each item `flex:0 0 auto`). The grid→flex swap is a **known one-frame tab rearrange** — a JS FLIP to smooth it was tried and REVERTED (pure CSS can't smooth it without regressing the centred diamond or the tight condensed fit), so the swap stays; the surrounding detail (divider, bead) is smoothed instead. **Don't revert the condensed tabs to grid.**
+- **Detail smoothing.** The divider diamond **bead fades** (`opacity`) instead of `display:none`; the `.bench-perf__line` transitions its **`width` (4→1)** alongside `height`; the `.bench-perf` container width is **definite** (transitions, not `auto`) so its footprint interpolates rather than snapping.
+- **The close is IN-FLOW when condensed (`position:static`, a real flex item), absolute + `opacity:0` at rest.** This is deliberate — it has to occupy a flex cell in the condensed row (it's the row's quiet end-mark, NOT a floated corner ✕). Condensed it's `width:auto` (hugs its glyph so it doesn't widen into a cell), `height var(--space-32)` (tap target without dictating row height), icon `18px` (down from 20, proportional to the shrunk titles). At rest it's `position:absolute` (right edge) with `opacity:0`/`pointer-events:none` so it reserves no rest-state space.
+- The **eyebrow** still fades `opacity`-only out of flow (`position:absolute`, rest space reserved by the frame top padding) + a small `translateY` — NOT a `max-height`/`margin` collapse.
+- Reduced motion zeroes the ticket condense transitions (`.bench-ticket`/frame/eyebrow/tab/title/perf-line/close) so the morph snaps to its end-state.
+- **The condense only animates on REAL wheel/trackpad scroll.** An instant programmatic `scrollTo` jump (reduced-motion, or a headless harness) bypasses the CSS transition (the state flips in one frame) — mid-flight width measurements after a jump are unreliable; the SETTLED end-state values are correct.
+
+**What breaks.** Don't revert the condensed tabs to grid, don't make either width `fit-content`/`%`, don't pull the close back out of flow when condensed, and don't bring back an eyebrow max-height collapse.
+
+## Press states — condensed touch targets
+
+**What it is.** The three condensed tap targets get a tactile settle, scoped to `.is-condensed` only (micro tier, `--dur-instant`/`--ease-snap`, no bounce, no pill): `.is-condensed .bench-tab:active` → `scale(0.95)` + ink deepen + accent underline; `.is-condensed .bench-ticket__close:active` → `scale(0.88)` + colour deepen.
+
+**What breaks.** Don't extend these to the rest (invitation) state — the press cue belongs to the navbar affordance, not the broadside.
+
+## Containing-block guards
+
+**What it is.** The docked ticket is `position:fixed`; a transformed/will-change ancestor would pin it to that ancestor instead of the viewport, so it scrolls away. Three guards keep the containing block clean: (1) `.transition-pane:has(.bench-workbench){will-change:auto}` in bench.css (the shared pane carries `will-change:transform`); (2) `useBenchDock` cancels the pane's retained WAAPI entrance transform (TransitionSlot's `fill:both` leaves `translateY(0)`) once `.workbench.transitioning` clears; (3) the slide-in entrance uses `backwards` fill so `.bench-card` retains no transform.
+
+**What breaks.** Don't reintroduce any retained transform on a ticket ancestor — the fixed navbar re-breaks and scrolls away with the pane.
+
+## Viewport-driven 3:4 card
 
 **What it is.** The invitation card (`.bench-card`, ticket included) is a **locked 3:4 portrait page sized off viewport height** — the deliberate sibling of the landing's framed sheet (which is also a 3:4 window). Before this it was content-driven: a hardcoded width (`820px × --card-scale`, the constant `0.75` → 615px) with a height that fell out of the copy (~800px, an accidental ~1.30 ratio).
 
@@ -51,13 +142,13 @@ Because both the box (∝ width) and the content (∝ `--bu` ∝ width) scale li
 
 **iPad / portrait nesting — why the cap is `min(80vw, 720px)`, not a fixed px.** The card is 3:4 and an iPad *portrait* screen is also 3:4, so the card nests as a concentric smaller page with even margins — the platonic "page on a same-shaped desk." A FIXED `615px` cap broke this on bigger iPads: the card stayed 615 while the screen grew, so it filled less and less (Mini 768w → 80%; Pro 12.9 1024w → 60%, 205px side margins). The relative cap `min(80vw, 820px)` keeps a consistent ~10% side margin (≈80% fill); the `820px` ceiling = the scale-1 baseline (`--bu` = 1px there → the card renders at its true authored size). Verified portrait: Mini 768 → 614 (80%, unchanged), Air 820 → 656 (80%), Pro 11 834 → 667 (80%), Pro 12.9 1024 → 819 (80%, at the ceiling, full scale-1 — poem 24px). **It self-targets to portrait:** in landscape/desktop the height term (`(100svh−104)/1.3333`) is always smaller than `80vw`, so the proportional cap never binds there — only the `820px` ceiling can, and only once a window exceeds ~1197px svh (then the card grows 615→820 / full scale-1; at the user's 1440×900 reference it's height-governed at 597, untouched). Ceiling chosen at 820 = one ⅛-stop up from the prior 720 (the card-width ladder is ~⅛ steps off 820: 508/⅝ floor · 615/¾ · 720/⅞ · 820/1.0). **Known tradeoff:** tall desktop monitors (svh ≥ ~1197) now render the card at full scale-1 (type ~33% larger than the 615 desktop size) — accepted; a CSS aspect-ratio `@media` could pin desktop lower if that ever reads as too zoomed. **Mobile is unaddressed here** — desktop-tuned; a mobile pass must re-derive the floor/`CHROME`/gutter for the narrow viewport (matches the landing sheet's deferred-mobile stance).
 
-### Bench-exit "+Nihar" marker — now the shared ReturnMarker primitive
+## Bench-exit +Nihar marker — the shared ReturnMarker primitive
 The `+Nihar` marker (`.bench-exit`, `BenchExitMarker`, icon `arrow_back`) is a back-to-landing link and must point LEFT. The flat-exit-link treatment that delivers this was **promoted to the shared `ReturnMarker` primitive** (`app/components/ReturnMarker/`, styling under `.return-marker` in navmarker.css; LIBRARY.md → "ReturnMarker") once /privacy became its second consumer. `BenchExitMarker` now renders `<ReturnMarker href="/" label="Nihar" onClick={toLanding}/>`; `.bench-exit` keeps only flow positioning + the grey tone vars (`--return-marker-ink: --grey-720`, `--return-marker-ink-hover: --grey-560`) and owns the to-landing `nav-direction` side-effect via the wrapper's onClick.
 
 - **The arrow-LEFT reset still wins by SPECIFICITY, not source order — the mechanism just moved into the shared class.** navmarker.css resets it via `.return-marker.nav-marker--exit .nav-icon { transform: none }` (three classes), out-specifying the base `.nav-marker--exit .nav-icon` (two classes) that rotates 180° for the shell/marks exits. The original bug: a two-class reset won only by source order, and a client-side nav into /all (landing → works → /all) re-inserts CSS chunks in a different order, so the base rotation resurfaced and the arrow flipped RIGHT. **Don't drop a class from the shared selector** or the flip returns.
 - Same block, minor: the `.nav-marker__exit-label` dotted-at-rest → solid-on-hover underline (the site's link idiom) also lives in the shared `.return-marker` rules, overriding nav.css's shell-exit transparent-rest → dotted-hover treatment, again by three-class specificity. Don't "unify" it back to the shell treatment.
 
-### Tab swap animates (Visual ↔ Longform) — current
+## Tab swap animates
 
 `WorkPanel.tsx` wraps the active tab's content in `AnimatePresence mode="wait"` keyed on `active`
 (`'vis'|'lf'`), riding the **shared** tab-switch idiom from `app/lib/motion.ts`
@@ -92,7 +183,7 @@ incoming enter (one beat on the snap curve), so a switch reads as the site's oth
 
 ## Slangbusters promotion — the Cases (Longform) tab — current
 
-### Mat as a framed sheet (sibling of the landing sheet + invitation card)
+## Mat as a framed sheet (sibling of the landing sheet + invitation card)
 The `.selected-mat` reads as the third framed sheet, alongside the landing's framed sheet and the `/all` invitation card. It carries the siblings' **two-layer lift shadow** (same geometry/opacity, green-tinted `rgba(10,48,24,…)`) over its **thin `2px mint-100` frame** (now `calc(2 * var(--bu))` so the frame scales with the sheet). Constraints:
 - **Thin pale frame — the LIFT carries the sheet read, not a heavy rule.** Two alternatives were tried and **rejected**: a deep `mint-720` frame matching the marks (too loud against the timeline's calm ground) and a ~5px thickening via an `inset 0 0 0 3px mint-100` box-shadow band. Keep the thin `mint-100` frame; don't re-deepen the colour and don't re-thicken it.
 - **RESPONSIVE on `--bu`, content-driven height (the flow rebuild — supersedes the old "NOT aspect-locked / fixed-coordinate diagram" framing).** The mat is no longer a fixed-coordinate diagram. `.bench-cases` owns the spine: width `--tl-w = min(clamp(540px, calc(100svh / 1.31), min(80vw, 820px)), calc(100vw − 2*--sheet-gutter))` (lands ~688 at 1440×900, grows on bigger/taller screens like iPads, never touches the edge via `--sheet-gutter`); `container-type: inline-size`; `--bu = calc(100cqi / 688)` (one baseline pixel at the 688 design baseline — so at 688 wide `--bu`=1px and every `calc(N*--bu)` renders at the authored px). The mat is `width:100%`, `min-height: calc(917 * var(--bu))` (the collapsed 3:4 floor), and its EXPANDED height is **content-driven** — opening the dropdown mounts the children, the flex/grid reflows, and the mat grows DOWN (a CSS `min-height` settle + Framer's mount). No `transform: scale()` (banned, and would trap nothing here but break the read). The mat scales as ONE unit with the sheet; verified at 1440×900 (688, title 24px, mono 10px), iPad Pro 12.9 portrait 1024 (819 wide ≈80% fill, title ~28.6px), and short 1440×680 (540 floor).
@@ -103,7 +194,7 @@ archive into the main timeline as a **second tall parent** (mint), directly belo
 mirroring the blue (Biconomy) parent with the yellow (Rug Rumble) child. Its three case studies
 (Aleyr / Ecochain / Codezeros) nest under it, collapsed behind an inline dropdown.
 
-### Desktop (Timeline.tsx + selected.css) — FLOW layout
+## Desktop timeline — FLOW layout
 
 The timeline is a **CSS-grid FLOW layout**, not absolute coordinates. `.selected-tl` is a flex
 column: a cap, dot clusters, two project GROUPS, and the nameplates. Every size is
@@ -147,16 +238,8 @@ for the body.
   height rule, and the `.bench-cases:has(.selected-mat--archive-open)` height mirror in bench.css are
   ALL removed. `expanded` still adds `.selected-mat--archive-open` (historical name) but it's an inert
   marker now — the growth is a **height-animated wrapper**.
-- **Expand/collapse is a height-animated wrapper (`.selected-tl__children-wrap`).** The children sit in
-  a `motion.div` animating `height: 0↔auto` (`HEIGHT_SETTLE` tween on `--ease-paper`, NO overshoot — a
-  bounced height visibly jumps past and snaps back) so the Slangbusters card below, the mint spine, and
-  the mat all glide as ONE flow change (CSS can't transition `height:auto`; before this the structural
-  reflow snapped while only the children faded). The gap-to-parent-card is a **margin on the LAST child,
-  NOT padding** — an explicit `height:0` clips a child margin to true zero (no end-jump on unmount), but
-  `box-sizing` padding floors at the padding value and would snap; at `height:auto` the flex box still
-  includes the margin, so the last child's hover hint sits in it and `overflow:hidden` never clips it.
-  The spinebox `gap` is therefore `0` (the wrap carries inter-row + pre-card spacing INSIDE its animated
-  height). `PAPER_EASE` in Timeline.tsx mirrors `--ease-paper` (cousin of TransitionSlot's `EASE`).
+- Expand/collapse of the Slangbusters children is a height-animated wrapper — its own entry, see "Expand/collapse is a height-animated wrapper" below.
+- The `D` delay map (Timeline.tsx) is a clean sequential top-to-bottom stagger (values are independent now, not the old during-bar-growth train formula from the retired archive panel). The three case studies have a SEPARATE `CHILD_D` expand stagger, relative to the dropdown opening (not to `D`).
 - **Ecochain fix:** `--ecochain-240` was an off-white that read as invisible on the mat; saturated
   green (`hsl(95 72% 42%)`). Carried over.
 - **§2a:** nameplates swapped (Marks above Names); the Now dot has a living pulse
@@ -169,18 +252,36 @@ for the body.
   specificity and win by SOURCE ORDER. An intermediate per-group dim was tried and removed (it
   out-specified the re-light). Child hover dims only the OTHER children + saturates the hovered bar.
   All `filter: opacity()`, gated on `data-armed`.
-- **Sibling-repel on child hover + the Framer inline-transform trap.** Hovering one case study eases the
-  OTHER two AWAY (one above drifts ↑, ones below ↓) via `:has()` on `.selected-tl`. The translate rides
-  the **card** (`.project-card--compact`, a non-motion `<a>`), NOT the row — Framer keeps a PERSISTENT
-  inline `transform` on the motion row (`.selected-tl__row--child`, e.g. `translateY(-8px→0)`), so a CSS
-  transform there is silently overridden (the same inline-style trap this file documents for `opacity`).
-  The rail spine stays fixed; the parent mint card never moves. `6·--bu` throw. GOTCHA: the dim cascade
-  above sets `transition: filter, background` on every `.project-card` (no transform), so the repel needs
-  a higher-specificity rule (`.selected-tl .project-card--compact { transition: transform … }`) or the
-  6px SNAPS; the child rows + bars (`.selected-tl__row--child`, `.selected-tl__bar-sb`) also got the
-  filter-transition or their dim snapped while the listed years faded — keep the reaction gliding as one.
+- Case-study sibling-repel on hover is its own entry — see "Sibling-repel on child hover" below.
+- **Entrance motion is always top-to-bottom** (`y: -8 → 0`); never a positive initial `y`. Dots pop in place (SPRING_POP, staggered), never fade. Year labels stay set in `--font-mono`.
 
-### Mobile (MobileCases.tsx + CasesSheet.tsx)
+## Timeline type + `--bu` sizing
+
+**What it is.** Every timeline size is `calc(N * var(--bu))` so the whole sheet scales as one unit. Type design sizes (rigorous, all `N * var(--bu))`): card title `24·--bu` Fraunces, body `12·--bu`, compact-card title `14·--bu`, ALL mono `10·--bu` (unified — no 11px monos anywhere in the timeline). The `t-h5`/`t-btn1` shared token classes (greeting/role/nameplate) are used as-is, not re-scaled by `--bu`.
+
+**Where.** `.selected-tl` and its cards/bars/years, driven by the `--bu` spine `.bench-cases` sets (see "Mat as a framed sheet" for the `--tl-w`/`--bu` derivation).
+
+**What breaks.** Reintroducing a fixed-px size anywhere in the timeline breaks the one-unit scaling — every dimension must stay `calc(N * var(--bu))` or it stops tracking the mat.
+
+## Expand/collapse is a height-animated wrapper
+
+**What it is.** Expand/collapse of the Slangbusters children (`.selected-tl__children-wrap`) is a `motion.div` animating `height: 0↔auto` (`HEIGHT_SETTLE` tween on `--ease-paper`, NO overshoot — a bounced height visibly jumps past and snaps back) so the Slangbusters card below, the mint spine, and the mat all glide as ONE flow change (CSS can't transition `height:auto`; before this the structural reflow snapped while only the children faded).
+
+**Where.** The gap-to-parent-card is a **margin on the LAST child, NOT padding** — an explicit `height:0` clips a child margin to true zero (no end-jump on unmount), but `box-sizing` padding floors at the padding value and would snap; at `height:auto` the flex box still includes the margin, so the last child's hover hint sits in it and `overflow:hidden` never clips it. The spinebox `gap` is therefore `0` (the wrap carries inter-row + pre-card spacing INSIDE its animated height). `PAPER_EASE` in Timeline.tsx mirrors `--ease-paper` (cousin of TransitionSlot's `EASE`).
+
+**What breaks.** Reintroducing a `gap` on the spinebox double-counts spacing against the wrap's animated height; padding instead of a last-child margin snaps the close.
+
+## Sibling-repel on child hover
+
+**What it is.** Hovering one case study eases the OTHER two AWAY (one above drifts ↑, ones below ↓) via `:has()` on `.selected-tl`. `6·--bu` throw.
+
+**Where.** The translate rides the **card** (`.project-card--compact`, a non-motion `<a>`), NOT the row.
+
+**Why.** Framer keeps a PERSISTENT inline `transform` on the motion row (`.selected-tl__row--child`, e.g. `translateY(-8px→0)`), so a CSS transform there is silently overridden (the same inline-style trap this file documents for `opacity`). The rail spine stays fixed; the parent mint card never moves.
+
+**What breaks.** GOTCHA: the dim cascade (see "Desktop timeline — FLOW layout" → hover cascades) sets `transition: filter, background` on every `.project-card` (no transform), so the repel needs a higher-specificity rule (`.selected-tl .project-card--compact { transition: transform … }`) or the 6px SNAPS; the child rows + bars (`.selected-tl__row--child`, `.selected-tl__bar-sb`) also need the filter-transition or their dim snaps while the listed years fade — keep the reaction gliding as one.
+
+## Mobile cases (MobileCases.tsx + CasesSheet.tsx)
 - A **separate composition** behind a `matchMedia(MOBILE_BP)` gate in SelectedContent (mirrors the
   showcase's isMobile pattern; `MOBILE_BP` from `Showcase/responsive.ts`) — the desktop Timeline and
   MobileCases **never coexist in the DOM**, so no duplicated content. SSR/first-render = desktop
@@ -198,7 +299,7 @@ for the body.
   per-study swatch/meta colors** (they fell back to default-link-blue, tokens undefined at `<body>`).
 - Body scroll-lock + Esc-to-close while open; scrim tap closes. Slide-up on `--dur-settle`.
 
-### Tablet
+## Tablet cases layout
 - selected.css's tablet `@media` block was **removed** — it was stale from the bench rename
   (repositioned the gone `.selected-layout` two-column and squished `.selected-mat` to ~292px). On
   bench, `.bench-cases` centres the full 688 mat at tablet, so the desktop layout is already correct
@@ -210,13 +311,13 @@ for the body.
 
 Route-local under [app/(works)/all/components/Showcase/](app/(works)/all/components/Showcase). `Showcase.tsx` owns `activeId` + per-piece `toggles`. Tiles render via `ShowcasePiece.tsx`; media-per-kind via `PieceMedia.tsx` (a thin switch that delegates to per-renderer files under `media/`); the focused note via `SpecNote.tsx`. Data lives in `data.ts`. In the bench it's the **Visual** tab content (rendered by `Essay/WorkPanel.tsx` → `ShowcaseSection`, which heads the grid with the category `FilterStrip`; both `HeaderBlock` and `HintRow` were dropped).
 
-### Index-card copy split + dev editor — IMPORTANT
+## Index-card copy split + dev editor
 The four reader-facing strings — `type` (caption category, `.sc-cap__type`), `title`, `whatIs` (subtitle), `notice` — were lifted OUT of `data.ts` into a sibling `components/Showcase/card-copy.ts` (`CARD_COPY: Record<pieceId, {type, title, whatIs, notice}>`). **`card-copy.ts` is the SINGLE SOURCE OF TRUTH for those four fields — edit copy there, NOT in `data.ts`** (which no longer carries them). NB `type` is the caption label, not an index-card field — it's bundled here because it's reader-facing copy, not structure. `data.ts` now holds `PIECES_STRUCT: Omit<Piece, 'type'|'title'|'whatIs'|'notice'>[]` (structure only) and exports `PIECES = PIECES_STRUCT.map(p => ({ ...p, ...CARD_COPY[p.id] }))` — the overlay reconstitutes the full `Piece[]` the route consumes.
 
 - **Dev-only copy editor**, archived at `app/_dev-tools/card-copy-lab/` (non-routable per Next's `_` prefix; move out to `app/card-copy-lab/` + restore `../(works)/…` import depth to re-activate). Server `page.tsx` also guards with `notFound()` in production; `CardCopyEditor.tsx` is the client. It's a form (left) beside the ACTUAL caption + `SpecNote` rendered live with the edits merged in (right) — so it **imports `SpecNote` + `showcase.css` from this route**, a sanctioned dev-tool exception to "routes don't import from each other" (the lab is production-guarded, never shipped). Lab-local CSS neutralises `.sc-note`'s in-tile `position:absolute`/toss so it sits static in the sample column. It seeds from live `PIECES` and POSTs edits to `app/api/dev-tools/index-card-copy/route.ts`, which **regenerates `card-copy.ts` wholesale** (values JSON-encoded so punctuation escapes safely; 403 in production). **The serializer assumes `card-copy.ts` stays a plain object literal keyed by piece id** — don't hand-reshape it in a way that breaks that contract, or the round-trip writer corrupts the file.
 - **Graduated:** the lab now lives under `app/_dev-tools/card-copy-lab/` (its sanctioned unrouted home per root CLAUDE; keeps the doc-census green, which only tolerates dev routes under `_dev-tools/` or in `CHROME_ROUTES`). The write API stays at `app/api/dev-tools/index-card-copy/` (under `CHROME_ROUTES` → census-exempt).
 
-### Filter strip
+## Filter strip
 The Visual tab's grid is headed by a category filter — **All · Interface · Brand** (`FilterStrip.tsx`, CSS `.sc-filter` in showcase.css). Net-new constraints:
 
 - **It is a `radiogroup`, NOT tabs — deliberately.** `role="radiogroup"`, each option `role="radio"` + `aria-checked`, roving tabindex (only the checked option is tab-stop) + arrow-key nav. It filters ONE grid **in place** — there are no per-option panels — so a `tablist` would be wrong semantically AND would nest a second competing tablist under the ticket's real Visual/Longform tabs (which are `aria-current` buttons). **Do NOT convert the filter to tabs/tablist.**
@@ -228,9 +329,10 @@ The Visual tab's grid is headed by a category filter — **All · Interface · B
 - **The open tile auto-closes if it gets filtered out** (`Showcase.tsx` effect: if `activeId` is no longer matched, `setActiveId(null)`).
 - **Filter state lives in `WorkPanel`** (not `ShowcaseSection`, which unmounts on each tab switch) so the choice survives Visual↔Longform switches. Categories are the **`PIECE_CATEGORY`** map in `data.ts` (piece id → `'interface'|'brand'`; cardstack = interface, a game-card LAYOUT reading as UI) — a single authoritative classification, not parsed from the free-text `type`.
 
-### Layout idiom — 9-col CSS Grid with JS-measured row spans
+## Layout idiom — 9-col CSS Grid with JS-measured row spans
 - `.sc-grid` is a single CSS Grid: `grid-template-columns: repeat(9, minmax(0, 1fr))`, `grid-auto-rows: 8 px` (`--sc-row`), `grid-auto-flow: dense`, `gap: --sc-gap` (mirror constants `GAP_PX` / `MOBILE_GAP_PX` in Showcase.tsx).
 - Each slot's `--sc-rowspan` is written by `Showcase.tsx` after measuring the slot's first child via **`offsetHeight`** (layout height, transform-immune — NOT `getBoundingClientRect().height`, which includes the filter recede's scale and would shrink the measured height and re-pack receded tiles): `span = ceil((h + gap) / (row + gap))`. The slot itself is constrained by the last-written span, so the measurement reads `slot.firstElementChild` — measuring the slot directly is a chicken-and-egg trap.
+- **Row-spans are STATE-driven** — `--sc-rowspan` is set from React state in `Showcase.tsx`, NOT via imperative `style.setProperty` — because a re-render would wipe an imperative value. The rAF measurement cleanup must **null `rafRef`**: a stale id makes the next measure bail forever, which shows up specifically under React Strict Mode's double-invoke. **Fallback span is 18** (≈756px), not 30 — if a measurement fails before layout settles, 18 is the safe default row count.
 - The measurement pass is rAF-debounced. Re-triggers: ResizeObserver on each slot AND on the grid container itself, window resize, `activeId` change (the `.is-active` translateY + scale changes rendered height), and `<img>` load events (LQIP → real bytes can change perceived height for unframed/cropped media).
 - Constants `ROW_HEIGHT_PX`, `GAP_PX`, `MOBILE_GAP_PX` in `Showcase.tsx` mirror the CSS `--sc-row` / `--sc-gap` values; if you change one side, change the other.
 - **Per-piece column span** is `cols: 1..9` on the `Piece` type (`data.ts`). Default is 3 (one-third). Two canonical values:
@@ -247,14 +349,14 @@ The Visual tab's grid is headed by a category filter — **All · Interface · B
 - `grid-auto-flow: dense` packs short tiles into gaps that wider tiles would otherwise leave. Visual order can deviate from DOM order; reading-order DOM in `PIECES` is by `num` (1 → 10).
 - **Trade-off with 9-col**: no clean two-up (`4 + 5 = 9` is asymmetric; `4.5` isn't an integer). If you ever want two equal pieces side-by-side filling a row, this grid can't do it. The trade is editorial-thirds composition in exchange for losing halves.
 
-### Click + focus interaction
+## Click + focus interaction
 - Click any tile (or its caption dot) → tile gets `.is-active`, lifts via `translateY(-12px) scale(1.025)`, siblings recede via the shared **`--backseat-dim`** filter PLUS a mild opacity loss (`--sc-recede-opacity`, 0.7) — `.sc-grid.is-dimming .sc-piece:not(.is-active)` → `filter: var(--backseat-dim) opacity(var(--sc-recede-opacity))`. Same backseat recede as the biconomy/rr menu-open dim, a stepped-back desaturate; the opacity rides in the filter chain via `opacity()` (NOT the opacity property, so Framer's inline opacity can't override it). On desktop / tablet, `SpecNote` renders inline beside the frame on the side decided at activation by `ShowcasePiece` (column-position measurement → `left` or `right`). On mobile, `SpecNote` is rendered once by `ShowcaseBottomSheet` as a singleton portal at `document.body` (see §"Index card placement rule" below).
 - **Active tile click triggers the tile's primary affordance**: switch tiles (Paymaster, Ecochain, Interface) flip the switch; video tiles (Furrmark, Ecochain) play/pause; everything else is no-op. Close happens via the dot's `×` glyph, Esc, or the backdrop.
 - **Stacking.** Dimmed siblings carry ONLY `filter` + `pointer-events: none` (no `z-index`, no `position`) — they stay BELOW the backdrop so click-to-dismiss is intact. The backdrop is `z-50` (`.sc-backdrop`); the active piece is `z-60` (orders within its own slot only); and the active SLOT is lifted to `z-70` via `.sc-slot:has(.sc-piece.is-active) { position: relative; z-index: 70 }` so the open artefact (tile + inline SpecNote index card) sits above every receded sibling slot's filter-induced stacking context AND above the backdrop. The piece's `z-60` alone wasn't enough — it only ordered inside its own slot, so the index card could paint behind receded siblings; don't drop the slot lift.
 - **Focus trap**: while a tile is open, Tab cycles inside its caption dot + switch + note link instead of escaping to the next tile. Esc still closes.
 - **No magnifying cursors** — default `pointer` on the body, `default` on the active tile. The cardstack tile's media has its own click handler (expand fan) that `stopPropagation`s so it doesn't open the spec note; the caption row click bubbles up and opens the note as normal.
 
-### Spec note (`.sc-note`)
+## Spec note
 - **Desktop animation.** Two horizontal toss keyframes only (`sc-note-toss-left` / `sc-note-toss-right`) — the desktop placement is always one of those two sides. Each variant translates by `--sc-toss-d` (28 px default) and settles at **0° — the resting rotation is now always flat** (`SpecNote.tsx` leaves `--sc-note-rotate` unset so the keyframes' `rotate(var(--sc-note-rotate, 0deg))` resolves to 0; the per-mount random ±2° roll was removed). Duration `--dur-slide` (0.3 s, snappier than the previous 0.5 s settle), easing `--ease-snap`. Square corners, 1 px dot-tinted border (see colour cascade), lifted shadow that matches the active tile's lift.
 - **Layout structure.** Title alone in `.sc-note__head` (close button anchored top-right, sheet-only); lead paragraph `.sc-note__whatis` directly under the title (no mono tag label — the old `.sc-note__line` / `.sc-note__tag` two-column grid was retired); rule; `.sc-note__notice` row with the notice copy left (an `<h5>` carrying H5 typography: Google Sans Flex ExtraBold wght 640, 12 px, capitalize) + decorative `.sc-note__notice-eye` glyph right (24×24, grey, not dot-tinted — quiet "look at this" beat, not a brand accent); rule; `.sc-note__foot` with the `…from {project} ↗` link on the LEFT and a `.sc-note__foot-end` stack on the RIGHT. The stack holds the `01` serial (`.sc-note__no`, in flow) **and** the "opens in new tab" hint pill (`.sc-note__hint`, absolutely positioned over the serial) — see "Foot hover swap" below. Sheet variant uses the **same JSX** — only the dock/border/animation skin differ.
 - **Spacing (Figma 1:1).** Card padding `24 px / 16 px` (`py / px`); card width `min(322 px, 92 vw)` = 290 px Figma content column + 16 px × 2 horizontal padding. Vertical rhythm: title → whatIs **12 px**, whatIs → rule₁ **48 px**, rule₁ → notice **24 px**, notice → rule₂ **24 px**, rule₂ → foot **24 px**. Notice row text → eye gap **44 px**. Rule = 1 px `--grey-880`, margin 0 (rhythm carried by siblings).
@@ -359,13 +461,13 @@ The Visual tab's `.sc-section` (rendered by `ShowcaseSection` as `.sc-section be
 - **Gauge press recipe is user-click only**, not auto-advance. The `is-pressed` class triggers a `0.24 s` scale-down (`lcg-press` keyframes) AND a needle filter transition: rest filter `drop-shadow(0 2px 4px rgba(0,0,0,0.45)) saturate(1) brightness(1)` → pressed `... saturate(0.15) brightness(0.7)` over `0.12 s var(--ease-snap)`. On release the filter returns over the longer `var(--glide)` paper curve so the orange comes back warmly. Don't add the press tick to the auto-loop — the reserved on-click cue is deliberate.
 - **Typography aligned across both** to Connektion's size-contrast pair: title 16 px / weight 600 / -0.2 px tracking, subtitle 12 px / weight 400. Both use `'Inter'` (the Connektion product font, kept as-is — does NOT route through the portfolio's `--font-ui` Google Sans Flex). Caps labels (`.sc-startooth-svg__cards` SHORTLIST / OFFER etc) stay at 10 px / 700 / 0.1em as a deliberate third tier.
 
-### Caption content
+## Caption content
 - The `.sc-cap` row shows the dot + **`piece.type` + `piece.year` only** — the project name was dropped from the caption (`ShowcasePiece.tsx` renders `.sc-cap__type` / `.sc-cap__year`, no title). The project name still lives in the SpecNote (`…from {project} ↗`).
 
 ### Caption descenders (v0.93+)
 - `.sc-cap` uses `line-height: 1.2` (not `1`) at `font-size: 11px`. With `line-height: 1` the line box exactly equals the font-size, so descenders (y, g, p, q, j) sat at or past the line box's bottom edge and got clipped by the row's `overflow: hidden` — most visibly on the mono caption row where descenders are common. 1.2 grows the line box to 13.2 px, giving descenders ~1 px of breathing room inside the line box. The `min-height: 20px` row lock is preserved (13.2 px line box still fits comfortably under 20 px) so dot growth behavior on hover/active is unchanged.
 
-### Bento reading order
+## Bento reading order
 - Visual reading order is by each piece's `num` (1 → 10), not the `PIECES` array literal order: **cardstack(1) → interface(2) → subway(3) → paymaster(4) → multiverse(5) → startooth(6) → furrmark(7) → posters(8) → dual(9) → ecochain(10)**. The **RR card (cardstack) ↔ Aleyr (furrmark) `num`s were swapped** — cardstack now leads (row 1) and furrmark sits in row 3. This packs the bento into:
   - Row 1: cardstack · interface · subway (3 × cols 3 = 9)
   - Row 2: paymaster · multiverse (cols 6 + cols 3 = 9)
@@ -648,6 +750,16 @@ Arrow color inherits from variant: `--terra-720` (Terra) / `--blue-800` (Blue), 
 Material Symbols remains for non-animated icons (nav markers, archive toggle).
 
 ---
+
+## Hint pill — neutral shell across all cards
+
+**What it is.** The "opens in new tab" hint pill (mint/external cards on the current timeline — `ProjectCard`'s mint variant and the `<ProjectCard compact>` children) keeps a neutral grey shell, with only the text color themed per project.
+
+**Where.** `ProjectCard` mint styling; carried over from the original `.ap-entry__hint` pattern (see "Pending migration" below for that historical instance and its `<Monostamp>` migration plan).
+
+**Why.** Theming the shell itself (background/border) per project reads as visual noise across a page with several projects; theming only the text keeps the pill legible and quiet while still tying it to its card.
+
+**What breaks.** Don't theme the shell — only the text color.
 
 ## Pending migration — `.ap-entry__hint` → `<Monostamp>`
 
