@@ -104,8 +104,9 @@ export default function LandingPage() {
     let direction: string | null = null
     try { direction = sessionStorage.getItem('nav-direction') } catch { return }
     if (direction !== 'to-landing') return
-    try { sessionStorage.removeItem('nav-direction') } catch { /* non-fatal */ }
     setSlideIn(true)
+    // Flag intentionally NOT cleared here — the build gate below reads it too (to
+    // skip the intro build on return), then clears it once.
   }, [])
 
   /* Hero headline cycle — persisted in localStorage (survives hard
@@ -124,10 +125,16 @@ export default function LandingPage() {
   /* ---- Startooth build gate ---- */
   // `built` drives the .landing--built CSS class, which reveals the landing
   // once the canvas build completes. `skipBuild` tells the engine to jump
-  // straight to the settled pattern when we've already built in this page-load
-  // (client-side return). Both read from the module-level `builtThisLoad` in
-  // useLayoutEffect so they're known before the first paint — and so a hard
-  // refresh (fresh module) always replays the build.
+  // straight to the settled pattern. TWO triggers skip the build, both known
+  // before first paint:
+  //   • `builtThisLoad` (module-level) — the build already finished this page-load.
+  //   • arriving via `nav-direction: to-landing` — a client-side RETURN from a
+  //     works route. This covers the case where the visitor left BEFORE the ~7s
+  //     intro finished (so builtThisLoad was never set): the pattern must still
+  //     hold on return, not replay the build. The flag is a one-shot consumed
+  //     token (cleared on read), so a hard refresh — which has no flag — still
+  //     replays the build; this does NOT reintroduce the sessionStorage-skips-
+  //     every-reload footgun (see app/_landing/ANOMALIES.md).
   const [built, setBuilt] = useState(false)
   const [skipBuild, setSkipBuild] = useState(false)
   // `buildStarted` fires when the (grey-held) build is cued — drives .landing--building,
@@ -144,7 +151,14 @@ export default function LandingPage() {
   const [frameIn, setFrameIn] = useState(false)
 
   useLayoutEffect(() => {
-    if (builtThisLoad) {
+    let isReturn = false
+    try {
+      if (sessionStorage.getItem('nav-direction') === 'to-landing') {
+        isReturn = true
+        sessionStorage.removeItem('nav-direction')
+      }
+    } catch { /* non-fatal */ }
+    if (builtThisLoad || isReturn) {
       setBuilt(true)
       setSkipBuild(true)
       setBuildStarted(true)
@@ -278,45 +292,21 @@ export default function LandingPage() {
     return () => ro.disconnect()
   }, [])
 
-  /* Sheet-scale — couple the content to the frame (Phase 3, harmonization).
-     The frame is height-driven (--sheet-width, startooth-canvas.css) and caps at
-     760px; the content is authored at that 760 baseline (hero = 76% of the sheet).
-     On shorter viewports the frame shrinks below the content width, so the
-     fixed-px content pokes past the frame edges. Scale the whole content plate as
-     a unit to match: scale = min(1, frameWidth / 760). Written as --sheet-scale on
-     :root (so .landing's content AND the sibling colophon footer can both read it);
-     landing.css applies it via a transform on .landing__content, scales the scroll
-     height to match, and scales the footer slab into the frame. CSS can't divide
-     two lengths into the unitless number transform: scale() needs, hence this small
-     scalar (the deliberate "lighter touch" bridge, vs. a full cqi re-arch). Defaults
-     to 1 (no JS / SSR / pre-mount) so design size is the graceful fallback. Mobile
-     is full-bleed (no framed sheet) and handled separately — forced to 1 there so
-     the coupling is a no-op and the layout matches live. */
+  /* Sheet-scale — a gentle flat 1.02 content zoom on desktop/iPad, 1 on mobile.
+     The framed sheet now GROWS to fill the viewport (startooth-canvas.css), so the
+     fixed-px content column always fits and the old min(1, frameWidth/760)
+     harmonization clamp is moot; this is purely a light readability nudge. Wired
+     through landing.css (content transform, expanded scroll height, footer slab,
+     nav counter-scale all read --sheet-scale), so it's the single knob. Mobile is
+     full-bleed and stays at 1 so its layout matches live. Set explicitly (not just
+     the CSS fallback) so any stale value is overridden. */
   useEffect(() => {
     const root = document.documentElement
     const mq = window.matchMedia('(max-width: 767px), (max-height: 500px)')
-    // The plate keeps a gutter inside the frame so cards never touch the border:
-    // scale to (frameWidth − 2*inset) / 760. Value owned by --sheet-content-inset
-    // (globals.css) so it stays tunable in one place.
-    const inset = parseFloat(getComputedStyle(root).getPropertyValue('--sheet-content-inset')) || 0
-    let raf = 0
-    const measure = () => {
-      raf = 0
-      if (mq.matches) { root.style.setProperty('--sheet-scale', '1'); return }
-      // Prefer the rendered frame width (single source of truth); fall back to the
-      // --sheet-width formula if the canvas (ssr:false) hasn't mounted yet.
-      const sheet = document.querySelector('.startooth-canvas-root') as HTMLElement | null
-      const w = sheet?.offsetWidth ||
-        Math.min((window.innerHeight - 60) / 1.3333, 760, window.innerWidth - 64)
-      root.style.setProperty('--sheet-scale', String(Math.min(1, (w - 2 * inset) / 760)))
-    }
-    const onResize = () => { if (!raf) raf = requestAnimationFrame(measure) }
-    measure()
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('resize', onResize)
-      if (raf) cancelAnimationFrame(raf)
-    }
+    const apply = () => root.style.setProperty('--sheet-scale', mq.matches ? '1' : '1.02')
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
   }, [])
 
   /* ---- Contact state ---- */

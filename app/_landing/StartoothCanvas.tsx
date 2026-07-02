@@ -75,6 +75,20 @@ export default function StartoothCanvas({ onBuildComplete, onBuildStart, skipBui
       }
     }
 
+    // Skip (client-side return): mount on the NEXT FRAME, not an idle slot. The
+    // build already collapses to one frame here (skipBuild → reduced), so the
+    // settled pattern paints the instant the landing reappears — the rIC path
+    // below (up to 300 ms) leaves a blank gap that reads as the pattern
+    // "restarting". There's no hydration to yield to on a client-side return.
+    if (skipBuild) {
+      const id = requestAnimationFrame(mount)
+      return () => {
+        cancelAnimationFrame(id)
+        field.destroy()
+        fieldRef.current = null
+      }
+    }
+
     // Defer to a post-hydration idle slot to avoid competing with the
     // React hydration pass and the font-gate inline script.
     if (typeof requestIdleCallback !== 'undefined') {

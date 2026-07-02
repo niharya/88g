@@ -21,14 +21,12 @@
    VIEWPORT — bigger monitor, bigger sheet, same ratio (capped at 760px below).
    The canvas root and the matte both read these tokens, so they stay locked. */
 :root {
-  --sheet-margin: 30px;
-  /* 3:4 portrait (≈0.75) — the Linotype Bulletin cover ratio. Divisor = 4 ÷ 3.
-     This is the PORTRAIT base (iPad / vertical tablets); horizontal displays flip
-     to 4:3 landscape in the orientation override below. Capped at 760px: above
-     ~1014px-tall viewports the height-driven width would exceed this, so it holds
-     at 760 (keeps the fixed hero card at ~76% of the sheet instead of shrinking
-     proportionally on 4K/large monitors — the sheet just gains a taller pattern
-     field below). The cap is portrait-only — landscape drops it (see override). */
+  --sheet-margin: 24px;
+  /* BASE / FALLBACK width — the old 3:4 portrait (Linotype Bulletin) formula.
+     Desktop + iPad now override this to a VIEWPORT-FILL sheet (see the gate
+     below), so this value only serves the pre-gate first paint and mobile (which
+     resets the canvas to full-bleed anyway, so it never actually reads this). The
+     760 cap / ratio here are inert on any real desktop/iPad viewport. */
   --sheet-width: min(
     calc((100svh - 2 * var(--sheet-margin)) / 1.3333),
     760px,
@@ -41,28 +39,17 @@
   --sheet-shift: 16px;
 }
 
-/* iPad + desktop: centre the sheet on the viewport (matching the /cases timeline
-   sheet). The content cards are viewport-centred too (translateX(-50%) in
-   landing.css), so the whole framed sheet sits dead-centre. Mobile keeps the base
-   +16 (live) — this is the exact complement of landing.css's mobile breakpoint. */
+/* iPad + desktop: the sheet GROWS to fill the viewport minus a uniform
+   --sheet-margin on every side — no fixed 3:4/4:3 ratio, no 760 cap. Height is
+   already viewport-driven (top/bottom margin on the canvas root + matte); this
+   sets the width to match so the padding is uniform all round and the sheet
+   tracks the viewport's own proportions. --sheet-shift zeroes so the frame sits
+   dead-centre. Mobile keeps the base (full-bleed reset) — this gate is its exact
+   complement (min-height:501 guards out landscape phones, which stay mobile). */
 @media (min-width: 768px) and (min-height: 501px) {
-  :root { --sheet-shift: 0px; }
-}
-
-/* Horizontal displays → 4:3 LANDSCAPE. Same height-driven size, but the width
-   relationship flips: width = height × ratio (× 1.3333) instead of ÷, so the
-   sheet turns wide and the hero column centres on a broader pattern field. The
-   fixed 760 cap is DROPPED here — it would clamp the wide sheet back to a strip;
-   only the shared gutter bounds the width. Scoped to the framed-sheet gate
-   (min-width:768 + min-height:501) so landscape PHONES stay full-bleed mobile
-   (min-height:501 is the guard — a landscape phone is >768 wide but <501 tall).
-   Portrait (iPad / vertical) keeps the 3:4 + 760-cap base rule above. */
-@media (orientation: landscape) and (min-width: 768px) and (min-height: 501px) {
   :root {
-    --sheet-width: min(
-      calc((100svh - 2 * var(--sheet-margin)) * 1.3333),
-      calc(100vw - 2 * var(--sheet-gutter))
-    );
+    --sheet-shift: 0px;
+    --sheet-width: calc(100vw - 2 * var(--sheet-margin));
   }
 }
 

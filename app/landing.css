@@ -66,7 +66,7 @@
   --projects-top: calc(var(--hero-top) + var(--hero-h) - 6px);
   /* about-long tucks 31px under the hero; its statement clears the markers. */
   --long-top:     calc(var(--hero-top) + var(--hero-h) - 31px);
-  --spectrum-top: calc(var(--long-top) + 477px);   /* + about-long block (447 + 30 gap) */
+  --spectrum-top: calc(var(--long-top) + 526px);   /* about-long block (~472) + 54px gap — matches the spectrum→practice / practice→contact cadence */
 
   /* Group B spacing + choreography tokens */
   --stack-gap: 40px;
@@ -93,7 +93,13 @@
 
 .landing--expanded {
   height: var(--expanded-h);
+  /* Vertical stays visible so the tall expanded plate scrolls with the document;
+     horizontal is clipped so the content plate's --sheet-scale overshoot (it's
+     viewport-width, so any scale > 1 spills a few px past the viewport) can't
+     raise a phantom horizontal scrollbar. `clip` (not `hidden`) so it doesn't
+     turn the vertical axis into a scroll container. */
   overflow: visible;
+  overflow-x: clip;
 }
 
 /* Form-open height bump — keeps a breathing gap below the open contact card,
@@ -766,13 +772,15 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   display: inline-flex;
   align-items: flex-start;
 
-  /* Normalize the tabs to a constant size — counter the plate's --sheet-scale so
-     the Nihar/Works nav stays readable/tappable on small frames instead of
-     shrinking with the content (the /all docked-ticket precedent: fixed UI inside
-     scaled content). `scale` is the individual property so it composes with the
-     works-tuck-out `transform`; origin top-centre keeps it docked under the hero
-     and viewport-centred. No-op at scale 1 (wide desktop, mobile). */
-  scale: calc(1 / var(--sheet-scale, 1));
+  /* Counter the plate's --sheet-scale ONLY when it SHRINKS (scale < 1), so the
+     Nihar/Works nav stays readable/tappable on small frames instead of shrinking
+     with the content (the /all docked-ticket precedent: fixed UI inside scaled
+     content). When the plate scales UP for readability (scale > 1) the nav grows
+     WITH it — max(1, …) caps the counter at 1 so it never counter-shrinks the nav
+     against a growing hero. `scale` is the individual property so it composes with
+     the works-tuck-out `transform`; origin top-centre keeps it docked under the
+     hero and viewport-centred. No-op at scale 1 (mobile). */
+  scale: max(1, calc(1 / var(--sheet-scale, 1)));
   transform-origin: top center;
 
   /* Tuck-out entrance — the nav row sits hidden beneath the hero card
@@ -921,7 +929,8 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
     width var(--dur-settle) var(--ease-paper),
     height var(--dur-settle) var(--ease-paper),
     background-color var(--dur-settle) var(--ease-paper),
-    padding var(--dur-settle) var(--ease-paper);
+    padding var(--dur-settle) var(--ease-paper),
+    scale var(--dur-fast) var(--ease-snap);
 }
 .practice-timeline__seg--interface { background-color: var(--terra-320); color: var(--terra-960); }
 .practice-timeline__seg--brand     { background-color: var(--terra-560); color: var(--terra-80); border-left: 1.5px solid var(--terra-960); }
@@ -935,10 +944,30 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
   padding: 16px 6px;
 }
 
-/* Hover affordances: a non-focused default segment shows a faint hatch preview;
-   a collapsed spine warms a step to signal it reopens. */
+/* Hover affordances: a non-focused default segment strengthens its hatch preview
+   and leans OPEN a hair toward where it will actually grow when focused —
+   Interface + Brand expand rightward (origin left), Product expands leftward
+   (origin right). Standalone scaleX on the snap tier so it composes with the
+   width/padding settle and doesn't reflow (it overlaps the neighbour slightly,
+   reading as "about to open"). A collapsed spine warms a step to signal reopen. */
 @media (hover: hover) and (min-width: 768px) and (min-height: 501px) {
-  .practice-timeline__seg.is-default:hover::after { opacity: 0.4; }
+  .practice-timeline__seg.is-default:hover::after { opacity: 0.65; }
+
+  /* Product is the wide phase: a scaleX from its RIGHT edge carries its content
+     leftward over the neighbour — a real push in the direction it opens on focus.
+     Standalone `scale` (snap tier) so it composes with the width settle and never
+     reflows. */
+  .practice-timeline__seg--product { transform-origin: right center; }
+  .practice-timeline__seg--product.is-default:hover { scale: 1.04 1; }
+
+  /* Interface + Brand are narrow — a scaleX just stretches their text. Instead
+     they GENUINELY widen a few px on hover (growing rightward, the way they open
+     on focus), nudging the neighbours over. A single animated property (width, on
+     the same settle the focus-open uses) — no composed transforms, so nothing
+     wobbles or jumps on hover-out. */
+  .practice-timeline__seg--interface.is-default:hover,
+  .practice-timeline__seg--brand.is-default:hover { width: calc(var(--phase-size) + 12px); }
+
   .practice-timeline__seg.is-collapsed:hover { background-color: var(--terra-240); }
 }
 
@@ -1033,8 +1062,10 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
    Focus doesn't grow the numeral — a bigger numeral is what crowded the reveal;
    width + hatch + the revealed question carry the focus instead. */
 .practice-timeline__seg.is-collapsed .practice-timeline__seg-num { font-size: 28px; align-self: center; }
-/* "years" rides next to the numeral only when the phase is open — and morphs
-   in (slide + fade via max-width/opacity) rather than snapping via display. */
+/* "years" rides next to the numeral. Base is hidden (mobile's focus-gated reveal,
+   unchanged); the desktop rule below shows it at rest so the year unit is always
+   legible beside 02/03/05. It morphs in (slide + fade via max-width/opacity)
+   rather than snapping via display. */
 .practice-timeline__seg-unit {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -1047,6 +1078,13 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
     max-width var(--dur-settle) var(--ease-paper);
 }
 .practice-timeline__seg.is-focused .practice-timeline__seg-unit { opacity: 0.7; max-width: 60px; }
+/* Desktop: only the Product spine (05) shows its "years" unit at rest — the
+   longest phase anchors the axis. Interface (02) + Brand (03) stay bare until
+   focused (the base .is-focused rule reveals them then). Mobile keeps the base
+   focus-gated behaviour (this gate is its exact complement). */
+@media (min-width: 768px) and (min-height: 501px) {
+  .practice-timeline__seg--product:not(.is-collapsed) .practice-timeline__seg-unit { opacity: 0.7; max-width: 60px; }
+}
 
 /* Focus hatch — same-hue texture over the focused fill (distinct per phase),
    on a ::after overlay so it composes over background-color. */
