@@ -24,10 +24,15 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 
 ## Hero — headline {#hero-headline}
 
-> "I build tools for developers and traders who work in complex environments. Mostly it’s infra, dashboards, and work you can’t see really."
-> — [`page.tsx`](../../app/page.tsx) — `.hero-card__headline`
+Cycles between two lines, one per reload (`HERO_HEADLINES`, persisted in `localStorage` under `hero-headline-idx`).
 
-> "So that settles it. Thanks for coming." (sub-line)
+> "I'm Nihar. I've designed products, brands, and a culture."
+> — [`page.tsx`](../../app/page.tsx) — `.hero-card__headline` (`HERO_HEADLINES[0]`)
+
+> "I'm Nihar. I design software, systems, and experiences."
+> — [`page.tsx`](../../app/page.tsx) — `.hero-card__headline` (`HERO_HEADLINES[1]`)
+
+> "That's it really. Thanks for coming." (sub-line)
 > — [`page.tsx`](../../app/page.tsx) — `.hero-card__sub`
 
 ## Hero — expand pill aria {#hero-pill-aria}

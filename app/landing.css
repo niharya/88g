@@ -666,8 +666,7 @@ html:has(.landing)::-webkit-scrollbar { display: none; }  /* Chrome / Safari */
   gap: var(--space-12);
 }
 .hero-card__greeting::before,
-.hero-card__greeting::after,
-.hero-card__greeting-sep {
+.hero-card__greeting::after {
   content: '';
   width: 4px;
   height: 4px;

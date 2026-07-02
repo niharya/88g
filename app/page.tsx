@@ -72,6 +72,15 @@ const PALETTES: Palette[] = [
 
 
 
+/* Hero headline — alternates between two lines on each reload via
+   localStorage (not module state, which resets on hard refresh). SSR +
+   first client render always show index 0 so hydration matches; the
+   useLayoutEffect below swaps in the cycled index before paint. */
+const HERO_HEADLINES = [
+  'I’m Nihar. I’ve designed products, brands, and a culture.',
+  'I’m Nihar. I design software, systems, and experiences.',
+]
+
 /* Practice-timeline phases — width encodes duration (sums to 100%); each
    reveals its guiding question + year-range when focused. */
 const TIMELINE_PHASES = [
@@ -84,6 +93,7 @@ export default function LandingPage() {
   const [expanded, setExpanded] = useState(false)
   const [slideIn, setSlideIn] = useState(false)
   const [greeting] = useState(getGreeting)
+  const [headlineIdx, setHeadlineIdx] = useState(0)
 
   /* Slide-in entrance — reads the session flag set by NiharHomeLink on
      /all. Owned by React state so the class survives className
@@ -95,6 +105,19 @@ export default function LandingPage() {
     if (direction !== 'to-landing') return
     try { sessionStorage.removeItem('nav-direction') } catch { /* non-fatal */ }
     setSlideIn(true)
+  }, [])
+
+  /* Hero headline cycle — persisted in localStorage (survives hard
+     refresh, unlike module state) so each reload shows the other line.
+     Runs before paint to swap in from the SSR default with no flash. */
+  useLayoutEffect(() => {
+    let next = 0
+    try {
+      const stored = Number(localStorage.getItem('hero-headline-idx'))
+      next = Number.isFinite(stored) ? stored % HERO_HEADLINES.length : 0
+      localStorage.setItem('hero-headline-idx', String((next + 1) % HERO_HEADLINES.length))
+    } catch { /* non-fatal */ }
+    setHeadlineIdx(next)
   }, [])
 
   /* ---- Startooth build gate ---- */
@@ -681,13 +704,11 @@ export default function LandingPage() {
                 <div className="hero-card__content">
                   <p className="hero-card__greeting t-p4">
                     <span>{greeting}</span>
-                    <span className="hero-card__greeting-sep" aria-hidden="true" />
-                    <span>I&rsquo;m Nihar</span>
                   </p>
                   <h1 className="hero-card__headline t-h2">
-                    I build tools for developers and traders who work in complex environments. Mostly it&rsquo;s infra, dashboards, and work you can&rsquo;t see really.
+                    {HERO_HEADLINES[headlineIdx]}
                   </h1>
-                  <p className="hero-card__sub t-p3">So that settles it. Thanks for coming.</p>
+                  <p className="hero-card__sub t-p3">That&rsquo;s it really. Thanks for coming.</p>
                 </div>
                 <button
                   className="pill-btn"
