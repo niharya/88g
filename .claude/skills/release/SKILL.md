@@ -54,6 +54,7 @@ Sort every finding into exactly one tier:
 - Fix dead internal doc pointers caused by renames *in this diff*.
 - Update LIBRARY index lines to match an entry already edited in this diff.
 - Sync scriptorium for pure copy *moves* (wording unchanged).
+- **Digest over the word cap (A0):** reclaim the overage in ONE calculated pass, not a word-by-word loop. Read the census's reported count, compute the overage, and cut *that many words at once* — relocate a block of reference prose into the sibling archive under an anchored `##` heading (leave a one-line pointer) and/or tighten several verbose lines together — then re-run the census once to confirm. Re-running it after each tiny edit is the wasteful pattern to avoid. (Better: when delegating the doc-squaring to `anomaly-librarian` up front, remind it the digest is a fixed ~1500-word budget so it never overshoots in the first place.)
 
 **ASK — batch into ONE message.** Judgment calls, presented together with proposed actions, using the ✓/⚠/↳ format below. The user answers once:
 - Promotion candidates (with the refinement-loop steps ready).

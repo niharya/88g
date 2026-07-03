@@ -16,6 +16,8 @@ Your job is to capture truths that are not obvious from code alone.
 
 When an entry is retired, remove its digest line, its Index line, and its heading together. `/release`'s census checks all three pairings (digest↔archive, digest-line↔anchor, archive↔Index) and the digest word cap — an unpaired or over-budget write fails it.
 
+**The digest is a fixed budget, not an append log.** It caps at ~1500 words (`DIGEST_WORD_CAP` in `scripts/doc-census.mjs`), and you can't run the census yourself (no Bash), so you must manage the budget by hand: **every new digest line pays for its own space.** After adding yours, Read the whole digest, and if it's now near or over the cap, reclaim the words *in the same change* — tighten an equivalent amount of verbosity from existing lines (drop redundant clauses, parenthetical lists, "either…/…" hedges), and/or relocate a block of reference prose (engine vocabulary, how-it-works narration — anything that isn't a `<guard> — <what breaks>` line) into the sibling archive under an anchored `##` heading with a one-line pointer left behind. Never hand back a digest that grew by several lines without reclaiming the words: that just defers the cost to whoever runs `/release` next, as a wasteful word-by-word trim loop against the census. Keep net digest growth near zero.
+
 ## When to document
 
 Only when it matters:
