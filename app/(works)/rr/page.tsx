@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Fragment } from 'react'
 import { chapters } from './nav/chapters'
 import Sheet from '../../components/Sheet'
+import CoverSheet from '../../components/CoverSheet'
+import { rrSignals } from './components/signalsData'
 import Intro from './components/Intro'
 import Mechanics from './components/Mechanics'
 import Cards from './components/Cards'
@@ -46,6 +48,7 @@ export default function RRPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkLd) }}
       />
       <div className="sheet-stack">
+        <CoverSheet data={rrSignals} />
         {chapters.map((chapter, i) => (
           <Fragment key={chapter.id}>
             <Sheet

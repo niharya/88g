@@ -25,13 +25,17 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 > "Outcome" — Dec 2024
 > — [`chapters.ts:11`](../../app/(works)/rr/nav/chapters.ts#L11)
 
-## MarkerInfoCard {#marker-info}
+## Signals drawer {#marker-info}
 
-> "Product Designer for"
-> — [`MarkerInfoCard.tsx:36`](../../app/(works)/rr/components/MarkerInfoCard.tsx#L36)
+The project-marker reveal is now the `SignalsBento` drawer. Copy lives in [`signalsData.tsx`](../../app/(works)/rr/components/signalsData.tsx). **The role framing was re-authored for the bento** — from the old ticket's "Product Designer for a playable demo…" to the design-handoff's "Game Designer / on-chain PvP card game."
 
-> "a playable demo that helped developers understand and adopt our full-stack offering"
-> — [`MarkerInfoCard.tsx:37`](../../app/(works)/rr/components/MarkerInfoCard.tsx#L37)
+> "Game Designer" / "on an on-chain PvP card game" — `role`
+> "Designed, built, and shipped a full PvP card game, fast." — `outcome.body`
+> "3 mo · To launch" / "14K · Testnet players" / "50K · Games played" — `outcome.stats`
+> "An on-chain PvP card game of bluffs and rug-pulls." — `product.headline`
+> "Players: Strategy · Crypto-native" / "Format: 1v1 PvP · On-chain" — `product.rows`
+> "Game Design · Product Design · UI Design · Playtesting" — `involvement`
+> "PvP Card Game · Game Mechanics · Card Layout Design · Game Interface" — `deliverables`
 
 ---
 

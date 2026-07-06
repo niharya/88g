@@ -31,13 +31,21 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 > "Staying Anchored" — 2022–24
 > — [`chapters.ts:14`](../../app/(works)/biconomy/nav/chapters.ts#L14)
 
-## MarkerInfoCard {#marker-info}
+## Signals drawer — role line {#marker-info}
 
-> "Product Designer at"
-> — [`MarkerInfoCard.tsx:13`](../../app/(works)/biconomy/components/MarkerInfoCard.tsx#L13)
+The project-marker reveal is now the `SignalsBento` drawer; the old ticket copy is its Role tile (tile 0). Copy lives in the route's `signalsData.tsx`.
 
-> "a blockchain payments infrastructure company"
-> — [`MarkerInfoCard.tsx:14`](../../app/(works)/biconomy/components/MarkerInfoCard.tsx#L14)
+> "Product Designer"
+> — [`signalsData.tsx`](../../app/(works)/biconomy/components/signalsData.tsx) (`role.lead`)
+
+> "at a blockchain payments infrastructure company"
+> — [`signalsData.tsx`](../../app/(works)/biconomy/components/signalsData.tsx) (`role.rest`)
+
+> "Over two years I worked across product, demos, and internal proposals to keep coherence inside a fast-moving infrastructure system." — `outcome.body`
+> "Smart contracts & gas-tank balances, managed." — `product.headline`
+> "Used by: Devs · Growth · Founders" / "Frequency: 1–3× / month" — `product.rows`
+> "Product Design · UX Design · Interaction Design · Design Systems" — `involvement`
+> "UX Audit · Developer Dashboard · Interactive Demos · Concept UIs · Process Frameworks" — `deliverables`
 
 ---
 

@@ -1,0 +1,118 @@
+/* ==========================================================================
+   TopSheet — portaled top-descending drawer (the project-marker "Signals"
+   reveal). Hangs from the viewport top over a dim scrim; a grab handle at the
+   lower lip drags UP to dismiss. Wes-Anderson framing: a centred, symmetric
+   cream panel with a hairline inner frame and a tidy centred grip.
+   Component contract: app/components/TopSheet/TopSheet.tsx
+   ========================================================================== */
+
+.top-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+
+  /* Internal framing rhythm — the symmetric inset around the content. */
+  --top-sheet-pad-x: 44px;
+  --top-sheet-pad-y: 40px;
+}
+
+.top-sheet__scrim {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 20 20 / 0.34);
+  cursor: default;
+}
+
+/* The hanging panel — flush square top corners (it grows out of the top edge),
+   rounded bottom lip, soft cast shadow below. Centred via margin-inline auto,
+   capped at the authored content width plus its symmetric frame padding. */
+.top-sheet__panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(
+    calc(var(--top-sheet-max-w, 1080px) + 2 * var(--top-sheet-pad-x)),
+    calc(100vw - 2 * var(--space-16))
+  );
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+
+  background: var(--mat-bg);
+  border: 1px solid var(--grey-880);
+  border-top: none;
+  border-radius: 0 0 16px 16px;
+  box-shadow:
+    0 1px 0 0 rgb(20 20 20 / 0.04),
+    0 26px 50px -18px rgb(20 20 20 / 0.30);
+  outline: none;
+  overflow: hidden;
+  touch-action: none; /* let the drag own vertical gestures on the panel chrome */
+}
+
+/* Scrollable content region — the bento lives here. The hairline inner frame
+   gives the Wes-Anderson "matted print" read; symmetric padding all round. */
+.top-sheet__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--top-sheet-pad-y) var(--top-sheet-pad-x) var(--space-24);
+  touch-action: pan-y; /* content scrolls; only the handle initiates drag */
+}
+
+/* The grab handle — the visible lower lip. Full-width hit target, centred grip
+   pill. Cursor reads grab/grabbing so the affordance doesn't lie. */
+.top-sheet__handle {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-top: 1px solid var(--grey-960);
+  background: var(--mat-bg);
+  cursor: grab;
+  touch-action: none;
+}
+
+.top-sheet__handle:active {
+  cursor: grabbing;
+}
+
+.top-sheet__grip {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--grey-720);
+  transition: background var(--dur-fast) var(--ease-paper);
+}
+
+.top-sheet__handle:hover .top-sheet__grip,
+.top-sheet__handle:focus-visible .top-sheet__grip {
+  background: var(--grey-480);
+}
+
+.top-sheet__handle:focus-visible {
+  outline: 2px solid var(--grey-480);
+  outline-offset: -4px;
+}
+
+/* ── Mobile recompose — near-fullscreen shade, edge-to-edge, tighter frame.
+   Mobile breakpoint + landscape-phone OR-clause per docs/responsive.md. ─── */
+@media (max-width: 767px), (max-height: 500px) {
+  .top-sheet {
+    --top-sheet-pad-x: 16px;
+    --top-sheet-pad-y: 20px;
+  }
+  .top-sheet__panel {
+    width: 100vw;
+    max-height: 94vh;
+    border-left: none;
+    border-right: none;
+    border-radius: 0 0 14px 14px;
+  }
+}

@@ -27,6 +27,9 @@ reading the code in isolation. The nav cluster keeps its own deeper archive at
 - **`pathLength={1}` + `stroke-dasharray: 1` is load-bearing for shared markup** — lets trace and twinkle share one markup.
 - **`useReveal` waits for the page gate before observing (hard load)** — prevents the cold-load flat-flip.
 - **Material Symbols icons go through a typed registry — never a hand-list** — the only path that makes an unlisted icon impossible.
+- **`SignalsBento` mobile recompose — the `--bu` cqi spine + the min-height-as-var trick** — 2-col grid, `minmax(0,1fr)`, `--bu` sizing, min-height as a var.
+- **`CoverSheet` — the Signals cover: reveal-clobber guard, scrim/section-lift, edge-to-edge mobile mat** — echo `revealed` in className, the between-layers oversized scrim, the `100vw` mobile mat + backdrop.
+- **`CoverPeek` — measured viewport-centring, centre transform-origin, `raised` z-index timing** — construction-based centring, centre pivot, raised-until-return-complete.
 
 Entry format — every entry states **what** the constraint is (present tense),
 **where** it lives (file + selector/symbol anchor, never line numbers), **why**
@@ -376,6 +379,24 @@ reveal during a client transition it was meant to wait out.
 (what sets `.fonts-ready` and when) and the `.section-reveal` opacity:0 base state
 in `globals.css`.
 
+## `TopSheet` drawer — load-bearing drag / dismiss / scroll-lock mechanics
+
+**What:** `TopSheet` (`app/components/TopSheet/TopSheet.tsx`) is the portaled top-descending drawer built for the project-marker "Signals" reveal. It is now **PARKED** — the `CoverSheet` cover (Signals as a first-class sheet) superseded it, so nothing consumes it; only its CSS import in `(works)/layout.tsx` remains, and the files stay wired for reuse. A controlled component — consumer owns `open`/`onClose`. Several pieces look incidental but are each required — documented so a future consumer doesn't strip them on revival.
+
+**Where + why — the four constraints:**
+
+1. **Bound motion value drives both the slide and the snap-back.** The panel's `y` (`useMotionValue`) is bound via `style={{ y }}` and **also** carries the open/close slide (`initial`/`animate`/`exit` go `y: '-100%' → 0`). On a below-threshold release `onDragEnd` runs `animate(y, 0, { ease: EASE })` **ourselves** — deliberately **not** Framer's default constraint spring, which can micro-bounce and violate the house no-overshoot law. The `EASE`/`DUR_*` constants mirror `--ease-paper` / `--dur-settle` / `--dur-slide` (values live in `globals.css`). Dismiss fires when `offset.y < -DISMISS_OFFSET` **or** `velocity.y < -DISMISS_VELOCITY`.
+
+2. **The handle is a `<button>` that is both drag-initiator and close-button, reconciled by a `dragged` ref.** For a11y the lip is a real `<button aria-label="Close">`. It starts the drag (`controls.start(e)` on `onPointerDown`, with `dragListener={false}` so only the handle drags) **and** closes on click. The `dragged` ref reconciles them: reset to `false` in `onHandlePointerDown`, set `true` in `onDragStart`, read in `onHandleClick` to **suppress the click that trails a real drag** — otherwise a below-threshold drag (which snaps the panel back open) would also fire the button's click and close it. All three touch-points are required.
+
+3. **Portal to `document.body` + body lock + dominance-snap pause.** While `open`, an effect sets `document.body.style.overflow = 'hidden'` (restoring the **prior** value on cleanup, not blindly clearing, so a nested lock survives) **and** adds the `is-overlay-open` body class — the same class `useExpand` sets and `useDominanceSnap.maybeSnap()` early-returns on. Both are load-bearing: dropping the overflow lock lets the page scroll behind the drawer; dropping `is-overlay-open` lets dominance-snap yank the page while the drawer is open.
+
+4. **`--z-overlay` sits above `--z-project-marker`.** The portaled panel uses `--z-overlay` (`top-sheet.css`); the token (`globals.css`, z-index ladder) is above `--z-project-marker` so the top-layer surface clears the persistent marker. Reduced-motion swaps the slide for a fade and disables drag.
+
+**What breaks if violated:** swapping the manual `animate(y, 0)` for Framer's constraint spring reintroduces overshoot; removing any of the three `dragged`-ref touch-points makes a snap-back drag also close the drawer; dropping either body-side effect breaks scroll containment or pauses-then-doesn't dominance-snap; lowering the z below the marker buries the drawer.
+
+**Don't change without reading first:** the `onDragEnd` snap-back, the `dragged`-ref handshake across `onHandlePointerDown`/`onDragStart`/`onHandleClick`, and the `is-overlay-open` coupling to `useExpand`/`useDominanceSnap` (see `/rr` ANOMALIES → "`is-overlay-open` body class").
+
 ## Material Symbols icons go through a typed registry — never a hand-list
 
 **What:** every icon the site renders is constrained to one registry,
@@ -416,3 +437,47 @@ the icon renders as raw ligature text (e.g. "PLAY_CIRCLE"). Forgetting
 **Don't change without reading first:** `docs/performance.md` → "Material Symbols
 icons", and the three symbol-font sink classes in CSS before assuming a grep
 found every usage.
+
+## `SignalsBento` mobile recompose — the `--bu` cqi spine + the min-height-as-var trick
+
+**What:** at `(max-width: 767px), (max-height: 500px)` the bento recomposes to the reference **2-column** grid (`role role / out out / invl prod / dlv prod` — Role/Outcome full-width, Product tall right, Involvement/Deliverables stacked left) and sizes every value on the shared **`--bu` cqi spine**, the same idiom as the `/all` timeline's `.cases-mobile`. This is a *recompose*, not a scale.
+
+**Where + why — three load-bearing pieces:**
+
+1. **`minmax(0, 1fr)` tracks, not `1fr`.** Plain `1fr` = `minmax(auto, 1fr)`; a wide child (the Product card image, long role text) forces its track past the container and the whole bento blows out wider than the mat (uneven columns, clipped right edge). `minmax(0, …)` lets tracks shrink so content wraps/scales instead.
+
+2. **The `--bu` spine.** `.signals-bento` becomes the query container (`container-type: inline-size`) with `--bu: min(calc(100cqi / 327), 1px)` — one design pixel at the 327px baseline (a 375 phone with the 24px gutter → bento 327 → `--bu` = 1px, so each `calc(N * var(--bu))` reads as the reference px). Capped at `1px` so wider phones HOLD the design and narrower ones scale down. Every mobile size is `calc(N * var(--bu))`; the tile hairline borders (1.5px/1px) stay fixed. Container = the clean `.signals-bento` grid (no border/padding) — NEVER a bordered tile, or cqi resolves circularly. Desktop keeps its fixed-px 3-column grid (no `container-type`; the spine is entirely inside the media query).
+
+3. **`Tile` min-height is a CSS var, not an inline `min-height`.** `Tile.tsx` passes `minHeight` as `--tile-min-h` (consumed by `.tile { min-height: var(--tile-min-h, 0) }`), so the mobile rule can drop it (`.signals-bento .tile { min-height: 0 }`) via a stylesheet selector — an inline `min-height` would need `!important` (banned) to override. The Outcome tile's data `minHeight` (248/300) would otherwise strand its text at the bottom of a too-tall tile on mobile.
+
+**Also:** the Outcome stats row (`/rr`) bleeds to the frame edges with `margin: 0 calc(-13 * var(--bu))` — that `-13` must track the compact mobile frame padding (`calc(13 * var(--bu))`), or the dividers stop reaching the tile edge.
+
+**What breaks if violated:** dropping `minmax(0,…)` → grid blow-out; putting `container-type`/`--bu` on a padded tile → circular cqi (type resolves too small); reverting `--tile-min-h` to inline `min-height` → the mobile drop needs `!important`; mismatching the stats bleed → misaligned dividers.
+
+## `CoverSheet` — the Signals cover: reveal-clobber guard, scrim/section-lift, edge-to-edge mobile mat
+
+**What:** `CoverSheet` is the topmost sheet in a case study's stack — the "Signals" cover holding the `SignalsBento`, reached via `ProjectMarker` (it superseded the `TopSheet` drawer). It carries `id="signals"`, the `.sheet .section-reveal` pair, and — on desktop — the interactive `CoverPeek` photo + a dim scrim.
+
+**Load-bearing pieces:**
+
+1. **`revealed` is echoed into the section `className`.** `useReveal` adds `.revealed` to the section node *imperatively*. The className is a React template; when `active` toggles the scrim/lift (`is-peek-open`), React rewrites `className` and would **clobber** the imperative `.revealed`, dropping the whole section to its un-revealed `opacity: 0`/`translateY(32)` state (the entire cover vanishes). Mirroring `revealed` state into the template (`${revealed ? ' revealed' : ''}`) keeps React from wiping it. Any `useReveal` node with a React-toggled className needs this.
+
+2. **The dim scrim lives BETWEEN the card and the raised photo, inside the isolated stack.** `.cover-scrim` (z 1) sits above `.cover-mat-wrap` (z 0) and below the raised `CoverPeek` (z 2), so it dims the card + page while the photo stays bright. It's `position: fixed` but trapped by the place-transform `.section-reveal` leaves on the stack, so it's sized to the 960px stack — the negative `inset: -100vh -100vw` overflows it far past the viewport to cover the screen. A fixed element doesn't expand the scroll region, so it can stay oversized even when idle (opacity 0), avoiding a shrink-on-dismiss. When open, the whole section lifts to `--z-overlay` (`.sheet--cover.is-peek-open`) so the scrim clears every other sheet + the marker.
+
+3. **Mobile: the mat bleeds edge-to-edge; the photo is a decorative backdrop, not the peek.** The interactive `CoverPeek` is `display: none` on mobile; a separate inert `.cover-backdrop` `<img>` (aria-hidden) sits behind the mat, bleeding wider than the viewport and peeking above it. The mat goes full-bleed via `width: 100vw; margin-inline: calc(50% - 50vw)` (exact viewport width, not the sheet-bleed overhang), drops its floating-card shadow + mint frame, and insets the bento by `var(--sheet-gutter)` — which lands the bento at the `--bu` baseline (327 at 375). Desktop keeps the centred card mat with border + shadow.
+
+**What breaks if violated:** removing the `revealed` echo → the cover blanks on first photo-click; portaling the scrim or moving it out of the stack → it can no longer sit between card and photo; sizing the mobile mat with the sheet-bleed trick instead of `100vw` → it overhangs and the gutter no longer gives a true inset.
+
+## `CoverPeek` — measured viewport-centring, centre transform-origin, `raised` z-index timing
+
+**What:** the desktop photo tucked BEHIND the cover card, peeking above; on click it pulls OUT and OVER — flips to front, straightens, centres on the viewport, lifts. Click again (or the scrim / Esc) returns it, tucked.
+
+**Load-bearing pieces:**
+
+1. **Both centre targets are by construction, no magic pixels.** Horizontal (both states): CSS `left: 50%` + a `-50%` Framer `x` centres the photo on the stack (itself viewport-centred). Vertical (out): `y` animates to a measured `openY = innerHeight/2 - (stack.top + el.offsetTop + el.offsetHeight/2)` — built from transform-independent offset geometry, re-measured on reveal / resize / open, so it lands on the viewport's vertical centre at any size.
+
+2. **Centre `transform-origin` (50% 50%), not the tuck's bottom pivot.** With a bottom pivot the `rotate`/`scale` shift the visual centre and the translate-based `openY` misses by ~18px; a centre pivot keeps `rotate`/`scale` centre-preserving so the measured centring is exact.
+
+3. **`raised` z-index timing.** The front z-index is raised on activate and dropped only after the RETURN animation completes (`onAnimationComplete` when `!active`), so the photo never snaps behind the card mid-return. An `entered` ref applies the entrance delay only on the first reveal.
+
+**What breaks if violated:** a fixed-px `y` instead of the measured `openY` → off-centre at other viewports; a bottom `transform-origin` → the ~18px vertical miss returns; dropping the raised-until-complete rule → the photo flashes behind the card during the return.

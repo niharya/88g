@@ -642,6 +642,7 @@ p, li {
      --z-surface         1    cards, proof artifacts, images
      --z-chapter-marker 20    sticky per-section chapter title
      --z-project-marker 50    persistent project marker
+     --z-overlay       100    portaled top-layer surfaces (TopSheet)
 
    Route CSS overrides:
      --mat-line-color    grid line color (biconomy: mint, rr: brown)
@@ -765,6 +766,7 @@ p, li {
   --z-surface:        1;
   --z-chapter-marker: 20;
   --z-project-marker: 50;
+  --z-overlay:        100;  /* portaled top-layer surfaces (TopSheet) — above the project marker */
 }
 
 

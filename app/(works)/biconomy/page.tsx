@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { chapters } from './nav/chapters'
 import Sheet from '../../components/Sheet'
+import CoverSheet from '../../components/CoverSheet'
+import { biconomySignals } from './components/signalsData'
 import Intro from './components/Intro'
 import Flows from './components/Flows'
 import Demos from './components/Demos'
@@ -56,6 +58,7 @@ export default function BiconomyPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWorkLd) }}
       />
       <div className="sheet-stack">
+        <CoverSheet data={biconomySignals} />
         {chapters.map((chapter, i) => (
           <Sheet
             key={chapter.id}

@@ -1,0 +1,513 @@
+/* ==========================================================================
+   SignalsBento — the project "Signals" panel inside the TopSheet drawer.
+   Five tiles (Role · Outcome · Product · Involvement · Deliverables) in a fixed
+   3-column bento. One hue per tile, stepped from a single 88g ramp via the
+   `.tile--{tone}` presets below. Components: SignalsBento.tsx / Tile.tsx /
+   Counter.tsx. All colour is tokens; all type is `--font-*`.
+   ========================================================================== */
+
+/* ── Tile primitive — double frame, tone-driven ─────────────────────────── */
+
+.tile {
+  display: flex;
+  background: var(--tile-bg);
+  border: 1.5px solid var(--tile-border-outer);
+  padding: 6px;
+  min-height: var(--tile-min-h, 0); /* consumer-set via Tile's minHeight prop */
+}
+
+.tile__frame {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--tile-border-inner-override, var(--tile-border-inner));
+  padding: var(--tile-pad, 20px 22px);
+}
+
+/* Tone presets — bg(100) · outer(160) · inner(240/160) · badge(560) ·
+   label(800) · ink(960) · meta. Grey is the bespoke neutral. */
+.tile--blue {
+  --tile-bg: var(--blue-100);
+  --tile-border-outer: var(--blue-160);
+  --tile-border-inner: var(--blue-240);
+  --tile-badge: var(--blue-560);
+  --tile-label: var(--blue-800);
+  --tile-ink: var(--blue-960);
+  --tile-meta: var(--blue-800);
+}
+.tile--orange {
+  --tile-bg: var(--orange-100);
+  --tile-border-outer: var(--orange-160);
+  --tile-border-inner: var(--orange-240);
+  --tile-badge: var(--orange-560);
+  --tile-label: var(--orange-800);
+  --tile-ink: var(--orange-960);
+  --tile-meta: var(--orange-800);
+}
+.tile--yellow {
+  --tile-bg: var(--yellow-100);
+  --tile-border-outer: var(--yellow-160);
+  --tile-border-inner: var(--yellow-160);
+  --tile-badge: var(--yellow-560);
+  --tile-label: var(--yellow-800);
+  --tile-ink: var(--yellow-960);
+  --tile-meta: var(--yellow-720);
+}
+.tile--olive {
+  --tile-bg: var(--olive-100);
+  --tile-border-outer: var(--olive-160);
+  --tile-border-inner: var(--olive-160);
+  --tile-badge: var(--olive-560);
+  --tile-label: var(--olive-800);
+  --tile-ink: var(--olive-960);
+  --tile-meta: var(--olive-800);
+}
+.tile--terra {
+  --tile-bg: var(--terra-100);
+  --tile-border-outer: var(--terra-160);
+  --tile-border-inner: var(--terra-240);
+  --tile-badge: var(--terra-560);
+  --tile-label: var(--terra-800);
+  --tile-ink: var(--terra-960);
+  --tile-meta: var(--terra-720);
+}
+.tile--grey {
+  --tile-bg: var(--grey-960);
+  --tile-border-outer: var(--grey-800);
+  --tile-border-inner: var(--grey-720);
+  --tile-badge: var(--grey-80);
+  --tile-label: var(--grey-160);
+  --tile-ink: var(--grey-80);
+  --tile-meta: var(--grey-560);
+}
+
+/* ── Badge (numbered square + section label) ────────────────────────────── */
+
+.tile__badge-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.tile__badge {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tile-badge);
+  color: #fff;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variation-settings: 'wght' 720, 'opsz' 14;
+}
+.tile__badge-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variation-settings: 'wght' 720, 'wdth' 100, 'opsz' 14;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tile-label);
+}
+
+/* ── Grid ───────────────────────────────────────────────────────────────── */
+
+.signals-bento {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr 1fr 1.04fr;
+  grid-template-areas:
+    'role role role'
+    'out  out  prod'
+    'invl dlv  prod';
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ── Role tile ──────────────────────────────────────────────────────────── */
+
+.signals-role .tile__frame {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.signals-role__main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.signals-role__icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--tile-ink);
+}
+.signals-role__icon > * { display: block; }
+.signals-role__lead {
+  font-family: var(--font-ui);
+  font-size: 19px;
+  font-variation-settings: 'wght' 680, 'wdth' 100, 'opsz' 24;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+  color: var(--tile-ink);
+}
+.signals-role__rest {
+  font-variation-settings: 'wght' 520, 'wdth' 100, 'opsz' 24;
+  color: var(--tile-meta);
+}
+.signals-role__meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tile-meta);
+  white-space: nowrap;
+}
+
+/* ── Outcome tile ───────────────────────────────────────────────────────── */
+
+.signals-outcome .tile__frame {
+  position: relative;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.signals-outcome__body {
+  position: relative;
+  z-index: 1;
+  margin: 18px 0 0;
+  max-width: 560px;
+  font-family: var(--font-ui);
+  font-size: 27px;
+  font-variation-settings: 'wght' 600, 'wdth' 100, 'opsz' 40;
+  letter-spacing: -0.85px;
+  line-height: 1.16;
+  color: var(--tile-ink);
+  text-wrap: balance;
+}
+/* Compact body when stats share the tile (/rr). */
+.signals-outcome--stats .signals-outcome__lower {
+  position: relative;
+  z-index: 1;
+}
+.signals-outcome--stats .signals-outcome__body {
+  margin: 0 0 22px;
+  max-width: 440px;
+  font-size: 21px;
+  font-variation-settings: 'wght' 600, 'wdth' 100, 'opsz' 32;
+  letter-spacing: -0.6px;
+  line-height: 1.18;
+}
+
+/* Stats row — bleeds to the frame edges (the -26/-24 cancels the frame pad). */
+.signals-stats {
+  display: flex;
+  border-top: 1.5px solid var(--tile-border-inner);
+  margin: 0 -26px -24px;
+}
+.signals-stat {
+  flex: 1;
+  padding: 18px 12px 20px 18px;
+  border-left: 1.5px solid var(--tile-border-inner);
+}
+.signals-stat:first-child {
+  padding-left: 26px;
+  border-left: none;
+}
+.signals-stat__value {
+  font-family: var(--font-ui);
+  font-size: 44px;
+  font-variation-settings: 'wght' 740, 'wdth' 100, 'opsz' 40;
+  letter-spacing: -2px;
+  line-height: 0.88;
+  color: var(--tile-ink);
+}
+.signals-stat__num { display: inline-block; }
+.signals-stat__unit {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--terra-560);
+}
+.signals-stat__label {
+  margin-top: 9px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tile-meta);
+}
+
+/* Decorative halo — a single tinted disc behind the content. */
+.signals-outcome.tile--orange { --signals-halo: var(--orange-560); }
+.signals-outcome.tile--yellow { --signals-halo: var(--yellow-240); }
+.signals-outcome__halo {
+  position: absolute;
+  z-index: 0;
+  border-radius: 50%;
+  background: var(--signals-halo);
+}
+.signals-outcome__halo--br {
+  right: -44px;
+  bottom: -44px;
+  width: 150px;
+  height: 150px;
+}
+.signals-outcome__halo--tr {
+  right: -50px;
+  top: -50px;
+  width: 138px;
+  height: 138px;
+}
+
+/* ── Product tile (grey) ────────────────────────────────────────────────── */
+
+.signals-product__head {
+  margin: 14px 0 0;
+  font-family: var(--font-ui);
+  font-size: 20px;
+  font-variation-settings: 'wght' 600, 'wdth' 100, 'opsz' 28;
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+  color: var(--tile-ink);
+}
+.signals-product__art {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0;
+}
+.signals-product__art img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: rotate(-3.5deg);
+  filter: drop-shadow(0 14px 22px rgb(20 20 20 / 0.30));
+}
+.signals-product__rows {
+  display: flex;
+  flex-direction: column;
+}
+.signals-product__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--grey-800);
+}
+.signals-product__row:first-child { border-top-width: 1.5px; }
+.signals-product__row-key {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tile-meta);
+}
+.signals-product__row-val {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.26px;
+  line-height: 1;
+  color: var(--tile-ink);
+}
+
+/* ── Involvement tile (olive) ───────────────────────────────────────────── */
+
+.signals-involve .tile__badge-row { margin-bottom: 18px; }
+.signals-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 13px;
+}
+.signals-list__item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.signals-list__diamond {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: 7px;
+  background: var(--tile-badge);
+  transform: rotate(45deg);
+}
+.signals-list__text {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-variation-settings: 'wght' 560, 'wdth' 100, 'opsz' 24;
+  letter-spacing: -0.36px;
+  line-height: 1;
+  color: var(--tile-ink);
+}
+
+/* ── Deliverables tile (terra) ──────────────────────────────────────────── */
+
+.signals-dlv .tile__badge-row { margin-bottom: 16px; }
+.signals-dlv__list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 11px;
+}
+.signals-dlv__item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.signals-dlv__num {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tile-meta);
+  transform: translateY(-1px);
+}
+.signals-dlv__text {
+  font-family: var(--font-ui);
+  font-size: 17px;
+  font-variation-settings: 'wght' 580, 'wdth' 100, 'opsz' 22;
+  letter-spacing: -0.34px;
+  line-height: 1;
+  color: var(--tile-ink);
+}
+
+/* ── Entrance + hover ───────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  .signals-bento .tile {
+    animation: signals-tile-in var(--dur-settle) var(--ease-paper) var(--tile-delay, 0s) backwards;
+  }
+}
+
+@keyframes signals-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* ── Mobile recompose — the reference 2-column bento (Role/Outcome full-width;
+   Product tall in the right column; Involvement/Deliverables stacked left),
+   sized on the shared cqi `--bu` spine, the same idiom as the /all timeline's
+   `.cases-mobile`: the bento is the query container; `--bu` = "one design pixel"
+   at the 327 design width (a 375 phone → --bu = 1px, so each N reads as the
+   reference px), capped at 1px so wider phones HOLD the design and narrower
+   phones scale down. Every size below is `calc(N * var(--bu))`; the tile
+   hairline borders stay fixed (non-scalers). Landscape-phone OR-clause per
+   docs/responsive.md. ───────────────────────────────────────────────────── */
+@media (max-width: 767px), (max-height: 500px) {
+  .signals-bento {
+    container-type: inline-size;
+    --bu: min(calc(100cqi / 327), 1px);
+    /* minmax(0,…) so a wide child (e.g. the Product image) can't blow the
+       track past the container — tracks stay equal and content shrinks/wraps. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'role role'
+      'out  out'
+      'invl prod'
+      'dlv  prod';
+    gap: calc(10 * var(--bu));
+  }
+
+  .signals-bento .tile { padding: calc(5 * var(--bu)); min-height: 0; } /* content-height on mobile */
+  .signals-bento .tile__frame { padding: calc(12 * var(--bu)) calc(13 * var(--bu)); }
+  .signals-bento .tile__badge {
+    width: calc(18 * var(--bu));
+    height: calc(18 * var(--bu));
+    font-size: calc(10 * var(--bu));
+  }
+  .signals-bento .tile__badge-label { font-size: calc(10 * var(--bu)); letter-spacing: 0.08em; }
+
+  /* Role — keep the year on the right (no wrap, per the reference) and scale the
+     brand glyph down to sit with the compact text. */
+  .signals-role .tile__frame { gap: calc(10 * var(--bu)); flex-wrap: nowrap; }
+  .signals-role__main { gap: calc(11 * var(--bu)); }
+  .signals-role__icon svg { width: calc(24 * var(--bu)); height: auto; }
+  .signals-role__lead {
+    font-size: calc(13.5 * var(--bu));
+    font-variation-settings: 'wght' 660, 'wdth' 100, 'opsz' 16;
+    letter-spacing: -0.28px;
+  }
+
+  /* Outcome */
+  .signals-outcome__body {
+    margin-top: calc(14 * var(--bu));
+    max-width: calc(340 * var(--bu));
+    font-size: calc(16 * var(--bu));
+    font-variation-settings: 'wght' 600, 'wdth' 100, 'opsz' 18;
+    letter-spacing: -0.42px;
+    line-height: 1.23;
+  }
+  .signals-outcome--stats .signals-outcome__body {
+    margin-bottom: calc(16 * var(--bu));
+    font-size: calc(16 * var(--bu));
+  }
+  .signals-outcome__halo--br {
+    right: calc(-30 * var(--bu));
+    bottom: calc(-30 * var(--bu));
+    width: calc(112 * var(--bu));
+    height: calc(112 * var(--bu));
+  }
+  .signals-outcome__halo--tr {
+    right: calc(-34 * var(--bu));
+    top: calc(-34 * var(--bu));
+    width: calc(104 * var(--bu));
+    height: calc(104 * var(--bu));
+  }
+
+  /* Outcome stats (/rr) — sizes + bleed follow the compact frame pad */
+  .signals-stats { margin: 0 calc(-13 * var(--bu)) calc(-13 * var(--bu)); }
+  .signals-stat { padding: calc(12 * var(--bu)) calc(6 * var(--bu)) calc(13 * var(--bu)) calc(12 * var(--bu)); }
+  .signals-stat:first-child { padding-left: calc(13 * var(--bu)); }
+  .signals-stat__value { font-size: calc(30 * var(--bu)); letter-spacing: -1.2px; }
+  .signals-stat__unit { font-size: calc(12 * var(--bu)); }
+  .signals-stat__label { margin-top: calc(6 * var(--bu)); font-size: calc(8 * var(--bu)); }
+
+  /* Product */
+  .signals-product__head {
+    margin-top: 0;
+    font-size: calc(15 * var(--bu));
+    font-variation-settings: 'wght' 600, 'wdth' 100, 'opsz' 18;
+    letter-spacing: -0.34px;
+    line-height: 1.14;
+  }
+  .signals-product__art { padding: calc(10 * var(--bu)) 0; }
+  .signals-product__row { padding: calc(7 * var(--bu)) 0; }
+  .signals-product__row-key { font-size: calc(8 * var(--bu)); }
+  .signals-product__row-val { font-size: calc(11.5 * var(--bu)); }
+
+  /* Involvement */
+  .signals-involve .tile__badge-row { margin-bottom: calc(12 * var(--bu)); }
+  .signals-list { gap: calc(11 * var(--bu)); }
+  .signals-list__item { gap: calc(11 * var(--bu)); }
+  .signals-list__diamond { margin-left: calc(4 * var(--bu)); }
+  .signals-list__text {
+    font-size: calc(13 * var(--bu));
+    font-variation-settings: 'wght' 560, 'wdth' 100, 'opsz' 16;
+    letter-spacing: -0.26px;
+  }
+
+  /* Deliverables */
+  .signals-dlv .tile__badge-row { margin-bottom: calc(12 * var(--bu)); }
+  .signals-dlv__list { gap: calc(10 * var(--bu)); }
+  .signals-dlv__item { gap: calc(9 * var(--bu)); }
+  .signals-dlv__num { width: calc(16 * var(--bu)); font-size: calc(9 * var(--bu)); }
+  .signals-dlv__text {
+    font-size: calc(12.5 * var(--bu));
+    font-variation-settings: 'wght' 580, 'wdth' 100, 'opsz' 16;
+    letter-spacing: -0.24px;
+  }
+}

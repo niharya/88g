@@ -35,7 +35,10 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **Tab-switch motion tokens** — `app/lib/motion.ts`; `TAB_*` constants + `TAB_EASE` (mirrors `--ease-snap`); consumers: /rr Cards, /biconomy Demos.
 - **Cruise spring** — `app/lib/motion.ts` `CRUISE_SPRING`; deliberate ~12% overshoot (documented deviation); consumers: /rr Outcome ticker, /marks autoScroll.
 - **Train Marquee** — `app/(works)/rr/components/Outcome.tsx`; hover-brake/spring-start marquee; rr-local.
-- **MarkerTicket** — `app/components/MarkerTicket/`; postage-stamp infoCard ornament; consumers: /biconomy + /rr MarkerInfoCard.
+- **TopSheet** — `app/components/TopSheet/`; portaled top-descending drawer (dim scrim + lower-lip handle, drag-up/scrim/Esc to dismiss); **parked** — built for the Signals reveal but superseded by `CoverSheet`; unconsumed, CSS kept wired for reuse.
+- **SignalsBento** — `app/components/SignalsBento/`; the project "Signals" panel — a 5-tile bento (3-col desktop / 2-col mobile) + the `Tile` (tone-driven) and `Counter` primitives; per-route data; consumers: /biconomy + /rr, rendered by `CoverSheet`.
+- **CoverSheet** — `app/components/CoverSheet/`; the Signals cover sheet (topmost in the stack) hosting `SignalsBento`, with the interactive `CoverPeek` photo + dim scrim (desktop) and an edge-to-edge mat + backdrop photo (mobile); consumers: /biconomy + /rr, reached via `ProjectMarker`.
+- **MarkerTicket** — `app/components/MarkerTicket/`; postage-stamp ornament; **parked** — no current consumers (superseded on /biconomy + /rr by SignalsBento + TopSheet); CSS still wired in `(works)/layout.tsx` for drop-in reuse.
 - **Monostamp** — `app/components/Monostamp.tsx`; monospace stamp chip; NO transitions on it, ever; consumers: /biconomy BeforeAfter, landing chips + form pills, NavMarker wipHint.
 - **CaptionTag** — `app/components/CaptionTag/`; museum-label caption docked to viewport bottom; consumer: landing startooth caption.
 - **Sticker** — `app/components/Sticker.tsx`; printed-and-pressed family shell; consumers: /biconomy ×4, /all ProjectCard, LabelSticker.
@@ -292,8 +295,8 @@ The docked-nav system used by every works route: chapter marker, project marker,
 - **Each route defines its own `Chapter[]`** in its `nav/chapters.ts`. The nav cluster itself is content-free.
 - **Mobile pattern spans files, not nav.css alone.** The tucked-under-top-frame behavior is implemented through `.workbench::before` (frame) + the mobile `--marker-top` override (16px, in the `globals.css` mobile token block). Nav.css only handles the marker side; the responsive rules live in `docs/responsive.md` + `app/components/nav/ANOMALIES.md`.
 - **Route-level consequences of consuming this system** live in each route's `ANOMALIES.md` (e.g. `/rr` documents the sled-in-mat absolute positioning for mobile). Nav's own `ANOMALIES.md` is for internals.
-- **`ProjectMarker` `infoCard` prop.** When passed a ReactNode, the marker swaps from scroll-to-top to a toggle that opens an absolutely-positioned `.marker-info-anchor` companion below the marker, fills the info icon (FILL axis 0→1 via `.is-info-open`), paints the marker in its hover shell (`--grey-960` floating, `--grey-880` on the docked pair) so the click reads as a switch "pressed" for as long as the card is visible, bumps the label + icon one stop darker (`--grey-720` → `--grey-640`) so they read against the pressed shell, and applies `aria-expanded`. Dismissal: any scroll >4px, a second toggle click, or a 12s idle auto-close (safety net). Each route owns its own thin `MarkerInfoCard` consumer of the shared `MarkerTicket` primitive (route-local under `app/(works)/<route>/components/MarkerInfoCard.tsx`, currently `/biconomy` and `/rr`) — the card visual + mobile recompose live in MarkerTicket; the consumer just picks tone, icon, and copy.
-- What's route-specific: `Chapter[]` data, each route's `nav/chapters.ts` file, and (optionally) a route-local `MarkerInfoCard` passed to `ProjectMarker`.
+- **`ProjectMarker` is a Signals cover-toggle** (no `signals`/`infoCard` prop any more). Clicking glides to the `#signals` cover (`CoverSheet`) or back to where you came from — see `nav/ANOMALIES.md` → "`ProjectMarker` is a Signals cover-toggle, not a drawer". The Signals content now lives in the cover, built per-route from `components/signalsData.tsx` (see the SignalsBento + CoverSheet entries). The old `TopSheet` drawer, the `signals`/`infoCard` prop, and the `MarkerTicket`/`MarkerInfoCard` reveal are parked.
+- What's route-specific: `Chapter[]` data, each route's `nav/chapters.ts` file, and (optionally) the route's `signalsData` fed to `ProjectMarker` via ShellNav.
 - What's library-ready: the whole cluster. Extracting means pulling the CSS file, the four components, the hook, the types, AND the matching globals.css tokens together.
 
 ---
@@ -517,11 +520,11 @@ The postage-stamp ornament shown beneath an open `ProjectMarker`. Notched outer 
 - Each instance generates **unique** SVG gradient + filter ids via `useId()`. Multiple stamps can mount on the same page without `<defs>` collisions.
 - Lead defaults to `.t-p3` typography; title to `.t-h5`. Both colors come from `--marker-ticket-ink`, so re-tone is a single class flip.
 - The tilt value lives on `--marker-ticket-rotate` and is animated by the same `var(--dur-slide) var(--ease-paper)` that the parent anchor uses for its slide-in. The stamp slides in already tilting toward its rest angle.
-- **MutationObserver target.** The observer attaches to `ref.current?.parentElement` — i.e. it expects to be rendered as a direct child of `.marker-info-anchor`. That's how `ProjectMarker` mounts it via the `infoCard` slot. If the consumer ever wraps the stamp in another element, the observer stops firing and the tilt freezes at 0°. Add a more flexible parent search if a wrapping consumer ever shows up.
+- **MutationObserver target.** The observer attaches to `ref.current?.parentElement` — i.e. it expects to be rendered as a direct child of a `.is-open`-toggling anchor like the old `.marker-info-anchor`. (That was how `ProjectMarker` mounted it before the drawer; if revived, give it that anchor or add a more flexible parent search.) If a consumer wraps the stamp in another element, the observer stops firing and the tilt freezes at 0°.
 - Mobile (`max-width: 767px`, `max-height: 500px`) drops the notched SVG body, the inner border, and the rule. The stamp recomposes to a flex row with a plain bordered card surface — `--marker-ticket-fill-a` for background, `--marker-ticket-stroke` for the 1px border. Tone vars keep working.
 - **Three sizing knobs.** `width` (default 314, biconomy's reference), `ruleHeight` (default 48), `padRight` (default 4). Height is fixed at 96 — corner notches stay 8px regardless of width; only the horizontal segments stretch. The outer + inner SVG paths are *generated* from width via the `outerPath(W)` / `innerPath(IW)` helpers in the component file, not hardcoded — adding a new consumer width needs no asset work. RR currently passes `width: 360, ruleHeight: 72, padRight: 24` to fit a 3-line title; biconomy bumps to `width: 334, padRight: 24` to keep the right-shoulder consistent with RR.
 - **Icon halo blend mode is Safari-only.** Both consumers' icons use `mix-blend-mode: plus-darker` (the Figma source spec — light stroke darkens against itself for a subtle embossed ring). Chromium silently falls back to `normal`, which leaves the stroke painted as a flat color matching the lighter gradient stop — so the halo is **invisible in Chromium** and visible in Safari. This is intentionally retained to match the design source; if a future tone needs cross-browser parity, switch that consumer's stroke `mix-blend-mode` to `multiply` (works everywhere, slightly heavier blend).
-- Live consumers: [/biconomy](app/(works)/biconomy/components/MarkerInfoCard.tsx) (olive + cube `<img>`), [/rr](app/(works)/rr/components/MarkerInfoCard.tsx) (terra + inline RR spike).
+- **Parked — no current consumers.** Superseded on `/biconomy` + `/rr` by `SignalsBento` + `TopSheet` (the marker now opens a full bento drawer, of which the ticket's role line is just tile 0). The primitive + `marker-ticket.css` (still wired in `(works)/layout.tsx`) are kept intact for drop-in reuse — to revive, pass a `MarkerTicket` consumer to `ProjectMarker`'s `signals` prop, or restore an `.is-open` anchor.
 - What's route-specific (none today, by design): nothing — MarkerTicket is already parameterized for reuse.
 
 ---
@@ -852,6 +855,66 @@ Privacy-first, aggregate analytics. Umami's hosted tracker auto-captures page vi
 - Event names are kebab-case; keep payload props low-cardinality (slugs / enums) — aggregate only, nothing identifying.
 - Direct, not proxied: script from `cloud.umami.is/script.js`, beacons to `gateway.umami.is/api/send` (the tracker's default collector). A same-origin proxy shipped in v0.109 and was reverted in v0.110 — it dodged ad-blockers but routed beacons through Netlify, so Umami saw Netlify's IP and geolocated every visitor to the proxy's region (Singapore). The loader is production-only, so analytics isn't exercised under `next dev`; it verifies on deploy. Getting both ad-block-resistance AND real geo would need Umami Cloud's paid custom-domain (CNAME).
 - Plan, rationale, and the gated per-visitor "adaptive" track (deferred): [docs/analytics-prd.md](docs/analytics-prd.md).
+
+---
+
+## TopSheet
+
+A portaled top-layer drawer that descends from the viewport's **top** edge over a dim scrim, hanging like a pulled shade. A grab handle at its **lower lip** drags **up** to dismiss; the scrim and `Esc` also dismiss. Built as the project-marker "Signals" reveal on `/biconomy` + `/rr`, but content-agnostic (pass any children). Controlled component — the consumer owns `open` + `onClose`.
+
+**Where it lives**
+- [app/components/TopSheet/TopSheet.tsx](app/components/TopSheet/TopSheet.tsx) — component (props: `open`, `onClose`, `children`, `label`, `maxWidth`).
+- [app/components/TopSheet/top-sheet.css](app/components/TopSheet/top-sheet.css) — scrim, panel (Wes-Anderson cream frame, square top / rounded bottom lip), handle/grip, mobile recompose. Wired in [app/(works)/layout.tsx](app/(works)/layout.tsx).
+- [app/components/TopSheet/index.ts](app/components/TopSheet/index.ts) — barrel.
+- Consumer: **none — parked.** Built for `ProjectMarker`'s Signals reveal, superseded by `CoverSheet`; the CSS import in `(works)/layout.tsx` stays for drop-in reuse.
+
+**AI notes**
+- **Portal + scroll-lock + dominance-snap pause.** Renders via `createPortal` to `document.body` (so `position: fixed` anchors to the viewport, not a transformed marker ancestor — mirrors `ShowcaseBottomSheet`). While open it sets `body { overflow: hidden }` (restoring the prior value, not clearing) **and** adds the `is-overlay-open` body class — the same signal `useExpand` uses so the route's `useDominanceSnap` stops snapping while the drawer is up. Drop either and the page scrolls/snaps under the overlay.
+- **Descends from the top.** Panel is `position: fixed; top: 0`, centred via `margin-inline: auto`, capped at `maxWidth + 2·pad`. Slide is a Framer `y: '-100%' → 0` on `--ease-paper` / `--dur-settle`. The handle sits at the bottom (the visible lip).
+- **Drag uses a BOUND motion value, not Framer's constraint spring.** `y = useMotionValue(0)` is bound via `style`; the same value carries the open/close slide (`initial`/`animate`/`exit`) AND the drag. On a below-threshold release we animate `y → 0` ourselves on `--ease-paper` — Framer's default constraint spring can micro-bounce, which violates the house no-overshoot law. Dismiss thresholds: `offset.y < -120` OR `velocity.y < -500`.
+- **Handle is a `<button>` (a11y) with drag + click reconciled.** A `dragged` ref is reset on `onPointerDown`, set on `onDragStart`, and read in `onClick`: a real drag suppresses the trailing click; a plain tap/click closes; keyboard `Enter`/`Space` close. Removing any of the three pieces re-introduces the "snap-back drag also fires close" bug. The handle starts the drag via `dragControls.start(e)` (`dragListener={false}`), so content scrolls without initiating a drag.
+- **Reduced motion** swaps the slide for a fade and disables drag.
+- **Library-ready** — content-agnostic, single shared primitive. Now **parked** (superseded by `CoverSheet`) but kept intact for reuse: to revive, render `<TopSheet open onClose>{children}</TopSheet>` from any consumer.
+
+## SignalsBento
+
+The project "Signals" panel — the content of the `CoverSheet` cover: five tiles in a 3-column bento on desktop (**Role · Outcome · Product · Involvement · Deliverables**), recomposed to a 2-column grid on mobile. Structure is shared; per-route content + the two variable tones (Role, Outcome) come in as a `SignalsData` object. Ships two sub-primitives: **`Tile`** (the framed container — one `tone` drives the whole monochrome step set) and **`Counter`** (count-up number, house motion).
+
+**Where it lives**
+- [app/components/SignalsBento/SignalsBento.tsx](app/components/SignalsBento/SignalsBento.tsx) — the bento composition (`data: SignalsData`).
+- [app/components/SignalsBento/Tile.tsx](app/components/SignalsBento/Tile.tsx) — `Tile` + `TileBadge`.
+- [app/components/SignalsBento/Counter.tsx](app/components/SignalsBento/Counter.tsx) — count-up.
+- [app/components/SignalsBento/types.ts](app/components/SignalsBento/types.ts) — `SignalsData` / `TileTone` etc.
+- [app/components/SignalsBento/signals-bento.css](app/components/SignalsBento/signals-bento.css) — tile tone presets, grid, per-tile composition, entrance, mobile recompose. Wired in [app/(works)/layout.tsx](app/(works)/layout.tsx).
+- Per-route data: [app/(works)/biconomy/components/signalsData.tsx](app/(works)/biconomy/components/signalsData.tsx), [app/(works)/rr/components/signalsData.tsx](app/(works)/rr/components/signalsData.tsx). Selected by segment in [ShellNav.tsx](app/(works)/ShellNav.tsx).
+
+**AI notes**
+- **`Tile` is tone-driven — one hue, stepped.** `tone` (`blue|orange|yellow|olive|terra|grey`) selects a `.tile--{tone}` block in CSS that sets the full `--tile-*` set: bg(`-100`) · outer border(`-160`) · inner border(`-240`/`-160`) · badge(`-560`) · label(`-800`) · ink(`-960`) · meta. **Grey is the bespoke neutral** (bg `-960`, borders `-800`/`-720`, badge/ink `-80`). Every value is a token — the reference hex grid mapped ~1:1 onto the 88g ramps. Per-tile knobs (`pad`, `frameBorder`, `minHeight`, `delay`, `area`) are props, never hardcoded.
+- **88g's `--orange-*` ramp IS the warm-red family** (`#FF5F33` = `orange-560`). Role is blue (biconomy) / orange (rr); Outcome is orange (biconomy) / yellow (rr); Product/Involvement/Deliverables are always grey/olive/terra.
+- **Fonts:** the variable-axis bento text is `--font-ui` (Google Sans Flex — NOT `--font-display`, which is Fraunces), meta rows `--font-body`, code labels `--font-mono`.
+- **Motion is translated to house language.** Tiles place-in with a staggered `signals-tile-in` (translateY 10px + fade) on `--ease-paper`/`--dur-settle` via per-tile `--tile-delay`; `Counter` is a single ease-out cubic (no motion-blur/translate from the reference). All gated behind `prefers-reduced-motion: no-preference`; reduced-motion shows final counter values immediately. The reference's bounce/overshoot/breathing-sway were intentionally dropped — do not reintroduce.
+- **Counters count on mount.** `Counter` counts up when the bento mounts (with the `CoverSheet` cover). The "K" suffix counts with the number; the small "mo" unit is a separate non-animated span.
+- **`Tile.minHeight` is applied as a CSS var (`--tile-min-h`), not an inline `min-height`** — so the mobile recompose can drop it via a stylesheet rule (an inline property would need `!important`). See ANOMALIES → "`SignalsBento` mobile recompose".
+- **Mobile recompose** (not scale): the reference 2-column grid, sized on the shared cqi `--bu` spine (the `/all` timeline `.cases-mobile` idiom — baseline 327, capped at 1px, every size `calc(N * var(--bu))`), at the `(max-width: 767px), (max-height: 500px)` gate. `minmax(0,1fr)` tracks guard against grid blow-out. Full detail in ANOMALIES → "`SignalsBento` mobile recompose — the `--bu` cqi spine + the min-height-as-var trick". Read `docs/responsive.md` before touching.
+- **Library-ready** — content via `SignalsData`, structure shared. Two consumers from the start.
+
+## CoverSheet
+
+The Signals **cover** — the topmost sheet in a `/biconomy` · `/rr` case study, holding the `SignalsBento`. Reached via `ProjectMarker` (it superseded the `TopSheet` drawer). Ships **`CoverPeek`**, the desktop cover photo tucked behind the card that pulls out and centres over it.
+
+**Where it lives**
+- [app/components/CoverSheet/CoverSheet.tsx](app/components/CoverSheet/CoverSheet.tsx) — the section (`data: SignalsData`): `id="signals"`, the `.sheet .section-reveal` pair, the dim scrim + `active` toggle, the mobile `.cover-backdrop`.
+- [app/components/CoverSheet/CoverPeek.tsx](app/components/CoverSheet/CoverPeek.tsx) — the interactive desktop photo.
+- [app/components/CoverSheet/cover-sheet.css](app/components/CoverSheet/cover-sheet.css) — stack, mat, scrim, peek/caption, backdrop, mobile edge-to-edge mat. Wired in [app/(works)/layout.tsx](app/(works)/layout.tsx).
+- [app/components/CoverSheet/index.ts](app/components/CoverSheet/index.ts) — barrel.
+- Consumers: [biconomy/page.tsx](app/(works)/biconomy/page.tsx), [rr/page.tsx](app/(works)/rr/page.tsx). Optional `coverImage` on `SignalsData` toggles the photo.
+
+**AI notes**
+- **The section `className` echoes `revealed`.** `useReveal` adds `.revealed` imperatively; the React className template must include `${revealed ? ' revealed' : ''}` or toggling the scrim/lift class clobbers it and the cover blanks. See ANOMALIES → "`CoverSheet` — the Signals cover".
+- **Dim scrim between card and photo.** An oversized `fixed` layer (`inset: -100vh -100vw`) at z 1 — above the card (z 0), below the raised `CoverPeek` (z 2). The section lifts to `--z-overlay` while open. Click-anywhere / Esc dismiss.
+- **`CoverPeek` centres by construction** — `left:50%` + Framer `x:-50%` (horizontal) and a measured `openY` (vertical viewport-centre); `transform-origin` is centre so `rotate`/`scale` stay centre-preserving. See ANOMALIES → "`CoverPeek`".
+- **Mobile:** the peek is desktop-only (`display:none`); a decorative `.cover-backdrop` photo bleeds behind the mat, which goes edge-to-edge (`100vw`). See ANOMALIES → "`CoverSheet`".
+- **Library-ready** — content via `SignalsData` (`coverImage` optional). Two consumers from the start.
 
 ---
 

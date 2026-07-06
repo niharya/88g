@@ -57,6 +57,14 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "hasAlpha": true,
     "lossless": true
   },
+  "/images/biconomy/_photos/cover-people.webp": {
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "FEkGDIInf2eanFR5p2m/yfjtZg==",
+    "width": 1061,
+    "height": 616,
+    "hasAlpha": false,
+    "lossless": false
+  },
   "/images/biconomy/api/1.webp": {
     "dominantColor": "rgb(200, 200, 200)",
     "thumbHash": "8gcGBYBwh4eUiIh1d5eIhyC38I30",
@@ -440,6 +448,14 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "height": 1920,
     "hasAlpha": false,
     "lossless": true
+  },
+  "/images/rr/_photos/cover-people.webp": {
+    "dominantColor": "rgb(8, 8, 8)",
+    "thumbHash": "WjkOHIhtUJOQp4dtlXeHz475uw==",
+    "width": 1106,
+    "height": 622,
+    "hasAlpha": false,
+    "lossless": false
   },
   "/images/rr/north-star-bg.webp": {
     "dominantColor": "rgb(232, 232, 216)",

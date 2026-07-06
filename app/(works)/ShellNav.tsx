@@ -9,16 +9,16 @@
 // On /all the shell markers are hidden — that page renders its own docked
 // nav row with MarkerSlot + ProjectMarker + ChapterMarker(static).
 //
-// Each route owns its own MarkerInfoCard (route-local, content can diverge).
-// ShellNav picks the matching one by segment and passes it to ProjectMarker.
+// The project marker is a plain "home" affordance — clicking it smooth-scrolls
+// to the top of the case, which now lands on the Signals cover (chapters[0]).
+// Signals is reached as a normal chapter (scroll up or the chapter menu); the
+// old TopSheet drawer is retired/parked.
 
 import { useSelectedLayoutSegment } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import MarkerSlot from '../components/nav/MarkerSlot'
 import ProjectMarker from '../components/nav/ProjectMarker'
 import ExitMarker from '../components/nav/ExitMarker'
-import BiconomyMarkerInfoCard from './biconomy/components/MarkerInfoCard'
-import RrMarkerInfoCard from './rr/components/MarkerInfoCard'
 
 const segmentNames: Record<string, string> = {
   all: 'Nihar',
@@ -32,11 +32,6 @@ export default function ShellNav() {
   const isBench = segment === 'all'
   const projectName = segmentNames[segment ?? ''] ?? 'Nihar'
 
-  const infoCard =
-    segment === 'biconomy' ? <BiconomyMarkerInfoCard /> :
-    segment === 'rr'       ? <RrMarkerInfoCard /> :
-    undefined
-
   return (
     <div className={isBench ? 'shell-nav-hidden' : undefined}>
       <MarkerSlot position="left">
@@ -48,7 +43,7 @@ export default function ShellNav() {
             exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.25, ease: [0.5, 0, 0.2, 1] }}
           >
-            <ProjectMarker projectName={projectName} infoCard={infoCard} />
+            <ProjectMarker projectName={projectName} />
           </motion.div>
         </AnimatePresence>
       </MarkerSlot>

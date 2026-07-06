@@ -1,88 +1,85 @@
 'use client'
 
-// ProjectMarker — left-nav marker.
+// ProjectMarker — left-nav project marker.
 //
-// Default behavior (no infoCard): clicking scrolls the page back to top
-// (natural "home of this project" affordance).
+// Click is a TOGGLE between the Signals cover and the case body:
+//   • away from Signals → glide up to the Signals cover (docked).
+//   • already at Signals → glide back to where you came from (the position
+//     saved on the way up), or the first content section if there's nothing
+//     to return to.
+// The info icon marks it as the route to the project's overview (Signals).
+// (No drawer/info-card any more — Signals is a first-class chapter; TopSheet
+// and MarkerTicket are parked.)
 //
-// With infoCard: clicking toggles the route's info card anchored below the
-// marker. Open state fills the info icon, paints the marker in its hover
-// shell (switch "pressed" feel), and applies aria-expanded. The card
-// collapses on scroll — scrolling the page is the primary dismissal, so
-// the marker reads as a held toggle tied to card visibility. A 12s auto-
-// close timer runs as a safety net for idle sessions.
+// Scrolls via the shared `scrollGlide` singleton (the same path
+// useDominanceSnap writes through), and pauses snapping during the glide via
+// the `is-overlay-open` body class (the established pause-snap signal) so the
+// cover's land-dock snap can't fight the toggle mid-glide. Targets are real
+// dock positions (a section's absolute top), so the destination lands docked.
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useRef } from 'react'
 import NavMarker from '../NavMarker'
+import { scrollGlide } from '../../lib/scrollGlide'
 
-const AUTO_CLOSE_MS = 12000
-const SCROLL_CLOSE_THRESHOLD = 4
+const GLIDE_MS = 700
 
 interface Props {
   projectName?: string
-  infoCard?:    ReactNode
 }
 
-export default function ProjectMarker({ projectName = 'Biconomy', infoCard }: Props) {
-  const [open, setOpen] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+export default function ProjectMarker({ projectName = 'Biconomy' }: Props) {
+  // Where we were before jumping up to Signals — the toggle's "back" target.
+  // Lives per mount (resets on route change, which is the right scope).
+  const returnPos = useRef<number | null>(null)
 
-  const cancel = () => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = null
-  }
-  const arm = useCallback(() => {
-    cancel()
-    timerRef.current = setTimeout(() => setOpen(false), AUTO_CLOSE_MS)
+  const glideTo = useCallback((target: number) => {
+    // Pause every dominance snap for the glide's duration so the cover's
+    // land-dock snap can't override our scrollGlide; clear it just after.
+    document.body.classList.add('is-overlay-open')
+    scrollGlide(target, GLIDE_MS)
+    window.setTimeout(() => {
+      document.body.classList.remove('is-overlay-open')
+    }, GLIDE_MS + 120)
   }, [])
 
-  useEffect(() => () => cancel(), [])
-
-  useEffect(() => {
-    if (!open) return
-    const startY = window.scrollY
-    const onScroll = () => {
-      if (Math.abs(window.scrollY - startY) > SCROLL_CLOSE_THRESHOLD) {
-        cancel()
-        setOpen(false)
-      }
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [open])
-
   const handleClick = useCallback(() => {
-    if (!infoCard) {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    const signals = document.getElementById('signals')
+    if (!signals) {
+      glideTo(0)
       return
     }
-    setOpen(prev => {
-      const next = !prev
-      if (next) arm()
-      else cancel()
-      return next
-    })
-  }, [infoCard, arm])
+    const rect = signals.getBoundingClientRect()
+    const coverTop = rect.top + window.scrollY
+    const coverBottom = rect.bottom + window.scrollY
+    const halfView = window.innerHeight * 0.5
+    const atSignals = window.scrollY < coverBottom - halfView
+
+    if (!atSignals) {
+      // Remember where we are, then glide up to the cover's dock.
+      returnPos.current = window.scrollY
+      glideTo(coverTop)
+    } else {
+      // Return to where we came from — or the first content section's dock if
+      // the saved spot is empty or still inside the cover.
+      let target = returnPos.current
+      if (target == null || target < coverBottom - halfView) {
+        const firstChapter = document.querySelector<HTMLElement>('.sheet:not(.sheet--cover)')
+        target = firstChapter
+          ? firstChapter.getBoundingClientRect().top + window.scrollY
+          : coverBottom
+      }
+      glideTo(target)
+      returnPos.current = null
+    }
+  }, [glideTo])
 
   return (
-    <>
-      <NavMarker
-        as="button"
-        role="project"
-        icon="info"
-        label={projectName}
-        onClick={handleClick}
-        className={open ? 'is-info-open' : undefined}
-        aria-expanded={infoCard ? open : undefined}
-      />
-      {infoCard && (
-        <div
-          className={`marker-info-anchor${open ? ' is-open' : ''}`}
-          aria-hidden={!open}
-        >
-          {infoCard}
-        </div>
-      )}
-    </>
+    <NavMarker
+      as="button"
+      role="project"
+      icon="info"
+      label={projectName}
+      onClick={handleClick}
+    />
   )
 }

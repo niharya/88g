@@ -1,0 +1,176 @@
+/* ==========================================================================
+   CoverSheet — the case study's cover: the Signals bento on a reduced,
+   square-cornered graph-paper mat resting on the desk (no card), above the
+   first chapter. Component: app/components/CoverSheet/CoverSheet.tsx.
+   ========================================================================== */
+
+/* Section overrides the full-bleed chapter sheet: a transparent centring frame
+   on the desk (the workbench shows through), not an edge-to-edge mat. */
+.sheet--cover {
+  width: 100%;
+  margin-inline: 0;
+  border: none;
+}
+
+/* Backdrop photo is mobile-only; desktop uses the interactive CoverPeek. */
+.cover-backdrop {
+  display: none;
+}
+
+/* Peek out — lift the whole cover section above every other sheet (z-mat) and
+   the project marker (z-project-marker) so its scrim can dim them and the
+   raised photo reads as the top-layer surface. */
+.sheet--cover.is-peek-open {
+  z-index: var(--z-overlay);
+}
+
+/* Dim scrim — sits BETWEEN the card (z 0) and the raised photo (z 2) inside the
+   isolated stack, darkening the card + page while the photo stays bright. A
+   click anywhere on it returns the photo (CoverSheet).
+
+   `fixed` is trapped by the place-transform the `.section-reveal` rule leaves on
+   this stack, so it's sized to the 960px stack, not the viewport — the negative
+   `inset` overflows it far past the viewport on every side to cover the screen.
+   Safe at any size: a fixed element doesn't expand the scroll region, so this
+   can stay oversized even when idle (opacity 0), avoiding a shrink on dismiss. */
+.cover-scrim {
+  position: fixed;
+  inset: -100vh -100vw;
+  z-index: 1;
+  background: rgb(20 20 20 / 0.34);
+  cursor: default;
+}
+
+/* Stack — the positioning context shared by the card and the peek photo so
+   the two move independently. `isolation` contains the peek's negative z-index
+   behind the card yet above the desk. */
+.cover-stack {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 960px; /* the reduced mat — hugs the grid, not the screen */
+  margin-inline: auto;
+}
+
+/* Wrap — the reduced mat; casts the drop-shadow. Slides down (Framer) when the
+   peek is brought forward. */
+.cover-mat-wrap {
+  position: relative;
+  width: 100%;
+  filter: drop-shadow(0 16px 30px rgb(20 20 20 / 0.14));
+}
+
+/* Peek — the team photo tucked behind the card (z-index below the fill),
+   peeking above the top edge. `left: 50%` + the `-50%` translate in CoverPeek
+   centre it on the stack (itself viewport-centred); the rotate + slide come
+   from Framer (CoverPeek.tsx). */
+.cover-peek {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: -58px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  /* Centre pivot — keeps rotate + scale centre-preserving, so the measured
+     `openY` (offset-based) lands the photo exactly on the viewport centre when
+     out; a bottom pivot would shift the visual centre and miss. */
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 10px 18px rgb(20 20 20 / 0.22));
+  transition: filter var(--dur-slide) var(--ease-paper);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pulled out over the sheet — a heavier cast so it reads as lifted forward. */
+.cover-peek.is-over {
+  filter: drop-shadow(0 18px 32px rgb(20 20 20 / 0.30));
+}
+
+.cover-peek:focus-visible {
+  outline: 2px solid var(--grey-480);
+  outline-offset: 3px;
+}
+
+.cover-peek__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 5px solid var(--mat-bg); /* print margin */
+  border-bottom: 0; /* the caption block supplies the lower frame */
+}
+
+/* Caption — a small typed stamp on the photo's lower print frame. It reads as
+   part of the print (same cream frame), and stays tucked behind the card at
+   rest — revealed as the photo comes out. */
+.cover-peek__caption {
+  display: block;
+  background: var(--mat-bg);
+  padding: 6px 12px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--grey-480);
+  text-align: right;
+}
+
+/* The graph-paper mat surface (.mat supplies grid + noise) with a thin mint
+   edge, square corners. */
+.cover-mat__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border: 1px solid var(--mint-160);
+}
+
+/* Body — the bento, above the mat. Outer margin equals the bento gutter
+   (16px) so the surround matches the inter-tile gap. */
+.cover-mat__body {
+  position: relative;
+  z-index: 1;
+  padding: 16px;
+}
+
+/* ── Mobile — the peek photo is a desktop-only delight (the reference mobile
+   bento carries no photo); drop it. And the graph-paper mat bleeds edge-to-edge
+   like the /all timeline mat: restore the sheet's full-bleed width, drop the
+   floating-card shadow + mint frame, and inset the bento from the mat edges by
+   the shared gutter (a full-bleed mat + gutter lands the bento at ~327px on a
+   375 phone — exactly the bento's `--bu` baseline). ─────────────────────────── */
+@media (max-width: 767px), (max-height: 500px) {
+  .cover-peek {
+    display: none;
+  }
+  /* Backdrop photo — tucked BEHIND the mat (z below it), bleeding wider than the
+     viewport and peeking up into the desk band above the mat's top edge; the two
+     corner nav pills float over it. Decorative + inert. */
+  .cover-backdrop {
+    display: block;
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    bottom: calc(100% - 215px);
+    width: 132vw;
+    transform: translateX(-50%) rotate(-3deg);
+    filter: drop-shadow(0 6px 16px rgb(20 20 20 / 0.22));
+    pointer-events: none;
+    user-select: none;
+  }
+  .sheet--cover {
+    /* Exactly viewport-wide (not the sheet-bleed overhang) so the mat lands on
+       the screen edges and the gutter below gives a true inset. */
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    padding-inline: 0;
+  }
+  .cover-mat-wrap {
+    filter: none;
+  }
+  .cover-mat__bg {
+    border: none;
+  }
+  .cover-mat__body {
+    padding: var(--sheet-gutter);
+  }
+}

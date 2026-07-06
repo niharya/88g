@@ -21,7 +21,7 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 
 - **Every marker routes through `NavMarker`** — every visible marker renders through the shared primitive; CSS split and flyout/dim exceptions.
 - **Docked fill covers both markers of the pair** — the mat-coloured shell rule that unifies chapter + project marker while docked/open.
-- **`ProjectMarker` click — two modes** — scroll-to-top vs. infoCard-toggle branching.
+- **`ProjectMarker` is a Signals cover-toggle, not a drawer** — the toggle-to-`#signals` glide, `returnPos`, `scrollGlide`+`is-overlay-open`, and what's parked (TopSheet / MarkerTicket).
 - **Module structure (post-restructure)** — file-by-file role map for the nav cluster.
 - **`containerRef` replaces `.closest('.sheet')`** — arrow rotation + tray alignment target, and why the 4 `.closest('.sheet-stack')` calls stay.
 - **MarkerSlot measurement replaces ProjectMarker useEffect** — the four `--project-marker-right` publish triggers and the `.project-marker` class location (4 CSS sites).
@@ -64,9 +64,15 @@ When `.chapter-nav.is-docked` (or `.chapter-nav--open`) lands on the chapter mar
 - Inks inherit from the base role rules (project: `--grey-720`, chapter: `--grey-640`). Only the shell changes — don't override content colour in the docked rule.
 - The previous implementation painted the shell with a randomized `/noise-bg.png` crop via a `::before` layer + `--nm-noise-*` custom properties. That approach was removed when the fill was unified across the project/chapter pair; `/noise-bg.png` is no longer consumed by NavMarker — or by anything else (the last sweep found no live consumer; the file still ships in `public/` as a delete candidate).
 
-## `ProjectMarker` click — two modes
+## `ProjectMarker` is a Signals cover-toggle, not a drawer
 
-`ProjectMarker` is rendered as `as="button"` through `NavMarker` with two click modes: with no `infoCard` prop, `onClick` runs `window.scrollTo({ top: 0, behavior: 'smooth' })` — clicking the project name returns to the project's start; with an `infoCard`, the click toggles the card instead and does **not** scroll (the scroll lives only in the no-infoCard branch of `ProjectMarker.tsx`). This replaced the previous inert `as="div"` rendering; the wrapping `.project-marker` class (from `MarkerSlot`) is unchanged, so every existing `.project-marker`-targeted selector (nav.css halving, navmarker.css docked fill, route CSS overrides) keeps working. One visible consequence: on `/biconomy` and `/rr` the project marker now shows the primitive's default hover + :active fills, which it didn't before.
+`ProjectMarker` renders `as="button"` through `NavMarker` (icon `info`) and its click is a TOGGLE between the Signals cover and the case body — there is no drawer or `signals`/`infoCard` prop any more. `handleClick`: away from the cover it saves the current `scrollY` in a per-mount `returnPos` ref and glides up to the cover's dock (`#signals`'s absolute top); already at the cover it glides back to `returnPos`, or to the first `.sheet:not(.sheet--cover)`'s top if that's empty or still inside the cover. "At the cover" = `scrollY < coverBottom - halfView`. With no `#signals` on the page it falls back to gliding to top.
+
+**Where + why:** `ProjectMarker.tsx` — `handleClick`, `glideTo`, `returnPos`. Signals became a first-class cover sheet (`CoverSheet`, `id="signals"`) reached by scrolling, so the marker just navigates to it. It scrolls through the shared `scrollGlide` singleton (the same path `useDominanceSnap` writes) and adds the `is-overlay-open` body class for the glide's duration (removed at `GLIDE_MS + 120`) so the cover's land-dock snap can't fight the toggle mid-glide.
+
+**What breaks if violated:** a native `scrollTo({ behavior: 'smooth' })` loses the race to the snap's `scrollGlide` singleton; skipping the `is-overlay-open` pause lets dominance-snap yank the page mid-glide. The wrapping `.project-marker` class (from `MarkerSlot`) is unchanged, so every `.project-marker`-targeted selector (nav.css halving, navmarker.css docked fill, route overrides) keeps working; the marker shows the primitive's default hover + `:active` fills.
+
+**Parked, not dead:** the old `TopSheet` drawer, the `signals`/`signalsLabel` props, the in-rail `MarkerTicket`, and its `.marker-info-anchor` reveal CSS in `nav.css` are RETIRED but kept for reuse — don't delete them, and don't revive the drawer's `AUTO_CLOSE_MS` idle timer or scroll-to-close on the marker.
 
 ---
 
