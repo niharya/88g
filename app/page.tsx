@@ -679,8 +679,8 @@ export default function LandingPage() {
     '@type': 'Person',
     name: 'Nihar',
     url: 'https://nihar.works',
-    jobTitle: 'Designer',
-    description: 'Started with graphic design and somehow ended up deep in developer tooling and infrastructure systems.',
+    jobTitle: 'Product Designer',
+    description: 'I design developer tools and infrastructure, the technical software most designers steer around. The way in is always the same. Go a layer deeper than the screens, make the system underneath legible first. Screens follow.',
     sameAs: [
       'https://linkedin.com/in/niharbhagat',
       'https://github.com/niharya',

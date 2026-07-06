@@ -120,10 +120,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://nihar.works'),
   title: {
-    default: 'Nihar, Advanced Designer, Basic Conversationalist',
+    default: 'Nihar · Product designer for developer tools and infrastructure',
     template: '%s · Nihar',
   },
-  description: 'Started with graphic design and somehow ended up deep in developer tooling and infrastructure systems.',
+  description: 'I design developer tools and infrastructure, the technical software most designers steer around. The way in is always the same. Go a layer deeper than the screens, make the system underneath legible first. Screens follow.',
   applicationName: 'Nihar',
   authors: [{ name: 'Nihar', url: 'https://nihar.works' }],
   creator: 'Nihar',
@@ -153,8 +153,8 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://nihar.works',
     siteName: 'Nihar',
-    title: 'This wasn’t the original plan.',
-    description: 'UI and interaction design. Studio-building and creative direction. Developer tooling, tech infrastructure, growth experiments.',
+    title: 'Most of my real work is under the screens.',
+    description: 'Developer tools, infrastructure, dashboards. Dense products where the design problem isn’t adding screens, it’s making the system underneath legible and keeping it authored instead of mass generated.',
     locale: 'en_US',
     images: [
       {
@@ -167,8 +167,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nihar, Screens, Teams, Infrastructure',
-    description: 'Got into design because of curiosity and stayed because I like making complicated things feel clear.',
+    title: 'The screens were never the hard part.',
+    description: 'Developer tools and infrastructure. The design problem is in the system, not at the surface, and I go looking for it a layer down.',
     images: ['/og-image.png'],
   },
   robots: {
