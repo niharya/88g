@@ -43,6 +43,7 @@ entries load per-section, on demand.
 - **Black first-paint gap — two layers required, breakpoint-split** — the two `#000` layers, and the desktop-only grey override.
 - **Pointer-events inversion — landing passes through, interactive ELEMENTS opt in (not sections)** — why the opt-in is scoped to elements, not sections.
 - **Build gate — three triggers and a JS failsafe** — the three paths to `.landing--built`, and why `builtThisLoad` is module-level.
+- **`markToBench` mounts the departure hold** — the landing owns the stall Hold for landing → `/all`; the marker, its three releases, and the modifier-click exemption.
 - **Hero headline cycling — localStorage (not module state/sessionStorage), useLayoutEffect with a default-0 initializer (not a lazy one)** — persistence choice and the hydration-safe swap pattern.
 - **Failsafe fires before build completes on slow-connection mobile — expected degradation** — why the failsafe timer shouldn't be lowered.
 - **A rebuild always animates — `reduced` splits from `skipBuild`** — why `StartoothField` keeps two reduced-motion flags.
@@ -438,6 +439,49 @@ The framed sheet (above) now FILLS the viewport (minus a uniform `--sheet-margin
 **What breaks if the failsafe is removed.** A user whose browser fails to initialize the canvas (WebGL unavailable, script error, network timeout on the dynamic import) would see a permanently black screen — the landing never becomes visible.
 
 **What breaks if `useLayoutEffect` is changed to `useEffect`.** The `builtThisLoad` read would happen after paint, meaning a client-side return would flash hidden→visible at first paint before `built` is set. `useLayoutEffect` ensures the class is applied before the browser paints (paired with `.landing--skip` — see the skip-pin entry).
+
+## `markToBench` mounts the departure hold
+
+**What it is.** `markToBench` (`app/page.tsx`) does two jobs on a Works click.
+The old one: set `sessionStorage['nav-direction'] = 'to-bench'` so `/all` slides
+in from the right. The new one: append an invisible
+`.route-hold.route-hold--all` div to `document.body`, which re-arms the root
+layout's `.page-boot` loader (`globals.css` → Route hold) so a stalled landing →
+`/all` navigation shows the patience mark instead of nothing. Both landing
+doorways use it — the Works NavMarker and the spectrum "My Works" link.
+
+**Why the LANDING owns a hold for another route.** The measured failure was 2–3 s
+of zero feedback after the click, and that time is spent before the navigation
+commits: the client chunk is fetched against a main thread the landing's canvas
+intro is saturating. Nothing on the destination side — including a `loading.tsx`
+boundary, which only mounts at commit — can paint during that window. The
+departing page can. Full rationale + the tested alternative:
+`app/(works)/all/ANOMALIES.md` → "Route hold — a DEPARTURE marker, not a loading
+boundary".
+
+**Appended to `document.body`, not rendered by React.** Same trick as the
+cross-shell veil: a React-rendered node would unmount with the landing at the
+route swap, exactly when the hold is needed. The body node survives the swap and
+is removed by the destination.
+
+**Three releases, all load-bearing.** (1) arrival — `/all`'s `useBenchDock`
+removes `#route-hold-departure` on mount; (2) an 8 s failsafe matching the boot
+gate's cap, so a navigation that never lands doesn't strand the loader over the
+landing; (3) `pageshow` + `popstate` — on a bfcache Back the landing document is
+restored WITH the marker still in it, so without this release the loader
+reappears over the landing. The `#route-hold-departure` id doubles as the
+re-entrancy guard (a rapid second click doesn't stack markers).
+
+**Modifier clicks are exempt.** Cmd/ctrl/shift/alt or non-primary button returns
+before mounting the marker — that click opens a new tab, so the current page
+isn't navigating and must not be covered by a loader. (The `nav-direction` write
+happens before the bail, harmlessly: it's consumed on the next real arrival.)
+
+**What breaks.** Rendering the marker through React instead of `document.body`
+loses it at the route swap. Dropping any of the three releases strands the
+loader over the landing (until the failsafe, or indefinitely if the failsafe is
+the one dropped). Dropping the modifier-click bail flashes a loader over a page
+that isn't going anywhere.
 
 ## Hero headline cycling — localStorage (not module state/sessionStorage), useLayoutEffect with a default-0 initializer (not a lazy one)
 

@@ -21,9 +21,11 @@ const nextConfig = {
     ]
   },
   // Pretty, shareable aliases for the hub's two browse modes. Each rewrites to
-  // the single /all surface with a bare query flag (?showcase / ?cases) the
-  // page reads server-side — the morph stays one continuous in-page interaction
-  // and the address bar keeps the pretty alias (rewrites don't change the URL).
+  // the single /all surface; the active tab is resolved CLIENT-side from the
+  // browser URL (the rewrite hides its destination query from the client, but
+  // the pathname stays visible — see /all's "Deep-link entry & tab order"
+  // anomaly). No server searchParams read: that would make /all dynamic. The
+  // address bar keeps the pretty alias (rewrites don't change the URL).
   async rewrites() {
     return [
       { source: '/cases',    destination: '/all?cases' },

@@ -36,7 +36,7 @@ Enumerate destinations with Glob `**/ANOMALIES.md` (exclude `.claude/worktrees/`
 |-------|------|
 | /rr only | `app/(works)/rr/ANOMALIES.md` |
 | /biconomy only | `app/(works)/biconomy/ANOMALIES.md` |
-| /selected only | `app/(works)/selected/ANOMALIES.md` |
+| /all only (the works hub; folder renamed from `selected/`) | `app/(works)/all/ANOMALIES.md` |
 | /marks only | `app/marks/ANOMALIES.md` |
 | /shape-of-product only | `app/shape-of-product/ANOMALIES.md` |
 | Landing (`app/page.tsx` + `app/landing.css`) | `app/_landing/ANOMALIES.md` |

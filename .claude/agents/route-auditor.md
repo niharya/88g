@@ -12,7 +12,7 @@ Case-study routes live under `app/(works)/` — a persistent shell layout group:
 
 ```
 app/(works)/layout.tsx      — workbench, PaperFilter, ShellNav, TransitionSlot
-app/(works)/selected/       — landing/overview page
+app/(works)/all/            — works hub at route /all (folder renamed from selected/)
 app/(works)/rr/             — Rug Rumble project
 app/(works)/biconomy/       — Biconomy project
 ```

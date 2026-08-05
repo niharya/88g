@@ -13,11 +13,14 @@ Each project page is a composed reading environment — not a template filled wi
 | Route | Description | Status |
 |-------|-------------|--------|
 | `/` | Landing page — spectrum color selector, contact form | Shipped |
-| `/selected` | Works index — timeline, archive panel, project cards | Shipped |
+| `/all` | Works hub — invitation essay, Visual + Longform browse modes (aliased `/cases`, `/showcase`; `/selected` redirects here) | Shipped |
 | `/biconomy` | Biconomy case study — 6 chapters, UX audit through staying anchored | Shipped |
 | `/rr` | Rug Rumble case study — card game design and development | Shipped |
-| `/marks` | Marks & Symbols — cinematic credits-reel showcase | In build |
-| `/names` | Names Coined — naming work showcase | Planned (paper-stage) |
+| `/marks` | Marks & Symbols — cinematic credits-reel showcase | Shipped |
+| `/shape-of-product` | Musings layer — long-form writing beside the case studies | Shipped |
+| `/resume` | Résumé | Shipped |
+| `/privacy` | Privacy notice — pairs with the cookieless analytics layer | Shipped |
+| `/names` | Names Coined — naming work showcase | Planned (marker carries a W.I.P. hint) |
 
 ---
 
@@ -122,7 +125,7 @@ npm install
 npm run dev
 ```
 
-Active routes: `/`, `/selected`, `/biconomy`, `/rr`, `/marks`
+Active routes: `/`, `/all`, `/biconomy`, `/rr`, `/marks`, `/shape-of-product`, `/resume`, `/privacy` (the sitemap is the source of truth)
 
 ---
 

@@ -35,6 +35,36 @@ export function useBenchDock(initialActive: BenchActive) {
   // The in-flight glide (target + abort handle), so a counter-scroll can cancel it.
   const glideRef = useRef<{ target: number; cancel: () => void } | null>(null)
 
+  // Departure-hold release — the landing mounts `#route-hold-departure` on a
+  // Works click (app/page.tsx → markToBench) so the .page-boot loader covers a
+  // stalled landing → /all navigation. The bench mounting IS the arrival, so
+  // remove the marker here: the fonts-ready rules retake the cascade and the
+  // standard loader exit + reveal replay. (This replaced /all's loading.tsx —
+  // see ANOMALIES.md → "Route hold".)
+  useLayoutEffect(() => {
+    document.getElementById('route-hold-departure')?.remove()
+  }, [])
+
+  // Deep-link tab selection — a mount-time read of the real browser URL. The
+  // /cases & /showcase rewrites hide their destination query from the client
+  // (useSearchParams never sees it) but never the browser PATHNAME, and the
+  // /all?cases return seam is a real, client-visible query — so pathname +
+  // query together cover every entry without a server searchParams read
+  // (which would flip /all to request-time rendering and break full route
+  // prefetch — ANOMALIES.md → "Deep-link entry & tab order"). Layout effect
+  // so the swap off the prerendered default applies before first paint after
+  // hydration — no visible wrong-tab frame. setActive, not openTab — a deep
+  // link rests at the card, it never auto-scrolls into the work.
+  useLayoutEffect(() => {
+    const path = window.location.pathname.replace(/\/$/, '')
+    const query = new URLSearchParams(window.location.search)
+    const resolved: BenchActive | null =
+      path === '/showcase' || query.has('showcase') ? 'vis' // showcase wins if both flags are present
+      : path === '/cases' || query.has('cases') ? 'lf'
+      : null
+    if (resolved) setActive(resolved)
+  }, [])
+
   // Reserve the resting footprint so the card doesn't collapse when the ticket
   // pins out (position:fixed). The placeholder stays in flow, so slot.top keeps
   // tracking the document position even while the ticket is fixed.

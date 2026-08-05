@@ -6,26 +6,27 @@
 // click scroll-glides to the work; scrolling back up returns to the card.
 // Visual (showcase) is the default tab.
 //
-// `initialView` (server-read in page.tsx for the /cases & /showcase rewrites +
-// case-study EXIT) selects the active tab so a deep-link lands on the right
-// content below the card. It does NOT auto-scroll into the work — that landed
-// inconsistently against the content-layout + TransitionSlot scroll timing, so
-// the bench rests at the card (consistent with bare /all) and the chosen tab
-// is one scroll/click away. (Auto-scroll-into-content: deferred follow-up.)
+// Deep-link entry (the /cases & /showcase rewrites + case-study EXIT) selects
+// the active tab inside useBenchDock via a mount-time browser-URL read — no
+// server searchParams involved, which keeps /all statically generated. It does
+// NOT auto-scroll into the work — that landed inconsistently against the
+// content-layout + TransitionSlot scroll timing, so the bench rests at the
+// card (consistent with bare /all) and the chosen tab is one scroll/click
+// away. (Auto-scroll-into-content: deferred follow-up.)
 
 import BenchExitMarker from './BenchExitMarker'
 import InvitationCard from './InvitationCard'
 import Ticket from './Ticket'
 import WorkPanel from './WorkPanel'
-import { useBenchDock, type BenchActive } from './useBenchDock'
+import { useBenchDock } from './useBenchDock'
 
 // Sizing note: the card is a 3:4 page sized off viewport height entirely in CSS
 // (`--bench-card-w` on .bench-stage) with its content scaling via container-query
 // units (`--bu` on .bench-card). No JS scale knob — the old viewport-height
 // resize handler was removed when the card moved to the cqi relative-math spine.
 
-export default function BenchEssay({ initialView }: { initialView?: BenchActive | null }) {
-  const d = useBenchDock(initialView ?? 'vis')
+export default function BenchEssay() {
+  const d = useBenchDock('vis')
 
   return (
     <>

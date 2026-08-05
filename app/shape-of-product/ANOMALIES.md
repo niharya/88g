@@ -64,7 +64,7 @@ break on narrow viewports.
 
 **The "Nihar" link sets `sessionStorage['nav-direction'] = 'to-landing'`**
 so the landing page's `SlideInOnNav` can animate the hero in from the
-left on arrival. Same pattern as `/selected/components/NiharHomeLink`.
+left on arrival. Same pattern as `/all`'s use of the shared `NiharHomeLink`.
 
 **`NiharHomeLink` is consumed from the shared layer.** Promoted at
 v0.79.0 from `/selected/components/NiharHomeLink.tsx` to

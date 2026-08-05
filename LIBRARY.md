@@ -22,7 +22,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **Sheet** — `app/components/Sheet.tsx`; paper chapter container (three-phase reveal, scroll-linked card glide, opt-in snap); every works route.
 - **Framed-sheet spine** — the cqi/`--bu` relative-sizing RECIPE shared by the three framed reading-surfaces (landing Startooth sheet, /all blue card, /all timeline mat); a documented pattern, not shared code (params differ per sheet). Archetypes: page / ledger. Distinct from the **Sheet** component above.
 - **useReveal** — `app/components/useReveal.ts`; one-shot `.revealed` intersection hook paired with `.section-reveal` CSS.
-- **Nav cluster** — `app/components/nav/`; docked-nav system; import from the barrel only; READ its CLAUDE.md/ANOMALIES.md before touching; every works route + /marks + /selected.
+- **Nav cluster** — `app/components/nav/`; docked-nav system; import from the barrel only; READ its CLAUDE.md/ANOMALIES.md before touching; every works route + /marks + /shape-of-product.
 - **SlideInOnNav** — `app/components/SlideInOnNav.tsx`; sessionStorage-flag directional entrance between / and /selected.
 - **PaperFilter** — `app/components/PaperFilter.tsx`; global SVG defs; render exactly once per document.
 - **Icons** — `app/components/icons/`; hand-rolled SVGs with animatable internal paths; currentColor.
@@ -102,9 +102,10 @@ The single nav-marker primitive — the shared shell behind every `ChapterMarker
 - **Discriminated `as` union is the public surface.** `as: 'a'` requires `href`; `as: 'button'` forbids `href` and takes an optional `type`; `as: 'div'` forbids both `href` and `onClick` (inert presence marker). Don't flatten the union into one `BaseProps` with all three — TS would stop catching consumer mistakes.
 - **Docked fill.** When the chapter marker docks (`.chapter-nav.is-docked` — written by `useDockedMarker`) the chapter marker and the adjacent project marker both switch to `--mat-bg` with a `--mint-100` border so the pair reads as cut from the mat. Hover progresses to `--grey-880`, press to `--grey-800`. Flyout items are excluded (they live in the tray, not against the mat). Inks inherit from the base role rules — only the shell changes. On `/all` the same treatment applies statically via `.chapter-nav--static` + `.selected-nav-row` selectors. On landing the Nihar + Works pair reuses this via `.landing-nav-row`.
 - **Acknowledgment contract.**
-  - `navigate` (default) — no visual click feedback; the route change is the feedback. Used by ExitMarker and NiharHomeLink.
+  - `navigate` (default) — no visual click feedback; the route change is the feedback. Now the fallback rather than the norm: the cross-page entry points (landing Works, `ExitMarker`, `NiharHomeLink`, `ReturnMarker`) all set `press` per §5.6 of the choreography doc, so a click is never unacknowledged while a destination loads.
   - `shake` — arrow shakes on click for same-page markers (Works marker on `/all`). The hook `useShakeState` flips `data-shaking` for exactly 360ms to match the CSS keyframe. Keyframe origin is `center bottom` so the glyph pivots from its base.
   - `morph` — icon rotates 45° while `state === 'active'`. Used by the landing's Nihar toggle (`+` → `×`). Requires the consumer to pass `state="active"` when expanded; the component itself does not track this.
+  - `press` on a SHELL-LESS marker. The held state is a darkened shell fill, so it paints nothing on `ReturnMarker` (`.return-marker` strips the shell). `navmarker.css` gives `.return-marker[data-departing]` the flat translation instead — the marker's own hover ink + solid underline, held until unmount. Any future shell-less marker needs the same treatment, or its `press` is a silent no-op.
 - **`wipHint` chip.** Optional string; when provided, clicking the marker runs its normal `onClick` (navigation, toggle, etc.) *and* reveals a Monostamp chip (olive / light) inline to the right of the label for 8s via `useWipHintState`. Re-clicking resets the timer. CSS animates `max-width` + `opacity` + `margin-left` on `.nav-marker__wip.is-shown` (`var(--dur-slide)` / `var(--ease-paper)`). The chip sits inside `.nav-marker__content`, so the marker's 32px right padding applies equally to the chip's trailing edge.
 - **`state` is stateless by design.** Consumer owns `default` / `active`. `active` drives the morph acknowledgment when `acknowledgeOnClick === 'morph'`.
 - **`tone` is orthogonal to `role` and `state`.** Any role can take any tone; states layer cleanly over any tone. New tones require a matching `.nav-marker--tone-<name>` block in `navmarker.css`.
@@ -162,7 +163,7 @@ The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Co
 
 **Where it lives**
 - [app/layout.tsx](app/layout.tsx) — the five `localFont(...)` blocks and the `<html>` className wiring. Each block sets `display: 'swap'` and an explicit `fallback` chain.
-- [app/fonts/](app/fonts/) — the `.woff2` files. `Fraunces-{normal,italic}`, `GoogleSans-{normal,italic}`, `GoogleSansFlex-variable`, `GoogleSansCode-{normal,italic}`, `MaterialSymbolsRounded-normal`.
+- [app/fonts/](app/fonts/) — the `.woff2` files. `Fraunces-{normal,italic}`, `GoogleSans-{normal,italic}`, `GoogleSansFlex-variable`, `GoogleSansCode-{normal,italic}`, `Gluten-variable`, `LondrinaSolid-normal`, `PlaypenSans-variable`, `MaterialSymbolsRounded-subset`.
 - [app/globals.css](app/globals.css) — the `--font-*` tokens are **commented but never redeclared**. next/font sets the variables themselves on `<html>`.
 
 **The five tokens**
@@ -181,7 +182,7 @@ The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Co
 - **CSS variables, never font-family strings.** Anywhere you'd write `font-family: 'Fraunces'`, write `font-family: var(--font-display)`. The token layer is what lets future migrations be one-line changes.
 - **Banned patterns.** `display: 'block'` on primary fonts. Redeclaring `--font-*` in `globals.css :root`. The 3-second JS font-gate. External `<link rel="stylesheet">` to `fonts.googleapis.com` for the five primary fonts. Adding the full Material Symbols woff2 (5+ MB). Full context in `docs/performance.md` → "Fonts".
 - **Adding a new font.** Drop `.woff2` in `app/fonts/`. Add a `localFont(...)` block in `layout.tsx` with `display: 'swap'`, an explicit `fallback` chain, and `preload` based on landing usage. Add the className to `<html>`. Update this entry. Do **not** add a `--font-*` declaration in `globals.css :root` — next/font handles it.
-- **Adding a new Material Symbols icon.** Update the icon list in `docs/performance.md`, re-run the subsetting curl flow documented there, replace `app/fonts/MaterialSymbolsRounded-normal.woff2`. Do **not** swap in the full font.
+- **Adding a new Material Symbols icon.** Add the ligature name to `ICON_NAMES` in [app/lib/icons.ts](app/lib/icons.ts) (the typed registry — an unlisted glyph is a compile error), then run `npm run icons`, which re-subsets `app/fonts/MaterialSymbolsRounded-subset.woff2`. `npm run icons:check` runs at pre-push and blocks a stale subset. Do **not** swap in the full font — that's a banned path (root `CLAUDE.md` → Performance). See `docs/performance.md` → "Material Symbols icons".
 
 ---
 
@@ -702,6 +703,7 @@ The flat, chip-less "back" link — the in-flow sibling of the fixed white-on-ar
 - Styling: `.return-marker` block in [app/components/NavMarker/navmarker.css](app/components/NavMarker/navmarker.css) (loaded by every marker consumer; not a separate stylesheet).
 
 **AI notes**
+- **Press acknowledgment is translated, not inherited.** The primitive sets `acknowledgeOnClick="press"`, but the chip's held FILL has no shell to paint here, so `.return-marker[data-departing]` holds the hover ink + solid underline instead (navmarker.css, right after the hover rules). Consumers get it for free; don't set `acknowledgeOnClick` on the wrapper.
 - **Props:** `href`, `label`, `onClick?`, `aria-label?`. Deliberately no `tone` prop — colour comes from two custom properties the consumer sets on any ancestor: `--return-marker-ink` (rest, fallback `--grey-720`) and `--return-marker-ink-hover` (hover, fallback `--grey-560`). Keeping tone in CSS keeps the primitive stateless (cf. Monostamp's consumer-owned state).
 - **Arrow-LEFT is a SPECIFICITY win, not source order.** nav.css rotates every `.nav-marker--exit .nav-icon` 180° (two classes) for the shell/marks chip exits; the shared reset is `.return-marker.nav-marker--exit .nav-icon { transform: none }` (three classes) so a client-side nav that re-inserts CSS chunks in a different order can't flip it back. The label's dotted→solid underline overrides the shell-exit fade idiom the same way. **Don't drop a class** from either selector. (This was a real bug on /all before promotion — see /all ANOMALIES.)
 - **Side-effects stay with the consumer.** The primitive only renders; behaviours like `BenchExitMarker`'s `sessionStorage['nav-direction']='to-landing'` (for the landing's `<SlideInOnNav>` entrance) ride in via `onClick`. Don't bake a specific destination or flag into the primitive.

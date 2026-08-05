@@ -303,23 +303,31 @@ split and the `--loader-screen-bg` blocks in globals.css "Page boot".
 
 ## Route hold — `.route-hold` re-arms `.page-boot` by specificity (soft-nav Hold)
 
-**What:** a route's `loading.tsx` may render an invisible `.route-hold` marker
-div; while it exists, `:root:has(.route-hold)` rules re-run `page-boot-in` /
+**What:** an invisible `.route-hold` marker div; while it exists in the
+document, `:root:has(.route-hold)` rules re-run `page-boot-in` /
 `page-boot-mark-in` on the ROOT layout's existing `.page-boot` loader and hold
 `.workbench` at `opacity: 0` — the mid-session Hold for a stalled soft
 navigation (docs/navigation-choreography.md §5.5). Palette modifiers
-(`.route-hold--all`) join the destination route's `:has()` colour block, since
-the page-root class doesn't exist while the fallback shows. Sole consumer:
-`app/(works)/all/loading.tsx` (scoping rationale lives in that route's archive).
+(`.route-hold--all`) join the DESTINATION route's `:has()` colour block, since
+that route's page-root class doesn't exist yet while the hold shows.
+
+**Who mounts it.** The marker is trigger-agnostic — the CSS only cares that a
+`.route-hold` element exists. Today's sole consumer mounts it from the
+DEPARTING side: the landing's `markToBench` appends it on a Works click and
+`useBenchDock` removes it on `/all`'s mount, which covers the pre-commit stall
+a `loading.tsx` fallback structurally cannot (`app/(works)/all/ANOMALIES.md` →
+"Route hold — a DEPARTURE marker, not a loading boundary"). A route
+`loading.tsx` rendering the same marker also works and was verified not to
+break a statically generated route; if one is ever added, its own unmount is
+its release, and it must not sit at a group level.
 
 **Where:** `globals.css` → the "Route hold" block inside the Page boot section;
-`app/(works)/all/loading.tsx`.
+`app/page.tsx` (`markToBench`) mounts, `useBenchDock` releases.
 
 **Why:** the `.page-boot` idiom is one-shot — `html.fonts-ready` drives it to
-`opacity: 0` with a `forwards` fill, so a second loader mounted inside a
-fallback is invisible on arrival; duplicating the markup was rejected for that
-reason. Re-arming the existing node through the cascade needs no new markup and
-no exit code: when the fallback unmounts, the fonts-ready rules retake the
+`opacity: 0` with a `forwards` fill, so a second loader mounted mid-session is
+invisible; duplicating the markup was rejected for that reason. Re-arming the existing node through the cascade needs no new markup and
+no exit code: when the marker goes, the fonts-ready rules retake the
 cascade, so the standard exit (field fade + mark peel) and the workbench reveal
 transition replay — a held arrival lands with the same gesture as first load.
 

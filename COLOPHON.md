@@ -22,7 +22,7 @@ All five faces are delivered via **[Google Fonts](https://fonts.google.com/)** C
 - **[Google Sans](https://fonts.google.com/specimen/Google+Sans)** — body text. A workhorse humanist sans with slightly warmer proportions than Inter or Helvetica; reads as authored, not defaulted.
 - **[Google Sans Flex](https://fonts.google.com/specimen/Google+Sans+Flex)** — UI. Full variable-axis family (`wdth`, `wght`, `GRAD`, `ROND`, `opsz`). Every weight step in the type scale is a specific axis combination, not a different font file.
 - **[Material Symbols Rounded](https://fonts.google.com/icons?icon.style=Rounded)** — nav icons. Variable-axis glyphs for the small number of cases where a hand-rolled SVG would have been busywork.
-- **System monospace stack** (`ui-monospace`, `SF Mono`, `Cascadia Mono`, `Segoe UI Mono`, Menlo, Monaco, Consolas) — year labels in the `/selected` timeline. Monospace ensures even digit widths without needing tabular-nums or variable-font tricks on the display face.
+- **System monospace stack** (`ui-monospace`, `SF Mono`, `Cascadia Mono`, `Segoe UI Mono`, Menlo, Monaco, Consolas) — year labels in the `/all` timeline. Monospace ensures even digit widths without needing tabular-nums or variable-font tricks on the display face.
 
 ---
 
@@ -46,7 +46,7 @@ All five faces are delivered via **[Google Fonts](https://fonts.google.com/)** C
 
 Two color systems, used for different jobs. Both run offline — no color-science runtime ships to the browser. The site only sees final hex or HSL values.
 
-- **[OKLCH](https://oklch.com/)** — the default. A perceptually uniform color space: equal steps in lightness look equal to the eye, complementary pairs stay balanced across hue, and chroma clamps land in-gamut without the washed-out surprises HSL produces. Used for the per-project token scales in `/selected` (Connektion, Aleyr, Ecochain, Codezeros, Slangbusters — each with tiers at 100 / 240 / 800 / 960), and for the cream / blue / yellow / neutral tokens in `globals.css`. Authored in OKLCH, exported as HSL for CSS tweakability.
+- **[OKLCH](https://oklch.com/)** — the default. A perceptually uniform color space: equal steps in lightness look equal to the eye, complementary pairs stay balanced across hue, and chroma clamps land in-gamut without the washed-out surprises HSL produces. Used for the per-project token scales in `/all` (Connektion, Aleyr, Ecochain, Codezeros, Slangbusters — each with tiers at 100 / 240 / 800 / 960), and for the cream / blue / yellow / neutral tokens in `globals.css`. Authored in OKLCH, exported as HSL for CSS tweakability.
 - **[munsell.js](https://github.com/privet-kitty/munsell.js)** — used only for the landing-page spectrum grid. The four palettes (teal↔red, purple↔chartreuse, jade↔lavender, orange↔blue) were generated via `mhvcToHex()` — the Munsell-HVC-to-RGB conversion — with chroma fallback for gamut safety. The [Munsell color system](https://en.wikipedia.org/wiki/Munsell_color_system) gives a specific kind of perceptually balanced complementary pair the spectrum grid needed, that OKLCH doesn't quite reproduce. Precomputed at build-time into the palette array in `app/page.tsx`.
 
 ---
@@ -71,7 +71,7 @@ Two color systems, used for different jobs. Both run offline — no color-scienc
 
 ## ◐ Icons (custom, not imported)
 
-Two of the animated icons in `/selected` are hand-rolled SVGs built against the geometry of the **[Lucide](https://lucide.dev/)** icon set — not imported from `lucide-react`. Done this way so the inner `<path>` and `<g>` nodes could be named and animated individually (`.icon-ext-arrow`, `.icon-chevron-shaft`) via CSS `translate` on parent hover. The rest of the site uses Material Symbols Rounded where a static glyph is enough.
+Two of the animated icons in `/all` are hand-rolled SVGs built against the geometry of the **[Lucide](https://lucide.dev/)** icon set — not imported from `lucide-react`. Done this way so the inner `<path>` and `<g>` nodes could be named and animated individually (`.icon-ext-arrow`, `.icon-chevron-shaft`) via CSS `translate` on parent hover. The rest of the site uses Material Symbols Rounded where a static glyph is enough.
 
 ---
 

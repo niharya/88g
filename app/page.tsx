@@ -28,9 +28,40 @@ const StartoothCanvas = dynamic(() => import('./_landing/StartoothCanvas'), { ss
    landing's root className toggles on expand, and React's className
    reconciliation strips any imperatively-added classes (like SlideInOnNav's)
    on every re-render. Owning the class through React state keeps it stable
-   across the expand toggle, avoiding a mid-flight animation restart. */
-const markToBench = () => {
+   across the expand toggle, avoiding a mid-flight animation restart.
+
+   Departure hold — the second half of this handler mounts the `.route-hold`
+   marker (globals.css → Route hold) on document.body at CLICK time, so a
+   stalled landing → /all navigation re-arms the .page-boot loader from the
+   moment of departure. It sits on the DEPARTING side because that is where the
+   evidence was: the reported 2–3 s of nothing happens before the navigation
+   commits (client-chunk fetch against a canvas-saturated main thread), and a
+   loading.tsx boundary only mounts at commit. Appended to body (like the
+   cross-shell veil) so it survives the route swap; /all removes it on mount
+   (useBenchDock). Three releases guard it — the arrival, an 8s failsafe
+   matching the boot gate's cap, and pageshow/popstate for the bfcache trip
+   back (the restored landing carries the marker with it). Modifier clicks
+   (new tab) skip it — the current page isn't navigating.
+   See /all ANOMALIES → "Route hold". */
+const markToBench = (e?: React.MouseEvent) => {
   try { sessionStorage.setItem('nav-direction', 'to-bench') } catch { /* non-fatal */ }
+  if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0)) return
+  if (document.getElementById('route-hold-departure')) return
+  const hold = document.createElement('div')
+  hold.id = 'route-hold-departure'
+  hold.className = 'route-hold route-hold--all'
+  hold.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(hold)
+
+  const release = () => {
+    hold.remove()
+    window.clearTimeout(failsafe)
+    window.removeEventListener('pageshow', release)
+    window.removeEventListener('popstate', release)
+  }
+  const failsafe = window.setTimeout(release, 8000)
+  window.addEventListener('pageshow', release)
+  window.addEventListener('popstate', release)
 }
 
 /* Startooth build memory — deliberately a MODULE-LEVEL variable, not

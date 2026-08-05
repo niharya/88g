@@ -66,13 +66,24 @@ listener release a stuck press if the navigation never completes.
 
 **Why:** the destination of a cross-page marker can take seconds to paint on a
 cold or slow visit (the landing → /all dead-click report that also produced the
-`.route-hold` loading boundary); `navigate` mode's "route change is the
+`.route-hold` departure hold); `navigate` mode's "route change is the
 feedback" is zero feedback in that window. Press is the same-frame
-acknowledgment `docs/navigation-choreography.md` §5.6 specifies.
+acknowledgment `docs/navigation-choreography.md` §5.6 specifies. Consumers are
+now every plain-`<Link>` cross-page entry point — the landing Works marker,
+`ExitMarker`, `NiharHomeLink`, `ReturnMarker` — but NOT the veil-driven
+crossings, where `CrossShellVeil`'s dim is already the acknowledgment.
 
 **What breaks if violated:** removing the modifier-click guard (`metaKey` /
 `ctrlKey` / `shiftKey` / `altKey` / non-primary button) inks the marker for
 open-in-new-tab clicks where the page never leaves — a held press that lies.
+
+**Silent no-op on a SHELL-LESS marker.** The held state is a darkened shell
+fill, so `press` paints nothing on a marker whose shell is stripped —
+`ReturnMarker` (`.return-marker`) sets `background: none`, which wins on source
+order. It gets a flat translation in `navmarker.css` instead: the marker's own
+hover ink + solid underline, held via `.return-marker[data-departing]`. Any
+future shell-less marker needs the same treatment, or setting `press` on it
+does nothing and nobody notices — the prop is set, the acknowledgment isn't.
 The hold must stay ADDITIVE to the consumer's `onClick` — the landing Works
 marker's `markToBench` (the `nav-direction: to-bench` direction contract) has to
 keep firing. The `[data-departing]` attribute selector carries class-level
@@ -112,7 +123,7 @@ When `.chapter-nav.is-docked` (or `.chapter-nav--open`) lands on the chapter mar
 | `MarkerSlot.tsx` | Positioning wrapper — fixed left/right marker container. Left slot measures right edge via ResizeObserver → `--project-marker-right`. Future persistence point for cross-route transitions. |
 | `ChapterMarker.tsx` | Two modes: **dynamic** (full docked behavior via `useDockedMarker`) and **static** (inert marker, no hooks). Dynamic requires `containerRef` prop. |
 | `ProjectMarker.tsx` | Content-only — renders icon + name. No positioning or measurement (handled by MarkerSlot). |
-| `ExitMarker.tsx` | Fixed right marker linking to /selected. Not wrapped in MarkerSlot (uses its own `.exit-marker` positioning). |
+| `ExitMarker.tsx` | Fixed right marker linking to `/all?cases` (the route was renamed from `/selected`). Sets `acknowledgeOnClick='press'`. Not wrapped in MarkerSlot (uses its own `.exit-marker` positioning). |
 | `Sheet.tsx` *(lives one level up, at `app/components/`)* | `'use client'` — creates `useRef` for the `<section>`, passes to ChapterMarker as `containerRef`. Also calls `useReveal` for scroll-triggered section entrance. |
 | `useReveal.ts` *(lives at `app/components/`)* | Hook — one-shot IntersectionObserver, adds `.revealed` to a ref'd element. Gates itself behind `.transitioning` removal to avoid fighting TransitionSlot. |
 

@@ -519,18 +519,21 @@ html.fonts-ready .page-boot {
 }
 
 /* ── Route hold — the soft-navigation Hold (docs/navigation-choreography.md
-   §5.5). A route's loading.tsx renders an invisible `.route-hold` marker div;
-   while it exists these rules re-arm the ROOT layout's .page-boot loader
-   mid-session, so a stalled soft navigation shows the same patience mark as a
-   hard load — no duplicate loader markup. The :has() selectors carry three
-   class-level simple selectors, so they out-specify the one-shot
+   §5.5). The DEPARTING page mounts an invisible `.route-hold` marker div on
+   document.body at click time (landing → markToBench, app/page.tsx — NOT a
+   loading.tsx, which only mounts at navigation commit and so can't cover the
+   pre-commit stall this exists for; see /all's ANOMALIES → "Route hold");
+   while the marker exists these rules re-arm the ROOT layout's .page-boot
+   loader mid-session, so a stalled soft navigation shows the same patience
+   mark as a hard load — no duplicate loader markup. The :has() selectors
+   carry three class-level simple selectors, so they out-specify the one-shot
    `html.fonts-ready` exit rules above (two classes + element) — that
-   specificity gap is what lets the hold interrupt an already-booted page; the
-   moment the real page replaces the fallback the marker vanishes, the
-   fonts-ready rules retake the cascade, and the standard exit (field fade +
-   mark peel) replays. The shell holds hidden underneath meanwhile — its
-   opacity 0→1 on release rides the fonts-ready reveal transition above, so a
-   held arrival lands with the same Place gesture as first load. Fade-in waits
+   specificity gap is what lets the hold interrupt an already-booted page; on
+   arrival the destination removes the marker (useBenchDock), the fonts-ready
+   rules retake the cascade, and the standard exit (field fade + mark peel)
+   replays. The shell holds hidden underneath meanwhile — its opacity 0→1 on
+   release rides the fonts-ready reveal transition above, so a held arrival
+   lands with the same Place gesture as first load. Fade-in waits
    --dur-loader-appear, so a nav that resolves quickly never flashes it. */
 :root:has(.route-hold) .page-boot {
   animation: page-boot-in var(--dur-slide) var(--ease-paper) var(--dur-loader-appear) both;

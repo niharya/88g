@@ -249,3 +249,16 @@ a.nav-marker:active {
 .return-marker.nav-marker--exit:focus-visible {
   background: none;
 }
+/* Press acknowledgment, flat translation. The chip version of
+   acknowledgeOnClick='press' holds a darkened SHELL fill — but this marker has
+   no shell (the `background: none` rules above win on source order), so the
+   held state would be a 1px sink and nothing else. Hold the marker's own hover
+   language instead — hover ink + solid underline — so a departing click still
+   reads as acknowledged in the flat vocabulary. Same held-until-unmount
+   contract as the chip; no new visual vocabulary introduced. */
+.return-marker.nav-marker--exit[data-departing] .nav-marker__content {
+  color: var(--return-marker-ink-hover, var(--grey-560));
+}
+.return-marker.nav-marker--exit[data-departing] .nav-marker__exit-label {
+  text-decoration-style: solid;
+}

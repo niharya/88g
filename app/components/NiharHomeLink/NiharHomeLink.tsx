@@ -4,6 +4,10 @@
 // landing page from any non-landing surface that wants the docked
 // nav-pair pattern.
 //
+// Acknowledges its own click with `acknowledgeOnClick='press'` (holds the
+// pressed shell until the landing takes over — §5.6 of the choreography doc);
+// the held value is what :active already paints, so it costs no new CSS.
+//
 // Sets `sessionStorage['nav-direction'] = 'to-landing'` on click so the
 // landing's `<SlideInOnNav>` can animate the hero in from the left on
 // arrival. The session flag is the only side-effect; the navigation
@@ -39,6 +43,7 @@ export default function NiharHomeLink() {
       role="project"
       icon="arrow_back"
       label="Nihar"
+      acknowledgeOnClick="press"
       onClick={onClick}
       aria-label="Back to landing page"
     />

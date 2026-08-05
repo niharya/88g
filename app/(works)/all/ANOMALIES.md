@@ -8,8 +8,8 @@ digest's pointer and read only that section** — the Index below is the cheap m
 
 Current (bench essay + Cases/Longform timeline + Showcase/Visual tab):
 - **Scroll-dock + shell contract** — the ticket's coupled pin+condense scroll state and its one down-only assist.
-- **Deep-link entry & tab order** — `/cases`/`/showcase` rewrite-driven tab selection, default, and tab order.
-- **Route hold — scoped to /all on purpose** — why the soft-nav Hold boundary lives here, never on the (works) group.
+- **Deep-link entry & tab order** — `/cases`/`/showcase` rewrite-driven tab selection (client-side, keeps /all static), default, and tab order.
+- **Route hold — a DEPARTURE marker, not a loading boundary** — why the stall Hold is mounted by the landing at click time, and why a boundary must never move to the (works) group.
 - **TransitionSlot exit-dim selector** — the `.bench-workbench > *` wrapper class the shared exit-dim depends on.
 - **`--bu` container-query spine** — why the cqi container lives on `.bench-stage`, not `.bench-card`.
 - **Condense** — the docked ticket's rest↔pinned width/tabs/close morph.
@@ -73,42 +73,78 @@ Current (mobile pass, whole route):
 
 ## Deep-link entry & tab order
 
-**What it is.** Deep-link entry (`/cases`, `/showcase`, `/all?showcase`, `/all?cases`, and case-study EXIT) reads the bare query flags (`'showcase' in sp` / `'cases' in sp`) SERVER-side in `page.tsx` → `/showcase` selects the Visual tab, `/cases` selects Longform.
+**What it is.** Deep-link entry (`/cases`, `/showcase`, `/all?showcase`, `/all?cases`, and case-study EXIT) selects the active tab from the REAL BROWSER URL, read once on mount, CLIENT-side → `/showcase` selects the Visual tab, `/cases` selects Longform.
 
-**Where.** `page.tsx` (server component) computes `initialView` from the search params; `BenchEssay` calls `useBenchDock(initialView ?? 'vis')`.
+**Where.** `useBenchDock` (a `useLayoutEffect` with an empty dep array) resolves `window.location.pathname` + `window.location.search`; `BenchEssay` calls `useBenchDock('vis')` with no server input. `page.tsx` takes NO props.
 
-**Why server-side.** The `/cases` and `/showcase` rewrites (`next.config.mjs`) deliver the flags as the DESTINATION query — client-side `useSearchParams` never sees them, so the read has to happen server-side in `page.tsx`. If both flags are present, showcase wins.
+**Why client-side, and why the old "must be server-side" reasoning had an escape hatch.** The rewrites (`next.config.mjs`) deliver their flags as the DESTINATION query, which `useSearchParams` never sees — that part of the original reasoning is still true, and it is why a `useSearchParams` read alone does not work. What it missed: a rewrite never hides the browser **pathname**. On `/cases` and `/showcase` the pathname IS the flag, and the `/all?cases` return seam is a real, client-visible query. Pathname + query together cover every entry with no server read. Precedence is unchanged: showcase wins if both are somehow present.
 
-**Defaults + order — current (supersedes the original Longform-default/Longform-left authoring).** With NEITHER flag, the default tab is Visual (showcase) — `initialView` is `null`, and `useBenchDock(initialView ?? 'vis')` falls back to `'vis'` (was `?? 'lf'`). Tab ORDER in the ticket is Visual-LEFT, Longform-RIGHT (`Ticket.tsx`'s two `<button>`s were reordered in JSX to match — only DOM position moved, each button's `onClick`/`aria-current` stayed attached through the swap). `Ticket.tsx`'s file-header comment carries the same framing ("Tab order: Visual (showcase) first, Longform (case studies) second. Visual is the default tab.") — treat it as the live source of truth if this note and the code ever drift. Don't swap the order or default without updating both. The Longform-return seam (`/all?cases`, "Return seam" above) is untouched — it still explicitly forces Longform via the flag, independent of the bare-URL default.
+**Why it MUST stay off the server.** Any server `searchParams` access opts the whole route into request-time rendering — `/all` was the one page building `ƒ` while every other built `○`, and a dynamic route's `<Link>` prefetch caches only the loading-boundary shell, not the RSC payload. That is what made the landing → `/all` click pay a server round trip and turned the stall Hold into the common path (`docs/navigation-choreography.md` → D5). Verified after the move: `next build` reports `○ /all`, and all five entries resolve correctly (`/all` → Visual, `/cases` → Longform, `/showcase` → Visual, `/all?cases` → Longform, `/all?showcase` → Visual).
+
+**Accepted cost — a sub-frame-to-~150ms wrong-tab window on the alias entries.** `/cases` and `/showcase` now SERVE the default (Visual) HTML and flip after hydration. The layout effect means the flip lands before paint of the hydrated frame, and the boot gate normally hides it entirely; measured on a warm cache (fonts cached, so the gate lifts early) the visible window was 34–136 ms on localhost, during which the visitor sees the Visual tab before it animates to Longform. It reads as the tab swap, not as a glitch. Eliminating it entirely means per-URL prerendered HTML — real `/all/cases` + `/all/showcase` segments or a `[[...view]]` catch-all — which was weighed and rejected: it splits the loading-boundary scoping and TransitionSlot's segment set for a one-frame-class cosmetic gain. `canonical` is already `/all`, so the aliases are not separately indexed.
+
+**What breaks.** Reintroducing a server `searchParams` read flips `/all` back to `ƒ` and reopens the prefetch gap. Swapping the mount-time `window.location` read for `useSearchParams` breaks the two rewrite aliases (the destination query is invisible to the client). Moving the read out of a layout effect into a plain `useEffect` puts the flip after paint, widening the wrong-tab window into a visible flash.
+
+**Defaults + order — current (supersedes the original Longform-default/Longform-left authoring).** With NEITHER flag, the default tab is Visual (showcase) — `BenchEssay` calls `useBenchDock('vis')` (the seed was `'lf'` in the original authoring), and the mount-time resolver above leaves that seed alone when it finds no flag. Tab ORDER in the ticket is Visual-LEFT, Longform-RIGHT (`Ticket.tsx`'s two `<button>`s were reordered in JSX to match — only DOM position moved, each button's `onClick`/`aria-current` stayed attached through the swap). `Ticket.tsx`'s file-header comment carries the same framing ("Tab order: Visual (showcase) first, Longform (case studies) second. Visual is the default tab.") — treat it as the live source of truth if this note and the code ever drift. Don't swap the order or default without updating both. The Longform-return seam (`/all?cases`, "Return seam" above) is untouched — it still explicitly forces Longform via the flag, independent of the bare-URL default.
 
 **What breaks.** It does NOT auto-scroll into the work (rests at the card) — auto-scroll-into-content is a deferred follow-up, not a bug. Moving the query read to the client breaks deep-link tab selection because the rewrite-delivered query never reaches `useSearchParams`.
 
-## Route hold — scoped to /all on purpose
+## Route hold — a DEPARTURE marker, not a loading boundary
 
-**What:** `loading.tsx` renders the invisible `.route-hold.route-hold--all`
-marker that re-arms the shared `.page-boot` loader during a stalled soft
-navigation (mechanism: `app/components/ANOMALIES.md` → "Route hold"). The
-boundary lives at THIS route level, not at `app/(works)/loading.tsx`,
-deliberately.
+**What:** the stall Hold for landing → `/all` is mounted by the DEPARTING page
+at click time, not by a `loading.tsx` on arrival. `markToBench` (`app/page.tsx`)
+appends an invisible `.route-hold.route-hold--all` div to `document.body`, which
+re-arms the shared `.page-boot` loader (mechanism: `app/components/ANOMALIES.md`
+→ "Route hold"); `useBenchDock` removes it on mount — the bench mounting IS the
+arrival.
 
-**Where:** `app/(works)/all/loading.tsx`; CSS in `globals.css` → "Route hold".
+**Where:** `app/page.tsx` (`markToBench`, mounts + three releases),
+`useBenchDock` (removes on mount), CSS in `globals.css` → "Route hold".
+There is deliberately NO `app/(works)/all/loading.tsx`.
 
-**Why:** landing → /all is the only COLD entry into the works shell — /all is
-the shell's sole entry link from outside it, and TransitionSlot prefetches
-/all, /rr, and /biconomy on mount, so works↔works switches are always warm. A
-group-level boundary would also let a stall fallback pass THROUGH
-TransitionSlot on works↔works navigation: the segment change snapshots and
-choreographs against the fallback div instead of real content, and the cleanup
-timer captures `firstSheet === undefined`, so the incoming route's first sheet
-never receives `.revealed` — a broken arrival. Scoped to /all, the fallback
-only ever mounts while the shell itself mounts fresh, where `isFirstRender`
-suppresses the transition and the arrival rides the fonts-ready reveal +
-SlideInOnNav.
+**Why the departing side.** The reported failure was 2–3 s of nothing after the
+click on the landing — and that time is spent BEFORE the navigation commits
+(client-chunk fetch against a main thread the landing's canvas is saturating).
+A `loading.tsx` fallback only mounts at commit, so it cannot cover the window
+where the complaint actually lives. The click-side marker covers it from the
+first frame. Since `/all` went static ("Deep-link entry & tab order"), route
+prefetch caches the full RSC payload, so the commit-side window a boundary
+WOULD cover is now the rare one — one mechanism, on the side the evidence
+pointed at.
 
-**What breaks if violated:** promoting the boundary to `app/(works)/loading.tsx`
-(or adding rr/biconomy boundaries) re-opens the TransitionSlot-vs-fallback race
-above. Dropping the `--all` modifier loses the /all loader palette while the
-fallback shows (the page root `.bench-workbench` doesn't exist yet).
+**Tested, so nobody re-litigates it on a false premise:** a `loading.tsx` on the
+now-static `/all` was restored and rebuilt to check the claim that a Suspense
+boundary breaks a statically generated route. **It does not.** The route still
+built `○`, the page hydrated (mount effects ran), deep links still resolved, and
+the `.route-hold` marker appeared only inside the RSC flight payload script —
+never as a live DOM node, so it never stuck the loader on. The boundary was
+removed for the reason above, not because it was broken. If a future change
+wants an arrival-side Hold as well, it is safe to add back — but keep it at THIS
+route level (see below), and re-check that the two markers' release paths don't
+race.
+
+**Why it must never become a group-level boundary.** A `loading.tsx` at
+`app/(works)/loading.tsx` lets a stall fallback pass THROUGH TransitionSlot on
+works↔works navigation: the segment change snapshots and choreographs against
+the fallback div instead of real content, and the cleanup timer captures
+`firstSheet === undefined`, so the incoming route's first sheet never receives
+`.revealed` — a broken arrival. That hazard is unchanged and applies to any
+future boundary here.
+
+**Three releases, all load-bearing.** (1) arrival — `useBenchDock` removes
+`#route-hold-departure` on mount; (2) an 8 s failsafe matching the boot gate's
+cap, so a navigation that never lands doesn't strand the loader over the
+landing; (3) `pageshow` + `popstate`, for the bfcache trip back — the restored
+landing document carries the marker with it, so without this the loader
+reappears over the landing on Back. Modifier-clicks (open-in-new-tab) skip the
+whole thing: the current page isn't navigating.
+
+**What breaks if violated:** dropping the `--all` modifier loses the /all loader
+palette while the hold shows (the page root `.bench-workbench` doesn't exist
+yet). Dropping the `useBenchDock` removal leaves the loader up until the
+failsafe. Dropping the `pageshow`/`popstate` release strands it over the landing
+after a Back. Moving the mount into a `loading.tsx` gives up the pre-commit
+window that motivated the whole fix.
 
 ---
 

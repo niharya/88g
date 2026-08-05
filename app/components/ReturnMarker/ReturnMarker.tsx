@@ -19,6 +19,11 @@
 //
 // Side-effects (e.g. setting a `nav-direction` flag for the landing's entrance
 // animation) stay with the consumer via `onClick` — the primitive only renders.
+//
+// `acknowledgeOnClick='press'` holds the click through the departure (§5.6).
+// The chip's held FILL has nothing to paint here — the shell is stripped — so
+// navmarker.css gives `.return-marker[data-departing]` the flat equivalent:
+// the marker's own hover ink + solid underline, held until the page unmounts.
 
 import NavMarker from '../NavMarker'
 
@@ -37,6 +42,7 @@ export default function ReturnMarker({ href, label, onClick, ...rest }: Props) {
       role="exit"
       icon="arrow_back"
       className="return-marker"
+      acknowledgeOnClick="press"
       label={label}
       onClick={onClick}
       aria-label={rest['aria-label']}

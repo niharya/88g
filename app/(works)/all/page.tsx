@@ -20,20 +20,14 @@ export const metadata: Metadata = {
 }
 
 // The active tab is addressed by bare query flags — `/all?showcase` / `/all?cases`
-// (the `/showcase` & `/cases` rewrites resolve to these). Read here (server)
-// rather than via client useSearchParams so the rewrites work: the rewrite's
-// destination query reaches the server, but the browser URL (and
-// useSearchParams) doesn't carry it. Precedence: showcase wins if both flags
-// are somehow present; neither flag → null, and the bench defaults to the
-// Visual (showcase) tab.
-export default async function BenchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ showcase?: string; cases?: string }>
-}) {
-  const sp = await searchParams
-  const initialView = 'showcase' in sp ? 'vis' : 'cases' in sp ? 'lf' : null
-
+// (the `/showcase` & `/cases` rewrites resolve to these). This page must NOT
+// read `searchParams`: any server read flips the route to request-time
+// rendering (build shows ƒ), which cuts route prefetch down to the loading
+// boundary and makes the stall loader the common path. The tab is resolved
+// client-side in useBenchDock from the real browser URL (pathname covers the
+// rewrite aliases, query covers the return seam) — see the "Deep-link entry &
+// tab order" anomaly. Default is the Visual (showcase) tab.
+export default function BenchPage() {
   return (
     <div className={`bench-workbench ${pinyon.variable}`}>
       <h1 className="sr-only">Works</h1>
@@ -46,7 +40,7 @@ export default async function BenchPage({
       {/* The invitation essay. The ticket morphs into a pinned navbar; the work
           panel (Timeline / Showcase) mounts beneath in browse mode. BenchEssay
           owns its own centred stage + the full-width work panel. */}
-      <BenchEssay initialView={initialView} />
+      <BenchEssay />
     </div>
   )
 }

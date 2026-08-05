@@ -26,7 +26,7 @@ files. Visitors only ever fetch the compressed `.webp` derivatives under
    patterns / illustrations / fine UI artwork, never @4×.** The `<Img>`
    primitive + `next/image` handle the density `srcset` automatically — but
    only if the source has the pixels. Worked example: a 3-col tile in
-   `/selected` renders 413 px wide on desktop. 2× source ≥ 826 px wide;
+   `/all` renders 413 px wide on desktop. 2× source ≥ 826 px wide;
    3× source ≥ 1239 px wide. Don't downscale exports. Picking the multiplier:
 
    | Multiplier | Use for                                                    | Why                                                       |
