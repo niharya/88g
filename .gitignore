@@ -37,3 +37,9 @@ next-env.d.ts
 
 # local reference repos (have their own .git, kept local only)
 reference/
+
+# local generated print assets (calling-card, stickers)
+prints/
+
+# stashed experiment patches, kept local only
+_stashed-experiments/

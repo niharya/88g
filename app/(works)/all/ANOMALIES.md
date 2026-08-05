@@ -9,6 +9,7 @@ digest's pointer and read only that section** — the Index below is the cheap m
 Current (bench essay + Cases/Longform timeline + Showcase/Visual tab):
 - **Scroll-dock + shell contract** — the ticket's coupled pin+condense scroll state and its one down-only assist.
 - **Deep-link entry & tab order** — `/cases`/`/showcase` rewrite-driven tab selection, default, and tab order.
+- **Route hold — scoped to /all on purpose** — why the soft-nav Hold boundary lives here, never on the (works) group.
 - **TransitionSlot exit-dim selector** — the `.bench-workbench > *` wrapper class the shared exit-dim depends on.
 - **`--bu` container-query spine** — why the cqi container lives on `.bench-stage`, not `.bench-card`.
 - **Condense** — the docked ticket's rest↔pinned width/tabs/close morph.
@@ -81,6 +82,35 @@ Current (mobile pass, whole route):
 **Defaults + order — current (supersedes the original Longform-default/Longform-left authoring).** With NEITHER flag, the default tab is Visual (showcase) — `initialView` is `null`, and `useBenchDock(initialView ?? 'vis')` falls back to `'vis'` (was `?? 'lf'`). Tab ORDER in the ticket is Visual-LEFT, Longform-RIGHT (`Ticket.tsx`'s two `<button>`s were reordered in JSX to match — only DOM position moved, each button's `onClick`/`aria-current` stayed attached through the swap). `Ticket.tsx`'s file-header comment carries the same framing ("Tab order: Visual (showcase) first, Longform (case studies) second. Visual is the default tab.") — treat it as the live source of truth if this note and the code ever drift. Don't swap the order or default without updating both. The Longform-return seam (`/all?cases`, "Return seam" above) is untouched — it still explicitly forces Longform via the flag, independent of the bare-URL default.
 
 **What breaks.** It does NOT auto-scroll into the work (rests at the card) — auto-scroll-into-content is a deferred follow-up, not a bug. Moving the query read to the client breaks deep-link tab selection because the rewrite-delivered query never reaches `useSearchParams`.
+
+## Route hold — scoped to /all on purpose
+
+**What:** `loading.tsx` renders the invisible `.route-hold.route-hold--all`
+marker that re-arms the shared `.page-boot` loader during a stalled soft
+navigation (mechanism: `app/components/ANOMALIES.md` → "Route hold"). The
+boundary lives at THIS route level, not at `app/(works)/loading.tsx`,
+deliberately.
+
+**Where:** `app/(works)/all/loading.tsx`; CSS in `globals.css` → "Route hold".
+
+**Why:** landing → /all is the only COLD entry into the works shell — /all is
+the shell's sole entry link from outside it, and TransitionSlot prefetches
+/all, /rr, and /biconomy on mount, so works↔works switches are always warm. A
+group-level boundary would also let a stall fallback pass THROUGH
+TransitionSlot on works↔works navigation: the segment change snapshots and
+choreographs against the fallback div instead of real content, and the cleanup
+timer captures `firstSheet === undefined`, so the incoming route's first sheet
+never receives `.revealed` — a broken arrival. Scoped to /all, the fallback
+only ever mounts while the shell itself mounts fresh, where `isFirstRender`
+suppresses the transition and the arrival rides the fonts-ready reveal +
+SlideInOnNav.
+
+**What breaks if violated:** promoting the boundary to `app/(works)/loading.tsx`
+(or adding rr/biconomy boundaries) re-opens the TransitionSlot-vs-fallback race
+above. Dropping the `--all` modifier loses the /all loader palette while the
+fallback shows (the page root `.bench-workbench` doesn't exist yet).
+
+---
 
 ## TransitionSlot exit-dim selector
 

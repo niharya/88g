@@ -464,7 +464,12 @@ html.fonts-ready .route-sop {
   --loader-sticker:    var(--terra-100);
   --loader-screen-bg:  var(--terra-160);
 }
-:root:has(.selected-workbench) {
+/* /all — keyed to the live page-root class `.bench-workbench` (the wrapper
+   renamed from `.selected-workbench`; keep this selector in sync with
+   all/page.tsx). `.route-hold--all` is the same palette during the soft-nav
+   hold, when the page root doesn't exist yet (see Route hold below). */
+:root:has(.bench-workbench),
+:root:has(.route-hold--all) {
   --loader-lit:        var(--blue-800);
   --loader-sticker:    var(--blue-100);
   --loader-screen-bg:  var(--blue-160);
@@ -513,6 +518,31 @@ html.fonts-ready .page-boot {
   animation: page-boot-out var(--dur-slide) var(--ease-paper) forwards;
 }
 
+/* ── Route hold — the soft-navigation Hold (docs/navigation-choreography.md
+   §5.5). A route's loading.tsx renders an invisible `.route-hold` marker div;
+   while it exists these rules re-arm the ROOT layout's .page-boot loader
+   mid-session, so a stalled soft navigation shows the same patience mark as a
+   hard load — no duplicate loader markup. The :has() selectors carry three
+   class-level simple selectors, so they out-specify the one-shot
+   `html.fonts-ready` exit rules above (two classes + element) — that
+   specificity gap is what lets the hold interrupt an already-booted page; the
+   moment the real page replaces the fallback the marker vanishes, the
+   fonts-ready rules retake the cascade, and the standard exit (field fade +
+   mark peel) replays. The shell holds hidden underneath meanwhile — its
+   opacity 0→1 on release rides the fonts-ready reveal transition above, so a
+   held arrival lands with the same Place gesture as first load. Fade-in waits
+   --dur-loader-appear, so a nav that resolves quickly never flashes it. */
+:root:has(.route-hold) .page-boot {
+  animation: page-boot-in var(--dur-slide) var(--ease-paper) var(--dur-loader-appear) both;
+}
+:root:has(.route-hold) .page-boot .startooth-loader {
+  animation: page-boot-mark-in var(--dur-slide) var(--ease-paper) var(--dur-loader-appear) both;
+}
+:root:has(.route-hold) .workbench {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @keyframes page-boot-in {
   to { opacity: 1; }
 }
@@ -555,7 +585,8 @@ html.fonts-ready .page-boot .startooth-loader {
    opacity fade is acceptable and carries the mark away. */
 @media (prefers-reduced-motion: reduce) {
   .page-boot .startooth-loader,
-  html.fonts-ready .page-boot .startooth-loader { animation: none; }
+  html.fonts-ready .page-boot .startooth-loader,
+  :root:has(.route-hold) .page-boot .startooth-loader { animation: none; }
 }
 
 /* Shared tactile-press keyframe (consumers in landing.css, rr.css,

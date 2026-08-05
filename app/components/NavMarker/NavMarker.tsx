@@ -18,10 +18,15 @@
 //   icon                ReactNode | string (Material Symbols glyph name)
 //   label               main label (string or ReactNode for title-full/short)
 //   sublabel            secondary text (year / subtitle — chapter role)
-//   acknowledgeOnClick  'navigate' (default) | 'shake' | 'morph'
+//   acknowledgeOnClick  'navigate' (default) | 'shake' | 'morph' | 'press'
 //     - navigate: no visual acknowledgment; route change is the feedback.
 //     - shake:    arrow shakes on click — same-page markers (Works on /all).
 //     - morph:    icon rotates 45° while `active` — landing Nihar + → ×.
+//     - press:    marker keeps its pressed fill after a navigating click
+//                 (data-departing), so the click reads as registered while
+//                 the destination arrives — landing Works. Modifier-clicks
+//                 (new tab) don't hold; an 8s failsafe releases a stuck
+//                 press if the navigation never completes.
 //   wipHint             clicking the marker reveals a Monostamp chip beside
 //                       the label for 8s (auto-dismiss; re-click resets timer).
 //   iconRef             ref forwarded to the icon element (for arrow rotation)
@@ -43,7 +48,7 @@ import type { IconName } from '../../lib/icons'
 export type NavMarkerRole = 'project' | 'chapter' | 'exit'
 export type NavMarkerTone = 'neutral' | 'terra' | 'mint'
 export type NavMarkerState = 'default' | 'active'
-export type NavMarkerAcknowledge = 'navigate' | 'shake' | 'morph'
+export type NavMarkerAcknowledge = 'navigate' | 'shake' | 'morph' | 'press'
 
 interface BaseProps {
   role:                NavMarkerRole
@@ -115,6 +120,7 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
 
   const [shaking, setShaking] = useShakeState()
   const [wipShown, showWip] = useWipHintState()
+  const [departing, setDeparting] = usePressHoldState()
   const isActive = state === 'active'
 
   const rootClass = [
@@ -130,9 +136,15 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
   // wipHint: clicking reveals a Monostamp chip beside the label for 8s.
   const onClick = useCallback((e: React.MouseEvent) => {
     if (acknowledgeOnClick === 'shake') setShaking()
+    // Press-hold only on a click that actually navigates this page away —
+    // modifier/middle clicks open elsewhere and the marker stays put.
+    if (
+      acknowledgeOnClick === 'press' &&
+      e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey
+    ) setDeparting()
     if (wipHint) showWip()
     if (props.onClick) (props.onClick as (e: React.MouseEvent) => void)(e)
-  }, [acknowledgeOnClick, wipHint, props.onClick, setShaking, showWip])
+  }, [acknowledgeOnClick, wipHint, props.onClick, setShaking, setDeparting, showWip])
 
   // The arrow is the icon for chapter / exit / shake-acknowledged markers.
   const iconIsArrow = role === 'chapter' || role === 'exit' || acknowledgeOnClick === 'shake'
@@ -160,6 +172,7 @@ function NavMarkerInner(props: NavMarkerProps, ref: Ref<HTMLElement>) {
     'aria-expanded': props['aria-expanded'],
     'aria-current':  props['aria-current'],
     'data-shaking':  shaking ? '' : undefined,
+    'data-departing': departing ? '' : undefined,
     'data-arrow-target': props['data-arrow-target'] ? '' : undefined,
   }
 
@@ -225,6 +238,39 @@ function useShakeState(): [boolean, () => void] {
   }, [])
 
   return [shaking, trigger]
+}
+
+// ── Press-hold hook ──────────────────────────────────────────────────────
+// acknowledgeOnClick='press': flips [data-departing] on a navigating click
+// and holds it. The normal release is the page unmounting under the marker
+// when the route change lands; the failsafe timer releases a stuck press if
+// the navigation errors or never completes, and pageshow covers a bfcache
+// restore after a hard navigation (client-side navs remount fresh anyway).
+
+const PRESS_HOLD_MS = 8000
+
+function usePressHoldState(): [boolean, () => void] {
+  const [departing, setDeparting] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const trigger = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setDeparting(true)
+    timerRef.current = setTimeout(() => setDeparting(false), PRESS_HOLD_MS)
+  }, [])
+
+  useEffect(() => {
+    const release = (e: PageTransitionEvent) => {
+      if (e.persisted) setDeparting(false)
+    }
+    window.addEventListener('pageshow', release)
+    return () => {
+      window.removeEventListener('pageshow', release)
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  return [departing, trigger]
 }
 
 // ── W.I.P. hint hook ─────────────────────────────────────────────────────

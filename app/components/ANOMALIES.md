@@ -23,6 +23,7 @@ reading the code in isolation. The nav cluster keeps its own deeper archive at
 - **StartoothLoader is a server component, NOT a `<Sticker>` consumer** — must paint pre-hydration and stay passive.
 - **Per-route colour AND movement are CSS-driven via `:root:has(.route-*)`, not props** — the shared layout can't know the route at render time.
 - **The loader field is a per-route colour; the exit transform lives on the mark, not the field** — the field only ever animates opacity.
+- **Route hold — `.route-hold` re-arms `.page-boot` by specificity (soft-nav Hold)** — the loading.tsx marker div, the cascade override of the one-shot fonts-ready exit, and the workbench hold.
 - **`/marks` colour is a deliberate divergence from the old white-on-black mark** — dark ink on a light hull over a `#000` field.
 - **`pathLength={1}` + `stroke-dasharray: 1` is load-bearing for shared markup** — lets trace and twinkle share one markup.
 - **`useReveal` waits for the page gate before observing (hard load)** — prevents the cold-load flat-flip.
@@ -245,8 +246,11 @@ passed as props on the boot mount.
 
 **Where:** `app/globals.css`, the `/* ── Page boot — patience mark ─ */` section.
 Colour: the `:root:has(.route-biconomy)` / `:has(.route-rr)` /
-`:has(.selected-workbench)` / `:has(.landing)` / `:has(.route-marks)` blocks set
-the two `--loader-*` colour vars. Movement: the
+`:has(.bench-workbench)` (with `:has(.route-hold--all)` as its soft-nav twin —
+the page root doesn't exist while a loading fallback shows) / `:has(.landing)` /
+`:has(.route-marks)` blocks set the two `--loader-*` colour vars. These
+selectors must track page-root class renames: /all's block silently went dead
+for a while pointing at the old `.selected-workbench` name. Movement: the
 `:root:has(.landing) .page-boot .startooth-loader, :root:has(.route-marks) …`
 rule sets the **4-var movement preset** (`--loader-anim` / `--loader-dur` /
 `--loader-ease` / `--loader-stagger`) to twinkle; trace is the component default
@@ -296,6 +300,39 @@ is lost. Setting it on `/marks` to anything but `#000` breaks the documented voi
 
 **Don't change without reading first:** the `page-boot-out` / `page-boot-mark-out`
 split and the `--loader-screen-bg` blocks in globals.css "Page boot".
+
+## Route hold — `.route-hold` re-arms `.page-boot` by specificity (soft-nav Hold)
+
+**What:** a route's `loading.tsx` may render an invisible `.route-hold` marker
+div; while it exists, `:root:has(.route-hold)` rules re-run `page-boot-in` /
+`page-boot-mark-in` on the ROOT layout's existing `.page-boot` loader and hold
+`.workbench` at `opacity: 0` — the mid-session Hold for a stalled soft
+navigation (docs/navigation-choreography.md §5.5). Palette modifiers
+(`.route-hold--all`) join the destination route's `:has()` colour block, since
+the page-root class doesn't exist while the fallback shows. Sole consumer:
+`app/(works)/all/loading.tsx` (scoping rationale lives in that route's archive).
+
+**Where:** `globals.css` → the "Route hold" block inside the Page boot section;
+`app/(works)/all/loading.tsx`.
+
+**Why:** the `.page-boot` idiom is one-shot — `html.fonts-ready` drives it to
+`opacity: 0` with a `forwards` fill, so a second loader mounted inside a
+fallback is invisible on arrival; duplicating the markup was rejected for that
+reason. Re-arming the existing node through the cascade needs no new markup and
+no exit code: when the fallback unmounts, the fonts-ready rules retake the
+cascade, so the standard exit (field fade + mark peel) and the workbench reveal
+transition replay — a held arrival lands with the same gesture as first load.
+
+**What breaks if violated:** the `:has()` selectors beat the `html.fonts-ready`
+exit rules ONLY by specificity (three class-level simple selectors vs two
+classes + element) — "simplifying" either side flips the cascade and the loader
+either never shows or never leaves. Dropping the `.workbench` hold floats
+ShellNav's fixed markers over the loader field (their z-index sits above the
+field's `z-index: 1`). The fade-in delay rides `--dur-loader-appear` so a
+navigation that resolves quickly never flashes the loader — removing the delay
+makes every warm-ish nav blink.
+
+---
 
 ## `/marks` colour is a deliberate divergence from the old white-on-black mark
 

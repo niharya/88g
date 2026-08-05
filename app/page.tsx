@@ -765,6 +765,7 @@ export default function LandingPage() {
                 tone="terra"
                 icon="arrow_forward"
                 label="Works"
+                acknowledgeOnClick="press"
                 onClick={markToBench}
                 className="landing-nav-row__works"
               />

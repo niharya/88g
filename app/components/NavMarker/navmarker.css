@@ -94,6 +94,23 @@ a.nav-marker:active {
   transition: transform var(--dur-instant) var(--ease-snap);
 }
 
+/* ── Press acknowledgment (cross-page departure) ─────────────────────────── */
+/* acknowledgeOnClick='press': after a navigating click the marker KEEPS the
+   pressed fill + 1px sink (React flips [data-departing]) so the click reads
+   as registered while the destination route arrives — the loading Hold takes
+   over from there. Continues the :active state above seamlessly, on the same
+   micro tier. The attribute selector carries class-level weight, so the held
+   fill outranks the tone hover rules — hovering while departing doesn't
+   lighten the marker back. */
+.nav-marker[data-departing] {
+  background: var(--grey-880);
+  transform: translateY(1px);
+  transition: transform         var(--dur-instant) var(--ease-snap),
+              background-color  var(--dur-fast)    var(--ease-snap);
+}
+.nav-marker--tone-terra[data-departing] { background: var(--terra-480); }
+.nav-marker--tone-mint[data-departing]  { background: var(--mint-240); }
+
 
 /* ── Shake acknowledgment ────────────────────────────────────────────────── */
 /* Fires on click for same-page markers (acknowledgeOnClick="shake"). The

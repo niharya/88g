@@ -20,6 +20,7 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
        - **<Heading>** — one-clause summary of what it protects. -->
 
 - **Every marker routes through `NavMarker`** — every visible marker renders through the shared primitive; CSS split and flyout/dim exceptions.
+- **`press` acknowledge — modifier-click exempt, composes with consumer onClick** — the held `[data-departing]` fill for departing cross-page markers and its two guard rails.
 - **Docked fill covers both markers of the pair** — the mat-coloured shell rule that unifies chapter + project marker while docked/open.
 - **`ProjectMarker` is a Signals cover-toggle, not a drawer** — the toggle-to-`#signals` glide, `returnPos`, `scrollGlide`+`is-overlay-open`, and what's parked (TopSheet / MarkerTicket).
 - **Module structure (post-restructure)** — file-by-file role map for the nav cluster.
@@ -52,6 +53,33 @@ Every visible marker in this cluster — `ChapterMarker` (static + dynamic curre
 - Route layouts must import `app/components/NavMarker/navmarker.css` alongside `nav.css`. `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`) and the `.nav-marker` base; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked fill.
 - The flyout items inside `ChapterMarker` still emit raw `.nav-marker` classes via `motion.button` — they are not migrated through the primitive because Framer Motion drives their layout animation directly. If a future change diverges their styling from the docked marker, either migrate or document the split.
 - Project + exit markers are **not** dimmed when the tray is open. Only sibling sheets and their nav-sleds get `--backseat-dim`. The project and exit markers are visually part of the tray context, so keeping them at full fidelity is deliberate — do not reintroduce a dim rule on `.project-marker` / `.exit-marker`.
+
+## `press` acknowledge — modifier-click exempt, composes with consumer onClick
+
+**What:** `acknowledgeOnClick='press'` (NavMarker) flips `[data-departing]` on a
+navigating click and HOLDS the pressed fill + 1px sink until the page unmounts
+under the marker; an 8s failsafe (`PRESS_HOLD_MS`) plus a bfcache `pageshow`
+listener release a stuck press if the navigation never completes.
+
+**Where:** `NavMarker.tsx` → `usePressHoldState`; visuals in `navmarker.css` →
+"Press acknowledgment" (held fill per tone via `[data-departing]`).
+
+**Why:** the destination of a cross-page marker can take seconds to paint on a
+cold or slow visit (the landing → /all dead-click report that also produced the
+`.route-hold` loading boundary); `navigate` mode's "route change is the
+feedback" is zero feedback in that window. Press is the same-frame
+acknowledgment `docs/navigation-choreography.md` §5.6 specifies.
+
+**What breaks if violated:** removing the modifier-click guard (`metaKey` /
+`ctrlKey` / `shiftKey` / `altKey` / non-primary button) inks the marker for
+open-in-new-tab clicks where the page never leaves — a held press that lies.
+The hold must stay ADDITIVE to the consumer's `onClick` — the landing Works
+marker's `markToBench` (the `nav-direction: to-bench` direction contract) has to
+keep firing. The `[data-departing]` attribute selector carries class-level
+weight so the held fill outranks the tone hover rules — demoting the styling to
+a plain class re-lightens the marker if the cursor rests on it while departing.
+
+---
 
 ## Docked fill covers both markers of the pair
 
