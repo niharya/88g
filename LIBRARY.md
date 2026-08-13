@@ -23,7 +23,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **Framed-sheet spine** — the cqi/`--bu` relative-sizing RECIPE shared by the three framed reading-surfaces (landing Startooth sheet, /all blue card, /all timeline mat); a documented pattern, not shared code (params differ per sheet). Archetypes: page / ledger. Distinct from the **Sheet** component above.
 - **useReveal** — `app/components/useReveal.ts`; one-shot `.revealed` intersection hook paired with `.section-reveal` CSS.
 - **Nav cluster** — `app/components/nav/`; docked-nav system; import from the barrel only; READ its CLAUDE.md/ANOMALIES.md before touching; every works route + /marks + /shape-of-product.
-- **SlideInOnNav** — `app/components/SlideInOnNav.tsx`; sessionStorage-flag directional entrance between / and /selected.
+- **SlideInOnNav** — `app/components/SlideInOnNav.tsx`; sessionStorage-flag directional entrance between / and /all.
 - **PaperFilter** — `app/components/PaperFilter.tsx`; global SVG defs; render exactly once per document.
 - **Icons** — `app/components/icons/`; hand-rolled SVGs with animatable internal paths; currentColor.
 - **ExpandToggle** — `app/components/ExpandToggle/`; expand/collapse glyph; consumers: landing pill-btn, /rr Intro.
@@ -311,7 +311,8 @@ Signals directional entrance between landing (`/`) and `/all` — the two routes
 
 **AI notes**
 - **Uses `useLayoutEffect`, not `useEffect`** — the class must be on the element before the browser paints the first frame, or the default animation plays briefly before the swap.
-- **No cleanup function.** Returning one would strip the class during React StrictMode's double-invoke, leaving the class off on the real mount. A module-level `consumed` guard handles the StrictMode edge case instead.
+- **No cleanup function.** Returning one would strip the class during React StrictMode's double-invoke, leaving the class off on the real mount.
+- **No module-level `consumed` guard — and don't add one.** This entry previously claimed one existed; it never did (corrected 2026-08). StrictMode's two invocations run inside the same commit, so no later navigation can slip a fresh flag in between — the second invocation reads `null` and returns before touching the class.
 - **Flag is consumed once per session.** Hard loads or navigations from elsewhere see no flag, no class.
 
 ---

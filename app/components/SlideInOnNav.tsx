@@ -20,8 +20,12 @@
 //   strip it during the double-invoke, and the second mount would find the
 //   flag already cleared and bail out with no class. The class naturally
 //   goes away when the page unmounts on next navigation.
-// - A module-level "consumed" guard prevents the second StrictMode mount
-//   from clearing a fresh flag set by an unrelated subsequent navigation.
+// - There is deliberately NO module-level "consumed" guard. This comment and
+//   LIBRARY.md both used to assert one; it never existed in the code, and the
+//   claim was removed rather than implemented (2026-08) because nothing needs
+//   it: StrictMode's two invocations run inside the same commit, so no later
+//   navigation can slip a fresh flag in between them — the second invocation
+//   reads null and returns before touching the class. Don't add one.
 
 import { useLayoutEffect } from 'react'
 

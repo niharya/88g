@@ -45,6 +45,34 @@ export function useBenchDock(initialActive: BenchActive) {
     document.getElementById('route-hold-departure')?.remove()
   }, [])
 
+  // Entrance ownership — three arrivals land on this page and only ONE of them
+  // has no entrance of its own:
+  //   1. COLD load / reload  → the page gate fades .workbench in, flat
+  //   2. landing → /all      → SlideInOnNav's lateral `--slide-in`
+  //   3. works ↔ works       → TransitionSlot's Exchange
+  // Case 1 gets the settle (bench.css → "Entrance: the card settles when the
+  // page gate lifts"). The test is ONE positive fact, not a survey of what the
+  // other two are doing: a cold load is the only arrival where the page gate is
+  // still HELD at mount, i.e. `.fonts-ready` is not yet on <html>. Both soft
+  // navs run inside an already-released document, so the class never arms for
+  // them — no ordering dependency on SlideInOnNav, and nothing to ask
+  // TransitionSlot.
+  //
+  // Do NOT reintroduce a `.workbench.transitioning` check here: React runs
+  // CHILD layout effects before PARENT ones, so this hook always runs before
+  // TransitionSlot has set that class — the check reads false during an
+  // Exchange and arms the settle on top of it (verified: /rr → /all ran
+  // `bench-settle-in` and the Exchange together).
+  //
+  // The class only ARMS the animation; `html.fonts-ready` in the selector is
+  // what STARTS it, so the card settles as the gate releases rather than at
+  // mount. A pure CSS selector can't replace this — `.fonts-ready` persists
+  // across soft navs, so it would fire on 2 and 3 too.
+  useLayoutEffect(() => {
+    if (document.documentElement.classList.contains('fonts-ready')) return
+    document.querySelector('.bench-workbench')?.classList.add('bench-workbench--settle')
+  }, [])
+
   // Deep-link tab selection — a mount-time read of the real browser URL. The
   // /cases & /showcase rewrites hide their destination query from the client
   // (useSearchParams never sees it) but never the browser PATHNAME, and the

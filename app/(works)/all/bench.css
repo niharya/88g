@@ -398,8 +398,29 @@ html.sc-artifact-open .bench-ticket {
    left/right margins — retuned down from the old loose 290 (which left ~45px
    voids and let the ✕ float). The `min()` guards against inversion: if the rest
    width (460×scale) ever drops below 236 (scale < ~0.51) the condense would
-   otherwise GROW the box; the cap keeps it a shrink (degenerate-but-safe). */
-.is-condensed .bench-ticket { width: min(236px, calc(460 * var(--bu))); padding: 0; }
+   otherwise GROW the box; the cap keeps it a shrink (degenerate-but-safe).
+
+   --cu — THE CONDENSED SCALE UNIT, AND THE RULE FOR EVERYTHING INSIDE THIS BOX.
+   The ticket is card content at REST (rides --bu, correctly — its box scales
+   too) and viewport-pinned CHROME when condensed, where the box is a fixed
+   236px. So inside `.is-condensed`, size against `--cu`, NEVER `--bu`.
+   `--cu` is --bu FROZEN at 0.75px — the value at the 615 card cap this ticket
+   was tuned against — so every authored number below (20 / 24 / 12 / 20) is
+   the original, unchanged; only the unit moved. This is a units fix, not a
+   retune, and it keeps the relative-math language instead of scattering
+   computed literals that hide what was authored.
+   WHY IT MATTERS: --bu runs 0.62→1.0 with VIEWPORT HEIGHT. On --bu the padding
+   and gaps grew while the fixed box and the fixed 10px sub-labels did not, so
+   past --bu ≈ 0.84 (viewport taller than ~1025px — any maximised 1080p/1440p
+   window) the row overflowed the 233px of inner width: flex crushed the
+   divider 2px→1px and `justify-content:center` + this box's `overflow:hidden`
+   clipped the surplus off BOTH edges — ~9px/~5px margins instead of ~23px.
+   HEADROOM (re-check on any copy change): content 189 (tabs 50 + 74, divider
+   2, ✕ 18, three 15px gaps 45) + padding 33 = 222 in 233 → 11px of slack, and
+   `justify-content:center` splits it, landing 23.5/20.5 inner + the 1.5px
+   border = the 25/22 you measure. Grow the labels past ~11px total and the box
+   silently clips again. ANOMALIES.md → "Condense". */
+.is-condensed .bench-ticket { width: min(236px, calc(460 * var(--bu))); padding: 0; --cu: 0.75px; }
 
 .bench-ticket__frame {
   position: relative;
@@ -465,16 +486,17 @@ html.sc-artifact-open .bench-ticket {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Tighter than the rest-state 24: the whole row (both tabs · divider · ✕)
-     centres as one unit with even inter-item gaps, filling the 236 box. */
-  gap: calc(20 * var(--bu));
+  /* --cu, never --bu (see the ticket's --cu note). Tighter than the rest-state
+     24: the whole row (both tabs · divider · ✕) centres as one unit with even
+     inter-item gaps, filling the 236 box. */
+  gap: calc(20 * var(--cu));
   /* Deliberately asymmetric (24 left / 20 right) — the row's structural padding
      IS even, but the left tab's serif glyph has almost no left side-bearing
      while the close icon carries visible padding baked into its own glyph, so
      an even split reads left-heavy (Longform/Visual hugs the edge, the ✕ sits
-     comfortably inset). The extra 4·--bu rebalances the OPTICAL margin; don't
+     comfortably inset). The extra 4·--cu rebalances the OPTICAL margin; don't
      "correct" it back to even without re-checking by eye. */
-  padding: 0 calc(20 * var(--bu)) 0 calc(24 * var(--bu));
+  padding: 0 calc(20 * var(--cu)) 0 calc(24 * var(--cu));
 }
 
 .bench-tab {
@@ -494,8 +516,10 @@ html.sc-artifact-open .bench-ticket {
     transform var(--dur-instant) var(--ease-snap);
 }
 /* Condensed tab: content-sized (label = cell, so the gaps measure to the labels);
-   vertical padding keeps a comfortable tap height. */
-.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: calc(12 * var(--bu)) 0; }
+   vertical padding keeps a comfortable tap height. `--cu`, never `--bu` — the
+   navbar's row height is fixed chrome and must not breathe with viewport
+   height. */
+.is-condensed .bench-tab { width: auto; flex: 0 0 auto; padding: calc(12 * var(--cu)) 0; }
 
 .bench-tab__title {
   font-family: var(--font-display), serif;
@@ -508,7 +532,11 @@ html.sc-artifact-open .bench-ticket {
   font-size: calc(24 * var(--bu));
   transition: font-size var(--dur-slide) var(--ease-snap);
 }
-.is-condensed .bench-tab__title { font-size: calc(20 * var(--bu)); }
+/* `--cu`, never `--bu`. This is the metric that decides each tab's WIDTH once
+   the box is fixed — on --bu the title overtook the 10px sub-label above
+   --bu ≈ 0.9 and pushed the row past the box. Both ends of the font-size
+   transition stay definite lengths, so rest → condensed still interpolates. */
+.is-condensed .bench-tab__title { font-size: calc(20 * var(--cu)); }
 
 .bench-tab__ink {
   color: var(--terra-960);
@@ -675,6 +703,45 @@ html.sc-artifact-open .bench-ticket {
 }
 
 
+/* ── Entrance: the card settles when the page gate lifts ───────────────────── */
+/* docs/navigation-choreography.md §5.1 — "Reveal = Place, not a flat flip". The
+   gate (globals.css → Page gate) fades .workbench 0→1 on `.fonts-ready`, which
+   on its own lands the broadside flat: already there, switched on. This is the
+   missing beat — the card glides the last few px up and settles as ONE object,
+   so the page reads as being laid down. The bench is deliberately NOT a
+   Sheet/useReveal consumer (DESIGN.md → "Idiom"), so this is the bench's own
+   entrance in the shared vocabulary (--dur-glide on --ease-paper, the "mat
+   glides" beat), not a section-reveal.
+
+   TRANSFORM ONLY — the gate already owns the opacity, and a second fade here
+   would double it. Delayed by --delay-reveal-handoff so it starts on the same
+   frame as the gate's fade, letting the loader lead its lift-away.
+
+   `backwards` (not `both`), same as bench-slide-in above and for the same
+   reason: the steady state must NOT retain a transform on .bench-card, which
+   would become the containing block for the ticket's position:fixed morph and
+   pin the navbar to the card instead of the viewport.
+
+   The --settle CLASS is the arrival gate, not a style hook. useBenchDock arms
+   it on ONE positive fact — the page gate is still HELD at mount (no
+   `.fonts-ready` on <html> yet), which is true of a cold load and of nothing
+   else — so it never fires on top of the landing's lateral slide or
+   TransitionSlot's Exchange. It does NOT survey those two; see the hook, and
+   ANOMALIES.md → "Entrance — the gate-release settle" for why a
+   `.transitioning` check there is structurally broken. Keyed on
+   html.fonts-ready HERE so the animation starts when the gate releases rather
+   than at mount. */
+html.fonts-ready .bench-workbench--settle .bench-card {
+  animation: bench-settle-in var(--dur-glide) var(--ease-paper)
+             var(--delay-reveal-handoff) backwards;
+}
+
+@keyframes bench-settle-in {
+  from { transform: translateY(18px); }
+  to   { transform: translateY(0); }
+}
+
+
 /* ── Mobile recomposition (≤767px / landscape phones) ──────────────────────── */
 /* A purposeful different composition, not the desktop scaled down: the card
    goes full-bleed-ish, the poem wraps naturally (authored <br>s suppressed).
@@ -747,7 +814,8 @@ html.sc-artifact-open .bench-ticket {
     animation: none;
   }
   .bench-workbench--slide-in .bench-exit,
-  .bench-workbench--slide-in .bench-card {
+  .bench-workbench--slide-in .bench-card,
+  html.fonts-ready .bench-workbench--settle .bench-card {
     animation: none;
   }
   .bench-ticket,
