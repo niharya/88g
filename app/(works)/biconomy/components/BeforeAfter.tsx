@@ -8,6 +8,16 @@ import type { FlowNote } from './flowSlides'
 
 type NoteWithPointer = FlowNote & { pointerIndex?: number }
 
+/**
+ * The audit frame is capped at 1000px by `.flows__notes-wrap` (max-width:
+ * 1000px) and goes full-bleed inside the mat below the mobile breakpoint.
+ * Authoring this honestly is what lets next/image pick a right-sized srcset
+ * entry — the old `100vw` claimed the frame was viewport-wide and pulled the
+ * largest variant on every device. Exported so Flows' hidden preloads warm
+ * the exact same URL the visible layer will ask for.
+ */
+export const FLOW_IMG_SIZES = '(max-width: 767px) 100vw, 1000px'
+
 function NotesOverlay({
   notes,
   visible,
@@ -132,6 +142,7 @@ export default function BeforeAfter({
   liftRotate = 0,
   hudMode = false,
   onHudDragEnd,
+  onAfterReady,
 }: {
   beforeImage: string
   afterImage: string
@@ -147,6 +158,8 @@ export default function BeforeAfter({
   liftRotate?: number
   hudMode?: boolean
   onHudDragEnd?: (state: 'before' | 'after', index: number, x: number, y: number) => void
+  /** Fires with the after-image src once it is painted-ready. */
+  onAfterReady?: (src: string) => void
 }) {
   const beforeContainerRef = useRef<HTMLDivElement>(null)
   const afterContainerRef = useRef<HTMLDivElement>(null)
@@ -176,17 +189,21 @@ export default function BeforeAfter({
 
   return (
     <div className={`ba${className ? ` ${className}` : ''}`}>
-      {/* Before image */}
+      {/* Before image — the one thing on screen, so it is the one thing
+          fetched at high priority. It used to be the ONLY lazy image in the
+          frame, losing the network race to two `visibility: hidden` preloads
+          and the opacity-0 after layer; see ANOMALIES.md → "Audit-frame image
+          loading". Never demote this below its neighbours again. */}
       <div className="ba__before" ref={beforeContainerRef}>
         <Img
           src={beforeImage}
           alt="Before"
           intrinsic
-          sizes="100vw"
+          sizes={FLOW_IMG_SIZES}
           className="ba__img"
           draggable={false}
-          unoptimized
-          loading="lazy"
+          loading="eager"
+          fetchPriority="high"
           placeholder="hash"
         />
         <NotesOverlay
@@ -215,24 +232,25 @@ export default function BeforeAfter({
       >
         <div className="ba__after-inner" ref={afterContainerRef}>
           <div className="ba__after-main">
-            {/* loading="eager": the after-image must be fully loaded
-                (and materialized) before the user clicks toggle, so the
-                opacity reveal between before and after is a clean fade
-                rather than a fade racing the materialize keyframe.
-                placeholder="hash": ThumbHash blurry preview shows during
-                any load gap (e.g. fast toggle on cold cache) so the
-                area is never empty — fades to sharp via the .ba__after
-                250ms opacity keyframe in biconomy.css. */}
+            {/* loading="eager": the after-image should be in hand before the
+                user reaches for the toggle, so the reveal is a clean fade
+                rather than a fade racing the fetch. Priority stays `auto` —
+                it must not outrank the before layer, which is what the
+                reader is actually looking at.
+                `onReady` reports up so the toggle can show a pending state
+                instead of crossfading to a ThumbHash smear that, on these
+                dark dashboard scans, is indistinguishable from the before
+                image (see ANOMALIES.md → "Audit-frame image loading"). */}
             <Img
               src={afterImage}
               alt="After"
               intrinsic
-              sizes="100vw"
+              sizes={FLOW_IMG_SIZES}
               className="ba__img"
               draggable={false}
-              unoptimized
               loading="eager"
               placeholder="hash"
+              onReady={() => onAfterReady?.(afterImage)}
             />
           </div>
           {/* Internal note image — fades in when note toggle is active */}
@@ -247,11 +265,12 @@ export default function BeforeAfter({
                 src={afterNotes[internalNoteImageIndex].image!}
                 alt="After (next step)"
                 intrinsic
-                sizes="100vw"
+                sizes={FLOW_IMG_SIZES}
                 className="ba__img"
                 draggable={false}
-                unoptimized
                 loading="lazy"
+                fetchPriority="low"
+                placeholder="hash"
               />
             </motion.div>
           )}

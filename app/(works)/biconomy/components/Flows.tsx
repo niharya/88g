@@ -11,7 +11,7 @@ import {
 } from 'framer-motion'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { flows, type FlowNote } from './flowSlides'
-import BeforeAfter from './BeforeAfter'
+import BeforeAfter, { FLOW_IMG_SIZES } from './BeforeAfter'
 import { Img } from '../../../components/Img'
 import NavPill from './NavPill'
 import { Switch } from '../../../components/Switch'
@@ -67,6 +67,15 @@ export default function Flows() {
   >({})
 
   const showAfter = slideToggleStates[currentSlide - 1]
+
+  // ── After-image readiness ───────────────────────────────────────────────────
+  // Which after-images are painted-ready, by src. BeforeAfter reports each one
+  // up via <Img onReady>. Keyed by src rather than slide index so the answer
+  // stays correct across slide changes and re-mounts, and so a src that was
+  // already warmed (adjacent-slide preload) reports ready on first paint.
+  const [readyAfterSrcs, setReadyAfterSrcs] = useState<ReadonlySet<string>>(new Set())
+  const markAfterReady = (src: string) =>
+    setReadyAfterSrcs(prev => (prev.has(src) ? prev : new Set(prev).add(src)))
 
   // ── Carousel nav ────────────────────────────────────────────────────────────
   const directionRef = useRef(1)
@@ -149,6 +158,11 @@ export default function Flows() {
 
   // ── Visible notes for current slide ────────────────────────────────────────
   const currentFlow = flows[currentSlide - 1]
+
+  // The toggle is flipped to After but the bytes aren't here yet. The switch
+  // wears a pending state for this window instead of crossfading to a
+  // ThumbHash smear the reader can't tell apart from the before image.
+  const isAfterPending = showAfter && !readyAfterSrcs.has(currentFlow?.after.image ?? '')
 
   // Apply HUD overrides to a notes array. Pure function — does not mutate.
   const applyHudOverrides = (
@@ -319,7 +333,7 @@ export default function Flows() {
                   duration: showAfter ? 0.25 : 0.1,
                   bounce: 0.1,
                 }}
-                className="flows__ba-pill"
+                className={`flows__ba-pill${isAfterPending ? ' is-pending' : ''}`}
               >
                 <motion.span layout="position" className="flows__ba-switch-wrap">
                   {/* Shared Switch primitive (app/components/Switch). The   */}
@@ -392,15 +406,25 @@ export default function Flows() {
                       liftRotate={liftRotate}
                       hudMode={hudMode}
                       onHudDragEnd={handleHudDragEnd}
+                      onAfterReady={markAfterReady}
                     />
                   </motion.div>
                 )
               }
 
-              // Adjacent slides — preload only the before-image so the
-              // popLayout slide-in lands on a fully painted frame. The
-              // after-image is intentionally not loaded here; it loads
-              // when the user actually reaches that slide and toggles.
+              // Adjacent slides — warm both states so arriving at a slide and
+              // reaching for the toggle both land on bytes already in hand.
+              //
+              // Two rules keep this from cannibalising the visible frame,
+              // which is exactly what it used to do (see ANOMALIES.md →
+              // "Audit-frame image loading"):
+              //   • fetchPriority="low" — these are `visibility: hidden`.
+              //     They must queue BEHIND the before-image the reader is
+              //     looking at, never ahead of it.
+              //   • the after-image only mounts once the current slide's own
+              //     after has landed, so the warm-ahead can't compete with
+              //     the toggle the reader might press right now.
+              const warmAdjacentAfter = readyAfterSrcs.has(currentFlow?.after.image ?? '')
               return (
                 <div
                   key={`slide-${index}`}
@@ -411,13 +435,27 @@ export default function Flows() {
                     src={before.image}
                     alt=""
                     intrinsic
-                    sizes="100vw"
+                    sizes={FLOW_IMG_SIZES}
                     className="ba__img"
                     draggable={false}
-                    unoptimized
                     loading="eager"
+                    fetchPriority="low"
                     placeholder="hash"
                   />
+                  {warmAdjacentAfter && (
+                    <Img
+                      src={after.image}
+                      alt=""
+                      intrinsic
+                      sizes={FLOW_IMG_SIZES}
+                      className="ba__img"
+                      draggable={false}
+                      loading="eager"
+                      fetchPriority="low"
+                      placeholder="hash"
+                      onReady={() => markAfterReady(after.image)}
+                    />
+                  )}
                 </div>
               )
             })}

@@ -453,6 +453,10 @@
 /* desaturated text. In default the pill is solid orange-80 (hover 160).   */
 .flows__ba-pill {
   display: flex;
+  /* `relative` anchors the .is-pending hairline below; `overflow: hidden`
+     (already load-bearing for the standby switch-wrap collapse) doubles as
+     the clip for the sweep. */
+  position: relative;
   overflow: hidden;
   background: color-mix(in srgb, var(--orange-80) calc(var(--active-t, 1) * 100%), transparent);
   max-width: fit-content;
@@ -512,6 +516,47 @@
     var(--grey-400) calc((1 - var(--active-t, 1)) * 100%),
     var(--orange-720) calc(var(--active-t, 1) * 100%)
   );
+}
+
+/* Pending — the toggle reads "After Audit" but the after-image is still in  */
+/* flight. Without this the reader gets a silent 100ms crossfade onto a      */
+/* ThumbHash smear that, on these dark dashboard scans, is indistinguishable */
+/* from the before image — the control appears to do nothing. The pill says  */
+/* "working" instead: label softens, and a hairline traverses the bottom     */
+/* edge like a strip developing. No spinner — this stays in the paper        */
+/* vocabulary. Loop length is composed from --dur-glide (×2), not a new      */
+/* duration tier. See ANOMALIES.md → "Audit-frame image loading".            */
+.flows__ba-label-text {
+  transition: opacity var(--dur-fast) var(--ease-snap);
+}
+
+.flows__ba-pill.is-pending .flows__ba-label-text {
+  opacity: 0.55;
+}
+
+.flows__ba-pill.is-pending::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 40%;
+  height: 1.5px;
+  background: var(--orange-720);
+  animation: flows-ba-pending calc(var(--dur-glide) * 2) var(--ease-paper) infinite;
+}
+
+@keyframes flows-ba-pending {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(250%); }
+}
+
+/* Reduced motion — keep the signal, drop the travel. */
+@media (prefers-reduced-motion: reduce) {
+  .flows__ba-pill.is-pending::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
 }
 
 /* Nav controls — hidden in standby (opacity 0, pointer-events none).      */

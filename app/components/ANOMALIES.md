@@ -20,6 +20,8 @@ reading the code in isolation. The nav cluster keeps its own deeper archive at
 - **`Monostamp` carries no transitions — consumer owns state** — stateless primitive, timing is the consumer's job.
 - **`PaperFilter` renders exactly once per document** — duplicate mounts collide on filter id.
 - **`Img` is the only sanctioned content-image path** — new images require `npm run lqip`.
+- **`Img`'s `onLoad` can miss the load event — `complete` + a native listener are the rescue** — without them a fully-downloaded image sits at `opacity: 0` forever.
+- **`Img`'s reduced-motion guard must target `.is-loaded` — and `opacity: 1` is the load-bearing half** — per-route `animation: none !important` sweeps kill the keyframe, so the static opacity is what keeps images visible.
 - **StartoothLoader is a server component, NOT a `<Sticker>` consumer** — must paint pre-hydration and stay passive.
 - **Per-route colour AND movement are CSS-driven via `:root:has(.route-*)`, not props** — the shared layout can't know the route at render time.
 - **The loader field is a per-route colour; the exit transform lives on the mark, not the field** — the field only ever animates opacity.
@@ -202,6 +204,112 @@ run lqip\` to regenerate.` and the image loses lazy-loading/blur-up behavior.
 
 **Don't change without reading first:** `docs/performance.md` for the full
 `Img`/`lqip` flow before adding a second content-image path.
+
+## `Img`'s `onLoad` can miss the load event — `complete` + a native listener are the rescue
+
+**What:** `Img` never reveals an image on React's `onLoad` alone. A `useEffect`
+keyed on `src` reconciles against `img.complete && img.naturalWidth > 0` on
+mount, and when the image is still in flight it attaches a **native** `load`
+listener as a backstop. Both paths call the same `settle()` that adds to
+`loadedSrcs` and flips `loaded`. The `onLoad` prop on `<NextImage>` stays — it
+is the fast path, not the only path.
+
+**Where:** `app/components/Img/Img.tsx` — the `innerRef` effect (comment header
+"Missed-load-event rescue"), the `ref={innerRef}` on `<NextImage>`, and the
+existing `onLoad` handler.
+
+**Why:** `onLoad` is a React *synthetic* handler, so it only catches a `load`
+event dispatched **after** hydration attaches it. Any image whose bytes land
+before that — an eager/high-priority asset below the fold on a hydration-heavy
+page, or anything served from cache — fires `load` into the void. `loaded`
+never flips, `.is-loaded` is never applied, and the fully-decoded image sits at
+`opacity: 0` behind its placeholder **permanently**. `loadedSrcs` doesn't
+rescue it either: that Set is only populated by the same handler that was
+missed, so the `is-cached` fast path stays empty too and every later re-mount
+of the same src is stuck as well.
+
+This was not theoretical. Measured on `/biconomy` before the fix: **21 `Img`
+wrappers on the page, 0 with `.is-loaded`**, while four flow images reported
+`complete: true` with real `naturalWidth` and React fiber props confirming
+`onLoad` was attached. The audit frame was rendering fully-downloaded
+screenshots at `opacity: 0`.
+
+The mount-time `complete` check alone was not sufficient — two `fetchPriority="low"`
+preloads still slipped through the window between commit and dispatch. The
+native listener closes it, because a listener attached to the element itself
+cannot be missed the way the delegated synthetic one can.
+
+**What breaks if violated:** remove either half and images intermittently never
+appear — worst on slow-hydration routes and warm caches, which is exactly where
+it is hardest to reproduce and easiest to misread as "slow loading". The symptom
+is a *fast* network and an image that never materializes.
+
+**Rejected:** gating on `priority`/`loading` heuristics (guesses at the race
+instead of closing it); polling `complete` on a timer (burns frames and still
+races); dropping the `onLoad` prop in favour of the native listener only (loses
+the synchronous fast path and re-orders the reveal against the materialize
+keyframe).
+
+**Related:** the `onReady` prop is layered on the same `loaded` state — see
+`LIBRARY.md` → Img, and `app/(works)/biconomy/ANOMALIES.md` → "Audit-frame
+image loading" for the consumer that surfaced this.
+
+## `Img`'s reduced-motion guard must target `.is-loaded` — and `opacity: 1` is the load-bearing half
+
+**What:** the `@media (prefers-reduced-motion: reduce)` block in
+`app/components/Img/img.css` sets **both** `opacity: 1` and an opacity-only
+`img-materialize-reduced` animation on `.img.is-loaded .img__inner`. The
+`opacity: 1` is the part that must never be removed; the animation is a nicety
+that frequently does not run at all.
+
+**Where:** `app/components/Img/img.css` — the `@media (prefers-reduced-motion:
+reduce)` block and the `img-materialize-reduced` keyframe, against the base
+`.img.is-loaded .img__inner` / `.img.is-loaded.is-cached .img__inner` rules, and
+against the per-route blanket sweeps listed below.
+
+**Why — the cascade here is counter-intuitive.** Every major route ships a
+blanket reduced-motion sweep: `.route-biconomy *`, `.route-rr *`,
+`.route-marks *`, `.selected-workbench *`, `.landing *`, each with
+`transition: none !important; animation: none !important` on the element and
+both pseudo-elements. Those `!important` declarations kill **any** animation
+this file sets, including the reduced one. So on every route that carries an
+image, the reduced-motion reveal is not an animation at all — it is a static
+`opacity: 1`.
+
+This block previously guarded `.img.is-animating`, a class **nothing in the
+codebase sets** (`Img` applies `is-loaded` and `is-cached`). Its `animation:
+none` was therefore inert — but harmless, because the route sweeps were already
+doing that job. What made images *visible* was its other declaration,
+`.img__inner { opacity: 1 }`. That line looked redundant and was not.
+
+**Rejected — and nearly shipped:** replacing the block with an opacity-only
+keyframe and dropping `opacity: 1`, on the reasoning that the keyframe now
+handles the reveal. It does not: the route sweeps `!important`-kill it, base
+`.img__inner { opacity: 0 }` stands, and **every non-cached image on every
+major route goes invisible for reduced-motion users**. The failure is silent —
+no build error, and invisible to any reviewer who hasn't enabled the OS setting.
+Keep a plain `opacity: 1` that survives `animation: none`.
+
+**Reveal, not removal.** Where no blanket sweep exists, reduced motion drops the
+blur and the scale — the vestibular half — and keeps an opacity fade, so the
+image arrives rather than popping. Animations outrank normal declarations, so
+where the keyframe does run it wins over the `opacity: 1` and lands on it via
+`forwards`.
+
+**Specificity.** (0,3,0), matching the base `.img.is-loaded` rule and declared
+after it. The base `.is-cached` pin (0,4,0) still wins, so cached images stay
+snapped to the end-state. Route overrides that set only `animation` — e.g.
+`.flows__frame .img.is-loaded:not(.is-cached)` in `biconomy.css`, the
+`.rr-canvas` blanket in `rr.css` — leave this `opacity` intact, which is exactly
+why the fallback works.
+
+**What breaks if violated:** re-point the selector at a class the component
+doesn't set and the guard goes inert again; drop the `opacity: 1` and images
+disappear entirely under reduced motion. Neither failure surfaces in a build or
+a normal visual review.
+
+**Related:** "`Img`'s `onLoad` can miss the load event" — that fix is what
+guarantees `.is-loaded` actually lands, which this guard depends on.
 
 ## StartoothLoader is a server component, NOT a `<Sticker>` consumer
 

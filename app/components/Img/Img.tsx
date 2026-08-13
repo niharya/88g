@@ -37,6 +37,14 @@ type ImgProps = Omit<NextImageProps, 'src' | 'placeholder' | 'blurDataURL' | 'wi
   /** Lazy loading mode; forwarded to <NextImage>. */
   loading?: 'eager' | 'lazy'
   /**
+   * Fires when this src is painted-ready — either `onLoad` landed, or the src
+   * was already in `loadedSrcs` at mount (browser-cached). Lets a consumer
+   * gate a control on the image actually being there instead of assuming it.
+   * Use this rather than passing `onLoad`: `onLoad` is owned by Img and a
+   * consumer-supplied one would clobber the internal load state.
+   */
+  onReady?: () => void
+  /**
    * Distance ahead of the viewport at which the image flips from lazy to
    * eager so the fetch begins before the section is actually reached.
    * Set to `0` or `false` to opt out and use native browser lazy loading only.
@@ -85,6 +93,7 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
   height,
   quality,
   prefetchMargin = '1500px',
+  onReady,
   ...rest
 }: ImgProps, forwardedRef) {
   const entry: ImageManifestEntry | undefined = imageManifest[src]
@@ -140,6 +149,45 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
     }
     setPrefetched(false)
   }, [src])
+
+  // Missed-load-event rescue. `onLoad` is a React synthetic handler, so it only
+  // catches a `load` event that fires AFTER hydration attaches it. An image
+  // whose bytes land first — eager/high-priority assets below the fold on a
+  // hydration-heavy page, or anything served from cache — fires `load` into
+  // the void, `loaded` never flips, and the fully-decoded image sits at
+  // `opacity: 0` behind its placeholder forever. Reconciling against
+  // `img.complete` on mount and on every src change closes that race; the
+  // native `load` listener closes the mirror-image one (an image that finishes
+  // between this commit and the dispatch to React's handler), because a
+  // listener on the element itself can't be missed the way the synthetic one
+  // can. Both halves are load-bearing — the `complete` check alone still let
+  // low-priority preloads through.
+  // See app/components/ANOMALIES.md → "Img's onLoad can miss the load event".
+  const innerRef = useRef<HTMLImageElement | null>(null)
+  useEffect(() => {
+    const el = innerRef.current
+    if (!el) return
+    const settle = () => {
+      loadedSrcs.add(src)
+      setLoaded(true)
+    }
+    if (el.complete && el.naturalWidth > 0) {
+      settle()
+      return
+    }
+    el.addEventListener('load', settle)
+    return () => el.removeEventListener('load', settle)
+  }, [src])
+
+  // Ready signal. Fires on the transition into `loaded` for the current src —
+  // covers both the fresh-load path (onLoad) and the browser-cached path
+  // (the effect above starts the src already loaded). Held in a ref so an
+  // inline consumer callback doesn't re-run the effect every render.
+  const onReadyRef = useRef(onReady)
+  onReadyRef.current = onReady
+  useEffect(() => {
+    if (loaded) onReadyRef.current?.()
+  }, [loaded, src])
 
   const hashUrl = useMemo(() => {
     if (resolvedPlaceholder !== 'hash' || !entry) return undefined
@@ -208,6 +256,7 @@ export const Img = forwardRef<HTMLSpanElement, ImgProps>(function Img({
       ) : null}
 
       <NextImage
+        ref={innerRef}
         src={src}
         alt={alt}
         {...nextImageSizingProps}

@@ -99,11 +99,44 @@
   }
 }
 
+/* Reduced motion — `opacity: 1` FIRST, animation second. The order of
+ * importance here is the opposite of how it reads.
+ *
+ * `opacity: 1` is the load-bearing half and must never be removed. Every major
+ * route ships a blanket `animation: none !important` sweep under reduced motion
+ * (`.route-biconomy *`, `.route-rr *`, `.route-marks *`, `.selected-workbench *`,
+ * `.landing *`). Those `!important` declarations kill ANY animation this file
+ * sets, including the reduced one below. Without a plain `opacity: 1` to fall
+ * back on, `.img__inner`'s base `opacity: 0` would stand and every non-cached
+ * image on those routes would be invisible to reduced-motion users.
+ *
+ * The keyframe is the nicety: on a route with no blanket sweep it fades the
+ * image in on opacity alone — reduced motion asks us to drop the blur and the
+ * scale, not the arrival. Where a sweep exists the image simply appears.
+ * Animations outrank normal declarations, so where it does run it wins over
+ * the `opacity: 1` and ends on it via `forwards`.
+ *
+ * The selector must be `.is-loaded` — the class the component actually sets.
+ * This block once guarded `.is-animating`, which nothing sets; it was inert,
+ * and the route sweeps were quietly doing the whole job.
+ *
+ * Specificity: (0,3,0), matching the base `.img.is-loaded` rule and declared
+ * after it. The base `.is-cached` pin (0,4,0) still wins, so cached images stay
+ * snapped to the end-state. Route overrides that only set `animation` leave
+ * this `opacity` intact. See ANOMALIES.md → "Img's reduced-motion guard must
+ * target `.is-loaded` — and `opacity: 1` is the load-bearing half". */
 @media (prefers-reduced-motion: reduce) {
-  .img__inner {
+  .img.is-loaded .img__inner {
     opacity: 1;
+    animation: img-materialize-reduced var(--dur-slide) var(--ease-paper) forwards;
   }
-  .img.is-animating .img__inner {
-    animation: none;
+}
+
+@keyframes img-materialize-reduced {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

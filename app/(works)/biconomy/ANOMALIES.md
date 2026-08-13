@@ -40,6 +40,7 @@ For project-level rules see `CLAUDE.md`.
 - [API — layout, palette, and crafted-lite pass](#api--layout-palette-and-crafted-lite-pass)
 - [`#1DA1F2` (v0.35.0)](#1da1f2-v0350)
 - [UI flow scans flatten alpha to `#181818` (v0.70)](#ui-flow-scans-flatten-alpha-to-181818-v070)
+- [Audit-frame image loading](#audit-frame-image-loading)
 
 ---
 
@@ -1251,3 +1252,70 @@ The Biconomy dashboard tone is `#181818`; do **not** use the workbench
 cream or pure black — the former defeats the purpose, the latter creates
 visible edges where the screenshot's pseudo-transparent halo meets the
 flat fill.
+
+## Audit-frame image loading
+
+**What:** the four images the UX-audit frame can show at any moment (current
+slide's before + after, and each adjacent slide's before + after) have a fixed
+priority order that must not be shuffled:
+
+| layer | `loading` | `fetchPriority` | mounts |
+|---|---|---|---|
+| current slide **before** | `eager` | **`high`** | always |
+| current slide **after** | `eager` | _auto_ | always |
+| adjacent slides **before** | `eager` | **`low`** | always |
+| adjacent slides **after** | `eager` | **`low`** | only once the current after is ready |
+
+**Where:** `components/BeforeAfter.tsx` (`.ba__before` / `.ba__after-main`
+`<Img>` calls, and the exported `FLOW_IMG_SIZES`), `components/Flows.tsx` (the
+`flows__slide--hidden` preload branch, `readyAfterSrcs` / `markAfterReady`,
+`isAfterPending`), `biconomy.css` (`.flows__ba-pill.is-pending`).
+
+**Why:** the frame previously had the priority order exactly inverted. The
+before-image — the only thing on screen — was the frame's **only**
+`loading="lazy"` image, rescued by `<Img>`'s IntersectionObserver prefetch,
+while two `visibility: hidden` preloads and the `opacity: 0` after layer were
+all `loading="eager"`. Measured on a cold load: all three invisible images had
+completed while the visible one had not yet been requested at all. A
+JS-scheduled prefetch cannot win a race against fetches the browser already
+queued at native priority — the visible layer has to be marked high itself.
+
+Adjacent **after** images are warmed too (they weren't before, so every
+first-visit toggle started a cold fetch at click time), but only after the
+current slide's own after has landed — otherwise the warm-ahead competes with
+the toggle the reader might press right now.
+
+**`unoptimized` is gone from this section.** It was an early-commit leftover
+that predated the `lossless`-flag quality tier, undocumented, and the only use
+of the prop in the repo. It disabled `srcset` entirely, so every device pulled
+the same ~2000px asset: measured against the live optimizer, a phone was
+fetching 119KB where 30KB would do (−75%), and a 1× desktop 119KB where 52KB
+would do (−56%). On a 2× desktop it is roughly break-even — which is why byte
+weight was never the symptom Nihar could see, and why the load-event bug below
+was the real culprit. `sizes` moved from a fictional `100vw` to
+`FLOW_IMG_SIZES` — the frame is capped at 1000px by `.flows__notes-wrap`.
+
+**The toggle is honest about waiting.** `isAfterPending` (`showAfter` and the
+current after src not yet in `readyAfterSrcs`) puts `.is-pending` on
+`.flows__ba-pill`: the label softens and a hairline traverses the pill's bottom
+edge, loop length composed from `--dur-glide` (×2) rather than a new duration
+tier. Without it, flipping to a not-yet-loaded After crossfades in 100ms onto
+the after layer's ThumbHash — and on these dark dashboard scans (dominant
+`rgb(24,24,24)`) that smear is indistinguishable from the before image, so the
+control reads as doing nothing. That is a *Controls must not lie* violation.
+
+**What breaks if violated:** demote the current before-image below its
+neighbours and the reader watches a placeholder while off-screen images load.
+Mount the adjacent afters unconditionally and they compete with the visible
+frame on first paint. Re-add `unoptimized` and mobile silently pays 4× the
+bytes.
+
+**Related:** this section is what surfaced the shared-layer bug in
+`app/components/ANOMALIES.md` → "`Img`'s `onLoad` can miss the load event" —
+the audit frame was rendering four fully-downloaded screenshots at `opacity: 0`
+because their `load` events fired before hydration. Fixing the priority order
+without that fix would have changed nothing visible.
+
+**Known, not fixed:** before-scans are ~1986×1128 and after-scans ~2020×1162,
+so `.ba` (sized by before, `overflow: hidden`) crops the after layer by ~7px at
+the bottom. Normalising the pair is an asset re-export, not a code change.
