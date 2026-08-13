@@ -1285,15 +1285,42 @@ first-visit toggle started a cold fetch at click time), but only after the
 current slide's own after has landed — otherwise the warm-ahead competes with
 the toggle the reader might press right now.
 
-**`unoptimized` is gone from this section.** It was an early-commit leftover
-that predated the `lossless`-flag quality tier, undocumented, and the only use
-of the prop in the repo. It disabled `srcset` entirely, so every device pulled
-the same ~2000px asset: measured against the live optimizer, a phone was
-fetching 119KB where 30KB would do (−75%), and a 1× desktop 119KB where 52KB
-would do (−56%). On a 2× desktop it is roughly break-even — which is why byte
-weight was never the symptom Nihar could see, and why the load-event bug below
-was the real culprit. `sizes` moved from a fictional `100vw` to
-`FLOW_IMG_SIZES` — the frame is capped at 1000px by `.flows__notes-wrap`.
+**`unoptimized` STAYS on every flow image. Do not "modernise" it away.**
+`FLOW_IMG_UNOPTIMIZED` in `BeforeAfter.tsx` is the single switch; all five call
+sites read it.
+
+It reads like an early-commit leftover — undocumented, predating the
+`lossless`-flag quality tier, and the only use of the prop in the repo. **It was
+removed on exactly that reasoning in v0.130.0 and had to be restored in
+v0.131.0.** These are near-lossless WebP scans of a dark dashboard UI, and
+`/_next/image` re-encodes as **lossy** WebP. Lossy WebP subsamples chroma
+(YUV 4:2:0) at *every* quality setting, `q100` included — which is precisely the
+worst case for white text on the orange "Connect Wallet" fill. Measured on the
+v0.130.0 deploy versus the source asset:
+
+| | dimensions | bytes | glyph edges |
+|---|---|---|---|
+| source (near-lossless) | 1988×1131 | 114.3 KB | clean |
+| via `/_next/image?w=2048&q=100` | 1988×1131 | **127.6 KB** | haloed |
+
+Same pixel dimensions, a *larger* file, a visibly worse picture — max channel
+delta 61/255, 0.38% of channels off by >8, concentrated on text and button
+edges. Bytes are not the metric here; chroma fidelity is.
+
+**The cost is real and accepted.** Bypassing the optimizer means no `srcset`, so
+mobile fetches the full ~114 KB asset instead of a ~30 KB resize. That trade was
+made deliberately: these screenshots are the chapter's evidence, and evidence
+that has gone mushy stops functioning as evidence. If mobile weight ever needs
+solving, the answer is **pre-generated near-lossless variants at build time**,
+not the lossy optimizer.
+
+`FLOW_IMG_SIZES` is kept correct but is **inert** while `unoptimized` is on —
+next/image emits no srcset for it to select from.
+
+**Why this doesn't generalise.** Every other `<Img>` on the site has always gone
+through the optimizer and always been lossy re-encoded. That is fine for photos
+and acceptable for most artwork. It is not fine for UI scans with small text.
+Any future asset of that kind wants the same bypass.
 
 **The toggle is honest about waiting.** `isAfterPending` (`showAfter` and the
 current after src not yet in `readyAfterSrcs`) puts `.is-pending` on

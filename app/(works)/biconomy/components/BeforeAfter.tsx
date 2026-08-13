@@ -11,12 +11,29 @@ type NoteWithPointer = FlowNote & { pointerIndex?: number }
 /**
  * The audit frame is capped at 1000px by `.flows__notes-wrap` (max-width:
  * 1000px) and goes full-bleed inside the mat below the mobile breakpoint.
- * Authoring this honestly is what lets next/image pick a right-sized srcset
- * entry — the old `100vw` claimed the frame was viewport-wide and pulled the
- * largest variant on every device. Exported so Flows' hidden preloads warm
- * the exact same URL the visible layer will ask for.
+ * Currently INERT — every flow image is `unoptimized`, so next/image emits no
+ * srcset for `sizes` to select from. Kept correct and exported so the value is
+ * right if the optimizer is ever re-enabled for these assets, and so Flows'
+ * hidden preloads request the identical URL the visible layer will.
  */
 export const FLOW_IMG_SIZES = '(max-width: 767px) 100vw, 1000px'
+
+/**
+ * Every flow image bypasses the next/image optimizer.
+ *
+ * These are near-lossless WebP scans of a dark dashboard UI. `/_next/image`
+ * re-encodes as **lossy** WebP, and lossy WebP subsamples chroma (YUV 4:2:0)
+ * at every quality setting including 100 — which is precisely what destroys
+ * white text on the orange "Connect Wallet" fill. Measured on the v0.130.0
+ * deploy: identical 1988×1131 dimensions, a *larger* file (127.6 KB vs
+ * 114.3 KB), and still visible haloing on glyph edges — max channel delta
+ * 61/255. Bigger file, worse picture.
+ *
+ * The cost is real and accepted: mobile fetches the full asset (~114 KB)
+ * instead of a ~30 KB resize. These screenshots are the chapter's evidence;
+ * crispness is the product. See ANOMALIES.md → "Audit-frame image loading".
+ */
+export const FLOW_IMG_UNOPTIMIZED = true
 
 function NotesOverlay({
   notes,
@@ -200,6 +217,7 @@ export default function BeforeAfter({
           alt="Before"
           intrinsic
           sizes={FLOW_IMG_SIZES}
+          unoptimized={FLOW_IMG_UNOPTIMIZED}
           className="ba__img"
           draggable={false}
           loading="eager"
@@ -246,6 +264,7 @@ export default function BeforeAfter({
               alt="After"
               intrinsic
               sizes={FLOW_IMG_SIZES}
+              unoptimized={FLOW_IMG_UNOPTIMIZED}
               className="ba__img"
               draggable={false}
               loading="eager"
@@ -266,6 +285,7 @@ export default function BeforeAfter({
                 alt="After (next step)"
                 intrinsic
                 sizes={FLOW_IMG_SIZES}
+                unoptimized={FLOW_IMG_UNOPTIMIZED}
                 className="ba__img"
                 draggable={false}
                 loading="lazy"

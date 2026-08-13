@@ -11,7 +11,7 @@ import {
 } from 'framer-motion'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { flows, type FlowNote } from './flowSlides'
-import BeforeAfter, { FLOW_IMG_SIZES } from './BeforeAfter'
+import BeforeAfter, { FLOW_IMG_SIZES, FLOW_IMG_UNOPTIMIZED } from './BeforeAfter'
 import { Img } from '../../../components/Img'
 import NavPill from './NavPill'
 import { Switch } from '../../../components/Switch'
@@ -436,6 +436,7 @@ export default function Flows() {
                     alt=""
                     intrinsic
                     sizes={FLOW_IMG_SIZES}
+                    unoptimized={FLOW_IMG_UNOPTIMIZED}
                     className="ba__img"
                     draggable={false}
                     loading="eager"
@@ -448,6 +449,7 @@ export default function Flows() {
                       alt=""
                       intrinsic
                       sizes={FLOW_IMG_SIZES}
+                      unoptimized={FLOW_IMG_UNOPTIMIZED}
                       className="ba__img"
                       draggable={false}
                       loading="eager"
