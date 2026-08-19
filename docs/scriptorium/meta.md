@@ -262,7 +262,7 @@ Notes: `lastModified` is set to `new Date()` at request time — every fetch rep
 
 ## Notes
 
-- **Dev-only routes** (`/_dev-tools/lqip-lab`, `/_dev-tools/sticker-lab`, `/preview/404`) have minimal metadata (just `title`) and are intentionally not in the sitemap. Not catalogued here.
+- **Dev-only routes** (`/_dev-tools/lqip-lab`, `/_dev-tools/sticker-lab`, `/_preview/404`) have minimal metadata (just `title`) and are intentionally not in the sitemap. Not catalogued here.
 - **Title template** (`%s · Nihar`) applies to every route that sets `title` as a string. `title: "Resume · Interfaces To Infrastructure"` renders as `"Resume · Interfaces To Infrastructure · Nihar"` in the browser tab.
 - **OG image fallback chain:** routes without an OG block inherit root layout's `/og-image.png`. Routes with their own OG block override fully — fields you don't set are not inherited per-block (this is Next.js metadata behavior).
 - **JSON-LD lives in two places** today: landing (Person + WebSite) and `/rr` (CreativeWork). Other routes don't carry structured data.

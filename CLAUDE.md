@@ -70,6 +70,8 @@ Banned: uncapped font gates; font `display: 'block'`; external Google Fonts link
 
 ## Versioning and pushing
 
+**Production is a different machine from `next dev`.** Response headers, redirects and caching exist only on the deployed site, so a whole class of bug is invisible to every local check — `/resume` shipped blank for 47 releases that way. Security headers are declared in `next.config.mjs` (source of truth; `netlify.toml` holds an identical copy for CDN-served files) — see `LIBRARY.md` → "Security headers". `npm run smoke` asserts the live site and is Phase 6 of `/release`; if a change depends on anything the server adds, it isn't verified until that has run.
+
 Every push bumps the minor version (`0.X.0`) and tags `vX.Y.0`. Run **`/release`** — it runs the checks (including the doc census), auto-fixes the mechanical tier, batches judgment calls into one ask, verifies (typecheck + smoke), bumps, tags, and **always confirms with you before pushing**. Never push unannounced or unverified.
 
 ## Agents

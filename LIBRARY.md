@@ -28,6 +28,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **Icons** — `app/components/icons/`; hand-rolled SVGs with animatable internal paths; currentColor.
 - **ExpandToggle** — `app/components/ExpandToggle/`; expand/collapse glyph; consumers: landing pill-btn, /rr Intro.
 - **Page boot mark (startooth)** — `app/layout.tsx` + globals.css; font-gate hold mark; per-route recolor via `:root:has()` blocks.
+- **Security headers** — `next.config.mjs` (source of truth) + `netlify.toml` (identical copy for CDN files) + `scripts/smoke.mjs`; the two lists MUST stay in sync; Netlify's `[[headers]]` never reach Next-rendered pages.
 - **Small utils** — `app/lib/greeting.ts`, `app/lib/titleCase.ts`.
 - **useExpand** — `app/lib/useExpand.ts`; non-modal overlay hook (`is-overlay-open` body class pauses dominance-snap); consumers: /rr Intro + Outcome.
 - **scrollGlide** — `app/lib/scrollGlide.ts`; singleton rAF scroll tween under `--ease-paper`; consumers: /marks + useDominanceSnap.
@@ -767,7 +768,9 @@ Site colophon — rendered in two variants depending on consumer.
 - The caption variant's `translate: -50% 100%` ↔ `-50% 0%` is intentional — the dedicated `translate` property is used (not `transform`), because Chrome's matrix conversion on fixed-position transforms with mixed `%` units stuck the transition at the start value.
 - The 800-step hover palette is keyed on the route via `usePathname()`. New work routes (e.g. /case-x) need an entry in `ROUTE_PALETTES`; absent that, the fallback palette (blue + terra) applies. The 960 click-state map (`ACTIVE_FOR_HOVER`) is keyed off the 800 var-string, so don't change one without the other.
 - Mobile breakpoint matches the site standard (`max-width: 767px` OR `max-height: 500px` — the landscape-phone clause). Inside the breakpoint, the row drops `workbench-pad-x` to 0, hides the credit, and keeps the link ledger as one centered horizontal line (`flex-wrap: nowrap` on both row and links). Cell horizontal padding drops to `var(--space-8)` so all five cells fit at 375 px without overflowing.
-- The `Resume` cell is wired through `/resume` — now a **real route** (`app/resume/page.tsx`), a thin HTML wrapper that iframes the dated PDF from `public/` so the URL carries OG/Twitter metadata and a proper tab title. The earlier Netlify rewrite + `next.config.mjs` pair was retired; there is no rewrite chain to keep in sync. When the resume is re-versioned (e.g. `nihar-bhagat-resume-2026.pdf`), drop the new file into `public/` and update `PDF_HREF` in `app/resume/page.tsx` — the LINKS entry stays unchanged.
+- The `Resume` cell is wired through `/resume` — a **real route** (`app/resume/page.tsx`) wrapping the dated PDF from `public/` so the URL carries OG/Twitter metadata and a proper tab title. The earlier Netlify rewrite + `next.config.mjs` pair was retired; there is no rewrite chain to keep in sync. When the resume is re-versioned (e.g. `nihar-bhagat-resume-2026.pdf`), drop the new file into `public/` and update `PDF_FILE` in `app/resume/page.tsx` — the LINKS entry stays unchanged.
+- `/resume`'s embed carries real constraints — a production-only header that blanks the route, an `<object>` chosen over an `<iframe>`, and a phone gate. They live in [app/resume/CLAUDE.md](app/resume/CLAUDE.md) + [ANOMALIES.md](app/resume/ANOMALIES.md); `npm run smoke` asserts the header against the live site. Read the digest before touching the route.
+- **`/resume` has two faces, and the choice is NOT made in JavaScript.** `ResumeViewer.tsx` mounts an `<object>` (not an `<iframe>`) so the browser itself decides whether it can display the PDF, rendering the nested `ResumeSheet` when it can't. Detecting that in JS was tried and abandoned: a browser that won't paint a PDF still reports the embedded document as `contentType: 'application/pdf'` with an empty body, so there is nothing trustworthy to test. The one deterministic mechanism is the viewport gate — phones never mount the embed at all, because Chrome on Android and most in-app browsers (LinkedIn's especially) have no inline PDF viewer. Keep `MOBILE_MQ` in lock-step with the breakpoint in `resume.css`.
 
 ---
 
@@ -847,6 +850,27 @@ A bare-track-and-thumb binary toggle. Lives at [app/components/Switch/](app/comp
 
 ---
 
+## Security headers
+
+The site's response headers, and the one thing about them that is not obvious:
+**Netlify's `[[headers]]` never reach Next-rendered responses.** They cover files
+served straight from the CDN — everything in `public/` — and nothing else. For
+months that meant the entire security posture applied to the images and the
+resume PDF while `/`, `/all`, `/rr` and every other page went uncovered.
+
+**Where it lives**
+- [next.config.mjs](next.config.mjs) — `SECURITY_HEADERS` + `CSP_REPORT_ONLY`. **Source of truth.** Applies to every page and route handler Next renders. Also emits `X-App-Version` from `package.json`.
+- [netlify.toml](netlify.toml) — an identical copy, for the static files Netlify serves directly (the resume PDF among them). It cannot import JS, so this duplication is structural, not laziness.
+- [scripts/smoke.mjs](scripts/smoke.mjs) — asserts both halves against the deployed site (`npm run smoke`).
+
+**AI notes**
+- **The two lists must stay byte-identical.** Edit `next.config.mjs` first, then mirror into `netlify.toml`. A drift check is one line: compare the config's CSP string against the `Content-Security-Policy-Report-Only` value in the toml.
+- `X-Frame-Options` is `SAMEORIGIN`, never `DENY` — `DENY` blocks our own pages from framing our own PDF and blanks `/resume`. See [app/resume/ANOMALIES.md](app/resume/ANOMALIES.md) → "X-Frame-Options must never be DENY".
+- `frame-src` names every host we embed: `'self'` (the resume PDF), the book-a-call calendar, and /biconomy's Notion + Figma evidence embeds. **Adding an embed to any route means adding its host here** — otherwise it goes white the moment the CSP is promoted from report-only to enforcing.
+- The CSP is deliberately still `-Report-Only`. Enforcing it buys little on a portfolio with no accounts or payments, and risks blanking case-study evidence; the clickjacking protection that matters is already delivered by `X-Frame-Options` + `frame-ancestors`.
+- `X-App-Version` exists so `npm run smoke -- --wait` can tell whether the deploy it is testing is the one just pushed. Netlify builds *after* the push, so a check that fires immediately measures the previous deploy and passes green.
+- None of these headers exist under `next dev`. Anything that depends on them is invisible locally and must be verified against a real deploy — that is exactly how `/resume` stayed broken for 47 releases.
+
 ## Analytics (cookieless Umami)
 
 Privacy-first, aggregate analytics. Umami's hosted tracker auto-captures page views + visit duration; a typed `track()` helper records discrete interaction events ("where they clicked"). No cookies, no per-visitor identity, no consent banner. **Every custom event goes through the helper — never call `window.umami.track()` directly.**
@@ -855,7 +879,7 @@ Privacy-first, aggregate analytics. Umami's hosted tracker auto-captures page vi
 - [app/lib/analytics.ts](app/lib/analytics.ts) — the `analytics` helper. One method per event; the whole vocabulary lives here. Safe no-op when the tracker is absent, so callers never guard.
 - [app/Analytics.tsx](app/Analytics.tsx) — the loader, mounted once in `app/layout.tsx`. `afterInteractive`; opt-out-gated (GPC/DNT); `data-domains` pins it to `nihar.works`; website id from `NEXT_PUBLIC_UMAMI_ID`.
 - [app/components/CaseCompletion.tsx](app/components/CaseCompletion.tsx) — passive route-local observer; fires `case-completed` once when a case study's final `<section id>` enters view. Mounted by /biconomy ("staying-anchored") + /rr ("outcome").
-- [netlify.toml](netlify.toml) — the Umami CSP hosts (`cloud.umami.is` in script-src, `gateway.umami.is` in connect-src) + the `NEXT_PUBLIC_UMAMI_ID` env var. Plus [app/csp-report/route.ts](app/csp-report/route.ts) — the CSP report sink.
+- [next.config.mjs](next.config.mjs) — the Umami CSP hosts (`cloud.umami.is` in script-src, `gateway.umami.is` in connect-src) live in the canonical `CSP_REPORT_ONLY` list here; [netlify.toml](netlify.toml) carries an identical copy for CDN-served files plus the `NEXT_PUBLIC_UMAMI_ID` env var — edit the config first, then mirror. See the **Security headers** entry. Plus [app/csp-report/route.ts](app/csp-report/route.ts) — the CSP report sink.
 
 **AI notes**
 - Helper consumers: [page.tsx](app/page.tsx) (contact-submitted, book-call-clicked), [useBenchDock.ts](app/(works)/all/components/Essay/useBenchDock.ts) (browse-mode), [Showcase.tsx](app/(works)/all/components/Showcase/Showcase.tsx) (work-opened), [StartoothField.ts](app/_landing/StartoothField.ts) (easter-egg, fired in `triggerRupture` — NOT `onBuildComplete`, which re-fires on every regrow). CaseCompletion fires case-completed.

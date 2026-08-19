@@ -1,28 +1,38 @@
 import type { Metadata } from 'next'
+import ResumeViewer from './ResumeViewer'
+import ResumeSheet from './ResumeSheet'
 import './resume.css'
 
-// /resume is a thin HTML wrapper around the actual PDF file in `public/`.
-// Two reasons it's a real route instead of a pure rewrite:
-//   1. The PDF file has no HTML <head> and therefore no way to carry OG / Twitter
-//      card metadata. Hosting the PDF inside an iframe on an HTML page lets
-//      `/resume` carry full social-share metadata while the user still sees
-//      the PDF chrome they expect.
+// /resume is a real HTML route wrapped around the actual PDF file in `public/`.
+// Two reasons it's a route instead of a pure rewrite:
+//   1. The PDF file has no HTML <head> and therefore no way to carry OG /
+//      Twitter card metadata. Owning an HTML page lets `/resume` carry full
+//      social-share metadata while the visitor still sees the PDF.
 //   2. The browser tab title comes from the page's <title>, not the URL. Direct
 //      PDF rendering would fall back to the filename ("nihar-bhagat-resume-2025"),
 //      which read as lowercase / dated. A real route gives us "Resume —
 //      Nihar" via the layout.tsx title template.
 //
-// The iframe takes the full viewport with zero chrome (no header, footer,
-// padding) so the page reads as "the PDF" from the user's perspective. The
-// `#navpanes=0&view=FitH` fragments hide Chrome's PDF sidebar and fit the
-// page to viewport width — the same affordances the previous direct-PDF
-// link carried, moved here.
+// The route has two possible faces, and <ResumeViewer> picks between them:
+// the browser's own PDF viewer where one exists, and the authored sheet
+// (ResumeSheet.tsx) everywhere else — phones, browsers set to download PDFs,
+// JS off. See ResumeViewer.tsx for how that decision is made and why it is not
+// made in JavaScript.
+//
+// It used to be the frame alone, with a <noscript> block nominally covering the
+// gap. That was wrong twice over: <noscript> keys off scripting, not off
+// whether the frame painted, so it never fired for the case it named — and a
+// frame the browser refuses or declines to render leaves nothing but empty
+// space. The sheet replaces it; there is no path to a blank page now.
 //
 // The dated PDF filename stays in `public/` so re-versioning the resume is a
-// drop-in replacement: rename the file, update the iframe `src` here. No
-// rewrite chain to keep in sync.
+// drop-in replacement: rename the file, update PDF_FILE here. No rewrite chain
+// to keep in sync.
 
-const PDF_HREF = '/nihar-bhagat-resume-2025.pdf#navpanes=0&view=FitH'
+const PDF_FILE = '/nihar-bhagat-resume-2025.pdf'
+// `#navpanes=0&view=FitH` hides the PDF sidebar and fits the page to the frame
+// width. Fragments are viewer hints only — harmless where unsupported.
+const PDF_EMBED = `${PDF_FILE}#navpanes=0&view=FitH`
 
 export const metadata: Metadata = {
   title: 'Resume · Interfaces To Infrastructure',
@@ -54,25 +64,9 @@ export const metadata: Metadata = {
 export default function ResumePage() {
   return (
     <main className="resume-page">
-      <iframe
-        className="resume-page__viewer"
-        src={PDF_HREF}
-        title="Nihar — Resume"
-        // The iframe owns the entire visible surface; the PDF viewer chrome
-        // (download / print / page nav) renders inside it via the browser's
-        // built-in PDF UI. No additional sandbox restrictions — the file is
-        // first-party and needs to behave like a normal PDF document.
-      />
-      {/* Fallback for environments that block iframes or render no PDF
-          plug-in (very old browsers, restricted enterprise builds). Hidden
-          behind the iframe when the viewer mounts; revealed by the layout
-          if the iframe fails to paint. */}
-      <noscript>
-        <p>
-          Your browser blocked the embedded viewer.{' '}
-          <a href="/nihar-bhagat-resume-2025.pdf">Open the resume PDF directly</a>.
-        </p>
-      </noscript>
+      <ResumeViewer src={PDF_EMBED} pdfHref={PDF_FILE}>
+        <ResumeSheet pdfHref={PDF_FILE} />
+      </ResumeViewer>
     </main>
   )
 }

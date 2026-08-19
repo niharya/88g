@@ -1,49 +1,214 @@
-/* /resume — full-viewport PDF wrapper.
+/* /resume — the PDF viewer, and the authored sheet it falls back to.
 
-   The route is a real HTML page (for OG / Twitter / title metadata that a
-   raw PDF response can't carry), but the user should perceive it as the PDF
-   itself. So the wrapper is zero-chrome: no header, footer, padding, or
-   workbench layer. The iframe fills the viewport edge-to-edge and the
-   browser's PDF viewer chrome takes over from there.
+   The route reads as "the PDF" wherever the browser can render one: the <object>
+   fills the viewport with zero chrome and the browser's own PDF UI takes over.
 
-   The root layout's font-gate (`opacity: 0` until `.fonts-ready` lands) is
-   skipped here because this route doesn't render any project typography —
-   the iframe content is the PDF document, not page copy. The .resume-page
-   selector intentionally has no font-gate participation; if the gate ever
-   becomes mandatory site-wide, add an explicit opt-in or opt-out here. */
+   Where it can't — phones (Chrome on Android has no inline PDF viewer, nor do
+   most in-app browsers), desktop browsers set to download PDFs, JS off — the
+   sheet nested inside the <object> becomes the page instead. It is composed for
+   that job rather than apologising for it: same framed-sheet material as
+   /privacy, in a warm-paper-on-graphite colourway of its own.
+
+   The root layout's page-gate is deliberately skipped here — see .resume-page. */
 
 .resume-page {
   position: fixed;
   inset: 0;
   margin: 0;
   padding: 0;
+  overflow-y: auto;
   background: var(--workbench-bg, #f2f3ef);
-  /* Bypass the font-gate's default `opacity: 0` for top-level surfaces —
-     this route renders no typography of its own, so the gate would only
-     delay the iframe's appearance for no readability benefit. */
+  /* Bypass the page-gate's default `opacity: 0` for top-level surfaces — this
+     route renders almost no typography of its own, so the gate would only
+     delay the sheet and the viewer for no readability benefit. */
   opacity: 1;
 }
 
+/* ── The PDF viewer ──────────────────────────────────────────────────────
+   An <object>, not an <iframe>, so the browser itself decides whether it can
+   display the file — when it can't, it renders the sheet nested inside instead.
+   Absolute (not fixed) so it fills .resume-page's fixed box. See
+   ResumeViewer.tsx. */
 .resume-page__viewer {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
   display: block;
-  /* Disable Chrome's tap-to-zoom and any default focus ring around the
-     iframe itself — the PDF viewer inside is the interactive surface, the
-     iframe element is just a window. */
+  /* The PDF viewer inside is the interactive surface; the frame element itself
+     is just a window, so it takes no focus ring of its own. */
   outline: none;
 }
 
-/* Noscript fallback styling — only visible when the iframe is blocked. */
-.resume-page noscript p {
+/* The plain link inside the <object> fallback — present for assistive tech and
+   crawlers, which read fallback content regardless of what paints. The sheet
+   beside it already carries the visible action, so this stays out of the
+   layout without being hidden from either. */
+.resume-page__plain-link {
   position: absolute;
-  inset: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── The sheet ───────────────────────────────────────────────────────────
+   Colourway aliased from the canonical ramps so the rules below can speak in
+   role-names. Values live in globals.css; these are pointers, not new values.
+   Same aliasing pattern as /privacy's stationery. */
+.resume-sheet {
+  --paper:  var(--terra-100);  /* inner-sheet bg */
+  --ink:    var(--grey-80);    /* text, borders, frame */
+  --soft:   var(--grey-400);   /* meta line */
+  --accent: var(--terra-720);  /* mark, diamond, action fill */
+
+  min-height: 100vh;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-32, 32px);
+  padding: var(--space-48) var(--space-24);
+}
+
+/* Double-rule frame — outer hairline, breathing gap, inner sheet. */
+.resume-sheet__frame {
+  width: 480px;
+  max-width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--ink);
+  padding: 7px;
+  box-shadow: var(--shadow-resting);
+}
+
+.resume-sheet__card {
+  border: 1px solid var(--ink);
+  background-color: var(--paper);
+  background-image: url('/noise-bg.png');
+  background-size: 200px 200px;
+  background-blend-mode: multiply;
+  padding: var(--space-48) var(--space-32);
   text-align: center;
-  font-family: var(--font-body, system-ui);
-  color: var(--grey-960, #1a1a1a);
+}
+
+.resume-sheet__mark {
+  display: block;
+  margin: 0 auto var(--space-24);
+}
+
+.resume-sheet__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  letter-spacing: -0.6px;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.resume-sheet__standfirst {
+  margin: var(--space-8) 0 0;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'opsz' 18;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+/* Rule — a hairline pair around a single diamond, echoing /privacy's grand
+   rule at a quieter weight. */
+.resume-sheet__rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin: var(--space-24) 0;
+}
+.resume-sheet__rule-line {
+  flex: 1;
+  height: 1px;
+  background: var(--ink);
+  opacity: 0.35;
+}
+.resume-sheet__diamond {
+  width: 5px;
+  height: 5px;
+  rotate: 45deg;
+  background: var(--accent);
+}
+
+.resume-sheet__lead {
+  margin: 0 auto;
+  max-width: 34ch;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  line-height: 1.45;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Action — the one control on the sheet. Outlined at rest, filled on hover;
+   it must read as the thing to press without shouting. */
+.resume-sheet__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--space-32);
+  padding: var(--space-12) var(--space-24);
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-paper),
+    color var(--dur-fast) var(--ease-paper);
+}
+.resume-sheet__action:hover,
+.resume-sheet__action:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+/* Deliberately NOT t-btn1: that is the inline-link treatment (dotted underline
+   crossfading to solid, plus `text-transform: capitalize`, which renders this
+   label "Open The PDF"). Inside a bordered control the underline double-signals
+   and the capitalisation is simply wrong — the border is the affordance. */
+.resume-sheet__action-label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-variation-settings: 'wdth' 120, 'wght' 720, 'GRAD' 64, 'ROND' 0, 'opsz' 18;
+  letter-spacing: 0.2px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.resume-sheet__meta {
+  margin: var(--space-16) 0 0;
+  color: var(--soft);
+}
+
+/* ── Phones ──────────────────────────────────────────────────────────────
+   The sheet IS the page here (the viewer never mounts), so it gets room to
+   breathe rather than a scaled-down desktop composition. Breakpoint matches
+   the site standard, landscape-phone clause included, and must stay in
+   lock-step with MOBILE_MQ in ResumeViewer.tsx. */
+@media (max-width: 767px), (max-height: 500px) {
+  .resume-sheet {
+    padding: var(--space-32) var(--space-16);
+  }
+  .resume-sheet__card {
+    padding: var(--space-32) var(--space-24);
+  }
+  .resume-sheet__title {
+    font-size: 30px;
+  }
+  .resume-sheet__lead {
+    font-size: 17px;
+  }
 }
