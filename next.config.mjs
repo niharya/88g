@@ -88,6 +88,11 @@ const nextConfig = {
     return [
       { source: '/cases',    destination: '/all?cases' },
       { source: '/showcase', destination: '/all?showcase' },
+      // Blast Radius is a standalone prototype in public/, not a route. In
+      // production Netlify serves it off the CDN via the matching [[redirects]]
+      // in netlify.toml — that rule wins and this one never fires. It exists so
+      // `next dev` resolves the same URL locally instead of 404ing.
+      { source: '/blast-radius', destination: '/blast-radius/index.html' },
     ]
   },
 }

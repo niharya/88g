@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blast Radius — preview a notification policy before it ships</title>
+<meta name="description" content="Change a notification rule and replay the same week of work under it, for three different people, before it ships. A working sketch by Nihar Bhagat.">
+<link rel="canonical" href="https://nihar.works/blast-radius">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nihar.works/blast-radius">
+<meta property="og:title" content="Blast Radius — preview a notification policy before it ships">
+<meta property="og:description" content="Set a notification policy. See the week it would have produced — for an HR admin, a finance controller, and a first-week employee — before anything ships. A working sketch by Nihar Bhagat.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Blast Radius — preview a notification policy before it ships">
+<meta name="twitter:description" content="Cut 183 weekly interrupts to 75 with zero missed deadlines — and catch the policy that looks quietest but silently drops 124.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Archivo:wdth,wght@62..125,400..700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ---- 88g Flatlay surfaces & ink ---- */
+    --paper:#f2f3ef;          /* workbench: paper-cream desk */
+    --panel:#f9f9f7;          /* mat: graph-paper sheet */
+    --panel-lift:#ffffff;
+    --ink:#141414;            /* grey-80 */
+    --ink-soft:#292929;       /* grey-160 */
+    --muted:#525252;          /* grey-320 — 4.5:1+ on paper */
+    --faint:#666666;          /* grey-400 */
+    --line:#E0E0E0;           /* grey-880 */
+    --line-strong:#CCCCCC;    /* grey-800 */
+    --grid-line:rgba(140,110,45,.11);
+    --terra:#A16803;          /* terra-720 — brand mark only */
+    --terra-tint:#F3E8DC;     /* terra-100 */
+
+    /* ---- the five meanings: three tiers + two verdicts ---- */
+    --interrupt:#B23000;      /* orange-800 — hot */
+    --interrupt-bg:#FFE8E2;   /* orange-80 */
+    --interrupt-line:#FEC4B4; /* orange-240 */
+
+    --digest:#0364A7;         /* blue-800 — calm */
+    --digest-bg:#E0EFFE;      /* blue-80 */
+    --digest-line:#AED6FE;    /* blue-240 */
+
+    --silent:#666666;         /* recessive */
+    --silent-bg:#F5F5F5;      /* grey-960 */
+
+    --ok:#04712B;             /* mint-800 */
+    --bad:#B23000;
+    --bad-bg:#FFE8E2;
+
+    --display:"Fraunces",Georgia,serif;
+    --sans:"Archivo",system-ui,sans-serif;
+    --mono:"Spline Sans Mono",ui-monospace,monospace;
+    --r:8px;
+    --rs:4px;
+
+    --ease-paper:cubic-bezier(.5,0,.2,1);
+    --ease-snap:cubic-bezier(.45,0,.15,1);
+    --dur-fast:.175s;
+    --dur-slide:.25s;
+    --dur-settle:.425s;
+    --dur-glide:.65s;
+
+    --shadow-flat:0 1px 2px 0 rgba(0,0,0,.10);
+    --shadow-resting:0 1px 3px 0 rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    font-variation-settings:"wdth" 100,"wght" 400;
+  }
+  /* graph-paper field: both axes, kept faint so cards read first */
+  body{
+    background-image:
+      linear-gradient(to right,var(--grid-line) 1px,transparent 1px),
+      linear-gradient(to bottom,var(--grid-line) 1px,transparent 1px);
+    background-size:32px 32px,32px 32px;
+    background-color:var(--paper);
+  }
+  a{color:var(--ink)}
+  a:hover{color:var(--terra)}
+  button{font-family:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:3px}
+
+  .wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+  @media (max-width:420px){.wrap{padding:0 14px}}
+
+  /* ---------- header / nameplate ---------- */
+  header{
+    padding:36px 0 24px;
+    border-bottom:2px solid var(--ink);
+    background:linear-gradient(to bottom,rgba(255,255,255,.55),rgba(255,255,255,0));
+  }
+  .head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:32px}
+  @media (max-width:820px){.head-row{flex-direction:column;align-items:flex-start;gap:18px}}
+  .brand{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    font-family:var(--sans);
+    font-variation-settings:"wdth" 112,"wght" 680;
+    letter-spacing:-.025em;
+    text-transform:none;
+    font-size:clamp(32px,4.8vw,52px);
+    line-height:1;
+  }
+  .brand-tag{
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    background:var(--terra-tint);border:1px solid var(--line-strong);
+    border-radius:var(--rs);padding:5px 9px;align-self:center;white-space:nowrap;
+  }
+  .rings{width:clamp(30px,4vw,42px);height:clamp(30px,4vw,42px);color:var(--ink);flex:none}
+  .rings .core{fill:var(--terra)}
+  .tagline{
+    margin-top:14px;max-width:52ch;font-size:16px;color:var(--ink-soft);
+    letter-spacing:-.01em;text-wrap:pretty;
+  }
+  .spec{
+    padding:14px 18px;display:grid;gap:8px;min-width:262px;margin:0;
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--r);
+    box-shadow:var(--shadow-flat);
+  }
+  .spec > div{display:grid;grid-template-columns:64px 1fr;align-items:baseline;gap:14px}
+  .spec dt{
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    font-variation-settings:"wdth" 118,"wght" 640;
+  }
+  .spec dd{font-family:var(--mono);font-size:12px;margin:0;text-align:left;color:var(--ink)}
+
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;padding:24px 0 8px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+  /* ---------- policy panel ---------- */
+  .policy{
+    position:sticky;top:16px;background:var(--panel-lift);
+    border:1px solid var(--line-strong);border-radius:var(--r);overflow:hidden;
+    box-shadow:var(--shadow-resting);
+  }
+  @media (max-width:900px){.policy{position:static}}
+  .policy h2{
+    font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    font-variation-settings:"wdth" 120,"wght" 700;
+    padding:13px 16px;border-bottom:1px solid var(--ink);
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--terra-tint);
+  }
+  .policy h2 span{font-family:var(--mono);font-weight:500;font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0}
+  .knob{padding:13px 16px;border-bottom:1px solid var(--line)}
+  .knob-label{font-size:13px;font-variation-settings:"wght" 620;margin-bottom:8px;letter-spacing:-.01em}
+  .seg{display:flex;border:1px solid var(--line-strong);border-radius:var(--rs);overflow:hidden}
+  .seg button{
+    flex:1;background:var(--panel-lift);border:0;padding:12px 4px;min-height:44px;
+    font-size:12px;color:var(--muted);border-right:1px solid var(--line);
+    transition:background var(--dur-fast) var(--ease-snap),color var(--dur-fast) var(--ease-snap);
+  }
+  .seg button:last-child{border-right:0}
+  .seg button:hover{background:var(--paper);color:var(--ink)}
+  .seg button[aria-pressed="true"]{background:var(--ink);color:#fff;font-variation-settings:"wght" 640}
+
+  .knob-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .knob-top output{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--rs);padding:2px 6px}
+  /* 44px hit area; the 3px track stays optically centred inside it */
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:44px;
+    background:transparent;cursor:pointer;margin:0;display:block;
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:3px;background:var(--line-strong);border-radius:2px}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--ink);border:2.5px solid var(--panel-lift);box-shadow:0 0 0 1px var(--ink);
+    margin-top:-6.5px;
+  }
+  input[type=range]::-moz-range-track{height:3px;background:var(--line-strong);border-radius:2px}
+  input[type=range]::-moz-range-thumb{
+    width:11px;height:11px;border-radius:50%;background:var(--ink);
+    border:2.5px solid var(--panel-lift);box-shadow:0 0 0 1px var(--ink);
+  }
+  .tick-row{display:grid;grid-template-columns:repeat(5,1fr);font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:-6px;letter-spacing:.02em}
+  .tick-row span{text-align:center}
+  .tick-row span:first-child{text-align:left}
+  .tick-row span:last-child{text-align:right}
+  .readout{padding:16px;font-size:13px;color:var(--ink-soft);background:var(--paper);border-bottom:1px solid var(--line)}
+  .readout em{font-style:normal;font-variation-settings:"wght" 600;color:var(--ink);border-bottom:2px solid var(--terra)}
+  .presets{display:flex;flex-direction:column;gap:10px;padding:16px}
+  .presets button{
+    border:1px solid var(--ink);border-radius:var(--rs);background:var(--panel-lift);
+    padding:13px 6px;min-height:44px;font-size:13px;font-variation-settings:"wght" 640;
+    transition:transform var(--dur-fast) var(--ease-snap),box-shadow var(--dur-fast) var(--ease-snap);
+  }
+  .presets button:hover{transform:translateY(-1px);box-shadow:var(--shadow-resting)}
+  .presets button:active{transform:translateY(0)}
+  .presets button.primary{background:var(--ink);color:#fff;width:100%}
+  /* Reset is the escape hatch, not a peer of the action that makes the point */
+  .presets button#preset-baseline{
+    border:0;background:none;padding:6px;min-height:44px;font-size:12.5px;
+    color:var(--muted);font-variation-settings:"wght" 520;
+    text-decoration:underline;text-decoration-style:dotted;
+    text-decoration-thickness:2px;text-underline-offset:3px;
+  }
+  .presets button#preset-baseline:hover{transform:none;box-shadow:none;color:var(--ink)}
+
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  /* ---------- verdict ---------- */
+  .verdict{
+    background:var(--panel-lift);border:1px solid var(--line-strong);border-radius:var(--r);
+    display:grid;grid-template-columns:1fr 1fr 1.4fr;overflow:hidden;
+    box-shadow:var(--shadow-resting);
+  }
+  @media (max-width:760px){.verdict{grid-template-columns:1fr}}
+  .v-cell{padding:16px;border-right:1px solid var(--line)}
+  .v-cell:last-child{border-right:0}
+  @media (max-width:760px){.v-cell{border-right:0;border-bottom:1px solid var(--line)}.v-cell:last-child{border-bottom:0}}
+  .v-label{
+    font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+    font-variation-settings:"wdth" 118,"wght" 640;
+  }
+  .v-num{
+    font-family:var(--display);font-variation-settings:"SOFT" 0,"WONK" 1,"opsz" 60;
+    font-size:44px;font-weight:500;line-height:1.02;margin-top:6px;letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;
+  }
+  .v-num .was{color:var(--faint);font-size:24px;font-weight:400;text-decoration:line-through;margin-right:10px}
+  .v-num .delta{font-family:var(--mono);font-size:13px;font-weight:600;margin-left:10px;color:var(--ok);letter-spacing:0}
+  .v-num .delta.up{color:var(--bad)}
+  .v-sub{font-size:12.5px;color:var(--muted);margin-top:6px;text-wrap:pretty}
+  .v-missed .v-num{color:var(--ok)}
+  .v-missed.bad .v-num{color:var(--bad)}
+  .v-missed .v-sub b{font-variation-settings:"wght" 640;color:var(--ink)}
+  .v-missed.bad{background:var(--bad-bg)}
+
+  /* ---------- the one orchestrated moment ----------
+     .bump is added by the existing script on every re-render (never first load),
+     so it gates the collapse: the number settles while the feeds re-stack. */
+  @keyframes numSettle{
+    0%{opacity:0;transform:translateY(-10px) scale(1.06)}
+    60%{opacity:1}
+    100%{opacity:1;transform:none}
+  }
+  @keyframes wasStrike{
+    0%{opacity:1;transform:none}
+    100%{opacity:.45;transform:translateX(-3px)}
+  }
+  @keyframes collapseIn{
+    0%{opacity:0;transform:translateY(-14px) scaleY(.72)}
+    100%{opacity:1;transform:none}
+  }
+  .v-num.bump{animation:numSettle var(--dur-glide) var(--ease-paper) both}
+  .v-num.bump .was{animation:wasStrike var(--dur-glide) var(--ease-paper) both}
+  .grid:has(.v-num.bump) .card{
+    animation:collapseIn var(--dur-settle) var(--ease-paper) both;
+    animation-delay:calc(var(--i,0) * 70ms);
+  }
+  /* Three honest steps: day headers occupy nth-child slots too, so a
+     per-card cascade would lie. Top of the feed leads, the rest follows. */
+  .feed > *:nth-child(-n+4){--i:0}
+  .feed > *:nth-child(n+5):nth-child(-n+9){--i:1}
+  .feed > *:nth-child(n+10){--i:2}
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .v-num.bump,.v-num.bump .was,.grid:has(.v-num.bump) .card,.card{animation:none !important}
+    .box::after{opacity:1}
+    .presets button:hover{transform:none}
+  }
+
+  /* ---------- inboxes ---------- */
+  .boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+  @media (max-width:980px){.boxes{grid-template-columns:1fr}}
+  .box{
+    position:relative;background:var(--panel-lift);border:1px solid var(--line-strong);border-radius:var(--r);
+    display:flex;flex-direction:column;min-width:0;box-shadow:var(--shadow-flat);
+  }
+  .box-head{padding:13px 14px;border-bottom:1px solid var(--ink);background:var(--panel)}
+  .box-name{
+    font-family:var(--display);font-variation-settings:"SOFT" 0,"WONK" 1,"opsz" 24;
+    font-weight:500;font-size:18px;letter-spacing:-.02em;line-height:1.1;
+  }
+  .box-role{font-size:12px;color:var(--muted);margin-top:2px}
+  .box-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-family:var(--mono);font-size:11.5px}
+  .stat{display:flex;align-items:center;gap:5px;color:var(--muted)}
+  .stat b{font-weight:600;color:var(--ink)}
+  .swatch{width:8px;height:8px;border-radius:2px;display:inline-block;flex:none}
+  .swatch.i{background:var(--interrupt)}
+  .swatch.d{background:var(--digest)}
+  .swatch.s{background:var(--silent)}
+  .box-was{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:5px}
+  /* Scroll affordance: a 16px hairline fade at the feed's bottom edge — short
+     enough that it can never cover a line of card text. (Scroll-aware variants
+     — background-attachment:local shadows, or a scroll-timeline on the feed —
+     both stall the renderer on a 4500px scroller repeated three times.) */
+  .feed{padding:10px 14px 14px;overflow-y:auto;max-height:600px}
+  .box::after{
+    content:"";position:absolute;left:1px;right:1px;bottom:1px;height:16px;
+    border-radius:0 0 var(--r) var(--r);pointer-events:none;
+    background:linear-gradient(rgba(255,255,255,0),var(--panel-lift) 88%);
+  }
+  /* Narrow screens: the feed stays a scroller (removing the clip renders
+     ~13k px of cards per column and stalls the page), but it shrinks to a
+     clearly-bounded 62vh window with the fade affordance, and page-level
+     scroll is always reachable in the margins beside and between columns. */
+  @media (max-width:980px){
+    .feed{max-height:62vh;overscroll-behavior:contain}
+  }
+  .dayhead{
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--faint);margin:14px 0 6px;padding-bottom:3px;border-bottom:1px solid var(--line);
+  }
+  .dayhead:first-child{margin-top:2px}
+
+  .card{
+    border-radius:var(--rs);padding:8px 10px;margin-bottom:6px;font-size:12.5px;
+    animation:settle var(--dur-slide) var(--ease-paper) both;
+    transition:box-shadow var(--dur-fast) var(--ease-snap);
+  }
+  @keyframes settle{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  .card:hover{box-shadow:var(--shadow-flat)}
+
+  .card.i{background:var(--interrupt-bg);border:1px solid var(--interrupt-line);border-left:3px solid var(--interrupt)}
+  .card.i .kind{color:var(--interrupt)}
+  .card.d{background:var(--digest-bg);border:1px solid var(--digest-line);border-left:3px solid var(--digest)}
+  .card.d .kind{color:var(--digest)}
+  .kind{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    flex-wrap:wrap;
+  }
+  .kind .t{color:var(--muted);font-weight:500;letter-spacing:0;text-transform:none;white-space:nowrap}
+  .card .title{margin-top:3px;font-variation-settings:"wght" 540;color:var(--ink)}
+  .card .due{font-family:var(--mono);font-size:11px;margin-top:3px;color:var(--muted)}
+  .card .due.hot{color:var(--interrupt);font-weight:600}
+  .card.esc .title::after{content:" · escalated";font-weight:400;color:var(--interrupt);font-size:11px}
+
+  .bundle-items{margin-top:5px;border-top:1px dashed var(--digest-line);padding-top:5px;color:var(--ink)}
+  .bundle-items div{padding:1.5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bundle-more{color:var(--muted);font-family:var(--mono);font-size:11px}
+
+  .card.s{background:var(--silent-bg);border:1px dashed var(--line-strong);border-left:1px dashed var(--line-strong);color:var(--muted);padding:6px 10px}
+  .card.s .kind{color:var(--silent)}
+  .card.s .title{font-variation-settings:"wght" 420;font-size:12px;color:var(--muted)}
+
+  .empty-week{padding:26px 14px;color:var(--muted);font-size:13px}
+
+  /* ---------- column set framing + legend (directly above the columns) ---------- */
+  .set-frame{
+    margin-top:22px;font-family:var(--display);
+    font-variation-settings:"SOFT" 0,"WONK" 1,"opsz" 24;
+    font-weight:400;font-size:17px;letter-spacing:-.015em;color:var(--ink-soft);
+  }
+  .legend{
+    display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+  }
+  .legend span{
+    display:flex;align-items:center;gap:6px;
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:var(--rs);
+    padding:5px 9px;box-shadow:var(--shadow-flat);
+  }
+
+  /* ---------- footer ---------- */
+  footer{margin-top:34px;border-top:2px solid var(--ink);padding:24px 0 44px}
+  .foot-claim{
+    font-family:var(--display);font-variation-settings:"SOFT" 0,"WONK" 1,"opsz" 30;
+    font-weight:400;font-size:clamp(17px,2.1vw,21px);line-height:1.35;letter-spacing:-.015em;
+    max-width:58ch;text-wrap:pretty;
+  }
+  .foot-sig{margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .foot-sig a{color:var(--ink);text-decoration:underline;text-decoration-style:dotted;text-decoration-thickness:2px;text-underline-offset:3px}
+  .foot-sig a:hover{color:var(--terra)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap head-row">
+    <div>
+      <h1 class="brand">
+        <svg class="rings" viewBox="0 0 40 40" aria-hidden="true">
+          <circle cx="20" cy="20" r="18.5" fill="none" stroke="currentColor" stroke-width="1" opacity=".22"/>
+          <circle cx="20" cy="20" r="13" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"/>
+          <circle cx="20" cy="20" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".7"/>
+          <circle class="core" cx="20" cy="20" r="3.4"/>
+        </svg>
+        Blast Radius
+        <span class="brand-tag">Notification Sandbox</span>
+      </h1>
+      <p class="tagline">Change a rule on the left. The same week of work is replayed under your new rule for three different people, so you can see what each one would get, and whether anything with a deadline got missed, before you ship it.</p>
+    </div>
+    <dl class="spec" aria-label="Simulation details">
+      <div><dt>Scope</dt><dd>One simulated week</dd></div>
+      <div><dt>Volume</dt><dd id="spec-vol">... events · 3 people</dd></div>
+      <div><dt>Data</dt><dd>Synthetic · no real product</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="grid">
+    <aside class="policy" aria-label="Notification policy">
+      <h2>Policy <span>4 rules</span></h2>
+
+      <div class="knob">
+        <div class="knob-label">Who receives</div>
+        <div class="seg" role="group" aria-label="Who receives" data-knob="audience">
+          <button data-v="involved">Everyone involved</button>
+          <button data-v="actors">Only who must act</button>
+        </div>
+      </div>
+
+      <div class="knob">
+        <div class="knob-top">
+          <div class="knob-label">When to interrupt</div>
+          <output id="gate-out" for="gate-slider"></output>
+        </div>
+        <input type="range" id="gate-slider" min="0" max="4" step="1" value="0" aria-label="Interrupt threshold">
+        <div class="tick-row" aria-hidden="true"><span>Always</span><span>48h</span><span>24h</span><span>8h</span><span>Never</span></div>
+      </div>
+
+      <div class="knob">
+        <div class="knob-label">Digest schedule</div>
+        <div class="seg" role="group" aria-label="Digest schedule" data-knob="cadence">
+          <button data-v="daily">Daily 9:00</button>
+          <button data-v="twice">Mon &amp; Thu</button>
+          <button data-v="weekly">Weekly</button>
+        </div>
+      </div>
+
+      <div class="knob">
+        <div class="knob-label">Escalate unanswered items</div>
+        <div class="seg" role="group" aria-label="Escalation" data-knob="esc">
+          <button data-v="24">After 24h</button>
+          <button data-v="48">After 48h</button>
+          <button data-v="off">Never</button>
+        </div>
+      </div>
+
+      <div class="readout" id="readout" aria-live="polite"></div>
+
+      <div class="presets">
+        <button class="primary" id="preset-tiered">Apply the recommended policy</button>
+        <button id="preset-baseline">Reset to today's policy</button>
+      </div>
+    </aside>
+
+    <section>
+      <h2 class="sr-only">The verdict</h2>
+      <div class="verdict" aria-live="polite">
+        <div class="v-cell">
+          <div class="v-label">Interruptions this week, all three people</div>
+          <div class="v-num" id="v-int"></div>
+          <div class="v-sub" id="v-int-sub"></div>
+        </div>
+        <div class="v-cell">
+          <div class="v-label">Moved to a digest, or just logged</div>
+          <div class="v-num" id="v-moved"></div>
+          <div class="v-sub">Still delivered. Still on the record.</div>
+        </div>
+        <div class="v-cell v-missed" id="v-missed-cell">
+          <div class="v-label">Deadlines missed</div>
+          <div class="v-num" id="v-missed"></div>
+          <div class="v-sub" id="v-missed-sub"></div>
+        </div>
+      </div>
+
+      <h2 class="sr-only">Three inboxes, one week</h2>
+      <p class="set-frame">The same week, as three people would have lived it.</p>
+      <div class="legend">
+        <span><span class="swatch i"></span>Interrupt: sent right away</span>
+        <span><span class="swatch d"></span>Digest: grouped, sent on a schedule</span>
+        <span><span class="swatch s"></span>Logged: saved, never sent</span>
+      </div>
+      <div class="boxes" id="boxes"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="foot-claim">A notification system earns quiet by proving nothing was dropped, not by hiding things. Try the rules against a real week first, then ship them.</p>
+    <p class="foot-sig">A working sketch for the Product Design Lead, Platform Tools role at Rippling · simulated data only · <a href="https://nihar.works">Nihar Bhagat</a></p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* ---------------- deterministic RNG ---------------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R = mulberry32(20260818);
+const pick = arr => arr[Math.floor(R()*arr.length)];
+const ri = (a,b) => a + Math.floor(R()*(b-a+1));
+
+/* ---------------- personas ---------------- */
+const PERSONAS = [
+  {id:"hr",  name:"Priya Raman",   role:"HR admin"},
+  {id:"fin", name:"Daniel Okafor", role:"Finance controller"},
+  {id:"emp", name:"Aarav Shah",    role:"First-week employee"},
+];
+
+/* ---------------- event generation: one simulated week ---------------- */
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const PEOPLE = ["Maya T.","Jonas K.","Ritika S.","Tom H.","Lena P.","Arjun M.","Sofia R.","Chen W.","Dev P.","Ana L."];
+const TEAMS = ["Sales","Support","Engineering","Marketing","Ops"];
+
+function actedAfter(){ const r=R(); if(r<0.55) return ri(2,20); if(r<0.85) return ri(20,50); return ri(60,200); }
+
+function genEvents(){
+  const ev=[]; let n=0;
+  const add=(day,type,title,requires,involves,deadlineH)=>{
+    n++;
+    ev.push({
+      id:"E-"+String(1000+n),
+      day, type, title,
+      createdAt: day*24 + ri(8,18) + R()*0.9,
+      requires, involves,
+      deadlineH: deadlineH ?? null,
+      actedAfterH: requires.length ? actedAfter() : null,
+    });
+  };
+  for(let d=0; d<7; d++){
+    const wk = d<5;                          // weekday
+    const lite = d===5 ? 0.15 : d===6 ? 0.08 : 1;
+    const N = x => Math.round(x*lite);
+
+    for(let i=0;i<N(ri(8,11));i++) add(d,"Expense",`Approve ${pick(PEOPLE)}'s expense · ${pick(["client dinner","flight BLR–SFO","software seat","team offsite","hotel"])}`,["fin"],["fin"],48);
+    for(let i=0;i<N(ri(1,2));i++)  add(d,"Card",`Flagged card charge · ${pick(PEOPLE)} · $${ri(180,2400)}`,["fin"],["fin"],24);
+    if(wk && d<3) for(let i=0;i<ri(2,4);i++) add(d,"Payroll",`Pay run item needs review · ${pick(TEAMS)}`,["fin"],["fin","hr"],ri(24,48));
+    for(let i=0;i<N(ri(3,5));i++)  add(d,"Timesheet",`Missing timesheet · ${pick(PEOPLE)} (${pick(TEAMS)})`,["hr"],["hr"],48);
+    for(let i=0;i<N(ri(2,3));i++)  add(d,"Onboarding",`${pick(["Assign onboarding buddy","Schedule orientation","Confirm workstation","Verify documents"])} · ${pick(PEOPLE)}`,["hr"],["hr"],ri(24,72));
+    for(let i=0;i<N(ri(2,4));i++){ const mine=R()<0.3; add(d,"Access",`Access request · ${mine?"Aarav Shah":pick(PEOPLE)} · ${pick(["Salesforce","GitHub","Figma","AWS","Notion"])}`,["hr"],mine?["hr","emp"]:["hr"],24); }
+    if(wk && R()<0.5)              add(d,"Policy",`Acknowledge updated ${pick(["expense policy","security policy","leave policy"])}`,["emp"],["emp","hr"],72);
+    if(d<4) for(let i=0;i<ri(2,3);i++) add(d,"Task",`${pick(["Complete tax forms","Set up payroll details","Enroll benefits","Finish security training","Upload ID documents"])}`,["emp"],["emp","hr"],ri(24,72));
+    if(wk && R()<0.4)              add(d,"Device",`Finish laptop enrollment · MDM profile pending`,["emp"],["emp","hr"],24);
+    for(let i=0;i<N(ri(3,5));i++){ const who=R()<0.5?"fin":"hr"; add(d,"Update",`${pick(["Monthly close report ready","Headcount report ready","New hire started","Expense approved","Integration sync finished","Benefits enrollment window opened"])}`,[],[who],null); }
+    if(wk && R()<0.4)              add(d,"Update",`Your expense was ${pick(["approved","reimbursed"])}`,[],["emp"],null);
+  }
+  return ev;
+}
+const EVENTS = genEvents();
+
+/* ---------------- simulation ---------------- */
+const GATES = [
+  {v:"all",  out:"always"},
+  {v:"48",   out:"due < 48h"},
+  {v:"24",   out:"due < 24h"},
+  {v:"8",    out:"due < 8h"},
+  {v:"never",out:"never"},
+];
+const gateIndex = v => GATES.findIndex(g=>g.v===v);
+function nextDaily(t){ for(let d=0;d<9;d++){ const at=d*24+9; if(at>t) return at; } return 216; }
+function nextTwice(t){ const slots=[9, 3*24+9, 7*24+9, 10*24+9]; for(const at of slots){ if(at>t) return at; } return 240; }
+function nextWeekly(t){ const slots=[9, 7*24+9, 14*24+9]; for(const at of slots){ if(at>t) return at; } return 345; }
+function nextDigest(t,cadence){ return cadence==="daily" ? nextDaily(t) : cadence==="twice" ? nextTwice(t) : nextWeekly(t); }
+
+function simulate(p){
+  const per = {};
+  PERSONAS.forEach(x => per[x.id] = {interrupts:[], digestItems:[], silent:[], missed:[]});
+  let missedTotal = 0;
+
+  for(const e of EVENTS){
+    for(const pid of e.involves){
+      const isActor = e.requires.includes(pid);
+      const rec = per[pid];
+      let firstDelivery = Infinity;
+      const deadlineAt = e.deadlineH!=null ? e.createdAt+e.deadlineH : null;
+
+      if(p.audience==="actors" && !isActor){
+        rec.silent.push({e, at:e.createdAt});
+      } else if(p.gate==="all" || (isActor && p.gate!=="never" && e.deadlineH!=null && e.deadlineH <= +p.gate)){
+        rec.interrupts.push({e, at:e.createdAt, esc:false});
+        firstDelivery = e.createdAt;
+      } else {
+        const at = nextDigest(e.createdAt, p.cadence);
+        rec.digestItems.push({e, at});
+        firstDelivery = at;
+      }
+
+      if(isActor && p.esc!=="off"){
+        const th = +p.esc;
+        const stillOpen = e.actedAfterH > th || firstDelivery > e.createdAt + th;
+        if(stillOpen){
+          const at = e.createdAt + th;
+          rec.interrupts.push({e, at, esc:true});
+          firstDelivery = Math.min(firstDelivery, at);
+        }
+      }
+
+      if(isActor && deadlineAt!=null && firstDelivery > deadlineAt){
+        rec.missed.push({e, deadlineAt, firstDelivery});
+        missedTotal++;
+      }
+    }
+  }
+  return {per, missedTotal};
+}
+
+const BASELINE_POLICY = {audience:"involved", gate:"all", cadence:"daily", esc:"off"};
+const TIERED_POLICY   = {audience:"actors",   gate:"24", cadence:"daily", esc:"24"};
+const BASE = simulate(BASELINE_POLICY);
+const baseInt = id => BASE.per[id].interrupts.length;
+const baseTotal = PERSONAS.reduce((s,x)=>s+baseInt(x.id),0);
+
+/* ---------------- state + rendering ---------------- */
+let policy = {...BASELINE_POLICY};
+
+const fmtTime = t => { const d=Math.floor(t/24), h=Math.floor(t%24), m=Math.floor((t%1)*60); return `${DAYS[d%7]??"Mon+"} ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`; };
+const el = id => document.getElementById(id);
+
+function renderKnobs(){
+  document.querySelectorAll(".seg").forEach(seg=>{
+    const k = seg.dataset.knob;
+    seg.querySelectorAll("button").forEach(b=> b.setAttribute("aria-pressed", String(b.dataset.v===String(policy[k]))));
+  });
+  const gi = gateIndex(policy.gate);
+  const slider = el("gate-slider");
+  slider.value = gi;
+  slider.setAttribute("aria-valuetext", GATES[gi].out);
+  el("gate-out").textContent = GATES[gi].out;
+}
+
+function readoutSentence(){
+  const a = policy.audience==="involved" ? "Notify <em>everyone involved</em> in an event." : "Notify <em>only the people who must act</em>; everyone else gets a record, not a message.";
+  const g = policy.gate==="all" ? "Every notification <em>interrupts immediately</em>."
+          : policy.gate==="never" ? "<em>Nothing interrupts</em>; everything waits for the digest."
+          : `Interrupt <em>only when a deadline is inside ${policy.gate} hours</em>; everything else waits for the digest.`;
+  const c = policy.cadence==="daily" ? "Digest lands <em>daily at 9:00</em>." : policy.cadence==="twice" ? "Digest lands <em>Monday and Thursday</em>." : "Digest lands <em>Monday mornings</em>.";
+  const e = policy.esc==="off" ? "Unanswered items are <em>never escalated</em>." : `Unanswered items <em>escalate after ${policy.esc} hours</em>.`;
+  return `${a} ${g} ${c} ${e}`;
+}
+
+function cardHTML(item, tier){
+  const e = item.e;
+  if(tier==="s") return `<div class="card s"><div class="kind">Logged<span class="t">${fmtTime(item.at)}</span></div><div class="title">${e.title}</div></div>`;
+  const hot = e.deadlineH!=null && e.deadlineH<=24;
+  const due = e.deadlineH!=null ? `<div class="due ${hot?"hot":""}">action needed · due in ${e.deadlineH}h</div>` : "";
+  return `<div class="card i ${item.esc?"esc":""}"><div class="kind">Interrupt<span class="t">${e.type} · ${fmtTime(item.at)}</span></div><div class="title">${e.title}</div>${due}</div>`;
+}
+
+function renderBoxes(sim){
+  const boxes = el("boxes"); boxes.innerHTML="";
+  for(const p of PERSONAS){
+    const rec = sim.per[p.id];
+    const nI=rec.interrupts.length, nD=rec.digestItems.length, nS=rec.silent.length;
+
+    // group deliveries by delivery day
+    const byDay = Array.from({length:9},()=>({i:[],dig:[],s:[]}));
+    rec.interrupts.forEach(x=>byDay[Math.floor(x.at/24)].i.push(x));
+    rec.digestItems.forEach(x=>byDay[Math.floor(x.at/24)].dig.push(x));
+    rec.silent.forEach(x=>byDay[Math.floor(x.at/24)].s.push(x));
+
+    let feed="";
+    byDay.forEach((day,d)=>{
+      if(!day.i.length && !day.dig.length && !day.s.length) return;
+      feed += `<div class="dayhead">${DAYS[d%7] ?? "Next Mon"}${d>6?" (next week)":""}</div>`;
+      day.i.sort((a,b)=>a.at-b.at).forEach(x=> feed += cardHTML(x,"i"));
+      if(day.dig.length){
+        const shown = day.dig.slice(0,3).map(x=>`<div>· ${x.e.title}</div>`).join("");
+        const more = day.dig.length>3 ? `<div class="bundle-more">+ ${day.dig.length-3} more in this digest</div>` : "";
+        feed += `<div class="card d"><div class="kind">Digest<span class="t">${fmtTime(day.dig[0].at)} · ${day.dig.length} item${day.dig.length>1?"s":""}</span></div><div class="bundle-items">${shown}${more}</div></div>`;
+      }
+      if(day.s.length){
+        const first = day.s[0];
+        feed += cardHTML(first,"s");
+        if(day.s.length>1) feed += `<div class="card s"><div class="title">+ ${day.s.length-1} more logged, not sent</div></div>`;
+      }
+    });
+    if(!feed) feed = `<div class="empty-week">A quiet week. Everything went to a digest or the log instead.</div>`;
+
+    const was = baseInt(p.id);
+    boxes.insertAdjacentHTML("beforeend", `
+      <div class="box">
+        <div class="box-head">
+          <h3 class="box-name">${p.name}</h3>
+          <div class="box-role">${p.role}</div>
+          <div class="box-stats">
+            <span class="stat"><span class="swatch i"></span><b>${nI}</b> interrupts</span>
+            <span class="stat"><span class="swatch d"></span><b>${nD}</b> in digest</span>
+            <span class="stat"><span class="swatch s"></span><b>${nS}</b> logged</span>
+          </div>
+          <div class="box-was">${nI===was ? "today's policy" : `was ${was} interrupts under today's policy`}</div>
+        </div>
+        <div class="feed" tabindex="0" role="region" aria-label="${p.name}'s week">${feed}</div>
+      </div>`);
+  }
+}
+
+function renderVerdict(sim){
+  const nowInt = PERSONAS.reduce((s,x)=>s+sim.per[x.id].interrupts.length,0);
+  const moved  = PERSONAS.reduce((s,x)=>s+sim.per[x.id].digestItems.length+sim.per[x.id].silent.length,0);
+  const pct = Math.round((nowInt-baseTotal)/baseTotal*100);
+
+  if(nowInt===baseTotal){
+    el("v-int").innerHTML = `${nowInt}`;
+    el("v-int-sub").textContent = "Today's rules: every event interrupts everyone involved. Apply the recommended policy on the left to replay the same week.";
+  }else{
+    el("v-int").innerHTML = `<span class="was">${baseTotal}</span>${nowInt}<span class="delta ${pct>0?"up":""}">${pct>0?"+":""}${pct}%</span>`;
+    el("v-int-sub").textContent = "Across the HR admin, the finance controller, and the new hire.";
+  }
+  el("v-moved").textContent = moved;
+
+  const cell = el("v-missed-cell");
+  el("v-missed").textContent = sim.missedTotal;
+  if(sim.missedTotal===0){
+    cell.classList.remove("bad");
+    el("v-missed-sub").innerHTML = "Every item that needed action reached its owner <b>before its deadline</b>. Quiet, with proof.";
+  }else{
+    cell.classList.add("bad");
+    const m = sim.per.hr.missed[0] || sim.per.fin.missed[0] || sim.per.emp.missed[0];
+    const why = policy.cadence==="twice" ? "The Mon/Thu digest delivers after some deadlines" : policy.cadence==="weekly" ? "The weekly digest delivers after some deadlines" : "The digest delivers after some deadlines";
+    const saveHint = policy.esc==="off" ? " and escalation is off" : "";
+    const fix = policy.esc==="off" ? "Turning escalation on would catch these before their deadlines." : "A daily digest, or faster escalation, would deliver these in time.";
+    el("v-missed-sub").innerHTML = `These rules drop things. ${why}${saveHint}. For example, <b>“${m.e.title}”</b> was due ${fmtTime(m.deadlineAt)}; it would have arrived ${fmtTime(m.firstDelivery)}. ${fix}`;
+  }
+}
+
+let firstRender = true;
+function render(){
+  renderKnobs();
+  el("readout").innerHTML = readoutSentence();
+  const sim = simulate(policy);
+  renderVerdict(sim);
+  renderBoxes(sim);
+  if(!firstRender){
+    document.querySelectorAll(".v-num").forEach(n=>{
+      n.classList.remove("bump");
+      void n.offsetWidth;               // restart the animation
+      n.classList.add("bump");
+    });
+  }
+  firstRender = false;
+}
+
+/* ---------------- wiring ---------------- */
+document.querySelectorAll(".seg button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    policy[b.closest(".seg").dataset.knob] = b.dataset.v;
+    render();
+  });
+});
+el("gate-slider").addEventListener("input", e=>{
+  policy.gate = GATES[+e.target.value].v;
+  render();
+});
+el("preset-tiered").addEventListener("click", ()=>{ policy={...TIERED_POLICY}; render(); });
+el("preset-baseline").addEventListener("click", ()=>{ policy={...BASELINE_POLICY}; render(); });
+
+el("spec-vol").textContent = `${EVENTS.length} events · 3 people`;
+render();
+</script>
+</body>
+</html>

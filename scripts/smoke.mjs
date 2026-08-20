@@ -69,7 +69,7 @@ async function waitForVersion() {
 // Every route a visitor can reach, plus the two pretty aliases (rewrites) and
 // the retired path (redirect). A 404 here means a link somewhere lies.
 const ROUTES = ['/', '/all', '/rr', '/biconomy', '/marks', '/shape-of-product', '/privacy', '/resume']
-const ALIASES = ['/cases', '/showcase']
+const ALIASES = ['/cases', '/showcase', '/blast-radius']
 const FEEDS = ['/sitemap.xml', '/robots.txt']
 
 async function checkRoutes() {

@@ -2,7 +2,7 @@
 
 Verbatim reference for all site metadata — page titles, descriptions, Open Graph blocks, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, and sitemap. Edit the source files, not this doc — run `/release` to surface drift.
 
-**Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/all/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `app/robots.ts`, `app/sitemap.ts`
+**Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/all/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `app/robots.ts`, `app/sitemap.ts`, `public/blast-radius/index.html` (hand-authored `<head>`, not an `app/` route)
 
 This file is the SEO/social mental model. For reading-copy by route, see the per-route MDs in this folder.
 
@@ -228,6 +228,31 @@ Notes: No openGraph block authored — falls back to root layout OG.
 > — [`page.tsx:12-16`](../../app/privacy/page.tsx#L12)
 
 Notes: No openGraph block authored — falls back to root layout OG.
+
+## /blast-radius — Metadata {#blast-radius-meta}
+
+Not a Next route. A standalone single-file prototype served straight off the CDN
+from `public/blast-radius/index.html`, so its metadata is hand-authored `<head>`
+markup rather than a Next `metadata` export — nothing here inherits the root
+layout's title template, OG defaults, or `metadataBase`.
+
+> title: "Blast Radius — preview a notification policy before it ships"
+> description: "Change a notification rule and replay the same week of work under it, for three different people, before it ships. A working sketch by Nihar Bhagat."
+> canonical: "https://nihar.works/blast-radius"
+> og:type: "website"
+> og:url: "https://nihar.works/blast-radius"
+> og:title: "Blast Radius — preview a notification policy before it ships"
+> og:description: "Set a notification policy. See the week it would have produced — for an HR admin, a finance controller, and a first-week employee — before anything ships. A working sketch by Nihar Bhagat."
+> twitter:card: "summary"
+> twitter:title: "Blast Radius — preview a notification policy before it ships"
+> twitter:description: "Cut 183 weekly interrupts to 75 with zero missed deadlines — and catch the policy that looks quietest but silently drops 124."
+> — [`index.html:6-15`](../../public/blast-radius/index.html#L6)
+
+Notes: `title` and `og:title` are deliberately identical. `description` (search)
+and `og:description` (share cards) differ — the OG line names the three personas,
+the meta line describes the mechanic. No OG image: `twitter:card` is `summary`,
+not `summary_large_image`, so cards render text-only. Absent from `sitemap.xml`
+on purpose — it is shared by link, not indexed.
 
 ---
 

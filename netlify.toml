@@ -54,3 +54,29 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
     Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.emailjs.com https://cloud.umami.is; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.emailjs.com https://gateway.umami.is; frame-src 'self' https://calendar.app.google https://niharbhagat.notion.site https://embed.figma.com; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; report-uri /csp-report"
+
+# Blast Radius — a standalone interactive prototype, shared as a pitch artifact.
+#
+# It lives at public/blast-radius/index.html and is served straight off the CDN,
+# so none of the Next shell reaches it: no root layout, no globals.css, no
+# next/font, no page gate, no Umami. That isolation is the point — the file is a
+# finished single-file deliverable and must render byte-for-byte as authored.
+#
+# A directory (not blast-radius.html) so no .html URL exists to hide, and both
+# rules are exact-match so neither can shadow a real route. Mirrored as a
+# next.config.mjs rewrite purely so `next dev` resolves the same URL.
+#
+# NOTE for whoever promotes the CSP: this page loads Fraunces / Archivo /
+# Spline Sans Mono from Google Fonts. Nothing is blocked today because the
+# policy is Report-Only, but `font-src 'self'` and `style-src 'self'` would
+# strip its typography the moment it is enforced. Add fonts.googleapis.com to
+# style-src and fonts.gstatic.com to font-src before renaming that header.
+[[redirects]]
+  from   = "/blast-radius"
+  to     = "/blast-radius/index.html"
+  status = 200
+
+[[redirects]]
+  from   = "/blast-radius/"
+  to     = "/blast-radius/index.html"
+  status = 200
