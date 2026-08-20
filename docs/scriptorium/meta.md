@@ -236,23 +236,35 @@ from `public/blast-radius/index.html`, so its metadata is hand-authored `<head>`
 markup rather than a Next `metadata` export — nothing here inherits the root
 layout's title template, OG defaults, or `metadataBase`.
 
-> title: "Blast Radius — preview a notification policy before it ships"
-> description: "Change a notification rule and replay the same week of work under it, for three different people, before it ships. A working sketch by Nihar Bhagat."
+> title: "Blast Radius: a notification policy sandbox for Rippling"
+> description: "Change a notification rule and replay the same week of work under it, for three different people, before it ships. A working sketch for Rippling, by Nihar Bhagat."
 > canonical: "https://nihar.works/blast-radius"
 > og:type: "website"
 > og:url: "https://nihar.works/blast-radius"
-> og:title: "Blast Radius — preview a notification policy before it ships"
-> og:description: "Set a notification policy. See the week it would have produced — for an HR admin, a finance controller, and a first-week employee — before anything ships. A working sketch by Nihar Bhagat."
+> og:site_name: "Nihar Bhagat"
+> og:title: "Blast Radius: a notification policy sandbox for Rippling"
+> og:description: "Set a notification policy. See the week it would have produced for an HR admin, a finance controller, and a first-week employee, before anything ships. A working sketch for Rippling, by Nihar Bhagat."
 > twitter:card: "summary"
-> twitter:title: "Blast Radius — preview a notification policy before it ships"
-> twitter:description: "Cut 183 weekly interrupts to 75 with zero missed deadlines — and catch the policy that looks quietest but silently drops 124."
-> — [`index.html:6-15`](../../public/blast-radius/index.html#L6)
+> twitter:title: "Blast Radius: a notification policy sandbox for Rippling"
+> twitter:description: "Cut 183 weekly interrupts to 75 with zero missed deadlines, and catch the policy that looks quietest but silently drops 124."
+> — [`index.html:6-16`](../../public/blast-radius/index.html#L6)
 
 Notes: `title` and `og:title` are deliberately identical. `description` (search)
-and `og:description` (share cards) differ — the OG line names the three personas,
-the meta line describes the mechanic. No OG image: `twitter:card` is `summary`,
-not `summary_large_image`, so cards render text-only. Absent from `sitemap.xml`
-on purpose — it is shared by link, not indexed.
+and `og:description` (share cards) differ: the OG line names the three personas,
+the meta line describes the mechanic. No OG image, and `twitter:card` is
+`summary` rather than `summary_large_image`, so cards render text-only. Absent
+from `sitemap.xml` on purpose: shared by link, not indexed.
+
+**Addressed to Rippling, and single-use because of it.** The company name is in
+the title and both descriptions so their name surfaces on the share card. That
+makes this URL specific to one pitch. Retargeting means editing these six values
+(and this entry) or standing up a second path.
+
+**No em dashes in any user-visible string on this page**, by request. The six
+that remain in the file are inside CSS comments and never reach a reader. The
+sole en dash is a route separator in generated event copy (`flight BLR–SFO`) and
+the one curly-quote pair wraps a dropped item's title in the verdict copy; both
+are inside the canonical `<script>` and are correct as written.
 
 ---
 
