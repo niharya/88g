@@ -66,6 +66,15 @@
 # rules are exact-match so neither can shadow a real route. Mirrored as a
 # next.config.mjs rewrite purely so `next dev` resolves the same URL.
 #
+# `force = true` on the bare path is load-bearing, and only production shows
+# why. Netlify canonicalises a directory-served page by 301ing /blast-radius →
+# /blast-radius/, and that built-in runs BEFORE user [[redirects]] — so without
+# force the rule never fires and the bare path answers 301, not 200. The page
+# still reached visitors (browsers follow it), but the canonical link element
+# points at the slashless form and smoke asserts 200, so both disagreed with
+# the server. force makes the rule win: /blast-radius serves the file directly.
+# Verified live in v0.134.0; v0.133.0 shipped without it and smoke caught it.
+#
 # NOTE for whoever promotes the CSP: this page loads Fraunces / Archivo /
 # Spline Sans Mono from Google Fonts. Nothing is blocked today because the
 # policy is Report-Only, but `font-src 'self'` and `style-src 'self'` would
@@ -75,6 +84,7 @@
   from   = "/blast-radius"
   to     = "/blast-radius/index.html"
   status = 200
+  force  = true
 
 [[redirects]]
   from   = "/blast-radius/"
