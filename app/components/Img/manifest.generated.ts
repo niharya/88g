@@ -35,7 +35,7 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
   },
   "/blast-radius/og.png": {
     "dominantColor": "rgb(248, 248, 248)",
-    "thumbHash": "OvgFBIBAdnZmqJqHiHmKz/qLaA==",
+    "thumbHash": "OvgFBIBAdnZ3qJqIiHqK//6rJg==",
     "width": 1200,
     "height": 630,
     "hasAlpha": false,

@@ -260,10 +260,31 @@ page itself rendered headless at 1200x630 (captured at 2x, downsampled), showing
 the brand, the policy panel and the verdict row at its load state: 183 / 0 / 0.
 It deliberately shows the *before* number, because that is what a visitor sees
 when they land; the 183-to-75 movement is carried by `twitter:description`
-instead. Regenerate with headless Chrome at `--window-size=1200,630
---force-device-scale-factor=2` against the live URL, then `sips -z 630 1200`.
-Re-run `npm run lqip` afterwards: the file sits under `public/`, so
-`generate-image-manifest.mjs` indexes it even though no `<Img>` consumes it.
+instead.
+
+**Regenerating it needs a capture-only stylesheet, or text gets cut.** The
+policy panel is 692px tall on its own, so it always bleeds past a 630px frame,
+and a naive screenshot severs both the Escalate label and the persona stats
+line. Copy `index.html` to a scratch file, inject before `</head>`:
+
+```html
+<style>header{padding-top:60px !important} #boxes{display:none !important}</style>
+```
+
+The +24px of header padding (36 to 60) puts the frame edge 23px below the Digest
+buttons and 5px above the Escalate label, so the bleed lands in a gap. `#boxes`
+goes because no row of the three feed columns ends inside 630px. Then:
+
+```
+Chrome --headless=new --hide-scrollbars --window-size=1200,630 \
+  --force-device-scale-factor=2 --virtual-time-budget=12000 \
+  --screenshot=out.png file://<scratch>.html
+sips -z 630 1200 out.png --out og.png
+```
+
+Never inject that stylesheet into the shipped file. Re-run `npm run lqip`
+afterwards: the file sits under `public/`, so `generate-image-manifest.mjs`
+indexes it even though no `<Img>` consumes it.
 
 **Favicon is an inline data-URI SVG**, not a file, so the page stays
 self-contained. It redraws the header's own `.rings` bullseye with heavier
