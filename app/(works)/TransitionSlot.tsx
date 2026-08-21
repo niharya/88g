@@ -20,6 +20,7 @@
 import { useRef, useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { useSelectedLayoutSegment } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import { landDepartureLift } from './departureLift'
 
 const DOCK_OFFSET = 50
 
@@ -116,6 +117,17 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     const content = contentRef.current
     const ghost = snapshotRef.current
     snapshotRef.current = null
+
+    // ── 0. Take over the departure lift ───────────────────────────────
+    //    The EXIT marker dims the slot from the click frame so the page starts
+    //    leaving before the route commits (departureLift.ts). End it here and
+    //    keep the opacity it actually reached, so the ghost picks the dim up
+    //    mid-flight instead of the page popping back to full brightness. Runs
+    //    before the early return so a bailed transition still releases it, and
+    //    before the ghost is appended so the ghost never inherits the class.
+    //    Returns 1 when nothing was armed — every other entry point unchanged.
+    const preDim = landDepartureLift(slot)
+
     if (!slot || !content || !ghost) return
 
     const oldScroll = scrollRef.current
@@ -175,14 +187,18 @@ export default function TransitionSlot({ children }: { children: ReactNode }) {
     })
 
     //    Phase B: ghost recedes
+    //    Starts at `preDim`, not 1, so a lift already underway continues into
+    //    the recede. `fill: 'both'` (not 'forwards') is what holds that dimmed
+    //    first keyframe through GHOST_DELAY — with 'forwards' the ghost would
+    //    sit at full opacity for 100ms and flash the page back on.
     const ghostExit = ghost.animate([
-      { transform: 'translateY(0)', opacity: '1' },
+      { transform: 'translateY(0)', opacity: `${preDim}` },
       { transform: `translateY(${ghostDir * ghostY}px)`, opacity: '0' },
     ], {
       duration: GHOST_DUR,
       easing: EASE,
       delay: GHOST_DELAY,
-      fill: 'forwards',
+      fill: 'both',
     })
     ghostExit.onfinish = () => ghost.remove()
 

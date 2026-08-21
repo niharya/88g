@@ -19,6 +19,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import MarkerSlot from '../components/nav/MarkerSlot'
 import ProjectMarker from '../components/nav/ProjectMarker'
 import ExitMarker from '../components/nav/ExitMarker'
+import { armDepartureLift } from './departureLift'
 
 const segmentNames: Record<string, string> = {
   all: 'Nihar',
@@ -47,7 +48,9 @@ export default function ShellNav() {
           </motion.div>
         </AnimatePresence>
       </MarkerSlot>
-      <ExitMarker />
+      {/* armDepartureLift starts the Exchange's dim on the click frame — see
+          departureLift.ts for why the feedback sits on the departing side. */}
+      <ExitMarker onClick={armDepartureLift} />
     </div>
   )
 }

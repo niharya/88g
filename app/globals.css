@@ -897,6 +897,23 @@ p, li {
   min-height: 100%;
 }
 
+/* Departure lift — the click-frame head of the Exchange. The works EXIT marker
+   arms `.is-departing` on the slot the instant it is clicked
+   (app/(works)/departureLift.ts), so the page visibly begins to leave on the
+   click frame instead of waiting for the route to commit. It is Phase A of the
+   ghost exit ("content dims") started early, not a new gesture — same paper
+   curve, same direction of travel. TransitionSlot captures how far this got and
+   starts the ghost's recede from that value, so there is no pop at commit.
+   Opacity only: a transform here makes the slot a containing block and traps
+   every position:fixed descendant mid-navigation. */
+.transition-slot.is-departing {
+  /* --dur-fast, not --dur-slide: --ease-paper is slow off the line, and this
+     beat exists to be READ inside the first ~100ms. The short tier puts most
+     of the drop early, which is the whole point of moving it to the click. */
+  opacity: 0.75;
+  transition: opacity var(--dur-fast) var(--ease-paper);
+}
+
 .transition-pane {
   transform-origin: top center;
   will-change: transform, opacity;

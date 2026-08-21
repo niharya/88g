@@ -90,6 +90,18 @@ keep firing. The `[data-departing]` attribute selector carries class-level
 weight so the held fill outranks the tone hover rules — demoting the styling to
 a plain class re-lightens the marker if the cursor rests on it while departing.
 
+**`press` is marker-scale; the page-scale half arrives as a prop.** The held
+fill says "the click registered", not "the page is leaving" — on a small
+top-right marker that is not enough on its own, which is why the same dead-click
+report came back for the case-study EXIT after `press` had already shipped on
+it. `ExitMarker` therefore takes an `onClick` PROP, which `ShellNav` fills with
+the works departure lift (`app/(works)/departureLift.ts` — it dims
+`.transition-slot` on the click frame and TransitionSlot picks the dim up at
+commit). It is a prop and not an import because this file sits in the shared
+components layer and the lift belongs to the `(works)` group; shared code never
+reaches up into a route group. Drop the prop and the EXIT click silently loses
+its page-scale feedback — `press` still paints, so it looks wired.
+
 ---
 
 ## Docked fill covers both markers of the pair
