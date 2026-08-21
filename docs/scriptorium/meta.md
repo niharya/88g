@@ -248,43 +248,41 @@ layout's title template, OG defaults, or `metadataBase`.
 > og:image:type: "image/png"
 > og:image:width: "1200"
 > og:image:height: "630"
-> og:image:alt: "The Blast Radius sandbox: a policy panel on the left, and a verdict row reading 183 interruptions this week, 0 moved to a digest, 0 deadlines missed."
+> og:image:alt: "A title card on graph paper. The Blast Radius bullseye mark beside the wordmark Blast Radius, the line A sandbox for notification policy, and a nihar.works tag labelled working sketch."
 > twitter:image: "https://nihar.works/blast-radius/og.png"
 > twitter:card: "summary_large_image"
 > twitter:title: "Blast Radius: a notification policy sandbox for Rippling"
 > twitter:description: "Cut 183 weekly interrupts to 75 with zero missed deadlines, and catch the policy that looks quietest but silently drops 124."
 > — [`index.html:6-23`](../../public/blast-radius/index.html#L6)
 
-**The card image is a real screenshot, not a composed graphic.** `og.png` is the
-page itself rendered headless at 1200x630 (captured at 2x, downsampled), showing
-the brand, the policy panel and the verdict row at its load state: 183 / 0 / 0.
-It deliberately shows the *before* number, because that is what a visitor sees
-when they land; the 183-to-75 movement is carried by `twitter:description`
-instead.
+**The card is a composed title card, not a screenshot of the page.** Its source
+is [docs/og-card-blast-radius.html](../og-card-blast-radius.html) — a standalone
+1200x630 document that reuses the page's own tokens (`--paper`, `--ink`,
+`--terra`, the 32px graph-paper grid) and its two typefaces, plus a copy of the
+header's `.rings` bullseye. `docs/` is not served, so the source ships with the
+repo without being reachable.
 
-**Regenerating it needs a capture-only stylesheet, or text gets cut.** The
-policy panel is 692px tall on its own, so it always bleeds past a 630px frame,
-and a naive screenshot severs both the Escalate label and the persona stats
-line. Copy `index.html` to a scratch file, inject before `</head>`:
+An earlier version screenshotted the live page. It was replaced because a
+1200x630 frame cannot contain it: the policy panel alone is 692px tall, so it
+always bleeds, and every framing that included the three feed columns severed an
+event row. The composed card also reads at DM-thumbnail size, which a shrunken
+UI screenshot does not.
 
-```html
-<style>header{padding-top:60px !important} #boxes{display:none !important}</style>
-```
-
-The +24px of header padding (36 to 60) puts the frame edge 23px below the Digest
-buttons and 5px above the Escalate label, so the bleed lands in a gap. `#boxes`
-goes because no row of the three feed columns ends inside 630px. Then:
+Regenerate:
 
 ```
 Chrome --headless=new --hide-scrollbars --window-size=1200,630 \
   --force-device-scale-factor=2 --virtual-time-budget=12000 \
-  --screenshot=out.png file://<scratch>.html
-sips -z 630 1200 out.png --out og.png
+  --screenshot=out.png file://docs/og-card-blast-radius.html
+sips -z 630 1200 out.png --out public/blast-radius/og.png
 ```
 
-Never inject that stylesheet into the shipped file. Re-run `npm run lqip`
-afterwards: the file sits under `public/`, so `generate-image-manifest.mjs`
-indexes it even though no `<Img>` consumes it.
+The 2x capture then downsample is what keeps the type crisp. Re-run `npm run
+lqip` afterwards: the file sits under `public/`, so
+`generate-image-manifest.mjs` indexes it even though no `<Img>` consumes it.
+
+**The card carries no numbers**, so `twitter:description` is now the only place
+the 183-to-75 result appears. Keep that line intact if the copy is ever revised.
 
 **Favicon is an inline data-URI SVG**, not a file, so the page stays
 self-contained. It redraws the header's own `.rings` bullseye with heavier
