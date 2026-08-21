@@ -33,6 +33,14 @@ export const imageManifest: Record<string, ImageManifestEntry> = {
     "hasAlpha": false,
     "lossless": true
   },
+  "/blast-radius/og.png": {
+    "dominantColor": "rgb(248, 248, 248)",
+    "thumbHash": "OvgFBIBAdnZmqJqHiHmKz/qLaA==",
+    "width": 1200,
+    "height": 630,
+    "hasAlpha": false,
+    "lossless": true
+  },
   "/icon-16.png": {
     "dominantColor": "rgb(248, 248, 232)",
     "thumbHash": "uOcFHwT4N6iGeId+g6pnaJiFiG/o+IYO",

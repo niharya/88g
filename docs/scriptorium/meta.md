@@ -244,10 +244,31 @@ layout's title template, OG defaults, or `metadataBase`.
 > og:site_name: "Nihar Bhagat"
 > og:title: "Blast Radius: a notification policy sandbox for Rippling"
 > og:description: "Set a notification policy. See the week it would have produced for an HR admin, a finance controller, and a first-week employee, before anything ships. A working sketch for Rippling, by Nihar Bhagat."
-> twitter:card: "summary"
+> og:image: "https://nihar.works/blast-radius/og.png"
+> og:image:type: "image/png"
+> og:image:width: "1200"
+> og:image:height: "630"
+> og:image:alt: "The Blast Radius sandbox: a policy panel on the left, and a verdict row reading 183 interruptions this week, 0 moved to a digest, 0 deadlines missed."
+> twitter:image: "https://nihar.works/blast-radius/og.png"
+> twitter:card: "summary_large_image"
 > twitter:title: "Blast Radius: a notification policy sandbox for Rippling"
 > twitter:description: "Cut 183 weekly interrupts to 75 with zero missed deadlines, and catch the policy that looks quietest but silently drops 124."
-> — [`index.html:6-16`](../../public/blast-radius/index.html#L6)
+> — [`index.html:6-23`](../../public/blast-radius/index.html#L6)
+
+**The card image is a real screenshot, not a composed graphic.** `og.png` is the
+page itself rendered headless at 1200x630 (captured at 2x, downsampled), showing
+the brand, the policy panel and the verdict row at its load state: 183 / 0 / 0.
+It deliberately shows the *before* number, because that is what a visitor sees
+when they land; the 183-to-75 movement is carried by `twitter:description`
+instead. Regenerate with headless Chrome at `--window-size=1200,630
+--force-device-scale-factor=2` against the live URL, then `sips -z 630 1200`.
+Re-run `npm run lqip` afterwards: the file sits under `public/`, so
+`generate-image-manifest.mjs` indexes it even though no `<Img>` consumes it.
+
+**Favicon is an inline data-URI SVG**, not a file, so the page stays
+self-contained. It redraws the header's own `.rings` bullseye with heavier
+strokes and a paper disc behind it, because the authored opacities (.22/.4/.7)
+disappear at 16px and the ink mark would vanish against a dark tab bar.
 
 Notes: `title` and `og:title` are deliberately identical. `description` (search)
 and `og:description` (share cards) differ: the OG line names the three personas,
