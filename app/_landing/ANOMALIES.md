@@ -42,6 +42,7 @@ entries load per-section, on demand.
 - **CSS transition must live in the before-change rule, not the `:not()` guard** — why the build-gate fade transition can't move to the `:not()` selector.
 - **Black first-paint gap — two layers required, breakpoint-split** — the two `#000` layers, and the desktop-only grey override.
 - **Pointer-events inversion — landing passes through, interactive ELEMENTS opt in (not sections)** — why the opt-in is scoped to elements, not sections.
+- **Clock-in-render wipes the page gate** — how a time-of-day value in render stripped `.fonts-ready` and left an invisible sheet over the canvas; why `.landing` is out of the shared gate group.
 - **Build gate — three triggers and a JS failsafe** — the three paths to `.landing--built`, and why `builtThisLoad` is module-level.
 - **`markToBench` mounts the departure hold** — the landing owns the stall Hold for landing → `/all`; the marker, its three releases, and the modifier-click exemption.
 - **Hero headline cycling — localStorage (not module state/sessionStorage), useLayoutEffect with a default-0 initializer (not a lazy one)** — persistence choice and the hydration-safe swap pattern.
@@ -617,3 +618,27 @@ The rupture's `rebuildFrom` runs the full build, so `onBuildComplete` → `handl
 - `build()`'s tile range stays origin-relative + asymmetric (reach each edge independently) — never "simplify" it back to a symmetric ±count, which only reaches both edges from a centre origin and leaves a corner-origin rebuild (void rupture) with a far-side black wedge.
 - `N`, `CHARGE_DECAY`, `DECAY_FALL` and the flicker/tremor tuning live in the engine constants block — the easter-egg feel is tuned, not incidental.
 - The rupture haptic is `flickerSchedule` mapped segment-for-segment to `navigator.vibrate` (the schedule's on→off→on alternation IS the `[buzz, pause, …]` contract). It must stay derived from the schedule, not a hand-written pattern, so buzz and visual can't drift — and the schedule's leading on / trailing on alternation must hold. Guarded by `!this.prefersReduced && navigator.vibrate` (the `&&` is the iOS no-op — Safari has no web haptics). The per-charge wind-up tick scales pulse *length* (the API has no amplitude); don't reach for a non-existent intensity arg.
+
+## Clock-in-render wipes the page gate
+
+**What it is.** Two independent defects that compounded into one symptom: **the Startooth pattern stopped taking clicks in production.** Neither was visible in `next dev`.
+
+**The chain, in order.**
+
+1. `app/page.tsx` rendered the greeting with `useState(getGreeting)`. A lazy `useState` initializer runs on the SERVER too, so the statically prerendered HTML carried the build machine's time of day ("Good morning" for a whole day) while the browser computed the visitor's ("Good evening"). That is a React text hydration mismatch — minified error **#418**, thrown on every load of `/` and `/all`.
+2. A root-level mismatch makes React re-render the tree rather than hydrate it, which re-applies `<html className={…}>` from `app/layout.tsx` and **strips the `.fonts-ready` page-gate class** the inline gate script had already added. `suppressHydrationWarning` on `<html>` silences the warning; it does not prevent the re-render. (Evidence: on the live site `/` never carried `.fonts-ready` — not even 75s in, well past the gate script's own 8s `setTimeout` — so the class was added and then removed; `/about`, which has no time-dependent SSR, kept it; and no app code anywhere calls `classList.remove('fonts-ready')`.)
+3. With the class gone, `html.fonts-ready … { animation: none }` never applied, so the CSS-only failsafe `@keyframes page-gate-failsafe` fired at `--dur-gate-cap` with `forwards` — setting `opacity: 1` **and `pointer-events: auto`** on `.landing`.
+4. `pointer-events: auto` on `.landing` is exactly the declaration the landing must never have (see "Pointer-events inversion"). `landing.css` could not win it back at **any** specificity, because animation-applied values outrank normal declarations in the cascade. `.landing` is a full-viewport box and `.landing__content` (z:5) inherits from it, so every pointer event over empty area died there instead of reaching `.startooth-canvas-root canvas` at z:0. An invisible sheet over the pattern.
+
+**The fixes, and why both.**
+
+- **`.landing` is out of the shared gate group in `globals.css`.** It has its own held/released rules and its own `@keyframes page-gate-failsafe-landing`, which animates **opacity only**. Nothing can hand `.landing` `pointer-events` in any state. `landing.css`'s `pointer-events: none` is correspondingly now UNSCOPED (a plain `.landing` rule) — it no longer needs `html.fonts-ready` to out-specify a globals rule that no longer exists. **This is the load-bearing half:** it holds even if a mismatch reappears.
+- **`useGreeting()` (`app/lib/useGreeting.ts`) is the only sanctioned way to render the greeting.** Fixed SSR seed + `useLayoutEffect` swap (before paint, so the seed is never seen) — the same shape the hero headline cycle uses. Applied to all three consumers: the landing hero, `/all`'s `Timeline`, `/shape-of-product`'s `SignOffCard`.
+
+**Why the first fix cannot be the only one.** Removing the greeting mismatch is unbounded work, not a bounded fix. `useState(lazyInit)` runs its initializer on the server, so every `useState(() => Math.random()…)` is the same bug shape, and anything rendered into `<body>` on every route (the `.page-boot` loader and its `Sticker`) can reintroduce it sitewide. Any single surviving mismatch on the landing would kill canvas clicks again. The CSS split is what makes that impossible rather than unlikely.
+
+**Blast radius beyond the landing** (all from the same stripped class): `useReveal` waits on `.fonts-ready`, so section reveals sitewide strand until the `GATE_FAILSAFE_MS` (8.5s) timeout; `useBenchDock` arms `bench-workbench--settle` when the class is absent, but the CSS that STARTS it is `html.fonts-ready`-scoped, so on `/all` the bench card arms and never settles. The v0.127/v0.128 `/all` "dead-click" work very likely treated this same root cause at the symptom layer.
+
+**What breaks if reverted.** Folding `.landing` back into the shared gate group, or re-scoping `landing.css`'s `pointer-events: none` to `html.fonts-ready`, restores the dead pattern the moment any hydration mismatch appears. Calling `getGreeting()` / `getGreetingStage()` during render — directly or through `useState` — reintroduces the mismatch and every consequence above.
+
+**Verification is production-only.** `next dev` does not prerender, so the SSR value matches the client and the whole chain is invisible locally. Reproduce with `npm run build && next start`, then check `document.documentElement.classList.contains('fonts-ready')` and the console for #418.

@@ -37,4 +37,18 @@ if [ -f "$icons_check" ] && ! node "$icons_check"; then
   echo "Run \`npm run icons\` to rebuild it, or bypass with: git push --no-verify" >&2
   exit 1
 fi
+# Hydration roll-call — block a push that puts the clock back into render.
+# `getGreeting()` during SSR bakes the build machine's time into the prerender;
+# the resulting hydration mismatch strips the `.fonts-ready` page-gate class
+# and takes the section-reveal choreography down with it. Invisible to every
+# local check (`next dev` doesn't prerender), so it is enforced here.
+# See app/_landing/ANOMALIES.md -> "Clock-in-render wipes the page gate".
+hydration_check="$repo_root/scripts/check-hydration-safety.mjs"
+if [ -f "$hydration_check" ] && ! node "$hydration_check"; then
+  echo "" >&2
+  echo "pre-push BLOCKED: the clock is back in render (see check output above)." >&2
+  echo "Route it through \`useGreeting()\`, or bypass with: git push --no-verify" >&2
+  exit 1
+fi
+
 exit 0

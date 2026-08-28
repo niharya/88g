@@ -21,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import NavMarker from '../../../components/NavMarker'
 import MaterialIcon from '../../../components/MaterialIcon'
 import ProjectCard from './ProjectCard'
-import { getGreeting, getGreetingStage } from '../../../lib/greeting'
+import { useGreeting } from '../../../lib/useGreeting'
 import { useCrossShellNav } from '../../../components/CrossShellVeil'
 
 
@@ -123,6 +123,12 @@ export default function Timeline({ expanded, onToggle }: TimelineProps) {
   // CrossShellVeil + CLAUDE.md "Cross-shell navigation".
   const onMarksClick = useCrossShellNav('/marks')
 
+  /* Time-of-day greeting + the dot's shape token. Both come from the hook,
+     never from a bare `getGreeting()` in render — the clock differs between
+     the prerender and the visitor, and that mismatch strips the page-gate
+     class sitewide. See app/lib/useGreeting.ts. */
+  const { greeting, stage } = useGreeting()
+
   return (
     <div className="selected-tl">
 
@@ -132,7 +138,7 @@ export default function Timeline({ expanded, onToggle }: TimelineProps) {
           {/* Now dot — shape mirrors time of day: morning semicircle (sun on
               horizon), afternoon full circle, evening crescent moon. */}
           <motion.div
-            className={`selected-tl__dot selected-tl__dot--${getGreetingStage()}`}
+            className={`selected-tl__dot selected-tl__dot--${stage}`}
             initial={{ opacity: 0, scale: 0.6 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ ...SPRING_POP, delay: D.dot }}
@@ -158,7 +164,7 @@ export default function Timeline({ expanded, onToggle }: TimelineProps) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25, delay: D.dot }}
         >
-          {getGreeting()}
+          {greeting}
         </motion.span>
       </div>
 

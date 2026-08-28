@@ -193,13 +193,29 @@ html.fonts-ready .landing--built:not(.landing--staged):not(.landing--expanded) .
 
 /* ---- Canvas interaction opt-in ---- */
 /* Canvas (below .landing in z-order) receives pointer events in empty areas
-   because .landing and .landing__content pass them through. Override the
-   globals.css fonts-ready pointer-events:auto using same specificity + later
-   cascade position (landing.css loads after globals.css).
-   The transition must live here (not only in .landing--built) so the
+   because .landing and .landing__content pass them through; the genuinely
+   interactive elements opt back in below.
+
+   UNCONDITIONAL, and it must stay that way. This used to be scoped
+   `html.fonts-ready .landing`, to beat the globals.css page-gate rule of the
+   same specificity from a later cascade position. That left the pass-through
+   true only while the gate class was present — and when the class was stripped
+   (a hydration mismatch re-renders the root and re-applies <html className>),
+   the gate's CSS failsafe animated `pointer-events: auto` onto `.landing`
+   instead. An animated value outranks every normal declaration, so no
+   specificity here could have won it back: the landing became an invisible
+   sheet over the canvas and the Startooth pattern stopped taking clicks.
+   `.landing` is now out of the shared gate group entirely (globals.css →
+   "The landing is gated on OPACITY ONLY"), so nothing competes and this plain
+   selector is enough in every state — gate held, released, or failed.
+   See app/_landing/ANOMALIES.md → "Clock-in-render wipes the page gate". */
+.landing {
+  pointer-events: none;
+}
+
+/* The transition must live here (not only in .landing--built) so the
    before-change style has it defined — required for the reveal to animate. */
 html.fonts-ready .landing {
-  pointer-events: none;
   /* Fast block reveal: opacity snaps to full quickly so the hero card reads as
      opaque almost immediately (its slow SETTLE motion is carried by the
      transform/shadow keyframe, not opacity). Everything other than the card is

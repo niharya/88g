@@ -68,7 +68,7 @@ The letterpress ticket footing the card; docks into a navbar on scroll. Tab orde
 > "Now"
 > — [`Timeline.tsx:84`](../../app/(works)/all/components/Timeline.tsx#L84)
 
-> "Good morning" / "Good afternoon" / "Good evening" (from `getGreeting`)
+> "Good morning" / "Good afternoon" / "Good evening" (from `useGreeting`)
 > — [`Timeline.tsx:93`](../../app/(works)/all/components/Timeline.tsx#L93)
 
 ## Timeline — year labels {#timeline-years}

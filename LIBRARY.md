@@ -29,7 +29,8 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **ExpandToggle** — `app/components/ExpandToggle/`; expand/collapse glyph; consumers: landing pill-btn, /rr Intro.
 - **Page boot mark (startooth)** — `app/layout.tsx` + globals.css; font-gate hold mark; per-route recolor via `:root:has()` blocks.
 - **Security headers** — `next.config.mjs` (source of truth) + `netlify.toml` (identical copy for CDN files) + `scripts/smoke.mjs`; the two lists MUST stay in sync; Netlify's `[[headers]]` never reach Next-rendered pages.
-- **Small utils** — `app/lib/greeting.ts`, `app/lib/titleCase.ts`.
+- **useGreeting** — `app/lib/useGreeting.ts`; the ONLY sanctioned way to render the time-of-day greeting (hydration-safe); consumers: landing hero, /all Timeline, /shape-of-product SignOffCard.
+- **Small utils** — `app/lib/greeting.ts` (read it through `useGreeting`, never in render), `app/lib/titleCase.ts`.
 - **useExpand** — `app/lib/useExpand.ts`; non-modal overlay hook (`is-overlay-open` body class pauses dominance-snap); consumers: /rr Intro + Outcome.
 - **scrollGlide** — `app/lib/scrollGlide.ts`; singleton rAF scroll tween under `--ease-paper`; consumers: /marks + useDominanceSnap.
 - **useDominanceSnap** — `app/components/hooks/useDominanceSnap.ts`; scroll-idle section snap; consumers: /marks sections, Sheet (biconomy + rr).
@@ -180,7 +181,7 @@ The five typefaces the portfolio uses, all self-hosted via `next/font/local`. Co
 
 **AI notes**
 - **`display: 'swap'` on every font, with explicit `fallback` chains.** Fallback renders immediately and swaps when the real face arrives — never a blank page on slow mobile. Do **not** change to `'block'`: the v0.56 attempt did exactly that and produced 3-second blanks plus Material-Symbols ligature words flashing in as fallback text on slow connections.
-- **Page gate (hold-until-ready).** Top-level surfaces (`.landing`, `.workbench`, `.route-marks`, `.route-sop`) carry `opacity: 0` until `<html>` gains `.fonts-ready`. The gate script in `app/layout.tsx` releases the class when **both** `window.load` (JS bundle + subresources) and `document.fonts.ready` settle — or an **8000 ms** failsafe (`GATE_CAP_MS` in `app/lib/gate.ts`, mirrored as the `--dur-gate-cap` CSS animation). It holds for `window.load` because content reveals via the post-hydration `useReveal` hook — releasing on fonts alone shows an empty surface before hydration. Keep the JS cap and the CSS failsafe equal. The `.page-boot` loader (a saturated per-route field + the Startooth mark) lives in `<body>` and fills the screen during the hold; on release the mark lifts off as the field fades.
+- **Page gate (hold-until-ready).** Top-level surfaces (`.landing`, `.workbench`, `.route-marks`, `.route-sop`) carry `opacity: 0` until `<html>` gains `.fonts-ready`. **`.landing` is gated on OPACITY ONLY** — it sits outside the shared rule group with its own `page-gate-failsafe-landing` keyframe, because the shared failsafe's `pointer-events: auto` laid an invisible sheet over the Startooth canvas (an animated value outranks any declaration that tries to win it back). Never fold `.landing` back in. Nor should any surface's gate class be treated as guaranteed: a React hydration mismatch re-renders the root, re-applies `<html className>` and strips `.fonts-ready` outright — see `app/_landing/ANOMALIES.md` → "Clock-in-render wipes the page gate". The gate script in `app/layout.tsx` releases the class when **both** `window.load` (JS bundle + subresources) and `document.fonts.ready` settle — or an **8000 ms** failsafe (`GATE_CAP_MS` in `app/lib/gate.ts`, mirrored as the `--dur-gate-cap` CSS animation). It holds for `window.load` because content reveals via the post-hydration `useReveal` hook — releasing on fonts alone shows an empty surface before hydration. Keep the JS cap and the CSS failsafe equal. The `.page-boot` loader (a saturated per-route field + the Startooth mark) lives in `<body>` and fills the screen during the hold; on release the mark lifts off as the field fades.
 - **Never redeclare `--font-*` in `globals.css :root`.** next/font sets each variable on `<html>` to a hashed family name (e.g. `'fraunces'`, `'fraunces Fallback'`) that scopes the generated `@font-face` rules. Redeclaring with literal names (`'Fraunces'`, `'Google Sans'`, …) detaches the cascade — the woff2 files are downloaded but never applied. On desktops with the family installed locally it appears to work; on mobile it falls back to system fonts. This was the v0.56 → v0.58 mobile-fonts regression.
 - **`preload: true` only on landing-critical fonts** — Fraunces, Google Sans, Google Sans Flex. Code and Symbols are `preload: false` because the landing page doesn't render them. (Preload tags only appear in production builds, not dev.)
 - **Five fonts, six files.** Italic/roman pairs for Fraunces, Google Sans, Google Sans Code. Single variable file for Google Sans Flex (covers all weights/widths from one file). Single file for Material Symbols (`weight: '100 700'`).
@@ -280,6 +281,24 @@ One-shot scroll-triggered entrance hook. Adds `.revealed` to a target element th
 - **`rootMargin: '-60px'`** means the reveal fires slightly before the element reaches the viewport edge, so content is already visible when the transition starts. Don't change without eyes on the page.
 - **Consumed by Sheet, but usable standalone.** Any element that uses the `.section-reveal` base class and wants one-shot entrance can use this hook directly.
 - What's library-ready: the whole hook. The CSS side is a companion that lives in globals.css — extract together.
+
+---
+
+## useGreeting
+
+The hydration-safe reader for the time-of-day greeting ("Good morning / afternoon / evening"). Three consumers: the landing hero card, `/all`'s Timeline cap (greeting **and** the time-of-day dot shape), and `/shape-of-product`'s SignOffCard.
+
+**Where it lives**
+- [app/lib/useGreeting.ts](app/lib/useGreeting.ts) — the hook.
+- [app/lib/greeting.ts](app/lib/greeting.ts) — the pure clock logic + `GREETING_BY_STAGE`, the one place the three strings live.
+
+**AI notes**
+- **This is a bug fix, not a convenience wrapper.** `getGreeting()` reads the clock, so it returns the prerender machine's time in the HTML and the visitor's time in the browser. That mismatch does not merely warn — React re-renders the root, re-applies `<html className>`, and strips the `.fonts-ready` page-gate class, which used to leave an invisible sheet over the landing's canvas. Full chain: `app/_landing/ANOMALIES.md` → "Clock-in-render wipes the page gate".
+- **`useState(getGreeting)` is NOT safe** and was the original bug (in two of the three consumers, one of them with a comment claiming the opposite). A lazy `useState` initializer runs on the server too. The same trap applies to any `useState(() => Math.random()…)`.
+- **Fixed seed + `useLayoutEffect` swap.** The seed (`afternoon`) is a constant so server and client's first render agree; the real value lands before paint, so the seed is never seen. Deriving the seed from the clock is the whole bug — keep it constant.
+- **Returns `{ greeting, stage }`.** `stage` is the `morning`/`afternoon`/`evening` token for time-of-day styling hooks (`/all`'s dot uses it for its semicircle/circle/crescent shape).
+- **Layout is safe.** The landing's `--hero-h` ResizeObserver already names "greeting length" as a height source it tracks, so the pre-paint swap re-measures for free.
+- **Verify in a production build only.** `next dev` doesn't prerender, so server and client agree locally and the whole failure is invisible. `npm run build && next start`, then check for React #418 in the console.
 
 ---
 
@@ -392,7 +411,7 @@ The first-paint loader shown during the page-gate hold on hard refresh: a full-s
 Pure functions shared across routes. No UI, no state.
 
 **Where they live**
-- [app/lib/greeting.ts](app/lib/greeting.ts) — time-of-day greeting string ("Good morning", etc.). Consumed on landing.
+- [app/lib/greeting.ts](app/lib/greeting.ts) — time-of-day greeting strings (`GREETING_BY_STAGE`). Never call it in render — read it through [useGreeting](#usegreeting). Consumers: landing, /all, /shape-of-product.
 - [app/lib/titleCase.ts](app/lib/titleCase.ts) — APA title case. Used anywhere UI copy is authored in sentence case but rendered as a title. `.t-h5` assumes inputs are already APA-cased via this function.
 ---
 

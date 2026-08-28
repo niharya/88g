@@ -59,7 +59,7 @@ Recompose for mobile; never replicate desktop smaller. Banned: `transform: scale
 
 ## Performance (banned + pointer)
 
-Banned: uncapped font gates; font `display: 'block'`; external Google Fonts links for primary fonts; redeclaring `--font-*` in `globals.css`; the full Material Symbols font; hand-written symbol-font spans; raw multi-MB images. Material Symbols icons render only via `<MaterialIcon>` / NavMarker, keyed to the registry `app/lib/icons.ts`; add one with `npm run icons` (the pre-push hook runs `npm run icons:check` and blocks a stale subset). All content imagery via `<Img>` as `.webp`; run `npm run lqip` after adding/replacing images (a hook reminds you). Full reference: `docs/performance.md`.
+Banned: uncapped font gates; font `display: 'block'`; external Google Fonts links for primary fonts; redeclaring `--font-*` in `globals.css`; the full Material Symbols font; hand-written symbol-font spans; raw multi-MB images. Material Symbols icons render only via `<MaterialIcon>` / NavMarker, keyed to the registry `app/lib/icons.ts`; add one with `npm run icons` (the pre-push hook runs `npm run icons:check` and blocks a stale subset; it also runs `npm run hydration:check`, which blocks a clock read during render — see `app/_landing/ANOMALIES.md` → "Clock-in-render wipes the page gate"). All content imagery via `<Img>` as `.webp`; run `npm run lqip` after adding/replacing images (a hook reminds you). Full reference: `docs/performance.md`.
 
 ## Workflow
 

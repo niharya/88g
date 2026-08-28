@@ -367,7 +367,6 @@
 @keyframes page-gate-failsafe {
   to { opacity: 1; pointer-events: auto; }
 }
-.landing,
 .workbench,
 .route-marks,
 .route-sop {
@@ -377,7 +376,6 @@
   pointer-events: none;
   animation: page-gate-failsafe 1ms linear var(--dur-gate-cap) forwards;
 }
-html.fonts-ready .landing,
 html.fonts-ready .workbench,
 html.fonts-ready .route-marks,
 html.fonts-ready .route-sop {
@@ -388,6 +386,38 @@ html.fonts-ready .route-sop {
   /* Sequenced handoff: --delay-reveal-handoff lets the loader lead its lift-
      away (page-boot-out below) before the page settles in, so the two don't
      resolve on the same frame — the abrupt-flip the reveal used to be. */
+  transition: opacity var(--dur-settle) var(--ease-paper) var(--delay-reveal-handoff);
+}
+
+/* ── The landing is gated on OPACITY ONLY (load-bearing) ─────────────────
+   `.landing` is deliberately NOT in the group above, and its failsafe is a
+   SEPARATE keyframe that animates opacity alone. The landing inverts
+   pointer-events — `.landing` passes through so the Startooth canvas (z:0,
+   BELOW it) receives clicks in empty areas, and only the real interactive
+   elements opt back in (landing.css → "Canvas interaction opt-in").
+   `pointer-events: auto` is therefore WRONG on `.landing` in every state,
+   including the failsafe.
+
+   This shipped as a dead pattern: when `.fonts-ready` never lands, the shared
+   failsafe fired and handed `.landing` `pointer-events: auto`. Animation-
+   applied values outrank normal declarations, so landing.css could not win it
+   back at any specificity — an invisible full-viewport sheet over the canvas
+   that swallowed every click on the pattern. Keeping `.landing` out of the
+   shared rule is what makes that unreachable, whatever else goes wrong.
+   Do not fold it back in. See app/_landing/ANOMALIES.md →
+   "Clock-in-render wipes the page gate". */
+@keyframes page-gate-failsafe-landing {
+  to { opacity: 1; }
+}
+.landing {
+  opacity: 0;
+  animation: page-gate-failsafe-landing 1ms linear var(--dur-gate-cap) forwards;
+}
+html.fonts-ready .landing {
+  opacity: 1;
+  animation: none;
+  /* landing.css overrides this transition with its own faster block reveal
+     (same specificity, later cascade position) — intentional; see there. */
   transition: opacity var(--dur-settle) var(--ease-paper) var(--delay-reveal-handoff);
 }
 

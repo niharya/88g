@@ -14,13 +14,13 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 ## Hero — greeting {#hero-greeting}
 
 > "Good morning"
-> — [`greeting.ts:9`](../../app/lib/greeting.ts#L9)
+> — [`greeting.ts:19`](../../app/lib/greeting.ts#L19) (`GREETING_BY_STAGE`)
 
 > "Good afternoon"
-> — [`greeting.ts:10`](../../app/lib/greeting.ts#L10)
+> — [`greeting.ts:20`](../../app/lib/greeting.ts#L20) (`GREETING_BY_STAGE`)
 
 > "Good evening"
-> — [`greeting.ts:11`](../../app/lib/greeting.ts#L11)
+> — [`greeting.ts:21`](../../app/lib/greeting.ts#L21) (`GREETING_BY_STAGE`)
 
 ## Hero — headline {#hero-headline}
 
@@ -181,7 +181,7 @@ disciplines-list copy is retired. Referenced by symbol (line refs drift).
 
 ## Notes
 
-- Greeting is time-of-day computed at mount via `getGreeting()` — one of three strings shown.
+- Greeting is time-of-day, read through `useGreeting()` (never `getGreeting()` in render) — one of three strings shown.
 - Purpose tags are randomized in tilt rotation per click, not in label order.
 - Sent-pill color is random from a 4-color array (`SENT_COLORS`, line 94).
 - The honeypot "Website" label is visually hidden (`left: -9999px`) but exists in the DOM for bots.

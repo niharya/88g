@@ -11,7 +11,7 @@ import CaptionTag from './components/CaptionTag'
 import { ExpandToggle } from './components/ExpandToggle'
 import Monostamp from './components/Monostamp'
 import Footer from './components/Footer'
-import { getGreeting } from './lib/greeting'
+import { useGreeting } from './lib/useGreeting'
 import { analytics } from './lib/analytics'
 import './components/nav/nav.css'
 import './components/NavMarker/navmarker.css'
@@ -123,7 +123,11 @@ const TIMELINE_PHASES = [
 export default function LandingPage() {
   const [expanded, setExpanded] = useState(false)
   const [slideIn, setSlideIn] = useState(false)
-  const [greeting] = useState(getGreeting)
+  /* Time-of-day greeting. MUST go through `useGreeting` — calling the clock
+     during render (incl. `useState(getGreeting)`, whose lazy initializer runs
+     on the server too) is a hydration mismatch that strips the page-gate
+     class and kills canvas clicks. See app/lib/useGreeting.ts. */
+  const { greeting } = useGreeting()
   const [headlineIdx, setHeadlineIdx] = useState(0)
   const heroBgRef = useRef<HTMLDivElement>(null)
 

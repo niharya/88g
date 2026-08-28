@@ -9,19 +9,22 @@
 // the landing — but tinted to match the blue editorial voice biconomy
 // uses for its intro cards.
 //
-// Time-of-day greeting comes from the shared `getGreeting` util.
-// `useState(getGreeting)` lazy-inits on first client render so SSR and
-// hydration agree on a single value.
+// Time-of-day greeting comes from the shared `useGreeting` hook.
+// NOT `useState(getGreeting)` — that was WRONG, and this comment used to
+// claim the opposite: a lazy `useState` initializer runs on the SERVER too,
+// so the prerender bakes the build machine's time and the browser computes
+// the visitor's. The mismatch strips the `.fonts-ready` page-gate class.
+// See app/lib/useGreeting.ts.
 //
 // PROMOTION NOTE: visual treatment is duplicated from landing's
 // `.hero-card` (background, padding, shadow, type slots). Second
 // consumer of the same card visual — flagged as a promotion candidate.
 
 import { useState } from 'react'
-import { getGreeting } from '../../lib/greeting'
+import { useGreeting } from '../../lib/useGreeting'
 
 export default function SignOffCard() {
-  const [greeting] = useState(getGreeting)
+  const { greeting } = useGreeting()
   // Card lands tilted (2deg). The reader can click it to flatten — a
   // small one-way "settle" interaction. Stateful so SSR + hydration both
   // start at `tilted: true` and only the first click in the session

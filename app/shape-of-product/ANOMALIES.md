@@ -198,11 +198,19 @@ consumer appears, lift the visual to `<HeroCard tone="blue">` (or
 similar) and let landing keep the expand-pill-btn behaviour as a
 route-local extension.
 
-**Greeting comes from the shared `getGreeting` util.**
-`useState(getGreeting)` lazy-inits on first client render so SSR and
-hydration agree on a single value. Don't move the call into the
-component body without `useState` — direct `getGreeting()` would run
-on every render, and the server's hour wouldn't match the client's.
+**Greeting comes from the shared `useGreeting` hook — NOT `useState(getGreeting)`.**
+This entry used to claim the opposite ("lazy-inits on first client render so SSR
+and hydration agree"), and that claim was false: a lazy `useState` initializer
+runs on the SERVER too, so the prerender baked the build machine's hour while the
+browser computed the visitor's. The resulting hydration mismatch re-renders the
+React root, re-applies `<html className>`, and strips the `.fonts-ready` page-gate
+class — which on the landing left an invisible sheet over the Startooth canvas and
+killed every click on the pattern. `useGreeting()` (`app/lib/useGreeting.ts`) is
+the only sanctioned reader: a fixed SSR seed swapped for the real value in
+`useLayoutEffect`, before paint. Never call `getGreeting()` / `getGreetingStage()`
+in a render body either — same bug, more direct. Enforced at pre-push by
+`scripts/check-hydration-safety.mjs`. Full chain: `app/_landing/ANOMALIES.md` →
+"Clock-in-render wipes the page gate".
 
 ---
 

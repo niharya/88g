@@ -1,6 +1,6 @@
 {
   "name": "portfolio",
-  "version": "0.139.0",
+  "version": "0.140.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,7 +13,8 @@
     "optimize-images": "node scripts/optimize-images.mjs",
     "census": "node scripts/doc-census.mjs",
     "icons": "python3 scripts/icon_subset.py",
-    "icons:check": "node scripts/check-icons.mjs"
+    "icons:check": "node scripts/check-icons.mjs",
+    "hydration:check": "node scripts/check-hydration-safety.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

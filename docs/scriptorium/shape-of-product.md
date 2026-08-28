@@ -133,7 +133,7 @@ Inline chip labels:
 Greeting (templated, shared with landing — see `landing.md` → `#hero-greeting`):
 
 > "Good morning" / "Good afternoon" / "Good evening"
-> — [`SignOffCard.tsx:47`](../../app/shape-of-product/components/SignOffCard.tsx#L47), via `app/lib/greeting.ts`
+> — [`SignOffCard.tsx:47`](../../app/shape-of-product/components/SignOffCard.tsx#L47), via `app/lib/useGreeting.ts`
 
 ## SopNavRow {#sop-nav-row}
 

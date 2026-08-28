@@ -20,7 +20,7 @@ This is the musings layer — the one sanctioned net-new authoring zone in the f
 - ActorStickers tilts and Y offsets are frozen authored constants — do not reintroduce Math.random; the identical pose every visit is deliberate. ANOMALIES.md → "Actor stickers (`ActorStickers`)"
 - Keep each sticker's translateY on the `.sop__actor-slot` wrapper — the inner Sticker's transform is reserved for rotation + hover lift; overloading it breaks the click-rotate jitter. ANOMALIES.md → "Actor stickers (`ActorStickers`)"
 - SignOffCard's tilt must stay an inline style transform — the class-based variant silently pins at 2deg due to a transition/cascade interaction. ANOMALIES.md → "Sign-off card (`SignOffCard`)"
-- Keep `useState(getGreeting)` lazy-init in SignOffCard — a direct call in the render body breaks SSR/hydration agreement on the hour. ANOMALIES.md → "Sign-off card (`SignOffCard`)"
+- Read SignOffCard's greeting via `useGreeting()` — `useState(getGreeting)` is NOT safe (a lazy initializer runs on the server too) and was the original bug. ANOMALIES.md → "Sign-off card (`SignOffCard`)"
 - SignOffCard's settle is one-way per session — don't make it a toggle; clicking the flat card is a no-op by design. ANOMALIES.md → "Sign-off card (`SignOffCard`)"
 - In RoleApproachStack, `aria-hidden` goes on the inner `.sop__stack-content` only, never the whole card — the tab button must stay in the a11y tree. ANOMALIES.md → "Roles ↔ Approach stack (`RoleApproachStack`)"
 - Keep the ARIA tablist pattern (role=tab + aria-controls + aria-selected) — aria-pressed semantics were tried and are wrong for select-one-of-two. ANOMALIES.md → "Roles ↔ Approach stack (`RoleApproachStack`)"
