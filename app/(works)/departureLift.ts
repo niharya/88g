@@ -33,13 +33,42 @@
 // calls landDepartureLift and continues the ghost from where the dim got to;
 // (2) an 8s failsafe matching --dur-gate-cap, so a navigation that never lands
 // doesn't strand a dimmed page; (3) pageshow/popstate for the bfcache trip back.
+//
+// STALL ESCALATION. The lift is the right idiom while the Exchange is coming —
+// but when the pre-commit dead time stretches (slow network fetching the RSC
+// payload, a saturated main thread), a 25% dim is all the visitor sees and the
+// EXIT reads as broken. So if the route has not committed within STALL_MS, the
+// lift escalates to the loader Hold: the same body-appended `.route-hold`
+// marker markToBench mounts (app/page.tsx), same id, so it inherits ALL the
+// existing release wiring — useBenchDock removes it on /all arrival, and the
+// clear() below covers commit/failsafe/bfcache. While mounted, the globals.css
+// route-hold block hides `.workbench` and re-arms the `.page-boot` patience
+// mark; on release the standard reveal replays, so a held EXIT lands with the
+// Place gesture. A commit inside STALL_MS never mounts it — the Exchange plays
+// untouched, which is why this is an escalation, not a replacement (the header
+// above still holds: the Exchange is the works idiom; the Hold is for stalls).
+// EXIT is armDepartureLift's only caller and always targets /all, hence the
+// fixed `route-hold--all` palette; a second caller with a different
+// destination must parameterize it.
 
 import type { MouseEvent } from 'react'
 
 const CLASS = 'is-departing'
 const FAILSAFE_MS = 8000 // matches --dur-gate-cap and the route-hold failsafe
+const STALL_MS = 700 // no commit by here → the wait already reads as broken
+const HOLD_ID = 'route-hold-departure' // shared with markToBench — same wiring
 
 let failsafe: number | undefined
+let stall: number | undefined
+
+const mountHold = () => {
+  if (document.getElementById(HOLD_ID)) return
+  const hold = document.createElement('div')
+  hold.id = HOLD_ID
+  hold.className = 'route-hold route-hold--all'
+  hold.setAttribute('aria-hidden', 'true')
+  document.body.appendChild(hold)
+}
 
 const findSlot = () => document.querySelector<HTMLElement>('.transition-slot')
 
@@ -49,6 +78,11 @@ const clear = (el?: HTMLElement | null) => {
     window.clearTimeout(failsafe)
     failsafe = undefined
   }
+  if (stall !== undefined) {
+    window.clearTimeout(stall)
+    stall = undefined
+  }
+  document.getElementById(HOLD_ID)?.remove()
   window.removeEventListener('pageshow', onRestore)
   window.removeEventListener('popstate', onRestore)
 }
@@ -69,6 +103,7 @@ export function armDepartureLift(e?: MouseEvent) {
 
   slot.classList.add(CLASS)
   failsafe = window.setTimeout(onRestore, FAILSAFE_MS)
+  stall = window.setTimeout(mountHold, STALL_MS)
   window.addEventListener('pageshow', onRestore)
   window.addEventListener('popstate', onRestore)
 }

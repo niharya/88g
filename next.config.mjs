@@ -6,6 +6,13 @@ import { readFileSync } from 'node:fs'
 // nothing, which is worse than no check at all.
 const APP_VERSION = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version
 
+// The same version, baked into the CLIENT bundle so a long-open tab can tell
+// it has outlived its deploy: VersionSkewWatcher compares this constant against
+// the live `X-App-Version` header when a dormant tab is returned to, and
+// reloads before stale code runs client navigations against a newer server
+// (old bundle + new RSC payloads = the "wonky version" mixed state a normal
+// refresh can't always clear). See app/VersionSkewWatcher.tsx.
+
 // ── Security headers — SOURCE OF TRUTH ─────────────────────────────────────
 // Declared here, not only in netlify.toml, because Netlify's [[headers]] cover
 // files it serves straight from the CDN (everything in public/) and NOT
@@ -23,6 +30,13 @@ const APP_VERSION = JSON.parse(readFileSync(new URL('./package.json', import.met
 // own pages, and /resume lays the PDF in a same-origin frame. Under DENY the
 // browser refuses it and the route reads as a blank page — invisible locally,
 // since `next dev` serves none of these headers.
+// NOTE for whoever promotes this to enforcing Content-Security-Policy: the CDN
+// twin in netlify.toml ALSO covers /blast-radius, which loads Fraunces /
+// Archivo / Spline Sans Mono from Google Fonts. `font-src 'self'` and
+// `style-src 'self'` would strip its typography the moment the header is
+// renamed — add fonts.googleapis.com to style-src and fonts.gstatic.com to
+// font-src FIRST, in both files. (This warning lives here as well as in
+// netlify.toml because this file is where new values land first.)
 const CSP_REPORT_ONLY = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://api.emailjs.com https://cloud.umami.is",
@@ -52,6 +66,10 @@ const SECURITY_HEADERS = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    // Client-side copy of the version (see APP_VERSION note above).
+    NEXT_PUBLIC_APP_VERSION: APP_VERSION,
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     // Allowed quality values for the next/image optimizer. Next 15 silently

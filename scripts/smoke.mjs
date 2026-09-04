@@ -110,13 +110,25 @@ async function checkResume() {
 
 // Pages, not just files. Netlify's [[headers]] never reached Next-rendered
 // responses, so these were bare for months while the static assets were covered.
+//
+// The content policy is read under EITHER header name so these checks survive
+// the planned report-only → enforcing promotion (netlify.toml's comment) —
+// before this, promotion day would have produced two false failures at the
+// exact moment the checks mattered most.
+const contentPolicy = (headers) =>
+  headers.get('content-security-policy') ?? headers.get('content-security-policy-report-only')
+
 async function checkPageHeaders() {
   for (const path of ['/', '/privacy']) {
     const res = await get(path)
-    const xfo = res.headers.get('x-frame-options')
-    xfo ? ok(`${path} carries X-Frame-Options: ${xfo}`) : bad(`${path} carries NO X-Frame-Options`)
+    // Value, not presence: presence-only passed a DENY regression green, and
+    // DENY is the exact header that blanked /resume for 47 releases.
+    const xfo = (res.headers.get('x-frame-options') ?? '').toUpperCase()
+    xfo === 'SAMEORIGIN'
+      ? ok(`${path} carries X-Frame-Options: SAMEORIGIN`)
+      : bad(`${path} X-Frame-Options is "${xfo || 'missing'}" (expected SAMEORIGIN — DENY blanks /resume)`)
 
-    res.headers.get('content-security-policy-report-only')
+    contentPolicy(res.headers)
       ? ok(`${path} carries a content policy`)
       : bad(`${path} carries NO content policy`)
   }
@@ -127,13 +139,64 @@ async function checkPageHeaders() {
 // must be named in frame-src or the embeds go white.
 async function checkEmbedsWouldSurviveEnforcement() {
   const res = await get('/')
-  const csp = res.headers.get('content-security-policy-report-only')
+  const csp = contentPolicy(res.headers)
   if (!csp) return bad('no content policy to check frame-src against')
   for (const host of ['https://calendar.app.google', 'https://niharbhagat.notion.site', 'https://embed.figma.com']) {
     csp.includes(host)
       ? ok(`frame-src allows ${host}`)
       : bad(`frame-src is missing ${host} — that embed breaks if the policy is enforced`)
   }
+}
+
+// The image optimizer is a production-only function: every <Img> on the site
+// subrequests /_next/image, dev uses a different code path, and a total
+// optimizer failure fails no route check (pages still 200). One real request
+// proves the pipeline end to end. /og-image.png is stable-named (metadata +
+// checkResume-style: renaming it must update this line too).
+async function checkImageOptimizer() {
+  const res = await get('/_next/image?url=%2Fog-image.png&w=640&q=75')
+  const type = res.headers.get('content-type') ?? ''
+  res.status === 200 && type.startsWith('image/')
+    ? ok(`/_next/image optimizes (${type})`)
+    : bad(`/_next/image → ${res.status} ${type} — the image optimizer is broken; every content image on the site fails with it`)
+}
+
+// The showcase videos are plain CDN files no route check touches — they can
+// 404 (rename, lost file) while everything else stays green.
+async function checkVideos() {
+  for (const path of ['/videos/ecochain/audit-status-icons.mov', '/videos/ecochain/interface-introduction.mov']) {
+    const res = await get(path, { method: 'HEAD' })
+    const type = res.headers.get('content-type') ?? ''
+    res.status === 200 && type.startsWith('video/')
+      ? ok(`${path} → 200 (${type})`)
+      : bad(`${path} → ${res.status} ${type} — showcase video missing or mistyped`)
+  }
+}
+
+// Caching contract — pins today's correct Netlify-runtime defaults so a future
+// runtime upgrade can't silently weaken them. HTML must revalidate on every
+// use (a cached page HTML references purged hashed chunks after the next
+// deploy → broken navigation); hashed assets must stay immutable (they're the
+// reason deploys are cheap). Neither is authored in-repo — the runtime emits
+// both — which is exactly why the live site is asserted instead.
+async function checkCachingContract() {
+  const page = await get('/')
+  const pageCc = page.headers.get('cache-control') ?? ''
+  pageCc.includes('max-age=0') && pageCc.includes('must-revalidate')
+    ? ok(`HTML revalidates (cache-control: ${pageCc})`)
+    : bad(`/ cache-control is "${pageCc}" — stale HTML will reference purged chunks after the next deploy`)
+
+  const html = await page.text?.() ?? ''
+  const chunk = html.match(/\/_next\/static\/[^"']+\.js/)?.[0]
+  if (!chunk) {
+    bad('/ HTML contains no /_next/static script reference — cannot assert asset caching')
+    return
+  }
+  const asset = await get(chunk, { method: 'HEAD' })
+  const assetCc = asset.headers.get('cache-control') ?? ''
+  asset.status === 200 && assetCc.includes('immutable')
+    ? ok(`hashed assets immutable (${chunk.slice(0, 40)}…)`)
+    : bad(`${chunk} → ${asset.status}, cache-control "${assetCc}" (expected 200 + immutable)`)
 }
 
 // Things that must NOT be reachable.
@@ -161,6 +224,9 @@ await checkRoutes()
 await checkResume()
 await checkPageHeaders()
 await checkEmbedsWouldSurviveEnforcement()
+await checkImageOptimizer()
+await checkVideos()
+await checkCachingContract()
 await checkNotExposed()
 
 for (const m of pass) console.log(`  ✓ ${m}`)

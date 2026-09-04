@@ -31,6 +31,8 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 - **`[data-arrow-target]` — opt-in for arrow rotation** — the `?? sheet` fallback and its scoped query.
 - **`MARKER_TOP` is read live from the nav element, not documentElement** — why the read can't be cached or moved to `document.documentElement`.
 - **Tray open requires the marker to be docked** — `openTray`'s fresh `getBoundingClientRect` check, why `.is-docked` isn't trusted.
+- **`is-docked` is render state, not an imperative class** — React owns the class so tray open/close commits can't strip it; the measured guard stays.
+- **Flyout icons render through `MaterialIcon`** — the hand-span that shipped literal `arrow_upward` text; registry + typed path or raw text in production.
 - **`Chapter.shortTitle` — two-span swap for mobile** — the two-span title markup and its `:has()` visibility swap.
 - **Never author per-route marker positioning math** — the three rejected per-route positioning approaches tried and deleted on /rr.
 - **Mobile second-row wrap of chapter and project markers** — why the pair wraps instead of center-docking or flowing into the mat.
@@ -610,3 +612,49 @@ The inline values are kept in JS (not CSS) because they're lerped per frame —
 there is no CSS-only path for per-frame interpolation of a box-shadow string.
 If the `--shadow-flat` token is retuned, update the three constants in
 `Sheet.tsx` (`shadowY`, `shadowBlur`, `shadowAlpha`) to match.
+
+## `is-docked` is render state, not an imperative class
+
+**What it is.** `useDockedMarker` tracks docked detection in React state
+(`isDocked`), and `ChapterMarker` renders it into the `className` template
+alongside `chapter-nav--open`. The class NAME in the DOM is unchanged
+(`is-docked`) — every CSS reader and the tray-dismiss query still match.
+
+**Why.** It used to be `nav.classList.toggle('is-docked', …)` on an element
+whose `className` React also templates from `isOpen`. Any commit that changed
+that template — opening or, reliably, CLOSING the tray via outside click —
+re-wrote the className string and stripped the imperative class: the docked
+pair silently reverted to floating-paper styling until the next scroll tick.
+This is the exact hazard `app/page.tsx` documents for SlideInOnNav (React
+className reconciliation strips imperatively-added classes), solved the same
+way: the class moves into state so React OWNS it. The per-scroll-frame setter
+costs nothing while the value is unchanged — React bails out of identical
+state updates.
+
+**What breaks if reverted.** Reverting to `classList.toggle` re-opens the
+wipe: close the tray without scrolling and the docked mat shell drops.
+Conversely, do NOT start trusting the state in `openTray` — the fresh
+`getBoundingClientRect` measurement stays (see "Tray open requires the marker
+to be docked"); state lags a commit exactly the way the class was stale.
+
+## Flyout icons render through `MaterialIcon`
+
+**What it is.** The tray flyout arrows are `<MaterialIcon name="arrow_upward"
+className="nav-icon" />` (and `arrow_downward`), not hand-written
+`.nav-icon` spans with ligature text.
+
+**Why.** The up-arrow shipped BROKEN as a hand-span: `arrow_upward` was never
+added to `ICON_NAMES` (app/lib/icons.ts), the subset font is built from that
+list, so every "earlier chapter" flyout rendered the literal text
+`arrow_upward` clipped inside the 20×20 icon box — while the registered
+down-arrows sat pretty next to it. A hand-span bypasses the registry's type
+check, which is the precise failure mode the registry file's own header
+records shipping three times before. `MaterialIcon` + `className="nav-icon"`
+keeps the nav-icon box/variation styling and makes an unregistered glyph a
+compile error.
+
+**What breaks if changed.** A new hand-span with an unregistered name renders
+raw text in production with every local check green (the subset check only
+compares font ↔ registry, not usage). Route new flyout glyphs through
+`MaterialIcon` or NavMarker's `icon` prop, add the name to `ICON_NAMES`, run
+`npm run icons`.

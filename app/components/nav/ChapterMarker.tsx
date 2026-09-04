@@ -14,6 +14,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import NavMarker from '../NavMarker'
+import MaterialIcon from '../MaterialIcon'
 import { useDockedMarker, SPRING, SPRING_EXIT } from './useDockedMarker'
 import type { Chapter } from './types'
 
@@ -62,7 +63,7 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
   containerRef: React.RefObject<HTMLElement | null>
 }) {
   const {
-    navRef, arrowRef, isOpen,
+    navRef, arrowRef, isOpen, isDocked,
     above, below,
     toggleTray, navigate,
   } = useDockedMarker({ chapter, chapters, containerRef })
@@ -70,7 +71,7 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
   return (
     <div
       ref={navRef}
-      className={`chapter-nav${isOpen ? ' chapter-nav--open' : ''}`}
+      className={`chapter-nav${isDocked ? ' is-docked' : ''}${isOpen ? ' chapter-nav--open' : ''}`}
     >
 
       {/* ── Earlier chapters above ──────────────────────────────────────── */}
@@ -88,7 +89,7 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
             onClick={() => navigate(ch.id)}
           >
             <span className="nav-marker__content">
-              <span className="nav-icon" aria-hidden="true">arrow_upward</span>
+              <MaterialIcon name="arrow_upward" className="nav-icon" />
               <span className="nav-marker__title t-btn1">
                 <ChapterTitle chapter={ch} />
               </span>
@@ -127,7 +128,7 @@ function DynamicChapterMarker({ chapter, chapters, containerRef }: {
             onClick={() => navigate(ch.id)}
           >
             <span className="nav-marker__content">
-              <span className="nav-icon" aria-hidden="true">arrow_downward</span>
+              <MaterialIcon name="arrow_downward" className="nav-icon" />
               <span className="nav-marker__title t-btn1">
                 <ChapterTitle chapter={ch} />
               </span>

@@ -25,7 +25,9 @@
 #   • HSTS — force HTTPS for 2y once seen, include subdomains, allow preload list.
 #   • X-Frame-Options SAMEORIGIN — no embedding by *other* origins. It must not
 #     be DENY: DENY forbids framing even by our own pages, and /resume renders
-#     the PDF in a same-origin iframe (app/resume/page.tsx). Under DENY the
+#     the PDF in a same-origin <object> (app/resume/ResumeViewer.tsx — an
+#     <object>, never an <iframe>: the swap silently removes the fallback,
+#     see app/resume/ANOMALIES.md). Under DENY the
 #     browser refuses to paint that frame and /resume reads as a blank page —
 #     a bug that only appears in production, since `next dev` never serves
 #     these headers. Pairs with frame-ancestors 'self' in the CSP below for

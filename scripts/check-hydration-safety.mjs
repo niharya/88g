@@ -68,16 +68,49 @@ const stripComments = (src) => {
   return out
 }
 
+/* ── Rule 3: no per-visitor values in useState/useMemo initializers ────────
+   Both initializers run during the PRERENDER too, so anything that differs
+   between the build machine and the visitor (randomness, the clock) bakes a
+   divergent value into the HTML — the same mismatch → root re-render → gate
+   wipe chain as the greeting bug. (MarkCarousel shipped exactly this shape,
+   defused only by the marks.ts slide[0] invariant.) `useRef` is deliberately
+   NOT scanned: Sheet.tsx's mount-time random rotation is a documented-safe
+   ref that never reaches server HTML.
+   Mechanics: find each useState(/useMemo( call, walk the parens to capture
+   the whole (possibly multi-line) argument span, and test the span. */
+const DIVERGENT = /Math\.random\s*\(|Date\.now\s*\(|new\s+Date\s*\(|crypto\.randomUUID\s*\(|performance\.now\s*\(/
+const DIVERGENT_MSG =
+  'randomness/clock inside a useState/useMemo initializer — initializers run on the SERVER too, so the prerendered HTML diverges from the visitor\'s first render. Roll it in a useEffect instead (see MarkCarousel.tsx).'
+
+const initializerFailures = (src, rel, out) => {
+  const openerRe = /\buse(?:State|Memo)\s*(?:<[^\n<>]*>)?\s*\(/g
+  let m
+  while ((m = openerRe.exec(src)) !== null) {
+    let depth = 0, i = openerRe.lastIndex - 1
+    for (; i < src.length; i++) {
+      if (src[i] === '(') depth++
+      else if (src[i] === ')' && --depth === 0) break
+    }
+    const span = src.slice(openerRe.lastIndex, i)
+    const hit = span.match(DIVERGENT)
+    if (hit) {
+      const line = src.slice(0, openerRe.lastIndex + span.indexOf(hit[0])).split('\n').length
+      out.push(`${rel}:${line} — ${DIVERGENT_MSG}`)
+    }
+  }
+}
+
 const failures = []
 for (const file of walk(APP)) {
   const rel = relative(ROOT, file)
   if (ALLOWED.has(rel)) continue
-  const lines = stripComments(readFileSync(file, 'utf8')).split('\n')
-  lines.forEach((line, i) => {
+  const src = stripComments(readFileSync(file, 'utf8'))
+  src.split('\n').forEach((line, i) => {
     for (const { re, msg } of RULES) {
       if (re.test(line)) failures.push(`${rel}:${i + 1} — ${msg}`)
     }
   })
+  initializerFailures(src, rel, failures)
 }
 
 if (failures.length) {

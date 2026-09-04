@@ -17,6 +17,7 @@ rules see `CLAUDE.md`.
 - **Route-local marks, not shared** — the six mark SVGs stay under `app/marks/components/marks/` until a second consumer appears.
 - **The six marks** — inventory shape in `data/marks.ts`; first slide is always `{ kind: 'mark' }`; array order is Essay reading order.
 - **Video slides** — `muted`/`playsInline`/`loop` are all load-bearing; the showcase timer, not `onEnded`, cuts slides.
+- **Carousel tilt rolls in an effect, never a memo** — render-path randomness bakes the build machine's roll into the prerender; hydration-mismatch species.
 - **Route-local CSS scoping** — every token in `marks.css` hangs off `.route-marks`.
 - **Background layering** — fixed `z-index: 0` background, all phases `z-index: 1` via source order.
 - **Title is two cooperating elements** — HeroText (hero) + MarksTitle (docked marker) share `--hero-recede`, never merge into one morph.
@@ -844,3 +845,26 @@ Remaining mobile-only tuning that doesn't have a dedicated digest tripwire:
 - **No tucked marker** — `/marks` does not use the `ProjectMarker` /
   `ChapterMarker` shell. The `MarksTitle` itself is the nav; it already
   docks to `--marker-top` at any viewport width.
+
+## Carousel tilt rolls in an effect, never a memo
+
+**What it is.** `MarkCarousel`'s per-slide ±1° tilt lives in `useState([])`
+filled by a `useEffect` keyed on `mark.id` + slide count. Randomness per
+visit is preserved (rerolls each /marks load, never re-rolls on re-render).
+
+**Why.** It was `useMemo(() => slides.map(() => Math.random()…))` — and
+useMemo initializers run during the PRERENDER, so the build machine's roll
+was baked into the served HTML while the browser rolled its own: a hydration
+mismatch of the clock-in-render species (app/_landing/ANOMALIES.md →
+"Clock-in-render wipes the page gate" — mismatch → root re-render → page
+gate stripped). It never fired only because `data/marks.ts` keeps slide[0]
+`{ kind: 'mark' }` (see "The six marks"), and the mark branch doesn't consume
+tilt — so that inventory invariant was silently load-bearing for hydration
+safety, one data edit from the incident. The effect roll removes the
+dependency entirely; the 0deg pre-roll frame is unobservable because no
+tilted slide can be shown before the effect settles.
+
+**What breaks if reverted.** Any render-path randomness here (memo, lazy
+useState, module scope) re-arms the mismatch on `/marks`.
+`npm run hydration:check` now scans useState/useMemo initializers for
+randomness and the clock, and blocks the push.

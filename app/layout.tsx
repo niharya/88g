@@ -6,6 +6,7 @@ import './components/CrossShellVeil/cross-shell-veil.css'
 import { StartoothLoader } from './components/StartoothLoader'
 import { GATE_CAP_MS } from './lib/gate'
 import Analytics from './Analytics'
+import VersionSkewWatcher from './VersionSkewWatcher'
 
 // Font loading strategy
 // ─────────────────────
@@ -245,6 +246,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             single afterInteractive script, so it stays off the page-gate path.
             See app/Analytics.tsx. */}
         <Analytics />
+        {/* Version-skew watcher — reloads a long-dormant tab whose bundle has
+            outlived its deploy, before stale code navigates against a newer
+            server. Renders nothing; checks only on return-to-tab. See
+            app/VersionSkewWatcher.tsx. */}
+        <VersionSkewWatcher />
       </body>
     </html>
   )

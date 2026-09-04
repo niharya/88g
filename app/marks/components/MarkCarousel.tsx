@@ -23,7 +23,7 @@
 // `hasEnteredViewport` flag that gates this.
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Img } from '../../components/Img'
 import type { MarkEntry } from '../data/marks'
 import { marks } from './marks'
@@ -52,10 +52,21 @@ export default function MarkCarousel({ mark, index, preload = false, onVideoDura
   // One random ±1° tilt per slide, fixed for this mount. Reroll on next
   // visit (next /marks page load) — matches the `--place-rotate` pattern
   // from Sheet.tsx but scoped to individual carousel slides.
-  const tilts = useMemo(
-    () => mark.slides.map(() => (Math.random() < 0.5 ? -1 : 1)),
-    [mark.id, mark.slides.length],
-  )
+  //
+  // Rolled in an EFFECT, never in render/useMemo: a useMemo initializer runs
+  // during prerender too, so the build machine's roll would be baked into the
+  // HTML and mismatch the browser's — the clock-in-render hydration bug's
+  // species (app/_landing/ANOMALIES.md → "Clock-in-render wipes the page
+  // gate"). The 0deg pre-roll frame is unobservable: slide[0] is always
+  // `kind: 'mark'` (which doesn't consume tilt), and the effect settles long
+  // before any tilted slide can be shown.
+  const [tilts, setTilts] = useState<number[]>([])
+  useEffect(() => {
+    setTilts(mark.slides.map(() => (Math.random() < 0.5 ? -1 : 1)))
+    // Same identity key as the useMemo this replaces — mark.id + slide count,
+    // not the array reference, so a re-render can never re-roll a settled tilt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mark.id, mark.slides.length])
   const tilt = tilts[index] ?? 0
 
   return (

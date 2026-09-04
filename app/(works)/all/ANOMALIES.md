@@ -775,7 +775,7 @@ The Now dot's painted shape mirrors the greeting stage from `app/lib/greeting.ts
 **Load-bearing details:**
 - The crescent carve color is `var(--mat-bg)`, **not transparent**. If the dot is ever placed over a surface that isn't `--mat-bg`, the crescent will paint the wrong color and the bite will be visible as a rectangle of the wrong shade. The dot lives inside `.selected-tl` which sits over the workbench mat, so this currently holds.
 - The crescent geometry — `-2px / -2px` offset and `14×14` carve diameter — is tuned for the crescent's visual thinness. Don't tweak without checking the silhouette.
-- Stage selection inlines `getGreetingStage()` in JSX render (matching the existing pattern of `getGreeting()` next to it). Both share the same minor SSR/CSR hour mismatch risk if server timezone differs from client — accepted as inherited behavior, not a new concern.
+- Stage selection comes from `useGreeting()` (greeting text and dot stage from the one hook call). It was `getGreetingStage()` inlined in JSX until v0.140.0 — that read the clock during prerender, and the resulting hydration mismatch was NOT minor: it re-rendered the root and stripped the `.fonts-ready` page gate on every load of this route (app/_landing/ANOMALIES.md → "Clock-in-render wipes the page gate"). Never inline a clock read here again; `npm run hydration:check` blocks it at pre-push.
 - Mobile inheritance: the mobile reposition of `.selected-tl__dot` (`selected.css` mobile block) doesn't restate the modifier rules; the morning `clip-path` and evening `::before` carry through because both are geometry-relative to the dot's box, not to absolute coordinates.
 
 ---

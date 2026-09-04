@@ -47,6 +47,13 @@ interface UseDockedMarkerOptions {
 
 export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMarkerOptions) {
   const [isOpen, setIsOpen] = useState(false)
+  // Docked detection is React STATE, not an imperatively-toggled class: the
+  // caller renders it into className, so React's reconciliation can never
+  // strip it (an imperative classList.toggle here was wiped by the very
+  // commit that opened/closed the tray — same hazard app/page.tsx documents
+  // for SlideInOnNav). React bails out when the value is unchanged, so the
+  // per-scroll-frame setter costs nothing while the marker stays put.
+  const [isDocked, setIsDocked] = useState(false)
   const navRef   = useRef<HTMLDivElement>(null)
   const arrowRef = useRef<HTMLSpanElement>(null)
 
@@ -76,7 +83,7 @@ export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMa
       const dy = (targetRect.top  + targetRect.height / 2) - (navRect.top  + navRect.height / 2)
       arrow.style.transform = `rotate(${Math.atan2(dy, dx) * (180 / Math.PI) - 90}deg)`
 
-      nav.classList.toggle('is-docked', Math.abs(navRect.top - readMarkerTopFrom(nav)) < 4)
+      setIsDocked(Math.abs(navRect.top - readMarkerTopFrom(nav)) < 4)
     }
 
     update()
@@ -85,7 +92,7 @@ export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMa
     return () => {
       window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
-      nav.classList.remove('is-docked')
+      setIsDocked(false)
     }
   }, [containerRef])
 
@@ -191,6 +198,7 @@ export function useDockedMarker({ chapter, chapters, containerRef }: UseDockedMa
     navRef,
     arrowRef,
     isOpen,
+    isDocked,
     above,
     below,
     toggleTray,

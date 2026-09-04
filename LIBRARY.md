@@ -52,6 +52,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **CrossShellVeil** — `app/components/CrossShellVeil/`; veil bridge for cross-layout navigations; BOTH halves required; never combine with TransitionSlot.
 - **Footer** — `app/components/Footer/`; site colophon, two variants; (works) layout + landing.
 - **RR GameBoard** — `app/(works)/rr/components/game/`; playable game module; NOT promoted (needs `.route-rr` token cascade); consumers: /rr Mechanics, 404 page.
+- **Version-skew watcher** — `app/VersionSkewWatcher.tsx`; reloads a long-dormant tab whose bundle outlived its deploy (X-App-Version vs baked NEXT_PUBLIC_APP_VERSION); return-to-tab only, never mid-form.
 - **Analytics (cookieless Umami)** — `app/lib/analytics.ts` + `app/Analytics.tsx`; typed `track()` helper (ALL events route through it) + opt-out-gated loader + `CaseCompletion`; sent DIRECT (not proxied — a proxy breaks geolocation); consumers: layout, landing, /all, /biconomy, /rr, StartoothField.
 - **Promotion candidates** — pre-staged "maybe" entries (Paginator, gradient recipe, HeroCard, blue note card) so second-consumer promotion is fast.
 
@@ -881,14 +882,32 @@ resume PDF while `/`, `/all`, `/rr` and every other page went uncovered.
 - [next.config.mjs](next.config.mjs) — `SECURITY_HEADERS` + `CSP_REPORT_ONLY`. **Source of truth.** Applies to every page and route handler Next renders. Also emits `X-App-Version` from `package.json`.
 - [netlify.toml](netlify.toml) — an identical copy, for the static files Netlify serves directly (the resume PDF among them). It cannot import JS, so this duplication is structural, not laziness.
 - [scripts/smoke.mjs](scripts/smoke.mjs) — asserts both halves against the deployed site (`npm run smoke`).
+- [scripts/check-prod-safety.mjs](scripts/check-prod-safety.mjs) — the drift check, enforced: diffs every `SECURITY_HEADERS` value against its `netlify.toml` copy at pre-push (`npm run prod:check`); also guards the every-page-route-prerenders-static invariant.
 
 **AI notes**
-- **The two lists must stay byte-identical.** Edit `next.config.mjs` first, then mirror into `netlify.toml`. A drift check is one line: compare the config's CSP string against the `Content-Security-Policy-Report-Only` value in the toml.
+- **The two lists must stay byte-identical.** Edit `next.config.mjs` first, then mirror into `netlify.toml`. Drift is blocked at pre-push by `check-prod-safety.mjs` — but it compares values, not intent: a value changed identically-wrongly in both files still passes.
 - `X-Frame-Options` is `SAMEORIGIN`, never `DENY` — `DENY` blocks our own pages from framing our own PDF and blanks `/resume`. See [app/resume/ANOMALIES.md](app/resume/ANOMALIES.md) → "X-Frame-Options must never be DENY".
 - `frame-src` names every host we embed: `'self'` (the resume PDF), the book-a-call calendar, and /biconomy's Notion + Figma evidence embeds. **Adding an embed to any route means adding its host here** — otherwise it goes white the moment the CSP is promoted from report-only to enforcing.
 - The CSP is deliberately still `-Report-Only`. Enforcing it buys little on a portfolio with no accounts or payments, and risks blanking case-study evidence; the clickjacking protection that matters is already delivered by `X-Frame-Options` + `frame-ancestors`.
 - `X-App-Version` exists so `npm run smoke -- --wait` can tell whether the deploy it is testing is the one just pushed. Netlify builds *after* the push, so a check that fires immediately measures the previous deploy and passes green.
 - None of these headers exist under `next dev`. Anything that depends on them is invisible locally and must be verified against a real deploy — that is exactly how `/resume` stayed broken for 47 releases.
+
+## Version-skew watcher
+
+Keeps a long-open tab from operating a stale deploy. HTML is served
+must-revalidate, so refreshes always get the newest page — but an open tab's
+old bundle keeps running client navigations against the new deploy (old code +
+new RSC payloads + purged chunks = the "wonky version" mixed state). A device
+can't be told to reload from outside; the tab notices on its own.
+
+**Where it lives**
+- [app/VersionSkewWatcher.tsx](app/VersionSkewWatcher.tsx) — renders nothing; mounted once in `app/layout.tsx` next to `Analytics`.
+- [next.config.mjs](next.config.mjs) — bakes `NEXT_PUBLIC_APP_VERSION` into the client bundle; the live side is the existing `X-App-Version` response header.
+
+**AI notes**
+- Checks ONLY on return-to-tab (visibilitychange after ≥60s hidden, or a bfcache `pageshow` restore) — never on a timer, so it can't yank a reader mid-page. Skips while any form control holds input (a reload would eat a half-written contact message). Fails silent offline.
+- The HEAD request targets the current pathname with `cache: 'no-store'` — same-origin only; don't repoint it.
+- If `X-App-Version` ever stops shipping (next.config change), the watcher degrades to a silent no-op — it never false-reloads.
 
 ## Analytics (cookieless Umami)
 

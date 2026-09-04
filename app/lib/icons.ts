@@ -30,6 +30,7 @@ export const ICON_NAMES = [
   'arrow_drop_down',
   'arrow_forward',
   'arrow_outward',
+  'arrow_upward',
   'article',
   'category',
   'close',

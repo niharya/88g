@@ -51,4 +51,17 @@ if [ -f "$hydration_check" ] && ! node "$hydration_check"; then
   exit 1
 fi
 
+# Production-safety roll-call — two invariants only the deployed site can
+# reveal: every page route must prerender static (one `searchParams` read
+# flips it dynamic and re-creates the 2–3s dead click), and the security
+# headers in next.config.mjs and netlify.toml must stay byte-identical
+# (the /resume-blank-for-47-releases layer). See scripts/check-prod-safety.mjs.
+prod_check="$repo_root/scripts/check-prod-safety.mjs"
+if [ -f "$prod_check" ] && ! node "$prod_check"; then
+  echo "" >&2
+  echo "pre-push BLOCKED: a production-only invariant broke (see check output above)." >&2
+  echo "Fix it, or bypass for an emergency with: git push --no-verify" >&2
+  exit 1
+fi
+
 exit 0

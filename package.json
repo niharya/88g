@@ -14,7 +14,8 @@
     "census": "node scripts/doc-census.mjs",
     "icons": "python3 scripts/icon_subset.py",
     "icons:check": "node scripts/check-icons.mjs",
-    "hydration:check": "node scripts/check-hydration-safety.mjs"
+    "hydration:check": "node scripts/check-hydration-safety.mjs",
+    "prod:check": "node scripts/check-prod-safety.mjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
