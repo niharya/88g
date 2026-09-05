@@ -19,7 +19,6 @@
 /* ---- Layout variables ---- */
 .landing {
   --frame-w: 1440px;
-  --margin: 88px;
   --unit: 48px;
   --gutter: 16px;
 
@@ -1116,19 +1115,19 @@ html.fonts-ready .landing:not(.landing--staged) .landing-nav-row {
 /* Hatch alphas kept low so they read as texture, not noise, behind the
    revealed question/label (legibility over density). */
 .practice-timeline__seg--interface::after {
-  background-image: radial-gradient(rgba(83, 51, 1, 0.16) 1px, transparent 1.4px);
+  background-image: radial-gradient(color-mix(in srgb, var(--terra-960) 16%, transparent) 1px, transparent 1.4px);
   background-size: 13px 13px;
 }
 .practice-timeline__seg--brand::after {
   /* Vertical rules read heavier than the dots/crosshatch (continuous lines run
      through the cream question text), so kept lighter + sparser than the other
      two for matched subtlety: alpha 0.12 (vs 0.16) and a 10px period (vs 8). */
-  background-image: repeating-linear-gradient(90deg, rgba(83, 51, 1, 0.12) 0 1.5px, transparent 1.5px 10px);
+  background-image: repeating-linear-gradient(90deg, color-mix(in srgb, var(--terra-960) 12%, transparent) 0 1.5px, transparent 1.5px 10px);
 }
 .practice-timeline__seg--product::after {
   background-image:
-    repeating-linear-gradient(45deg, rgba(20, 20, 20, 0.16) 0 1.5px, transparent 1.5px 8px),
-    repeating-linear-gradient(-45deg, rgba(20, 20, 20, 0.16) 0 1.5px, transparent 1.5px 8px);
+    repeating-linear-gradient(45deg, color-mix(in srgb, var(--grey-80) 16%, transparent) 0 1.5px, transparent 1.5px 8px),
+    repeating-linear-gradient(-45deg, color-mix(in srgb, var(--grey-80) 16%, transparent) 0 1.5px, transparent 1.5px 8px);
 }
 
 /* Year axis — flex cells mirroring the segment widths; boundary years of the

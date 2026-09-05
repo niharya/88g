@@ -471,7 +471,7 @@ immediately. The first viewport's sections reveal as fonts load.
 
 `globals.css` now overrides `--workbench-pad-x`, `--workbench-pad-y`,
 `--sheet-bleed`, `--sheet-padding-x`, `--sheet-padding-y`, `--stack-gap`,
-`--card-inner-x`, `--card-inner-y`, and (on mobile) `--marker-top` inside
+and (on mobile) `--marker-top` inside
 the `@media (max-width: 767px)` and `@media (min-width: 768px) and
 (max-width: 1023px)` blocks at `:root` scope.
 

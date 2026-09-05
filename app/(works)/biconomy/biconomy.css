@@ -580,6 +580,7 @@
 
 .flows__nav-counter {
   color: var(--grey-400); /* muted */
+  font-variant-numeric: tabular-nums; /* the 1/5 count changes per flow — keep digit width steady */
 }
 
 /* Image carousel frame */
@@ -769,7 +770,7 @@
    (the next-flow before that becomes current) use the global
    .img.is-loaded.is-cached rule and paint instantly. */
 .flows__frame .img.is-loaded:not(.is-cached) .img__inner {
-  animation: flows-img-fade 250ms var(--ease-paper) forwards;
+  animation: flows-img-fade var(--dur-slide) var(--ease-paper) forwards;
 }
 
 @keyframes flows-img-fade {

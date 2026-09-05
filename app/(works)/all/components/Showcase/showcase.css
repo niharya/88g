@@ -282,6 +282,7 @@
 .sc-header__count {
   font-family: var(--font-display);
   font-size: 40px;
+  font-variant-numeric: tabular-nums; /* count changes with the filter — keep digit width steady */
   font-weight: 400;
   font-variation-settings: 'SOFT' 0, 'WONK' 1;
   letter-spacing: -1.5px;
@@ -418,8 +419,8 @@
   /* Resting shadow — tight 1 px offset, sheet-on-mat. Matches the      */
   /* settle-phase shadow in CLAUDE.md's section reveal choreography.    */
   box-shadow:
-    0 1px 0 rgba(20, 20, 20, 0.05),
-    0 2px 6px -4px rgba(20, 20, 20, 0.16);
+    0 1px 0 color-mix(in srgb, var(--grey-80) 5%, transparent),
+    0 2px 6px -4px color-mix(in srgb, var(--grey-80) 16%, transparent);
 }
 
 /* Per-tile corner-radius overrides. Each artefact gets its own outer    */
@@ -461,8 +462,8 @@
 @media (hover: hover) {
   .sc-piece:hover .sc-media--framed {
     box-shadow:
-      0 2px 0 rgba(20, 20, 20, 0.06),
-      0 16px 28px -10px rgba(20, 20, 20, 0.22);
+      0 2px 0 color-mix(in srgb, var(--grey-80) 6%, transparent),
+      0 16px 28px -10px color-mix(in srgb, var(--grey-80) 22%, transparent);
   }
 }
 
@@ -472,8 +473,8 @@
 /* rectangle behind.                                                       */
 .sc-piece.is-active .sc-media--framed {
   box-shadow:
-    0 3px 0 rgba(20, 20, 20, 0.06),
-    0 28px 44px -14px rgba(20, 20, 20, 0.28);
+    0 3px 0 color-mix(in srgb, var(--grey-80) 6%, transparent),
+    0 28px 44px -14px color-mix(in srgb, var(--grey-80) 28%, transparent);
 }
 
 
@@ -762,8 +763,8 @@
   /* reads as having been tossed onto the bench at the same height as   */
   /* the focused artefact next to it.                                    */
   box-shadow:
-    0 3px 0 rgba(20, 20, 20, 0.06),
-    0 24px 36px -14px rgba(20, 20, 20, 0.26);
+    0 3px 0 color-mix(in srgb, var(--grey-80) 6%, transparent),
+    0 24px 36px -14px color-mix(in srgb, var(--grey-80) 26%, transparent);
   z-index: 45;
   cursor: default;
   transform-origin: 50% 0;
@@ -1540,8 +1541,8 @@
   /* Two-layer shadow: a tight close-in shadow gives the poster its       */
   /* sit-on-paper edge; a wider diffuse layer plants it on the bench.   */
   box-shadow:
-    0 1px 0 rgba(20, 20, 20, 0.10),
-    0 10px 22px -10px rgba(20, 20, 20, 0.38);
+    0 1px 0 color-mix(in srgb, var(--grey-80) 10%, transparent),
+    0 10px 22px -10px color-mix(in srgb, var(--grey-80) 38%, transparent);
   transform-origin: 50% 50%;
   transition: transform var(--dur-settle) var(--ease-paper);
 }
@@ -1753,7 +1754,7 @@
   border-radius: 0;
   padding: var(--space-20) var(--space-20)
            calc(var(--space-48) + env(safe-area-inset-bottom, 0px));
-  box-shadow: 0 -16px 40px -8px rgba(20, 20, 20, 0.30);
+  box-shadow: 0 -16px 40px -8px color-mix(in srgb, var(--grey-80) 30%, transparent);
   /* Sits above .sc-backdrop (50) and the active piece (60). Portal at  */
   /* body level means no ancestor stacking context interferes.          */
   z-index: 70;

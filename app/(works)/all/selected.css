@@ -1149,7 +1149,7 @@
   background: var(--mat-bg);
   border: 1px solid var(--mint-800);
   border-bottom: none;
-  box-shadow: 0 -16px 40px -8px rgba(20, 20, 20, 0.30);
+  box-shadow: 0 -16px 40px -8px color-mix(in srgb, var(--grey-80) 30%, transparent);
   padding: var(--space-20) var(--space-20)
            calc(var(--space-40) + env(safe-area-inset-bottom, 0px));
   transform: translateY(101%);

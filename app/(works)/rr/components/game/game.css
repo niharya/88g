@@ -40,7 +40,6 @@
   --u: calc(var(--panel-w) / 256);
 
   --panel-pad: calc(24 * var(--u));
-  --panel-radius: calc(8 * var(--u));
 
   --card-w: calc(80 * var(--u));
   --card-h-lg: calc(160 * var(--u));
@@ -71,9 +70,7 @@
   --rr-game-ink-deep:   var(--orange-960);   /* deepest brown — face-down bg */
   --rr-game-paper:      var(--terra-100);    /* cream interior */
   --rr-game-shell:      var(--terra-160);    /* shell border / skewer rest */
-  --rr-game-skewer:     var(--terra-160);
   --rr-game-accent:     var(--orange-400);   /* salmon highlight */
-  --rr-game-accent-hi:  var(--orange-480);   /* darker salmon */
   --rr-game-mute:       var(--orange-800);   /* dusty mid */
 
   --rr-font-game: var(--font-ui);
@@ -229,6 +226,7 @@
 
 .rr-game__status-text {
   font-size: 10px;
+  font-variant-numeric: tabular-nums; /* round counter ticks — keep digit width steady */
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--orange-720);

@@ -19,8 +19,6 @@
   color: var(--marks-ink);
   /* Route-local palette + timings */
   --marks-ink:          #f5f5f5;
-  --marks-ink-muted:    rgba(245, 245, 245, 0.62);
-  --marks-bg-rest:      #000;
 
   /* Phase heights (spec from MARKS_BRIEF.md). Use `svh` so the iOS URL bar
      collapsing/expanding doesn't resize sections mid-scroll — `vh` would
@@ -35,17 +33,11 @@
      in via color-dodge. Chunk 8 will swap the gradient to a per-mark
      palette and animate it. */
   --marks-title-color:     var(--grey-880);
-  --marks-title-size:      120px;
-  --marks-title-tracking:  -3.6px;
-  --marks-title-top:       37%;    /* = 333 / 900 from the Figma frame */
-  --marks-hero-gradient:   linear-gradient(233.57deg, #333 69.875%, #000 106.73%);
 
-  /* Reel timings — consumed by chunks 8 & 9 */
+  /* Reel timings */
   --marks-slide-dur:        8s;     /* auto-advance within a mark */
-  --marks-idle-resume:      24s;    /* resume after user interaction */
   --marks-gradient-loop:    14s;    /* per-mark palette drift */
   --marks-noise-loop:       60s;    /* noise background-position drift */
-  --marks-settle-delay:     4s;     /* magnetic settle after scroll idle */
 
   /* Outro-veil fades. Asymmetric by design: the fade-IN lands on black
      firmly (this is a cinematic cut, not a wash), while the fade-OUT is
@@ -681,7 +673,7 @@ html:has(.route-marks)::-webkit-scrollbar { display: none; }  /* Chrome / Safari
   max-height: 70svh;
   margin: 0;
   padding: 0;
-  border: 2px solid rgba(245, 245, 245, 0.22);
+  border: 2px solid color-mix(in srgb, var(--grey-960) 22%, transparent);
   transform: rotate(var(--artifact-tilt, 0deg));
 }
 
@@ -709,7 +701,7 @@ html:has(.route-marks)::-webkit-scrollbar { display: none; }  /* Chrome / Safari
 .mark-carousel__media > video {
   min-width: min(86vw, 480px);
   min-height: 270px;
-  background: rgba(245, 245, 245, 0.06);
+  background: color-mix(in srgb, var(--grey-960) 6%, transparent);
 }
 
 /* Hidden preloader — lives in the DOM to trigger network fetches for all
@@ -837,7 +829,7 @@ html:has(.route-marks)::-webkit-scrollbar { display: none; }  /* Chrome / Safari
 .mark-chrome__divider {
   width: min(100%, 702px);
   height: 1px;
-  background: rgba(245, 245, 245, 0.18);
+  background: color-mix(in srgb, var(--grey-960) 18%, transparent);
   margin-bottom: var(--space-12);
 }
 

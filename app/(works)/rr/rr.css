@@ -650,6 +650,8 @@
 }
 
 .rr-constraints-card__toggle-icon {
+  /* !important pins the glyph to label scale over the shared symbols-font
+     sizing, regardless of stylesheet load order. */
   font-size: 16px !important;
   color: var(--olive-800);
   transition: transform var(--dur-slide) var(--ease-paper);
@@ -2029,6 +2031,7 @@
 .rr-outcome-stat__num {
   font-family: var(--font-display);
   font-size: 24px;
+  font-variant-numeric: tabular-nums;
   font-weight: 400;
   letter-spacing: -0.72px;
   color: var(--terra-160);
