@@ -1,6 +1,8 @@
 /* 404 page layout.
-   Editorial register matches the rest of the portfolio: paper canvas,
-   centered copy, gameboard as the focal artifact, home link below.
+   Split composition: the gameboard (left) as the artifact, an editorial
+   column (right) that states the miss — big display "404", headline,
+   support line, Home marker as the CTA. Board left / column right comes
+   from row-reverse; DOM keeps the column first (see NotFoundContent.tsx).
    Uses --workbench-bg + --grey-* tokens so theming stays consistent. */
 
 .not-found {
@@ -14,26 +16,76 @@
 
 .not-found__inner {
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
   align-items: center;
-  gap: var(--space-32);
-  max-width: 720px;
-  width: 100%;
+  gap: var(--space-80);
 }
 
-.not-found__copy {
-  text-align: center;
-  color: var(--grey-160);
-  max-width: 420px;
-}
-
-.not-found__board {
-  width: 100%;
+/* Explicit measure: global `text-wrap: balance` on headings makes the
+   column's intrinsic width collapse inside flex, wrapping every line —
+   so the column owns its width instead of sizing from content. A plain
+   px width, not a % — percentages resolve circularly against this
+   content-sized flex parent (the mobile block caps against the viewport
+   instead). */
+.not-found__col {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-12);
+  width: 320px;
+}
+
+/* Display numeral — same grammar as the /marks title (--font-display,
+   400, line-height 1, -3% tracking, SOFT 0 / WONK 1). */
+.not-found__code {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 96px;
+  line-height: 1;
+  letter-spacing: -2.88px;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  color: var(--grey-160);
+}
+
+.not-found__headline {
+  color: var(--grey-160);
+}
+
+.not-found__support {
+  color: var(--grey-320);
 }
 
 .not-found__home {
-  display: flex;
-  justify-content: center;
+  margin-top: var(--space-16);
+}
+
+/* The board frame mirrors `.rr-game-board` on the RR route (259×624 +
+   --shadow-resting): `.rr-game-panel` is width/height 100% and expects a
+   sized frame — unsized, its two-sheet background stretches into wide
+   mismatched patches. Same object, same size, resting on the bench. */
+.not-found__board {
+  width: min(259px, 100%);
+  aspect-ratio: 259 / 624;
+  box-shadow: var(--shadow-resting);
+  flex-shrink: 0;
+}
+
+/* Mobile (also catches landscape phones — docs/responsive.md).
+   Recompose: column stacks above the board, centered. */
+@media (max-width: 767px), (max-height: 500px) {
+  .not-found__inner {
+    flex-direction: column;
+    gap: var(--space-40);
+  }
+
+  .not-found__col {
+    align-items: center;
+    text-align: center;
+    width: min(320px, calc(100vw - 2 * var(--space-24)));
+  }
+
+  .not-found__code {
+    font-size: 64px;
+    letter-spacing: -1.92px;
+  }
 }

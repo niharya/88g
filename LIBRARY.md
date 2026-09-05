@@ -799,7 +799,7 @@ Site colophon — rendered in two variants depending on consumer.
 The Rug Rumble playable game module — [app/(works)/rr/components/game/](app/(works)/rr/components/game/) — has two consumers as of v0.69:
 
 - `/rr` Mechanics chapter (primary, with rails + scroll choreography around it).
-- `/` 404 page ([app/not-found.tsx](app/not-found.tsx)) — bare GameBoard, editorial copy, home link.
+- `/` 404 page ([app/not-found.tsx](app/not-found.tsx)) — framed GameBoard (259×624 + `--shadow-resting`) in a split layout: display "404" numeral, editorial column, home marker.
 
 **Not physically promoted to `app/components/`.** The game.css uses `--rr-game-*`, `--rr-z-game`, and `--rr-font-game` tokens that resolve under the `.route-rr` cascade in [app/(works)/rr/rr.css](app/(works)/rr/rr.css). A clean extraction would mean either copying those tokens into a shared file or sourcing rr.css globally — both add cost without changing the API. Both consumers wrap GameBoard in a `route-rr` ancestor and import `rr.css` + `game.css` directly. If a third consumer appears, revisit promotion at that point.
 

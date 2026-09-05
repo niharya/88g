@@ -19,7 +19,7 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 <!-- One line per entry, in the same order as the sections below:
        - **<Heading>** — one-clause summary of what it protects. -->
 
-- **Every marker routes through `NavMarker`** — every visible marker renders through the shared primitive; CSS split and flyout/dim exceptions.
+- **Every marker routes through `NavMarker`** — every visible marker renders through the shared primitive; the two-file CSS import contract every consumer owes, plus flyout/dim exceptions.
 - **`press` acknowledge — modifier-click exempt, composes with consumer onClick** — the held `[data-departing]` fill for departing cross-page markers and its two guard rails.
 - **Docked fill covers both markers of the pair** — the mat-coloured shell rule that unifies chapter + project marker while docked/open.
 - **`ProjectMarker` is a Signals cover-toggle, not a drawer** — the toggle-to-`#signals` glide, `returnPos`, `scrollGlide`+`is-overlay-open`, and what's parked (TopSheet / MarkerTicket).
@@ -52,7 +52,7 @@ For project-level rules see `CLAUDE.md`. For route-specific consumers see
 Every visible marker in this cluster — `ChapterMarker` (static + dynamic current), `ProjectMarker`, `ExitMarker` — renders through the shared [`NavMarker`](../NavMarker/NavMarker.tsx) primitive. The landing's Nihar/Works markers and `/all`'s Works nameplate + NiharHomeLink + Timeline `Names` / `Marks` buttons also route through it. See `LIBRARY.md` → "NavMarker" for the API contract.
 
 **Consequences for this module:**
-- Route layouts must import `app/components/NavMarker/navmarker.css` alongside `nav.css`. `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`) and the `.nav-marker` base; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked fill.
+- **Every consumer must import BOTH CSS files.** `nav.css` owns positioning (`.project-marker`, `.exit-marker`, `.chapter-nav`, `.nav-sled`), the `.nav-marker` base, and the `.nav-icon { font-family: var(--font-symbols) }` rule that turns icon ligatures like `arrow_back` into glyphs; `navmarker.css` owns tone / state / acknowledgment modifiers and the docked fill. The `(works)` routes inherit both via the route-group layout (`app/(works)/layout.tsx`); every consumer outside that shell imports them directly — `/privacy`, `/marks` and `/shape-of-product` (layout imports), and the 404 (`app/not-found.tsx`; a comment there states the contract). A missing import is invisible to every build/type check and only shows when the route actually renders: the 404's Home marker shipped as a raw default-blue underlined link reading `arrow_backHome` — the icon ligature as literal text — because neither file was imported. When wiring NavMarker into any new outside-shell consumer, add both imports first and load the preview/route to confirm the glyph.
 - The flyout items inside `ChapterMarker` still emit raw `.nav-marker` classes via `motion.button` — they are not migrated through the primitive because Framer Motion drives their layout animation directly. If a future change diverges their styling from the docked marker, either migrate or document the split.
 - Project + exit markers are **not** dimmed when the tray is open. Only sibling sheets and their nav-sleds get `--backseat-dim`. The project and exit markers are visually part of the tray context, so keeping them at full fidelity is deliberate — do not reintroduce a dim rule on `.project-marker` / `.exit-marker`.
 

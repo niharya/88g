@@ -17,6 +17,12 @@
 import NotFoundContent from './components/NotFoundContent'
 import './(works)/rr/rr.css'
 import './(works)/rr/components/game/game.css'
+// Marker CSS must come from the consumer (same contract as /privacy): nav.css
+// owns `.nav-marker` base + the `.nav-icon` symbols font-family, navmarker.css
+// owns its modifiers. Without both, the Home marker renders as a raw blue
+// "arrow_backHome" link.
+import './components/nav/nav.css'
+import './components/NavMarker/navmarker.css'
 import './not-found.css'
 
 export default function NotFound() {

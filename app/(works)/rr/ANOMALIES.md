@@ -63,6 +63,7 @@ map; full entries load per-section, on demand.
 - **Rules-rail vertical tab — t-btn1 underline suppressed** — `writing-mode: vertical-lr` turns `t-btn1`'s decoration into a stray vertical line.
 - **Constraints-card title vertical centering** — asymmetric padding compensates for Google Sans Flex's high-sitting caps.
 - **Decorative fonts — local, not external** — three route fonts via `next/font/local`, never a fonts.googleapis.com link.
+- **GameBoard consumers must supply a sized frame** — `.rr-game-panel` is 100%×100%; unsized frames stretch its two-sheet gradient into mismatched patches (how the 404 shipped broken).
 
 ---
 
@@ -773,3 +774,13 @@ The Rug Rumble case study uses three decorative fonts beyond the site-wide ramp:
 The route layout ([app/(works)/rr/layout.tsx](app/(works)/rr/layout.tsx)) declares each via `localFont` with `display: 'swap'`, a sensible fallback chain, and `preload: false` (these only matter once the user navigates to /rr). CSS in [rr.css](rr.css) consumes them via `var(--rr-font-playpen)`, `var(--rr-font-londrina)`, `var(--rr-font-gluten)`.
 
 **Don't reintroduce a `<link rel='stylesheet'>` to fonts.googleapis.com.** The previous external-link approach was a documented exception in docs/performance.md; that exception was retired in v0.70 when these moved to local. CLAUDE.md performance hygiene bans external Google Fonts for primary fonts; the same discipline now extends to /rr's decorative ones. Only the latin subset is served (≈260 KB total) — adding emoji or extended scripts would require pulling new subsets from Google and re-saving the woff2 files.
+
+## GameBoard consumers must supply a sized frame
+
+**What.** `.rr-game-panel` (`app/(works)/rr/components/game/game.css`, the "scoped to .rr-game-panel" header comment) is `width: 100%; height: 100%` and derives every internal dimension from `--panel-w` (default 256px) via the `--u` scale. Its background is a deliberate two-sheet split — `linear-gradient(to bottom, var(--yellow-100) 50%, var(--terra-100) 50%)` — drawn for a slim card. The panel therefore **requires a sized frame from its consumer**; it cannot size itself.
+
+**The designed frame.** On the RR route that frame is `.rr-game-board` (base rule in the same game.css: 259px × 624px, `box-shadow: var(--shadow-resting)`). Corners are deliberately square — no radius is applied to the panel itself (don't add one). (RR's mechanics scene widens the frame to 264px via `.rr-mech-family .rr-game-board` in rr.css so the board footprint covers the note rail's tucked left edge; the panel is width-agnostic — `--panel-w` stays 256 and the extra 5px becomes distributed flex padding.)
+
+**What breaks unsized.** Rendered in an unsized flex/box container, the panel stretches full-width, its height collapses to content, and the 50% gradient split reads as two wide mismatched cream patches with no shadow. This is exactly how the 404 page shipped until 2026-09-05 — `app/not-found.tsx` sanctions importing `rr.css` + `game.css` (see its architecture note) but originally gave the panel no frame.
+
+**The fix / the rule.** `.not-found__board` in `app/not-found.css` now mirrors the frame — `width: min(259px, 100%); aspect-ratio: 259 / 624; box-shadow: var(--shadow-resting)` — with a comment stating the contract. Any future GameBoard consumer must do the same: give it a sized frame at the designed 259:624 proportion (or a `--panel-w` override matched to the frame width) plus `--shadow-resting`. Never drop GameBoard into an unsized container.

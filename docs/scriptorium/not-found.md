@@ -6,10 +6,20 @@ Verbatim copy reference. Edit the source files, not this doc — run `/release` 
 
 ---
 
-## Body copy {#nf-body}
+## Code numeral {#nf-code}
 
-> "This page got rugged. Play while you find the way home."
-> — [`NotFoundContent.tsx:17`](../../app/components/NotFoundContent.tsx#L17)
+> "404"
+> — [`NotFoundContent.tsx`](../../app/components/NotFoundContent.tsx) (`.not-found__code`, display numeral)
+
+## Headline {#nf-headline}
+
+> "This page got rugged."
+> — [`NotFoundContent.tsx`](../../app/components/NotFoundContent.tsx) (`.not-found__headline`, t-h1)
+
+## Support line {#nf-support}
+
+> "Fancy a game before you go?"
+> — [`NotFoundContent.tsx`](../../app/components/NotFoundContent.tsx) (`.not-found__support`, t-p2)
 
 ## Home marker {#nf-home}
 
