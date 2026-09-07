@@ -10,6 +10,14 @@ import Cards from './components/Cards'
 import Outcome from './components/Outcome'
 import InterstitialText from './components/InterstitialText'
 import CaseCompletion from '../../components/CaseCompletion'
+import HashLanding from '../../components/HashLanding'
+
+// Chapters a deep link may land on. `mechanics` is deliberately ABSENT: it is a
+// 200vh sticky, scroll-driven scene excluded from dominance-snap, and placing a
+// reader inside it would mean reasoning about scene progress and the rules-rail
+// auto-open. `/rr#mechanics` still gets its broken browser anchor suppressed by
+// the (works) layout script — it just lands at the Signals cover instead.
+const LANDABLE = ['signals', 'intro', 'cards', 'outcome'] as const
 
 export const metadata: Metadata = {
   title: 'Rug Rumble · Systems Disguised As A Card Game',
@@ -42,6 +50,7 @@ const creativeWorkLd = {
 export default function RRPage() {
   return (
     <div className="route-rr">
+      <HashLanding ids={LANDABLE} />
       <h1 className="sr-only">Rug Rumble — strategy card game</h1>
       <script
         type="application/ld+json"

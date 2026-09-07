@@ -8,7 +8,7 @@ digest's pointer and read only that section** — the Index below is the cheap m
 
 Current (bench essay + Cases/Longform timeline + Showcase/Visual tab):
 - **Scroll-dock + shell contract** — the ticket's coupled pin+condense scroll state and its one down-only assist.
-- **Deep-link entry & tab order** — `/cases`/`/showcase` rewrite-driven tab selection (client-side, keeps /all static), default, and tab order.
+- **Deep-link entry & tab order** — `/cases`/`/showcase` rewrite-driven tab selection (client-side, keeps /all static), default, tab order, and the pathname-alias-only placement into the work.
 - **Route hold — a DEPARTURE marker, not a loading boundary** — why the stall Hold is mounted by the landing at click time, and why a boundary must never move to the (works) group.
 - **TransitionSlot exit-dim selector** — the `.bench-workbench > *` wrapper class the shared exit-dim depends on.
 - **`--bu` container-query spine** — why the cqi container lives on `.bench-stage`, not `.bench-card`.
@@ -74,7 +74,7 @@ Current (mobile pass, whole route):
 
 ## Deep-link entry & tab order
 
-**What it is.** Deep-link entry (`/cases`, `/showcase`, `/all?showcase`, `/all?cases`, and case-study EXIT) selects the active tab from the REAL BROWSER URL, read once on mount, CLIENT-side → `/showcase` selects the Visual tab, `/cases` selects Longform.
+**What it is.** Deep-link entry (`/cases`, `/showcase`, `/all?showcase`, `/all?cases`, and case-study EXIT) selects the active tab from the REAL BROWSER URL, read once on mount, CLIENT-side → `/showcase` selects the Visual tab, `/cases` selects Longform. The two PATHNAME aliases additionally **place the reader in the work**; the QUERY flags deliberately do not (see "Alias placement" below).
 
 **Where.** `useBenchDock` (a `useLayoutEffect` with an empty dep array) resolves `window.location.pathname` + `window.location.search`; `BenchEssay` calls `useBenchDock('vis')` with no server input. `page.tsx` takes NO props.
 
@@ -88,7 +88,15 @@ Current (mobile pass, whole route):
 
 **Defaults + order — current (supersedes the original Longform-default/Longform-left authoring).** With NEITHER flag, the default tab is Visual (showcase) — `BenchEssay` calls `useBenchDock('vis')` (the seed was `'lf'` in the original authoring), and the mount-time resolver above leaves that seed alone when it finds no flag. Tab ORDER in the ticket is Visual-LEFT, Longform-RIGHT (`Ticket.tsx`'s two `<button>`s were reordered in JSX to match — only DOM position moved, each button's `onClick`/`aria-current` stayed attached through the swap). `Ticket.tsx`'s file-header comment carries the same framing ("Tab order: Visual (showcase) first, Longform (case studies) second. Visual is the default tab.") — treat it as the live source of truth if this note and the code ever drift. Don't swap the order or default without updating both. The Longform-return seam (`/all?cases`, "Return seam" above) is untouched — it still explicitly forces Longform via the flag, independent of the bare-URL default.
 
-**What breaks.** It does NOT auto-scroll into the work (rests at the card) — auto-scroll-into-content is a deferred follow-up, not a bug. Moving the query read to the client breaks deep-link tab selection because the rewrite-delivered query never reaches `useSearchParams`.
+**Alias placement — `/cases` and `/showcase` land IN the work (supersedes the old "rests at the card" note).** The two pathname aliases now glide into the work panel instead of resting at the invitation card; the `?cases`/`?showcase` QUERY flags still rest at the card, and that distinction is authored, not an oversight — the query seam IS the case-study EXIT return ("Return seam"), where arriving back at the card is the intended landing.
+
+- **Where.** `useBenchDock` — the existing deep-link `useLayoutEffect` sets a `placeRef` (true only for `path === '/cases' || path === '/showcase'`), and a SECOND effect (comment-header "Alias placement") does the placing. That effect is declared AFTER `glideTo` and `workY` on purpose: their `const` declarations would be in TDZ if the dep array were evaluated earlier.
+- **It reuses the tab-click glide.** `glideTo(workY())` — the exact move a tab click already runs, so a deep link and a click into the work feel identical. It calls `glideTo` DIRECTLY, never `openTab`, which would fire a phantom `browseMode` analytics event on every deep link.
+- **Three guards.** Waits for `.fonts-ready` so `workY()` measures settled layout; bails if `scrollY > 0` (a restored scroll position on reload is not ours to override); jumps instead of gliding when the tab isn't visible (a background tab freezes rAF — same reasoning as `app/components/ANOMALIES.md` → "`HashLanding` — hash deep links are suppressed at parse, then placed after settle"); and cancels on reader intent (`wheel`/`touchstart`/`pointerdown`/`keydown`).
+- **COLD-LOAD-ONLY INVARIANT — record this before you change routing.** This is safe from the "Containing-block guards" trap ONLY because nothing on the site links to `/cases` or `/showcase` internally: they are always cold loads, so no TransitionSlot is ever in flight and the pane never holds a retained entrance transform while the glide runs (a placement during a transition would dock the fixed ticket to a transformed ancestor). **If these aliases ever gain an internal `<Link>`, this needs rethinking** — the effect would have to wait out `.transitioning` the way the clearPane effect does.
+- **Verified** on a local production build at 1440×900, `error: 0`: `/cases` → 882, `/showcase` → 882; unchanged baselines `/all` → 0, `/all?cases` → 0.
+
+**What breaks (placement).** Reading the flags through `useSearchParams` instead of `window.location` breaks both tab selection AND placement on the aliases, because the rewrite-delivered query never reaches it. Extending `placeRef` to the query flags breaks the EXIT return seam (the reader is thrown past the card they came back to). Swapping `glideTo` for `openTab` in the placement effect pollutes analytics with phantom `browseMode` events.
 
 ## Route hold — a DEPARTURE marker, not a loading boundary
 

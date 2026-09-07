@@ -24,6 +24,32 @@ export default function WorksLayout({ children }: { children: ReactNode }) {
   // CrossShellVeil (i.e. from /marks); see CLAUDE.md "Cross-shell navigation".
   return (
     <>
+      {/* Hash-anchor suppression — the first half of HashLanding (the other
+          half is app/components/HashLanding.tsx; read its header for the full
+          rationale). On the two case-study routes the browser resolves a hash
+          against the streaming, pre-hydration layout — ~2.5k px taller than
+          the settled one — and clamps the reader to the BOTTOM of the case.
+          Production-only: `next dev` resolves the same URLs correctly, so this
+          is invisible to every local check.
+
+          Stripping the hash HERE, during parse, is what makes it work: this
+          runs before the chapter <section id>s have been streamed, so there is
+          nothing for the browser to anchor to and the page simply loads at the
+          Signals cover. The stash is handed to HashLanding, which places the
+          reader once layout has settled and puts the hash back.
+
+          Vanilla inline <script>, not next/script — same reasoning as the page
+          gate in app/layout.tsx: `beforeInteractive` is queued through
+          self.__next_s and runs far too late to beat the anchor. It lives in
+          the (works) shell rather than the root layout because /rr and
+          /biconomy are this shell's business (cf. TransitionSlot's isProject).
+          Unknown hashes are left alone — with no matching element the browser
+          never scrolls, so they are already harmless. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{var h=location.hash;if(h.length<2)return;var p=location.pathname.replace(/\\/$/,'');if(p!=='/rr'&&p!=='/biconomy')return;window.__deepLink=h.slice(1);history.replaceState(null,'',location.pathname+location.search);}catch(e){}})();`,
+        }}
+      />
       <CrossShellEntryFader />
       <main className="workbench">
         <PaperFilter />

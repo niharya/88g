@@ -34,6 +34,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **useExpand** — `app/lib/useExpand.ts`; non-modal overlay hook (`is-overlay-open` body class pauses dominance-snap); consumers: /rr Intro + Outcome.
 - **scrollGlide** — `app/lib/scrollGlide.ts`; singleton rAF scroll tween under `--ease-paper`; consumers: /marks + useDominanceSnap.
 - **useDominanceSnap** — `app/components/hooks/useDominanceSnap.ts`; scroll-idle section snap; consumers: /marks sections, Sheet (biconomy + rr).
+- **HashLanding** — `app/components/HashLanding.tsx` + the parse-time hash strip in `app/(works)/layout.tsx`; BOTH halves required; makes `#chapter` deep links land (production-only bug); consumers: /rr, /biconomy.
 - **Tab-switch motion tokens** — `app/lib/motion.ts`; `TAB_*` constants + `TAB_EASE` (mirrors `--ease-snap`); consumers: /rr Cards, /biconomy Demos.
 - **Cruise spring** — `app/lib/motion.ts` `CRUISE_SPRING`; deliberate ~12% overshoot (documented deviation); consumers: /rr Outcome ticker, /marks autoScroll.
 - **Train Marquee** — `app/(works)/rr/components/Outcome.tsx`; hover-brake/spring-start marquee; rr-local.
@@ -442,7 +443,7 @@ rAF-tween of `window.scrollY` under `--ease-paper`. The native `scrollTo({ behav
 
 **Where it lives**
 - [app/lib/scrollGlide.ts](app/lib/scrollGlide.ts) — `scrollGlide(targetY, durationMs?)` returns a cancel fn; `isGlideActive()` is a peek for callers that need to yield while a glide is in flight.
-- Consumers: every `/marks` programmatic scroll (Essay preview jump, MarksTitle home, MarkSection paginator) and `useDominanceSnap` itself.
+- Consumers: every `/marks` programmatic scroll (Essay preview jump, MarksTitle home, MarkSection paginator), `useDominanceSnap` itself, `/all`'s `useBenchDock`, and `HashLanding`.
 
 **AI notes**
 - **Singleton.** A new call cancels any glide in flight. Two callers cannot run simultaneous glides — the second wins.
@@ -450,6 +451,27 @@ rAF-tween of `window.scrollY` under `--ease-paper`. The native `scrollTo({ behav
 - **`isGlideActive()` is the hand-off for continuous-motion systems** (`/marks` autoScroll yields while a glide is writing scrollY, otherwise the additive dy corrupts the easing).
 - Cubic-bezier evaluated as direct `y(t)` for performance — visually indistinguishable from a proper de Casteljau solve at 60fps.
 - No SSR guard needed at call sites; the util short-circuits when `window` is undefined.
+
+---
+
+## HashLanding
+
+Makes `/<route>#<chapter>` deep links actually land on their chapter. Renders null. **It is half a mechanism** — the other half is a vanilla inline `<script>` in `app/(works)/layout.tsx` that strips the hash during HTML parse; neither half works alone.
+
+**Where it lives**
+- [app/components/HashLanding.tsx](app/components/HashLanding.tsx) — `<HashLanding ids={readonly string[]} />`; reads the stash the script left on `window.__deepLink`, places the reader, restores the hash.
+- [app/(works)/layout.tsx](app/(works)/layout.tsx) — the parse-time strip (comment-header "Hash-anchor suppression"), rendered as the FIRST child of the shell.
+- Consumers: `/rr` and `/biconomy` (`page.tsx`, each with its own `LANDABLE` id list).
+
+**AI notes**
+- **The bug it exists for is production-only.** `next dev` and `next start` on localhost both resolve these URLs correctly; the deployed site resolves the anchor against the streaming pre-hydration layout and clamps the reader to the document bottom. Never "verify" a change to this locally.
+- **Placement math uses `offsetTop` up the `offsetParent` chain, never `getBoundingClientRect`** — an unrevealed `.section-reveal` carries a `translateY` that rect includes and offset doesn't; a rect implementation is silently short by that offset. Target adds the sheet's `borderTopWidth` so it agrees with `useDockedMarker.navigate`.
+- **Two gates.** `.fonts-ready` (with the shared `GATE_FAILSAFE_MS` escape), then a poll until the measured position stops changing — the page keeps moving for a beat after the gate releases.
+- **Sets `is-overlay-open` for the glide** (pauses `useDominanceSnap`, which would otherwise fight it), and releases it on a timer with a snap-to-target backstop.
+- **Background tabs are a first-class path** (the `/shape-of-product` chips are `target="_blank"`): rAF is frozen, so the glide is skipped when `visibilityState !== 'visible'` or under reduced motion.
+- **Reader intent cancels it** — `wheel`/`touchstart`/`pointerdown`/`keydown`. Never diff `scrollY` to detect the reader; the glide writes it every frame.
+- **Adding a route:** add its pathname to the layout script's allow-list AND mount `<HashLanding>` with that route's landable ids. A route with the script but no component swallows its hashes; a route with the component but no script keeps the production bug.
+- Full rationale + the measured evidence: `app/components/ANOMALIES.md` → "`HashLanding` — hash deep links are suppressed at parse, then placed after settle".
 
 ---
 
@@ -469,7 +491,7 @@ Scroll-idle landing snap for full-viewport sections. On 150ms scroll-idle, if th
 - **Tall sections need `topProximityPx`, `idleMs`, `glideDurationMs`, and often `dockOffsetPx`.** The dominance check uses `min(rect.height, vh)` as denominator, so a chapter much taller than the viewport stays "dominant" for ~one viewport's worth of mid-section scroll — without a proximity gate, that yanks the reader back to the chapter top mid-read. Sheet (biconomy/rr) currently sets `topProximityPx: 80`, `idleMs: 2000`, `glideDurationMs: 800` (= `--dur-glide`), and `dockOffsetPx: 2` (corrects a 2px visual gap between ChapterMarker and ProjectMarker after dock). Marks consumers leave all four undefined to keep the original 150ms / 500ms / no-proximity behavior.
 - **Tokens, not magic.** Glide duration reads from `--dur-settle` at call time; ratio (0.72) and idle (150ms) are constants in the file — change them there, not at call sites.
 - **Conflicts to watch.** Programmatic scrolls from elsewhere (TransitionSlot, anchor jumps) can land mid-section. The 150ms idle means the snap will glide-correct them; if that's unwanted, exclude that section or guard the consumer.
-- **Pauses while an overlay is open.** `maybeSnap()` early-returns when `document.body` carries the `is-overlay-open` class — set/cleared by `useExpand`. Reader inspecting an enlarged scan or rules card on /rr won't get yanked to the next chapter on idle. Cross-file coupling; both sides logged in `rr/ANOMALIES.md`.
+- **Pauses while an overlay is open.** `maybeSnap()` early-returns when `document.body` carries the `is-overlay-open` class — set/cleared by `useExpand`, and also by `HashLanding` for the length of a deep-link placement (a snap would otherwise fight the glide). Reader inspecting an enlarged scan or rules card on /rr won't get yanked to the next chapter on idle. Cross-file coupling; sides logged in `rr/ANOMALIES.md` and `components/ANOMALIES.md`.
 
 ---
 

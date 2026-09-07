@@ -33,6 +33,7 @@ reading the code in isolation. The nav cluster keeps its own deeper archive at
 - **`SignalsBento` mobile recompose — the `--bu` cqi spine + the min-height-as-var trick** — 2-col grid, `minmax(0,1fr)`, `--bu` sizing, min-height as a var.
 - **`CoverSheet` — the Signals cover: reveal-clobber guard, scrim/section-lift, edge-to-edge mobile mat** — echo `revealed` in className, the between-layers oversized scrim, the `100vw` mobile mat + backdrop.
 - **`CoverPeek` — measured viewport-centring, centre transform-origin, `raised` z-index timing** — construction-based centring, centre pivot, raised-until-return-complete.
+- **`HashLanding` — hash deep links are suppressed at parse, then placed after settle** — the (works) layout inline script + the placement component are one mechanism in two halves.
 
 Entry format — every entry states **what** the constraint is (present tense),
 **where** it lives (file + selector/symbol anchor, never line numbers), **why**
@@ -634,3 +635,35 @@ found every usage.
 3. **`raised` z-index timing.** The front z-index is raised on activate and dropped only after the RETURN animation completes (`onAnimationComplete` when `!active`), so the photo never snaps behind the card mid-return. An `entered` ref applies the entrance delay only on the first reveal.
 
 **What breaks if violated:** a fixed-px `y` instead of the measured `openY` → off-centre at other viewports; a bottom `transform-origin` → the ~18px vertical miss returns; dropping the raised-until-complete rule → the photo flashes behind the card during the return.
+
+## `HashLanding` — hash deep links are suppressed at parse, then placed after settle
+
+**What:** on `/rr` and `/biconomy` a hash deep link (`/biconomy#demos`) is **not corrected, it is suppressed** — the browser's own anchor resolution is prevented, and the reader is placed by us once layout has stopped moving. It is **one mechanism in two halves that only work together**:
+
+1. **The parse-time strip** — a vanilla inline `<script dangerouslySetInnerHTML>` rendered as the FIRST child of the works shell (`app/(works)/layout.tsx`, comment-header "Hash-anchor suppression"), before `<CrossShellEntryFader/>` and `<main class="workbench">`. On those two pathnames only, it stashes `location.hash` on `window.__deepLink` and strips it with `history.replaceState`.
+2. **The placement** — `app/components/HashLanding.tsx` (`<HashLanding ids={…} />`, renders null), mounted by `rr/page.tsx` and `biconomy/page.tsx` with each route's `LANDABLE` id list. It picks the stash up, measures, glides, and restores the hash with `replaceState`.
+
+**Why it exists (production-only bug).** `next dev` AND `next start` on localhost both resolve these URLs correctly; only the deployed site fails. There, the browser resolves the anchor against the **streaming, pre-hydration** layout, which on these routes is ~2,600px taller than the settled one. It scrolls to a position that stops meaning anything, the document collapses under it, and the reader is clamped to the very BOTTOM of the case study. Measured on nihar.works across three fresh tabs: `#ux-audit` (real position 1018), `#demos` (1696) and `#bips` (3373) ALL landed at maxScroll. `/shape-of-product` ships two `target="_blank"` chips at `#ux-audit` and `#demos`, so this was live in the shipped product.
+
+**Why the placement half can't do it alone.** Correcting the position after the fact still means the reader watches the browser land at the bottom first. Stripping the hash *during HTML parse* — before the chapter `<section id>`s have streamed — leaves the browser nothing to anchor to, so the page loads at a legitimate scroll 0 (the Signals cover) behind the `.page-boot` gate and no scroll churn is ever visible.
+
+**Rejected / constrained choices.**
+- **`next/script`** — same reason the page gate in `app/layout.tsx` stays vanilla: `beforeInteractive` is queued through `self.__next_s` and runs far too late to beat the anchor.
+- **Root layout** — it lives in the `(works)` shell because `/rr` and `/biconomy` are that shell's business (cf. TransitionSlot's `isProject`).
+- **An allow-list in the script** — unnecessary. Unknown hashes are left alone; with no matching element the browser never scrolls, so they are already harmless. The id allow-list belongs on the placement side (`LANDABLE`).
+- **Static rendering is preserved.** `next build` still reports `○` for `/all`, `/rr`, `/biconomy` — the inline script does not opt the routes into dynamic rendering. CSP is `script-src 'self' 'unsafe-inline'` (Report-Only), so no nonce is needed; adding a nonce would make the routes dynamic.
+
+**Load-bearing details inside `HashLanding` — each one is a bug that already happened:**
+
+1. **`absoluteTop()` sums `offsetTop` up the `offsetParent` chain — NEVER `getBoundingClientRect`.** An unrevealed `.section-reveal` carries a `translateY` offset (value in `globals.css` → "Section reveal"), which rect includes and `offsetTop` doesn't. Measured live: rect 4428 vs offset 4396 for the same section. A rect-based implementation misses by exactly that offset, silently.
+2. **`.fonts-ready` is necessary but NOT sufficient.** The case pages keep moving for a beat after the gate releases — a target measured at 4284 on the fonts-ready frame settled at 4428 forty ms later. After the gate the component POLLS `absoluteTop` (`POLL_MS`) until `STABLE_SAMPLES` consecutive samples agree, capped at `SETTLE_CAP_MS`, before committing. Gate 1 also has the same `GATE_FAILSAFE_MS` escape `useReveal` uses, so a JS-fail path can't strand the reader.
+3. **The glide runs with `is-overlay-open` on `<body>`, which pauses `useDominanceSnap`.** Both routes give their FIRST chapter `snapIdleMs={100}`, so a snap can start inside the placement window and fight it. Released on a timer at `dur + 120`.
+4. **Motion: place instantly at `target − GLIDE_PX`, then glide the last stretch on `--dur-settle`.** A deep link 4,000px down should read as the section settling into place, not as a long scroll journey. The user asked for "a small glide" specifically.
+5. **Two background-tab guards, not one.** A hidden tab freezes rAF (measured: one frame per second), so `scrollGlide` would never advance and would strand the reader `GLIDE_PX` short with the URL claiming otherwise. So: skip the glide entirely when `document.visibilityState !== 'visible'` (also on reduced motion), AND a backstop inside the release timer that snaps to target if `Math.abs(scrollY - target) > 2`. This is a real path — the shape-of-product chips are `target="_blank"` and a cmd-click backgrounds them. Timers are clamped in background tabs but still fire, which is what makes the backstop work.
+6. **The stash is NOT cleared when read** — only in `land()` and in the intent handler. React StrictMode mounts, cleans up and mounts again in dev; clearing on read would let the first (immediately aborted) pass eat the stash.
+7. **Reader intent always wins, and it is tested as INTENT, not as movement.** `wheel`/`touchstart`/`pointerdown`/`keydown` during the window cancels the placement. Diffing `scrollY` cannot work: `scrollGlide` writes `scrollY` every frame, so position alone can't distinguish us from the reader.
+8. **The target adds the sheet's `borderTopWidth`,** matching `useDockedMarker.navigate`, so the chapter menu and a deep link agree on where a chapter "starts".
+
+**What breaks.** Remove the layout script and the routes go back to clamping deep links at the document bottom in production (invisible locally). Remove `<HashLanding>` and the hash is silently swallowed — every deep link lands at the Signals cover with no hash. Swap `absoluteTop` for `getBoundingClientRect` and every landing is off by the reveal transform. Commit on `.fonts-ready` without the stability poll and deep links land short by ~150px. Drop `is-overlay-open` and dominance-snap fights the glide on both routes.
+
+**Consumers own their id list.** `/rr` deliberately excludes `mechanics` (see `rr/ANOMALIES.md` → "Hash deep links (`HashLanding`) — and why `mechanics` is excluded"); `/biconomy` honours every chapter plus the cover.

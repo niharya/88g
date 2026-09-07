@@ -6,6 +6,7 @@ Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-lo
 
 - Routes inside this shell cross between each other via **TransitionSlot** only; routes outside (`/marks`, `/shape-of-product`) use **CrossShellVeil**. Never mix the two idioms on one route, and never add outside-route wiring (e.g. marks) to ShellNav or TransitionSlot — that's a re-architecture.
 - TransitionSlot stays on Framer Motion (not the View Transitions API) — load-bearing and final.
+- The inline hash-suppression `<script>` stays the FIRST child of this layout, vanilla (never `next/script`) — move it, defer it, or delete it and `/rr`/`/biconomy` hash deep links clamp readers to the document bottom **in production only**. It is half of `HashLanding`; see `app/components/ANOMALIES.md` → "`HashLanding` — hash deep links are suppressed at parse, then placed after settle".
 
 ## Don't-touch digest (TransitionSlot internals)
 

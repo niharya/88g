@@ -11,6 +11,12 @@ import Multiverse from './components/Multiverse'
 import API from './components/API'
 import StayingAnchored from './components/StayingAnchored'
 import CaseCompletion from '../../components/CaseCompletion'
+import HashLanding from '../../components/HashLanding'
+
+// Chapters a deep link may land on — every chapter plus the Signals cover.
+// `/shape-of-product` ships `target="_blank"` chips to `#ux-audit` and
+// `#demos`, so those two are always the cold-load path this exists to fix.
+const LANDABLE = ['signals', ...chapters.map((c) => c.id)]
 
 export const metadata: Metadata = {
   title: 'Biconomy · Deep Infrastructure Stuff',
@@ -52,6 +58,7 @@ const creativeWorkLd = {
 export default function BiconomyPage() {
   return (
     <div className="route-biconomy">
+      <HashLanding ids={LANDABLE} />
       <h1 className="sr-only">Biconomy — long-form UX case study</h1>
       <script
         type="application/ld+json"

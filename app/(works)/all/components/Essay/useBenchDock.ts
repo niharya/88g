@@ -81,8 +81,14 @@ export function useBenchDock(initialActive: BenchActive) {
   // (which would flip /all to request-time rendering and break full route
   // prefetch — ANOMALIES.md → "Deep-link entry & tab order"). Layout effect
   // so the swap off the prerendered default applies before first paint after
-  // hydration — no visible wrong-tab frame. setActive, not openTab — a deep
-  // link rests at the card, it never auto-scrolls into the work.
+  // hydration — no visible wrong-tab frame. setActive, not openTab — openTab
+  // would fire a phantom `browseMode` analytics event on every deep link.
+  //
+  // The two PATHNAME aliases additionally glide into the work (see the
+  // placement effect below); the `?cases`/`?showcase` QUERY flags do not —
+  // that seam is the case-study EXIT return, where resting at the card is the
+  // authored behaviour.
+  const placeRef = useRef(false)
   useLayoutEffect(() => {
     const path = window.location.pathname.replace(/\/$/, '')
     const query = new URLSearchParams(window.location.search)
@@ -91,6 +97,7 @@ export function useBenchDock(initialActive: BenchActive) {
       : path === '/cases' || query.has('cases') ? 'lf'
       : null
     if (resolved) setActive(resolved)
+    placeRef.current = path === '/showcase' || path === '/cases'
   }, [])
 
   // Reserve the resting footprint so the card doesn't collapse when the ticket
@@ -141,6 +148,57 @@ export function useBenchDock(initialActive: BenchActive) {
     if (!slot) return 0
     return Math.max(0, Math.round(slot.getBoundingClientRect().top + window.scrollY - DOCK_TOP))
   }, [])
+
+  // Alias placement — `/cases` and `/showcase` land IN the work rather than at
+  // the invitation card, reusing the exact glide a tab click already runs so
+  // the two entries feel identical. (This supersedes the archive's old "a deep
+  // link rests at the card" note — ANOMALIES.md → "Deep-link entry & tab
+  // order".) Nothing links to these aliases internally, so this is always a
+  // COLD load: no TransitionSlot is in flight, which is what keeps the glide
+  // clear of the pane's retained entrance transform — a placement during a
+  // transition would dock the fixed ticket to a transformed ancestor
+  // (ANOMALIES.md → "Containing-block guards"). Keep it that way: if these
+  // aliases ever gain an internal <Link>, this needs rethinking.
+  //
+  // Waits for the page gate so `workY()` measures settled layout, and yields
+  // to the reader — any real input before the glide cancels it. Declared after
+  // glideTo/workY because the dep array is evaluated during render.
+  useEffect(() => {
+    if (!placeRef.current) return
+    let cancelled = false
+    const cleanups: Array<() => void> = []
+    const stop = () => { cancelled = true; cleanups.forEach(fn => fn()); cleanups.length = 0 }
+
+    const onIntent = () => stop()
+    const intents = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+    intents.forEach(type => {
+      window.addEventListener(type, onIntent, { passive: true })
+      cleanups.push(() => window.removeEventListener(type, onIntent))
+    })
+
+    // `scrollY > 0` means something already moved the page (a restored scroll
+    // position on reload, most likely) — that's not ours to override.
+    const place = () => {
+      if (cancelled || window.scrollY > 0) return
+      // A background tab freezes rAF, so scrollGlide would never advance and
+      // would strand the reader at the card. Jump instead — an unwatched glide
+      // buys nothing. (Same guard as HashLanding; see its note.)
+      if (document.visibilityState !== 'visible') { window.scrollTo(0, workY()); return }
+      glideTo(workY())
+    }
+
+    const html = document.documentElement
+    if (html.classList.contains('fonts-ready')) {
+      place()
+    } else {
+      const mo = new MutationObserver(() => {
+        if (html.classList.contains('fonts-ready')) { mo.disconnect(); place() }
+      })
+      mo.observe(html, { attributes: true, attributeFilter: ['class'] })
+      cleanups.push(() => mo.disconnect())
+    }
+    return stop
+  }, [glideTo, workY])
 
   useEffect(() => {
     let idleTimer: number | null = null

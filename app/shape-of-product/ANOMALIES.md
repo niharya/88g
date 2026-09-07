@@ -11,7 +11,7 @@ the cheap map; full entries load per-section, on demand.
 
 - **Layout & shell** — route lives outside `(works)/`; defensive `CrossShellEntryFader`; `themeColor` override.
 - **Nav pair (`SopNavRow`)** — center-aligned fixed nav; title casing/wrap overrides; landing nav-direction flag.
-- **Inline chapter chips (`.sop__chip`)** — icon-unfurl collapse trick; NavMarker padding override; hard-coupled biconomy hrefs.
+- **Inline chapter chips (`.sop__chip`)** — icon-unfurl collapse trick; NavMarker padding override; hard-coupled biconomy hrefs, whose cold-load landing is now HashLanding's job.
 - **Actor stickers (`ActorStickers`)** — frozen (non-random) tilt/offset constants; server-rendered; per-slot translateY wrapper.
 - **Roles ↔ Approach stack (`RoleApproachStack`)** — shared grid cell; scoped `aria-hidden`; tablist ARIA pattern; asymmetric offsets.
 - **Sign-off card (`SignOffCard`)** — inline-style tilt (class-based variant is broken); one-way settle; shared greeting util.
@@ -100,6 +100,23 @@ Same rationale as the nav pair — chips quote prose phrases verbatim
 ever change, these chips break silently. Also: new tab is intentional
 — the icon literally is "open in new tab", and the reader is meant
 to keep the essay loaded.
+
+**The landing itself is no longer the browser's job.** These two chips
+are the only public consumer of a `/biconomy#…` deep link, and until
+the HashLanding fix they shipped BROKEN in production: the browser resolved the
+anchor against the streaming pre-hydration layout and clamped the
+reader to the bottom of the case study (invisible to `next dev`). The
+hash is now stripped at parse and the reader placed deliberately by
+`HashLanding` — mechanism in `app/components/ANOMALIES.md` →
+"`HashLanding` — hash deep links are suppressed at parse, then placed
+after settle", route-side notes in `app/(works)/biconomy/ANOMALIES.md`
+→ "Hash deep links (`HashLanding`) — `/shape-of-product`'s chips are
+the live consumer". Two consequences for this route: the chips are the
+regression test for that fix (verify on the deployed site, cold load,
+new tab — never locally), and `target="_blank"` means a cmd-click
+lands them in a BACKGROUND tab, which is the case HashLanding's
+visibility guards exist for. Both chip slugs must also stay in
+biconomy's `LANDABLE` list, not just in its chapter data.
 
 ---
 

@@ -41,6 +41,7 @@ For project-level rules see `CLAUDE.md`.
 - [`#1DA1F2` (v0.35.0)](#1da1f2-v0350)
 - [UI flow scans flatten alpha to `#181818` (v0.70)](#ui-flow-scans-flatten-alpha-to-181818-v070)
 - [Audit-frame image loading](#audit-frame-image-loading)
+- [Hash deep links (`HashLanding`) — `/shape-of-product`'s chips are the live consumer](#hash-deep-links-hashlanding--shape-of-products-chips-are-the-live-consumer)
 
 ---
 
@@ -1346,3 +1347,36 @@ without that fix would have changed nothing visible.
 **Known, not fixed:** before-scans are ~1986×1128 and after-scans ~2020×1162,
 so `.ba` (sized by before, `overflow: hidden`) crops the after layer by ~7px at
 the bottom. Normalising the pair is an asset re-export, not a code change.
+
+## Hash deep links (`HashLanding`) — `/shape-of-product`'s chips are the live consumer
+
+**What:** `/biconomy#ux-audit`, `#demos`, `#bips` etc. are placed by
+`<HashLanding ids={LANDABLE} />`, mounted at the top of `page.tsx`; the browser's
+own anchor is stripped during HTML parse by the inline script in
+`app/(works)/layout.tsx`. The two halves are one mechanism and every
+load-bearing detail lives in `app/components/ANOMALIES.md` → "`HashLanding` —
+hash deep links are suppressed at parse, then placed after settle". **Read that
+section before touching either half.** What is biconomy-specific is below.
+
+**`LANDABLE` is generated, not hand-listed:** `['signals', ...chapters.map(c => c.id)]`
+(the `const` sits above `metadata` in `page.tsx`) — every chapter plus the
+Signals cover is landable here. Unlike `/rr`, nothing on this route is excluded;
+there is no scroll-driven scene to reason about.
+
+**`/shape-of-product` is the live consumer, and the regression test.** That route
+ships two inline chips (`.sop__chip`, `target="_blank"`) pointing at
+`/biconomy#ux-audit` and `/biconomy#demos` — see
+`app/shape-of-product/ANOMALIES.md` → "Inline chapter chips (`.sop__chip`)".
+They are the reason this bug was shipped and reachable rather than theoretical,
+and they are the path to re-verify on: cold load, new tab, deployed site.
+Because they open in a background tab on cmd-click, they are also the exact case
+HashLanding's visibility guards exist for. `#ux-audit` and `#demos` are chapter
+ids, so renaming either slug breaks both the chips and the deep link silently.
+
+**What breaks.** Chapter dominance-snap here also gives the first chapter
+`snapIdleMs={100}` ("Chapter dominance-snap (v0.55.0)"), so a snap can start
+inside the placement window — HashLanding pauses it with `is-overlay-open` for
+the duration; don't remove that. Removing `<HashLanding>` does not restore
+browser anchoring (the layout script has already stripped the hash) — every
+biconomy deep link, including the two live chips, would land silently at the
+Signals cover instead.

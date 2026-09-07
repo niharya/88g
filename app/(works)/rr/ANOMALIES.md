@@ -64,6 +64,7 @@ map; full entries load per-section, on demand.
 - **Constraints-card title vertical centering** — asymmetric padding compensates for Google Sans Flex's high-sitting caps.
 - **Decorative fonts — local, not external** — three route fonts via `next/font/local`, never a fonts.googleapis.com link.
 - **GameBoard consumers must supply a sized frame** — `.rr-game-panel` is 100%×100%; unsized frames stretch its two-sheet gradient into mismatched patches (how the 404 shipped broken).
+- **Hash deep links (`HashLanding`) — and why `mechanics` is excluded** — rr's `LANDABLE` id list, the scroll-driven scene left out of it, and where the shared mechanism is documented.
 
 ---
 
@@ -341,9 +342,10 @@ If you ever revisit `<dialog>` for this: the deal-breakers are scroll-with-canva
 
 `useExpand` adds `document.body.classList.add('is-overlay-open')` on expand and removes it on collapse-end. `useDominanceSnap.maybeSnap()` (in `app/components/hooks/useDominanceSnap.ts`) early-returns when that class is present. Result: while a reader has the enlarged scans or the rules card open on /rr, the chapter dominance-snap is paused — no yank to the next chapter on idle.
 
-Two files share this signal:
+Three files share this signal:
 
 - **Setter**: `useExpand`'s expanded-effect.
+- **Setter (second, added with deep-link landing)**: `HashLanding`'s `land()` sets it for the length of the placement glide and releases it on a timer — a dominance snap firing inside that window would fight the glide. See "Hash deep links (`HashLanding`) — and why `mechanics` is excluded".
 - **Reader**: `useDominanceSnap.maybeSnap()`.
 
 If you change the class name on one side, change it on the other. If you delete one side, delete both — a stale setter that no reader checks is silent rot.
@@ -784,3 +786,13 @@ The route layout ([app/(works)/rr/layout.tsx](app/(works)/rr/layout.tsx)) declar
 **What breaks unsized.** Rendered in an unsized flex/box container, the panel stretches full-width, its height collapses to content, and the 50% gradient split reads as two wide mismatched cream patches with no shadow. This is exactly how the 404 page shipped until 2026-09-05 — `app/not-found.tsx` sanctions importing `rr.css` + `game.css` (see its architecture note) but originally gave the panel no frame.
 
 **The fix / the rule.** `.not-found__board` in `app/not-found.css` now mirrors the frame — `width: min(259px, 100%); aspect-ratio: 259 / 624; box-shadow: var(--shadow-resting)` — with a comment stating the contract. Any future GameBoard consumer must do the same: give it a sized frame at the designed 259:624 proportion (or a `--panel-w` override matched to the frame width) plus `--shadow-resting`. Never drop GameBoard into an unsized container.
+
+## Hash deep links (`HashLanding`) — and why `mechanics` is excluded
+
+**What.** `/rr#cards`, `/rr#outcome` etc. are placed by `<HashLanding ids={LANDABLE} />`, mounted at the top of `app/(works)/rr/page.tsx`; the browser's own anchor is stripped during HTML parse by the inline script in `app/(works)/layout.tsx`. The mechanism, and every load-bearing detail inside it, is documented once in `app/components/ANOMALIES.md` → "`HashLanding` — hash deep links are suppressed at parse, then placed after settle". Read that before changing anything here. What is rr-specific is the id list.
+
+**`LANDABLE` is `['signals','intro','cards','outcome']` — `mechanics` is deliberately ABSENT** (the `const` and its comment sit directly above `metadata` in `page.tsx`). Mechanics is a 200vh sticky, scroll-driven scene: it is excluded from dominance-snap ("Chapter dominance-snap (Mechanics excluded)") and carries a first-visit RulesRail auto-open gated on an IntersectionObserver ("RulesRail first-visit open is gated on `.rr-game-board` intersection"). Placing a reader *inside* that scene means deciding what scene progress a deep link should represent and what the rules rail should do on arrival — reasoning about two mechanisms the user explicitly asked to leave alone. So `/rr#mechanics` is not honoured; it is only *neutralised*. The layout script still strips its hash, so the reader lands calmly at the Signals cover instead of at the document bottom (verified: script ran once, hash stripped, `scrollY` 0).
+
+**Also rr-specific:** Intro's `snapIdleMs={100}` (same entry as above) means a dominance snap can fire inside the placement window. HashLanding sets `is-overlay-open` for the duration to pause it — that coupling is why `is-overlay-open` now has a third setter beyond `useExpand` (see "`is-overlay-open` body class — cross-file coupling").
+
+**What breaks.** Adding `'mechanics'` to `LANDABLE` puts a reader at the top of a scroll-driven scene with undefined progress and an unfired rules cue. Removing `<HashLanding>` doesn't restore browser anchoring — the layout script has already stripped the hash — it just silently drops every rr deep link at the cover. Renaming a chapter id without updating `LANDABLE` does the same for that chapter only, silently.
