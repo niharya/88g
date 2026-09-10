@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import svgPaths from './paths'
-import { imgRectangle145 } from './masks'
 
 const HEALTH_MAX = 100
-const ENERGY_MAX = 8
 const HEALTH_BAR_COUNT = 4
+const ENERGY_PIP_COUNT = 12
+const ENERGY_PIP_GROUP = 4
 
 interface StatsPanelProps {
   health: number
@@ -49,6 +49,35 @@ function HealthBarSegment({
   )
 }
 
+// One pip per energy point. The empty pip is the slot; the lit fill fades
+// over it, so a spent point reads as the slot it leaves behind.
+function EnergyPip({ lit }: { lit: boolean }) {
+  return (
+    <div style={{ position: 'relative', width: 9.3, height: 14.6, flexShrink: 0 }}>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 3.5,
+          backgroundColor: '#23443f',
+          border: '1px solid #478d68',
+        }}
+      />
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 3.5,
+          backgroundImage: 'linear-gradient(to bottom, #6fdc95 25%, #4e996f 85%)',
+        }}
+        initial={false}
+        animate={{ opacity: lit ? 1 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      />
+    </div>
+  )
+}
+
 export function StatsPanel({
   health,
   energy,
@@ -57,8 +86,6 @@ export function StatsPanel({
   healthNumberRed,
   showDamageFlash,
 }: StatsPanelProps) {
-  const energyBarWidthPct = (energy / ENERGY_MAX) * 100
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 15.796, alignItems: 'flex-start' }}>
       {/* Row 1: You label + Shield */}
@@ -256,41 +283,25 @@ export function StatsPanel({
             </div>
           </div>
 
-          {/* Energy bar */}
-          <div style={{ position: 'relative', width: 157.968, height: 13.164 }}>
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundColor: '#f3f3f3',
-                maskImage: `url("${imgRectangle145}")`,
-                WebkitMaskImage: `url("${imgRectangle145}")`,
-                maskRepeat: 'no-repeat',
-                WebkitMaskRepeat: 'no-repeat',
-                maskSize: '157.968px 13.156px',
-                WebkitMaskSize: '157.968px 13.156px',
-              }}
-            />
-            <motion.div
-              style={{
-                position: 'absolute',
-                top: 0.18,
-                left: 0,
-                height: 13.164,
-                backgroundImage: 'linear-gradient(to bottom, #7af3a4, #478d5f)',
-                borderRadius: 2.632,
-                maskImage: `url("${imgRectangle145}")`,
-                WebkitMaskImage: `url("${imgRectangle145}")`,
-                maskRepeat: 'no-repeat',
-                WebkitMaskRepeat: 'no-repeat',
-                maskPosition: '0px -0.188px',
-                WebkitMaskPosition: '0px -0.188px',
-                maskSize: '157.968px 13.156px',
-                WebkitMaskSize: '157.968px 13.156px',
-              }}
-              animate={{ width: `${energyBarWidthPct}%` }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-            />
+          {/* Energy pips — 12 in groups of 4. The track keeps the retired
+              bar's 157.968 × 13.164 box so the panel's rhythm is unchanged;
+              the 14.6 pips overflow it evenly (flex centring), as in the design. */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: 157.968,
+              height: 13.164,
+            }}
+          >
+            {Array.from({ length: ENERGY_PIP_COUNT / ENERGY_PIP_GROUP }, (_, g) => (
+              <div key={g} style={{ display: 'flex', gap: 3.1 }}>
+                {Array.from({ length: ENERGY_PIP_GROUP }, (_, i) => (
+                  <EnergyPip key={i} lit={g * ENERGY_PIP_GROUP + i < energy} />
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import './rr-interface.css'
 const sleep = (ms: number) => new Promise<void>((res) => setTimeout(res, ms))
 
 const STARTING_HEALTH = 31
-const STARTING_ENERGY = 5
+const STARTING_ENERGY = 6
 const SHIELD = 4
 const ENERGY_COST = 2
 const DAMAGE = 4
