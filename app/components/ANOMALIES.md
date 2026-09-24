@@ -34,6 +34,7 @@ reading the code in isolation. The nav cluster keeps its own deeper archive at
 - **`CoverSheet` — the Signals cover: reveal-clobber guard, scrim/section-lift, edge-to-edge mobile mat** — echo `revealed` in className, the between-layers oversized scrim, the `100vw` mobile mat + backdrop.
 - **`CoverPeek` — measured viewport-centring, centre transform-origin, `raised` z-index timing** — construction-based centring, centre pivot, raised-until-return-complete.
 - **`HashLanding` — hash deep links are suppressed at parse, then placed after settle** — the (works) layout inline script + the placement component are one mechanism in two halves.
+- **Counters prerender their final value** — server HTML and first client render carry the real stat; the drop to 0 is a pre-paint layout effect.
 
 Entry format — every entry states **what** the constraint is (present tense),
 **where** it lives (file + selector/symbol anchor, never line numbers), **why**
@@ -667,3 +668,20 @@ found every usage.
 **What breaks.** Remove the layout script and the routes go back to clamping deep links at the document bottom in production (invisible locally). Remove `<HashLanding>` and the hash is silently swallowed — every deep link lands at the Signals cover with no hash. Swap `absoluteTop` for `getBoundingClientRect` and every landing is off by the reveal transform. Commit on `.fonts-ready` without the stability poll and deep links land short by ~150px. Drop `is-overlay-open` and dominance-snap fights the glide on both routes.
 
 **Consumers own their id list.** `/rr` deliberately excludes `mechanics` (see `rr/ANOMALIES.md` → "Hash deep links (`HashLanding`) — and why `mechanics` is excluded"); `/biconomy` honours every chapter plus the cover.
+
+## Counters prerender their final value
+
+**What.** `Counter` (`app/components/SignalsBento/Counter.tsx`, the Outcome-stat count-up) initialises its state to the FINAL number — `useState(value)` — so the server HTML and the first client render both carry the real stat. The drop to 0 (the count's starting point) happens in a `useLayoutEffect`, before first paint, and is skipped under reduced motion (which shows the final value and never counts). The count itself runs in the ordinary `useEffect`. The header comment in the file states the contract. `/rr`'s `AnimatedNumber` follows the same pattern with a motion-value twist — see `rr/ANOMALIES.md` → "AnimatedNumber prerenders its final value".
+
+**Why.** AI crawlers, link-preview bots and no-JS readers read the raw HTML only; they never run the count. When the initial value was 0 the live site served stats like "0 mo To launch" and "0K" — a false claim recorded as fact by every machine reader.
+
+**Why the reset is a layout effect, and why the initializer never branches.**
+- The first client render must match the server HTML exactly. A hydration text mismatch (React #418) makes React re-render from the root, which strips the `.fonts-ready` page gate — same failure as `app/_landing/ANOMALIES.md` → "Clock-in-render wipes the page gate".
+- `useReducedMotion()` is `null` on the server and real on the client, so `useState(reduce ? value : 0)` IS that mismatch for reduced-motion visitors. The previous Counter shipped exactly this bug; the reduced-motion branch belongs in the effects, never the initializer.
+- `useLayoutEffect` (not `useEffect`) so the final value is never painted before the drop — a passive effect paints one frame of the final number, then flashes to 0.
+
+**Rejected.** Rendering 0 and carrying the real value in a `data-*` attribute or `sr-only` text. Crawlers weigh visible text, and a hidden duplicate that disagrees with the visible number risks reading as cloaking.
+
+**Accepted residual.** If the page gate opens before hydration (the `GATE_CAP_MS` path on a slow device), a visitor can glimpse final → 0 → count. Rare and harmless; not worth a second mechanism.
+
+**What breaks.** Reverting the initial state to 0 → crawlers record zeros again (invisible in the browser; check the prerendered HTML under `.next/server/app/`). Branching the initializer on `useReducedMotion()` → hydration mismatch → page gate stripped. Moving the reset to `useEffect` → a painted flash of the final value before the count.

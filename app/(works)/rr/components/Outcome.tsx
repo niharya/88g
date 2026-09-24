@@ -18,8 +18,8 @@
 //         Mat bg dims via CSS :has([data-rules-expanded]).
 // Collapse: close button, click anywhere outside group, or Escape.
 
-import { Fragment, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView, useAnimationFrame, animate, type AnimationPlaybackControls } from 'framer-motion'
+import { Fragment, useEffect, useLayoutEffect, useRef } from 'react'
+import { motion, AnimatePresence, useMotionValue, useScroll, useSpring, useTransform, useInView, useReducedMotion, useAnimationFrame, animate, type AnimationPlaybackControls } from 'framer-motion'
 import { CRUISE_SPRING } from '@/app/lib/motion'
 import { useExpand } from '@/app/lib/useExpand'
 
@@ -37,14 +37,29 @@ const ShieldIcon = () => (
   </svg>
 )
 
-/* ── Animated counter ── */
+/* ── Animated counter ──
+   Starts at `to`, not 0, so the server HTML carries the real number (a
+   crawler reading "0K Testnet Users" takes it as fact). The drop to 0 happens
+   pre-paint in useLayoutEffect — never in the initial value, or server and
+   client disagree and the hydration mismatch strips the page gate
+   (app/_landing/ANOMALIES.md → "Clock-in-render wipes the page gate"). Reduced
+   motion skips the drop and simply shows the final value. */
 
 function AnimatedNumber({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true, margin: '-50px' })
-  const motionVal = useMotionValue(0)
+  const reduce = useReducedMotion()
+  const motionVal = useMotionValue(to)
   const springVal = useSpring(motionVal, { stiffness: 60, damping: 20, mass: 1 })
   const display = useTransform(springVal, (v) => `${Math.round(v)}${suffix}`)
+
+  useLayoutEffect(() => {
+    if (reduce) return
+    // Source first, then the spring — jumping the spring last cancels the
+    // chase the first jump just started.
+    motionVal.jump(0)
+    springVal.jump(0)
+  }, [reduce, motionVal, springVal])
 
   useEffect(() => {
     if (inView) motionVal.set(to)

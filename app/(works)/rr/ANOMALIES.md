@@ -35,7 +35,7 @@ map; full entries load per-section, on demand.
 - **Hand overlay always clips at mat bottom** — the deck-fan overlay's generous negative `bottom` offset is a layout rule, not a tuning value.
 - **Overlay backseat choreography** — shared dim/scale/pointer-events recede pattern for enlarged scans and the rules panel.
 - **Overlay primitive — `useExpand` (in-flow, not `<dialog>`)** — why `<dialog>`/`showModal()` was reverted, and the two-layer backseat + `inert` semantic it replaced it with.
-- **`is-overlay-open` body class — cross-file coupling** — the setter (`useExpand`) and reader (`useDominanceSnap.maybeSnap`) must change together.
+- **`is-overlay-open` body class — cross-file coupling** — the four setters (`useExpand`, `HashLanding`, `CoverSheet`, `ProjectMarker`) and the reader (`useDominanceSnap.maybeSnap`) must change together.
 - **Close-cascade timing — JS setTimeout matches CSS animation sum** — `Intro.tsx`'s 550ms timeout must equal the CSS stagger sum.
 - **Outcome ticker — unified translate + scrollLeft** — the JS state machine that replaced CSS `@keyframes` and the scroll/translate coordinate fold.
 - **Intentional overshoot — deviation from `bounce: 0`** — the ~12% hover-out overshoot is a documented user-requested deviation, shared with `/marks` autoScroll.
@@ -65,6 +65,7 @@ map; full entries load per-section, on demand.
 - **Decorative fonts — local, not external** — three route fonts via `next/font/local`, never a fonts.googleapis.com link.
 - **GameBoard consumers must supply a sized frame** — `.rr-game-panel` is 100%×100%; unsized frames stretch its two-sheet gradient into mismatched patches (how the 404 shipped broken).
 - **Hash deep links (`HashLanding`) — and why `mechanics` is excluded** — rr's `LANDABLE` id list, the scroll-driven scene left out of it, and where the shared mechanism is documented.
+- **AnimatedNumber prerenders its final value** — `useMotionValue(to)` so HTML carries the real stat; pre-paint `jump(0)` order is source-then-spring.
 
 ---
 
@@ -342,11 +343,15 @@ If you ever revisit `<dialog>` for this: the deal-breakers are scroll-with-canva
 
 `useExpand` adds `document.body.classList.add('is-overlay-open')` on expand and removes it on collapse-end. `useDominanceSnap.maybeSnap()` (in `app/components/hooks/useDominanceSnap.ts`) early-returns when that class is present. Result: while a reader has the enlarged scans or the rules card open on /rr, the chapter dominance-snap is paused — no yank to the next chapter on idle.
 
-Three files share this signal:
+Five files share this signal on /rr — four setters, one reader:
 
 - **Setter**: `useExpand`'s expanded-effect.
-- **Setter (second, added with deep-link landing)**: `HashLanding`'s `land()` sets it for the length of the placement glide and releases it on a timer — a dominance snap firing inside that window would fight the glide. See "Hash deep links (`HashLanding`) — and why `mechanics` is excluded".
+- **Setter (added with deep-link landing)**: `HashLanding`'s `land()` sets it for the length of the placement glide and releases it on a timer — a dominance snap firing inside that window would fight the glide. See "Hash deep links (`HashLanding`) — and why `mechanics` is excluded".
+- **Setter**: `CoverSheet` (`app/components/CoverSheet/`) while the Signals cover photo is peeked open.
+- **Setter**: `ProjectMarker` (`app/components/nav/`) for the length of its glide to/from the `#signals` cover, released on a timer.
 - **Reader**: `useDominanceSnap.maybeSnap()`.
+
+(`TopSheet` also sets it, but is parked — only its CSS is still imported — so it never runs.)
 
 If you change the class name on one side, change it on the other. If you delete one side, delete both — a stale setter that no reader checks is silent rot.
 
@@ -796,3 +801,15 @@ The route layout ([app/(works)/rr/layout.tsx](app/(works)/rr/layout.tsx)) declar
 **Also rr-specific:** Intro's `snapIdleMs={100}` (same entry as above) means a dominance snap can fire inside the placement window. HashLanding sets `is-overlay-open` for the duration to pause it — that coupling is why `is-overlay-open` now has a third setter beyond `useExpand` (see "`is-overlay-open` body class — cross-file coupling").
 
 **What breaks.** Adding `'mechanics'` to `LANDABLE` puts a reader at the top of a scroll-driven scene with undefined progress and an unfired rules cue. Removing `<HashLanding>` doesn't restore browser anchoring — the layout script has already stripped the hash — it just silently drops every rr deep link at the cover. Renaming a chapter id without updating `LANDABLE` does the same for that chapter only, silently.
+
+## AnimatedNumber prerenders its final value
+
+**What.** `AnimatedNumber` (`app/(works)/rr/components/Outcome.tsx`, comment-header "Animated counter") seeds its source with the final number — `useMotionValue(to)` — so the server HTML carries the real value for the Outcome stats and every rules-illustration number. A `useLayoutEffect` drops it to 0 before first paint, skipped under reduced motion; the in-view spring then counts up. The rationale (machine readers read raw HTML; why the reset is a layout effect; why the initial value never branches on `useReducedMotion()`; the rejected hidden-text approach; the accepted pre-hydration glimpse) is shared with `Counter` and lives once in `app/components/ANOMALIES.md` → "Counters prerender their final value". Read that first.
+
+**rr-specific: the jump order.** The reset is `motionVal.jump(0)` THEN `springVal.jump(0)`. Jumping the source starts the spring chasing it; jumping the spring last lands it at 0 and cancels that chase. Reversed, the source jump fires after the spring has been placed and its chase is left running — the order is the guard, not a style choice.
+
+**Reduced motion.** `AnimatedNumber` now honours reduced motion by simply showing the final value — matching the `SignalsBento` reduced-motion rule in `LIBRARY.md`. Earlier it counted regardless.
+
+**What breaks.** `useMotionValue(0)` → the live HTML reads "0K Testnet Users" again. Swapping the two `jump` calls → the spring's chase isn't cancelled at reset. Moving the reset into `useEffect` → one painted frame of the final value before the drop.
+
+**Not caused by this (noted during verification).** At a 1024px viewport the first Outcome stat sits off-canvas left and never enters view, so its `useInView` count never fires. Pre-existing layout; unrelated to the prerender change.

@@ -1,16 +1,22 @@
 import type { MetadataRoute } from 'next'
+import lastmod from './lib/lastmod.json'
+
+// Each URL's lastModified is the date its CONTENT last changed, read from
+// app/lib/lastmod.json. That file is written by `npm run lastmod`
+// (scripts/generate-lastmod.mjs) during /release and committed, because the
+// Netlify build may run on a shallow clone where `git log` can't see history.
+// A route missing from the file ships with no lastmod rather than a made-up
+// one: a date that is always "now" teaches crawlers to ignore the field.
+// changefreq / priority are deliberately absent — Google ignores both.
+
+const BASE = 'https://nihar.works'
+const ROUTES = ['/', '/all', '/biconomy', '/rr', '/marks', '/shape-of-product', '/resume', '/privacy']
+
+const dates: Record<string, string> = lastmod
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://nihar.works'
-  const lastModified = new Date()
-  return [
-    { url: `${base}/`, lastModified, changeFrequency: 'monthly', priority: 1.0 },
-    { url: `${base}/all`, lastModified, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${base}/biconomy`, lastModified, changeFrequency: 'yearly', priority: 0.8 },
-    { url: `${base}/rr`, lastModified, changeFrequency: 'yearly', priority: 0.8 },
-    { url: `${base}/marks`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/shape-of-product`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/resume`, lastModified, changeFrequency: 'yearly', priority: 0.5 },
-    { url: `${base}/privacy`, lastModified, changeFrequency: 'yearly', priority: 0.3 },
-  ]
+  return ROUTES.map((route) => ({
+    url: route === '/' ? `${BASE}/` : `${BASE}${route}`,
+    ...(dates[route] ? { lastModified: dates[route] } : {}),
+  }))
 }

@@ -1,0 +1,16 @@
+# Nihar Bhagat
+
+## Work
+- [Biconomy · Deep Infrastructure Stuff](https://nihar.works/biconomy): Thought I was designing product screens. Most of the work was actually systems work.
+- [Rug Rumble · Systems Disguised As A Card Game](https://nihar.works/rr): Turned infrastructure ideas into something people could actually play with.
+- [Marks & Symbols · Trying To Reduce Things](https://nihar.works/marks): Trying to reduce things until they still feel alive.
+- [Somewhere Between Product And Infrastructure](https://nihar.works/shape-of-product): Thinking about tools, systems, interfaces, and the people building them.
+- [Selected Work](https://nihar.works/all): Branding, onboarding flows, naming, systems work, infrastructure experiments.
+
+## About
+- [Resume · Interfaces To Infrastructure](https://nihar.works/resume): Most of my career happened because I kept going one layer deeper.
+
+## Elsewhere
+- [LinkedIn](https://linkedin.com/in/niharbhagat)
+- [X](https://x.com/neonihar)
+- [GitHub](https://github.com/niharya)

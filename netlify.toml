@@ -57,6 +57,26 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
     Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://api.emailjs.com https://cloud.umami.is; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://api.emailjs.com https://gateway.umami.is; frame-src 'self' https://calendar.app.google https://niharbhagat.notion.site https://embed.figma.com; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; report-uri /csp-report"
 
+# Machine-read files. Netlify's default MIME map is not guaranteed to add
+# a charset, and with nosniff set above a wrong type is final. robots.txt and
+# llms.txt are both public/ files, so only this CDN layer ever serves them.
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+
+# The web app manifest. Netlify's MIME map has no entry for .webmanifest and
+# falls back to application/octet-stream, which nosniff then makes final.
+[[headers]]
+  for = "/site.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
 # Blast Radius — a standalone interactive prototype, shared as a pitch artifact.
 #
 # It lives at public/blast-radius/index.html and is served straight off the CDN,
