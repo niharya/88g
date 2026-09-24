@@ -92,7 +92,7 @@ Apply the confirmed ASK items in dependency order (e.g. promote before documenti
 
 1. **Verify:** `npx tsc --noEmit`; if the diff is UI-observable, a preview smoke check of the touched routes. Never ship unverified work — a failed verify stops the ritual with the output shown.
 2. **Bump:** `package.json` minor +1, patch reset to 0.
-3. **Commit:** the bump (bundled with remaining work or as a dedicated `release: vX.Y.0` commit). Tag `vX.Y.0`.
+3. **Commit:** run `npm run lastmod` first (rewrites `app/lib/lastmod.json`, the sitemap's per-route content dates, from the history just committed), then the bump (bundled with remaining work or as a dedicated `release: vX.Y.0` commit). Tag `vX.Y.0`.
 4. **Confirm:** state the version, the commit list, and ask for the explicit go-ahead. **Never push unannounced** — this confirmation is the point of the ritual, and the permission prompt on `git push` is its mechanical backstop.
 5. **Push:** `git push && git push --tags`.
 6. **Watch the deploy:** `npm run smoke -- --wait`. Netlify builds *after* the push, so this polls `X-App-Version` until the version just tagged is actually live, then asserts the deployed site — headers, redirects, embeddability, nothing internal exposed. This is the only phase that tests production; a run that fires before the new deploy lands measures the previous one and passes green. Report the result. If it fails, say so plainly with the failing lines — the site is live and wrong, and that is worth interrupting for.

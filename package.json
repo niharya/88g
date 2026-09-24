@@ -10,6 +10,7 @@
     "smoke": "node scripts/smoke.mjs",
     "start": "next start",
     "lqip": "node scripts/generate-image-manifest.mjs",
+    "lastmod": "node scripts/generate-lastmod.mjs",
     "optimize-images": "node scripts/optimize-images.mjs",
     "census": "node scripts/doc-census.mjs",
     "icons": "python3 scripts/icon_subset.py",
