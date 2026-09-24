@@ -9,9 +9,11 @@
 //
 // Two parents on the rail: Biconomy (blue, tall) with Rug Rumble (yellow)
 // nested inside its span, and Slangbusters (mint, tall) below it with three
-// case studies — Aleyr / Ecochain / Codezeros — collapsed behind the inline
-// "case studies (3)" dropdown. Expanding mounts the children (Framer
-// AnimatePresence), which the grid absorbs by growing the mint group + the mat.
+// case studies — Aleyr / Ecochain / Codezeros — collapsed behind an inline
+// "case studies (3)" toggle that sits UNDER the Slangbusters card. Expanding
+// mounts the children BELOW that toggle (Framer AnimatePresence), which the
+// flow absorbs by growing the mint group + the mat. Card-above-children is
+// what keeps the rail's years monotonic; see the mint group below.
 //
 // Framer staggered spring entrance ("train" metaphor): an imaginary cursor
 // draws the timeline top-to-bottom, elements appear top-to-bottom as it passes.
@@ -33,7 +35,10 @@ const SPRING_ENTRY = { type: 'spring' as const, duration: 0.3, bounce: 0.12 }
 // (no overshoot) so the card below, the mint spine, and the mat all glide as the
 // wrapper opens/closes — the structural reflow that used to snap.
 const PAPER_EASE = [0.5, 0, 0.2, 1] as const
-const HEIGHT_SETTLE = { duration: 0.45, ease: PAPER_EASE }
+// 0.425 mirrors --dur-settle (globals.css). The mint spine's lower terminus
+// transitions on that same token, so the bar's end and the wrapper's height
+// land together instead of 25ms apart.
+const HEIGHT_SETTLE = { duration: 0.425, ease: PAPER_EASE }
 
 // ── Unified delay map — single top-to-bottom train ──────────────────────
 //
@@ -59,15 +64,19 @@ const D = {
   cardBlue:   0.76,
   year23:     0.98,
 
-  // Phase 3 — Biconomy→Slangbusters connector + Slangbusters stack
+  // Phase 3 — Biconomy→Slangbusters connector + Slangbusters stack.
+  // The five mint values are the ORIGINAL authored numbers, only RE-ASSIGNED to
+  // the new top-to-bottom order (card above the toggle): spine → the card's top
+  // year → the card → its bottom year → the toggle. The train still draws
+  // downward; nothing was retuned.
   dotsBot0:   1.02,
   dotsBot1:   1.06,
   dotsBot2:   1.10,
   barMint:    1.14,
   slangTop:   1.16,
-  slangBot:   1.20,
-  dropdown:   1.22,
-  cardMint:   1.26,
+  cardMint:   1.20,
+  slangBot:   1.22,
+  dropdown:   1.26,
 
   // Phase 4 — nameplate connector cluster + nameplates
   npDots0:    1.34,
@@ -273,10 +282,15 @@ export default function Timeline({ expanded, onToggle }: TimelineProps) {
       </div>
 
       {/* ════ Slangbusters group (mint — second parent) ════════════════════ */}
-      {/* The mint spine is one absolute bar over the WHOLE group: its top sits
-          just under the connector dots (closing the gap that the dropdown header
-          used to leave), its bottom at the Slangbusters card bottom; it grows to
-          span the children when they mount. Dropdown + spine wrapper flow beside it. */}
+      {/* Order top-to-bottom: the Slangbusters CARD, then the case-studies
+          toggle tucked a beat under it, then the three children it reveals.
+          That order is what makes the rail read monotonically — 20 → 20 → 19
+          → 18 going down. With the children mounted ABOVE the card (the old
+          arrangement) they read 20/19/18/20 and the chronology inverted.
+          The toggle sits BETWEEN card and children so it stays put when
+          opened and the stack grows downward from the control.
+          The mint spine is one absolute bar over this group, which now spans
+          EXACTLY the Slangbusters span: card top → last dated segment. */}
       <div className="selected-tl__group selected-tl__group--mint">
         {/* Continuous mint spine — spans the whole group. */}
         <motion.div
@@ -285,8 +299,54 @@ export default function Timeline({ expanded, onToggle }: TimelineProps) {
           animate={{ scaleY: 1 }}
           transition={{ ...SPRING, delay: D.barMint }}
         />
-        {/* Inline dropdown header — text button (not a NavMarker), aligned to
-            the cards column. Toggles the nested case studies + the mat growth. */}
+
+        {/* Parent row — rail (years) + the Slangbusters card. It HEADS its own
+            span, so the "20" at its card top marks the top of the mint bar.
+            The bottom "18" shows only when collapsed; expanded, Codezeros
+            carries the span's 18 and this would duplicate it. */}
+        <div className="selected-tl__row selected-tl__row--mint-parent">
+          <div className="selected-tl__rail">
+            <motion.span
+              className="selected-tl__year selected-tl__year--slang-top"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2, delay: D.slangTop }}
+            >
+              20
+            </motion.span>
+            {!expanded && (
+              <motion.span
+                className="selected-tl__year selected-tl__year--slang-bot"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2, delay: D.slangBot }}
+              >
+                18
+              </motion.span>
+            )}
+          </div>
+
+          <div className="selected-tl__cards">
+            <motion.div
+              className="selected-card selected-card-mint"
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...SPRING_PLACE, delay: D.cardMint }}
+            >
+              <ProjectCard
+                variant="mint"
+                href="https://niharbhagat.com/work/slangbusters/"
+                title="Building the conditions that let a creative studio do its best work"
+                body="+ studio rituals, hiring, and the operating system behind the work."
+                role="Creative Director • Slangbusters"
+              />
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Inline toggle — a text button (not a NavMarker), aligned to the cards
+            column and docked a beat under the card it belongs to. Toggles the
+            nested case studies + the mat growth. */}
         <motion.div
           className="selected-tl__dropdown"
           initial={{ opacity: 0, y: -8 }}
@@ -304,110 +364,63 @@ export default function Timeline({ expanded, onToggle }: TimelineProps) {
           </button>
         </motion.div>
 
-        {/* Spine wrapper — children + parent card; the mint spine spans the
-            parent group (above), not just this box. */}
-        <div className="selected-tl__mint-spinebox">
-          {/* Child rows — Aleyr / Ecochain / Codezeros, inside a height-animated
-              wrapper so expand/collapse glides (the card below, the mint spine,
-              and the mat all follow the wrapper's flow). Mount only when expanded
-              (AnimatePresence) with the CHILD_D stagger; mounting ABOVE the parent
-              card pushes the Slangbusters card DOWN. Each child is a rail (short
-              bar + year) + a plain-text entry. */}
-          <AnimatePresence>
-            {expanded && (
+        {/* Child rows — Aleyr / Ecochain / Codezeros, inside a height-animated
+            wrapper so expand/collapse glides (the spine's lower end, everything
+            below the group, and the mat all follow this one flow change).
+            Mount only when expanded (AnimatePresence) with the CHILD_D stagger;
+            mounting BELOW the parent card pushes the nameplates down. Each child
+            is a rail (short bar + year) + a plain-text entry. */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              key="sb-children"
+              className="selected-tl__children-wrap"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={HEIGHT_SETTLE}
+            >
+              {CHILDREN.map((c) => (
               <motion.div
-                key="sb-children"
-                className="selected-tl__children-wrap"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={HEIGHT_SETTLE}
-              >
-                {CHILDREN.map((c) => (
-                <motion.div
-                  key={`row-${c.id}`}
-                  className={`selected-tl__row selected-tl__row--child selected-card-sb--${c.id}`}
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ ...SPRING_ENTRY, delay: CHILD_D[c.id].row }}
-                >
-                  <div className="selected-tl__rail">
-                    <motion.span
-                      className={`selected-tl__bar-sb selected-tl__bar-sb--${c.id}`}
-                      initial={{ scaleY: 0 }}
-                      animate={{ scaleY: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ ...SPRING_ENTRY, delay: CHILD_D[c.id].bar }}
-                    />
-                    <motion.span
-                      className={`selected-tl__year selected-tl__year--sb-${c.id}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.14, delay: CHILD_D[c.id].year }}
-                    >
-                      {c.year}
-                    </motion.span>
-                  </div>
-                  <div className="selected-tl__cards">
-                    <ProjectCard
-                      compact
-                      variant={c.id}
-                      href={c.href}
-                      title={c.title}
-                      role={c.role}
-                    />
-                  </div>
-                </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Parent row — rail (years) + the Slangbusters card. Sits BELOW the
-              children, so it's pushed down when they mount. */}
-          <div className="selected-tl__row selected-tl__row--mint-parent">
-            <div className="selected-tl__rail">
-              <motion.span
-                className="selected-tl__year selected-tl__year--slang-top"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2, delay: D.slangTop }}
-              >
-                20
-              </motion.span>
-              {/* Bottom year only when collapsed — children carry years when open. */}
-              {!expanded && (
-                <motion.span
-                  className="selected-tl__year selected-tl__year--slang-bot"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2, delay: D.slangBot }}
-                >
-                  18
-                </motion.span>
-              )}
-            </div>
-
-            <div className="selected-tl__cards">
-              <motion.div
-                className="selected-card selected-card-mint"
+                key={`row-${c.id}`}
+                className={`selected-tl__row selected-tl__row--child selected-card-sb--${c.id}`}
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ ...SPRING_PLACE, delay: D.cardMint }}
+                exit={{ opacity: 0 }}
+                transition={{ ...SPRING_ENTRY, delay: CHILD_D[c.id].row }}
               >
-                <ProjectCard
-                  variant="mint"
-                  href="https://niharbhagat.com/work/slangbusters/"
-                  title="Building the conditions that let a creative studio do its best work"
-                  body="+ studio rituals, hiring, and the operating system behind the work."
-                  role="Creative Director • Slangbusters"
-                />
+                <div className="selected-tl__rail">
+                  <motion.span
+                    className={`selected-tl__bar-sb selected-tl__bar-sb--${c.id}`}
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ ...SPRING_ENTRY, delay: CHILD_D[c.id].bar }}
+                  />
+                  <motion.span
+                    className={`selected-tl__year selected-tl__year--sb-${c.id}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.14, delay: CHILD_D[c.id].year }}
+                  >
+                    {c.year}
+                  </motion.span>
+                </div>
+                <div className="selected-tl__cards">
+                  <ProjectCard
+                    compact
+                    variant={c.id}
+                    href={c.href}
+                    title={c.title}
+                    role={c.role}
+                  />
+                </div>
               </motion.div>
-            </div>
-          </div>
-        </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Nameplate connector cluster (before the nameplates) */}

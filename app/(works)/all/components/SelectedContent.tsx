@@ -36,8 +36,12 @@ export default function SelectedContent() {
   return (
     <section
       // `.selected-mat--archive-open` is the historical name for the
-      // "mat grown" modifier — kept so the `.bench-cases:has(...)` height
-      // mirror in bench.css keeps matching. Only the desktop dropdown sets it.
+      // "mat grown" modifier (the bench.css height mirror it was named for is
+      // long gone). It is LOAD-BEARING again: the mint spine's lower terminus
+      // is a different element per state — the Slangbusters card when closed,
+      // the Codezeros segment when open — and this class is what selects
+      // between them. See selected.css → .selected-tl__bar-mint.
+      // Only the desktop dropdown sets it.
       className={`selected-mat mat${expanded ? ' selected-mat--archive-open' : ''}`}
     >
       {isMobile ? <MobileCases /> : <Timeline expanded={expanded} onToggle={handleToggle} />}

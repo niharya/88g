@@ -87,6 +87,20 @@
   --rail-w: calc(148 * var(--bu));      /* year gutter + bar offset */
   --rail-gap: calc(16 * var(--bu));     /* rail → cards */
   --card-w: calc(408 * var(--bu));
+  /* Year anchoring — ONE primitive. Every year label is CENTRE-anchored
+     (translateY(±50%)) and its offset comes from one of these two tokens, so
+     the five parent years can no longer drift apart the way they did when some
+     were edge-anchored and some centre-anchored (that mix is what put the two
+     "card top" markers 5px apart).
+       --year-top-drop  : year CENTRE below a span's TOP edge (the card top)
+       --year-role-lift : year CENTRE above a card's BOTTOM edge (the role row)
+     --year-role-lift lands on the role row at ANY --bu: the card's 1px border
+     + 16·--bu padding + half the 20·--bu footer. It only stays exact because
+     .project-card__arrow is --bu-native (it was a fixed 20px, which froze the
+     footer height and slid the years off the role row on a larger mat). */
+  --year-top-drop: calc(25 * var(--bu));
+  --year-role-lift: calc(27 * var(--bu));
+  --year-gutter: calc(8 * var(--bu));    /* year right edge → the spine */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -234,30 +248,42 @@
   width: 100%;
 }
 
+/* The MINT group IS the spine's containing block AND the flow column — the old
+   .selected-tl__mint-spinebox wrapper became redundant once the toggle moved
+   inside the span. Order top-to-bottom: Slangbusters card → the case-studies
+   toggle → the children. That order is what makes the years read monotonically
+   (20 → 20 → 19 → 18); with the children ABOVE the card they read 20/19/18/20.
+   The toggle sits BETWEEN card and children so it doesn't move when opened —
+   the stack grows downward from the control.
+   gap stays 0: the children-wrap carries its own spacing INSIDE its animated
+   height, and a gap here would survive the height animation and snap on
+   unmount. */
 .selected-tl__group--mint {
-  position: relative;   /* positioning context for the mint spine (spans the whole group) */
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: calc(24 * var(--bu));   /* dropdown link → card breathing room */
-}
-
-/* The dropdown header aligns to the cards column (offset past the rail + gap). */
-.selected-tl__group--mint > .selected-tl__dropdown {
-  margin-left: calc(var(--rail-w) + var(--rail-gap));
-}
-
-/* Spine wrapper — the mint spine spans THIS box (card top → last child), not
-   the dropdown header above it. A flex column of the rail+card rows. */
-.selected-tl__mint-spinebox {
+  /* One 40·--bu beat through the whole mint stack:
+     card →40→ toggle →40→ aleyr →40→ eco →40→ code. */
+  --sb-beat: calc(40 * var(--bu));
+  /* Room under the LAST child for its hover hint, which is absolute at
+     top:100% and would otherwise be clipped by the wrap's overflow:hidden.
+     The expanded spine stops short by exactly this much (see .selected-tl__bar-mint)
+     so the bar ends ON the Codezeros segment, not in the reserved room. */
+  --sb-hint-room: calc(20 * var(--bu));
+  /* AUTHORED height of the toggle block — not an emergent one. The collapsed
+     spine has to stop above the toggle (which sits outside the span when the
+     case studies are closed), so this height is part of the bar's math and
+     must stay explicit. Set on the button so the wrapper measures to it. */
+  --sb-toggle-h: calc(22 * var(--bu));
   position: relative;
   width: 100%;
   display: flex;
   flex-direction: column;
-  /* No gap here — the children-wrap carries the inter-row + pre-card spacing
-     INSIDE its animated height, so the collapse fully closes with no end-jump
-     (a gap here would survive the height animation and snap on unmount). */
   gap: 0;
+}
+
+/* The toggle aligns to the cards column (offset past the rail + gap), tucked a
+   beat under the card it belongs to. */
+.selected-tl__group--mint > .selected-tl__dropdown {
+  margin-left: calc(var(--rail-w) + var(--rail-gap));
+  margin-top: var(--sb-beat);
 }
 
 /* Height-animated children wrapper — expand/collapse glides because the card
@@ -270,11 +296,18 @@
 .selected-tl__children-wrap {
   display: flex;
   flex-direction: column;
-  gap: calc(40 * var(--bu));
+  gap: var(--sb-beat);
   overflow: hidden;
 }
+/* Both the lead-in (toggle → first child) and the trailing hint room live on
+   the CHILDREN, inside the animated height: an explicit height:0 clips a child
+   margin to true zero (no end-jump on collapse), where padding would floor at
+   its own value and snap. */
+.selected-tl__children-wrap > :first-child {
+  margin-top: var(--sb-beat);
+}
 .selected-tl__children-wrap > :last-child {
-  margin-bottom: calc(40 * var(--bu));
+  margin-bottom: var(--sb-hint-room);
 }
 
 .selected-tl__rail {
@@ -327,20 +360,34 @@
 .selected-tl__group--blue > .selected-card-terra { grid-column: 2; grid-row: 1; }
 .selected-tl__group--blue > .selected-card-blue  { grid-column: 2; grid-row: 2; }
 
-/* Mint bar — one absolute spine over the whole mint group wrapper. Pinned to
-   the spine x (rail width from the left), inset top/bottom; grows to span the
-   children naturally as they mount (the wrapper reflows, the bottom follows). */
+/* Mint spine — one absolute bar over the mint group, which now spans EXACTLY
+   the Slangbusters span: the card top down to the last dated segment. Pinned to
+   the spine x (rail width from the left); grows to cover the children by natural
+   reflow as they mount. (It used to be parented so that it also covered the
+   toggle above the card — ~46·--bu of bar drawn over a button, which is a bar
+   lying about its duration and is why the "20" looked stranded below its own
+   bar top.)
+   The lower terminus is the "18" marker, and that is a DIFFERENT element in each
+   state, because the toggle is only INSIDE the span when the case studies are
+   out. Collapsed, the span ends at the Slangbusters card and the toggle sits
+   below it — so the bar stops a beat + the toggle's height short of the group
+   bottom. Expanded, the toggle is inside the span and the span ends on the
+   Codezeros segment, --sb-hint-room above the group bottom. Hence a state-keyed
+   inset rather than a constant; both values are tokens, and the inset
+   transitions on --dur-settle so the bar's end sweeps down with the reflow
+   instead of jumping. */
 .selected-tl__bar-mint {
   position: absolute;
   left: calc(var(--rail-w) - calc(4 * var(--bu)));
-  /* Touch the Slangbusters card top and the last item's bottom (spinebox spans
-     card → last child); the parent span covers its nested children. */
   top: 0;
-  bottom: 0;
+  bottom: calc(var(--sb-beat) + var(--sb-toggle-h));
   width: calc(4 * var(--bu));
   transform-origin: top center;
   background: var(--mint-80);
   border: 1px solid var(--mint-960);
+}
+.selected-mat--archive-open .selected-tl__bar-mint {
+  bottom: var(--sb-hint-room);
 }
 
 /* ── Year labels ────────────────────────────────────────────────────────── */
@@ -359,51 +406,61 @@
 }
 
 /* Biconomy years — grid items in col 1, tucked left of the spine
-   (justify-self:end → right edge at the spine x, then a margin clears the bar).
-   2025 sits at the Rug Rumble card TOP (the recent end / blue-bar top); Q4•25 at
-   the Rug Rumble ROLE ROW; 23 at the Biconomy ROLE ROW. The role row is the
-   card footer near the bottom, so align-self:end + a small lift lands on it. */
+   (justify-self:end → right edge at the spine x, then --year-gutter clears the
+   bar). 2025 sits at the Rug Rumble card TOP (the recent end / blue-bar top);
+   Q4•25 at the Rug Rumble ROLE ROW; 23 at the Biconomy ROLE ROW.
+   The translateY(±50%) is the shared primitive: align-self + margin place an
+   EDGE, the translate converts that to a CENTRE, so a grid year and an absolute
+   year built from the same token land on the same line. Years animate opacity
+   only (never y), so there's no Framer inline transform to fight here. */
 .selected-tl__group--blue > .selected-tl__year {
   grid-column: 1;
   justify-self: end;
-  margin-right: calc(8 * var(--bu));   /* clear of the 4-wide spine */
+  margin-right: var(--year-gutter);
   z-index: 1;
 }
 .selected-tl__year--2025 {
   grid-row: 1;
   align-self: start;
-  margin-top: calc(20 * var(--bu));    /* ≈ the title cap-height, the card top */
+  margin-top: var(--year-top-drop);
+  transform: translateY(-50%);
 }
 .selected-tl__year--q425 {
   grid-row: 1;
   align-self: end;
-  margin-bottom: calc(22 * var(--bu)); /* ≈ the role-row line from the card bottom */
+  margin-bottom: var(--year-role-lift);
+  transform: translateY(50%);
   color: var(--yellow-800);
 }
 .selected-tl__year--23 {
   grid-row: 2;
   align-self: end;
-  margin-bottom: calc(22 * var(--bu)); /* ≈ the role-row line from the card bottom */
+  margin-bottom: var(--year-role-lift);
+  transform: translateY(50%);
 }
 
-/* Mint rail years — absolute within the parent row's rail (positioning ctx).
-   slang-top at the mint card TOP, slang-bot at its ROLE ROW (card bottom-ish);
-   child years centre on their row (top:50% set in the child block below). */
+/* Mint rail years — absolute within their row's rail (the positioning ctx),
+   built from the SAME two tokens as the Biconomy years above: slang-top at the
+   mint card TOP, slang-bot at its ROLE ROW. Child years centre on their own row
+   (top:50% in the child block below). */
 .selected-tl__year--slang-top,
+.selected-tl__year--slang-bot,
 .selected-tl__year--sb-aleyr,
 .selected-tl__year--sb-eco,
 .selected-tl__year--sb-code {
   position: absolute;
-  right: calc(8 * var(--bu));
+  right: var(--year-gutter);
+}
+.selected-tl__year--slang-top {
+  top: var(--year-top-drop);
   transform: translateY(-50%);
+  color: var(--mint-800);
 }
 .selected-tl__year--slang-bot {
-  position: absolute;
-  right: calc(8 * var(--bu));
-  bottom: calc(22 * var(--bu));   /* ≈ the role-row line from the card bottom */
+  bottom: var(--year-role-lift);
+  transform: translateY(50%);
+  color: var(--mint-800);
 }
-.selected-tl__year--slang-top { top: calc(20 * var(--bu)); color: var(--mint-800); }
-.selected-tl__year--slang-bot { color: var(--mint-800); }
 
 
 /* ── Project cards ──────────────────────────────────────────────────────── */
@@ -499,9 +556,13 @@
 .project-card--terra .project-card__arrow { color: var(--terra-720); }
 .project-card--blue  .project-card__arrow { color: var(--blue-800); }
 
+/* --bu-native: a fixed 20px froze the card footer's height while the year
+   labels' offsets scaled, so the years slid off the role row on any mat wider
+   than the 688 baseline (measured -2.2px at --bu 1.19). Both icons carry a
+   viewBox, so the CSS size overrides their `size` prop cleanly. */
 .project-card__arrow {
-  width: 20px;
-  height: 20px;
+  width: calc(20 * var(--bu));
+  height: calc(20 * var(--bu));
   display: block;
   flex-shrink: 0;
 }
@@ -722,6 +783,7 @@
 .selected-tl__year--sb-eco,
 .selected-tl__year--sb-code {
   top: 50%;
+  transform: translateY(-50%);
   z-index: 1;
 }
 .selected-tl__year--sb-aleyr { color: var(--aleyr-800); }
@@ -732,14 +794,26 @@
 /* ── Inline dropdown header ─────────────────────────────────────────────── */
 /* Plain text button at the top of the Slangbusters cards column (not a
    NavMarker). Toggles the nested case studies + the mat growth. */
+/* FLEX, not block: the button inside is inline-flex, so a block wrapper takes
+   its height from the LINE BOX (button + the strut's descender space), not from
+   the button. That made the wrapper ~3px taller than --sb-toggle-h at mat 540
+   while matching it at the 688 baseline — and the collapsed mint spine measures
+   against that token, so the bar overran the card by the difference. flex drops
+   the line box; the wrapper is now exactly the token at every --bu. */
 .selected-tl__dropdown {
+  display: flex;
+  align-items: center;
   pointer-events: auto;
 }
 .selected-tl__dropdown-btn {
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
-  padding: 2px 0;
+  /* Authored height (replaces a fixed 2px padding) — the collapsed mint spine
+     measures against it, so it has to be a token, not whatever the label and
+     chevron happen to add up to. */
+  height: var(--sb-toggle-h);
+  padding: 0;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -803,9 +877,20 @@
 .project-card,
 .selected-tl__bar-blue,
 .selected-tl__bar-yellow,
-.selected-tl__bar-mint,
 .selected-tl__year {
   transition: filter var(--dur-slide) var(--ease-paper), background var(--dur-slide) var(--ease-paper);
+}
+
+/* The mint spine carries the same hover transition PLUS its lower terminus,
+   which moves when the children mount. It needs its own rule: folded into the
+   shorthand above, `bottom` would be clobbered and the bar's end would snap
+   while the wrapper glided (the same shorthand trap documented for the repel).
+   --dur-settle matches HEIGHT_SETTLE in Timeline.tsx so the two land together. */
+.selected-tl__bar-mint {
+  transition:
+    filter var(--dur-slide) var(--ease-paper),
+    background var(--dur-slide) var(--ease-paper),
+    bottom var(--dur-settle) var(--ease-paper);
 }
 
 /* Base dim — any of the three main cards hovered → every leaf to 0.35. */

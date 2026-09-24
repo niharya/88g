@@ -21,6 +21,8 @@ Current (bench essay + Cases/Longform timeline + Showcase/Visual tab):
 - **Tab swap animates** — the Visual↔Longform `AnimatePresence` swap and why the scale is safe.
 - **Mat as a framed sheet (sibling of the landing sheet + invitation card)** — the timeline mat's lift/frame/responsive spine.
 - **Desktop timeline — FLOW layout** — the Cases tab's grid/flex FLOW layout (bars, years, groups, hover cascades).
+- **Mint spine — the Slangbusters span** — the mint bar's exact span, the mint group's three tokens, and the `--archive-open`-keyed lower terminus.
+- **Year anchoring — one centre-anchored primitive** — the two tokens every timeline year is built from, and the opacity-only rule that keeps them working.
 - **Timeline type + `--bu` sizing** — every timeline size as `calc(N * var(--bu))`.
 - **Expand/collapse is a height-animated wrapper** — the Slangbusters children mount/height-glide mechanism.
 - **Sibling-repel on child hover** — why the repel transform rides the card, not the Framer motion row.
@@ -301,24 +303,28 @@ for the body.
   0px delta at 688 and iPad 819).** The Biconomy group (`.selected-tl__group--blue`) is a **2-ROW ×
   2-COL grid**: bars + years + cards are DIRECT grid items (no `.selected-tl__rail` /
   `.selected-tl__cards` wrapper cells). Cards in col 2 (Rug Rumble row 1, Biconomy row 2). Bars in
-  col 1 are grid items `justify-self:end; align-self:stretch`: **yellow `grid-row:1`** (spans exactly
-  the Rug Rumble card), **blue `grid-row:1/3`** (RR-top → Biconomy-bottom). `scaleY` entrance,
-  `transform-origin: top center`. **This SUPERSEDES** the earlier "bars are `position:absolute;
-  right:0` with `top/bottom` inset, yellow a fixed `46·--bu`" approach — a fixed-height yellow bar
-  couldn't track the card. The **mint spine** is ONE absolute bar over `.selected-tl__mint-spinebox`
-  (`left: var(--rail-w) − 4·--bu`, `top/bottom: 8·--bu`) — it starts at the Slangbusters CARD top
-  (the dropdown header is a sibling ABOVE the spinebox, no longer inside the spine's span) and grows
-  to span the children by NATURAL REFLOW when they mount; no hardcoded `224→504`.
-- **Years align to their card's ROLE ROW** (the footer line), approximately. Biconomy years are
-  col-1 grid items: 2025 `align-self:start` (Rug Rumble card TOP); Q4•25 `align-self:end` +
-  `margin-bottom` lift (RR role row); 23 same on the Biconomy row. Mint-rail years are absolute in
-  the rail: slang-top at the card top, slang-bot at the role row; child years centre on their row.
-  They tuck LEFT of the 4·--bu spine via a right gutter / `margin-right`.
+  col 1 are grid items `justify-self:end`. **Blue `grid-row:1/3`** takes the shared
+  `align-self:stretch` (RR-top → Biconomy-bottom). **Yellow `grid-row:1` deliberately OVERRIDES that
+  stretch**: Rug Rumble is a brief project NESTED in the Biconomy span, so its bar is a SHORT segment
+  (`align-self:end` + a `46·--bu` height + an `8·--bu` bottom margin) parked at the role-row level
+  beside the Q4•25 label — **not** a card-spanning bar. This corrects long-standing drift in this
+  entry, which claimed yellow spanned the Rug Rumble card and that a "fixed `46·--bu`" approach had
+  been superseded; the shipped `.selected-tl__bar-yellow` rule has always been the short segment, and
+  the rule was not touched by the mint-group work that found the drift. `scaleY` entrance,
+  `transform-origin: top center`. The **mint spine** has its own entry — see "Mint spine — the
+  Slangbusters span".
+- **Years** are built from ONE centre-anchored primitive — see "Year anchoring — one centre-anchored
+  primitive". They tuck LEFT of the 4·--bu spine via `--year-gutter`.
 - **Inline dropdown** `.selected-tl__dropdown` — a plain text button (`--font-ui` 720, capitalize,
-  dotted underline) + an `expand_more` `MaterialIcon` rotating 180° via `[aria-expanded="true"]`.
-  Now a HEADER above `.selected-tl__mint-spinebox` (offset to the cards column via `margin-left:
-  var(--rail-w) + var(--rail-gap)`) so the spine starts at the card, not the header. Toggles
-  `expanded` (owned by SelectedContent).
+  dotted underline) + an `expand_more` `MaterialIcon` rotating 180° via `[aria-expanded="true"]`,
+  offset to the cards column (`margin-left: var(--rail-w) + var(--rail-gap)`) and docked one
+  `--sb-beat` under the Slangbusters card. **It is a FOOTER under the card, not a header above the
+  group** — the earlier "header above the spinebox" arrangement is REVERSED. With the children
+  mounting above the card the rail's years read 20/19/18/20 and the chronology inverted; card-first
+  makes them monotonic (20 → 20 → 19 → 18, verified by measurement). Keeping the toggle BETWEEN card
+  and children means the control doesn't move when it's pressed — the stack grows downward from it.
+  Its height is the authored `--sb-toggle-h` token, not an emergent label+chevron sum, because the
+  collapsed spine measures against it. Toggles `expanded` (owned by SelectedContent).
 - **Cards are content-driven (no fixed height).** `ProjectCard` lost its `176px` height + absolute
   internal layout — it's now a flex column (title → body → divider → footer, `16·--bu` padding) that
   sizes to its copy. Width constant (`--card-w = 408·--bu`). Stickers stay absolute over the body.
@@ -330,26 +336,114 @@ for the body.
   ROW (`.selected-tl__row--child`), so its short colored bar (`56·--bu`, centred on the row) + year
   align to the compact card naturally. They mount only when `expanded` (Framer `AnimatePresence`,
   `CHILD_D` stagger); `CHILDREN` (Timeline.tsx) carries the years. Resting bar `-100` tint, hover `-240`.
-- **`--archive-open` cascade RETIRED.** The `+280px` lower-timeline shift, the mint-bar `224→504`
-  height rule, and the `.bench-cases:has(.selected-mat--archive-open)` height mirror in bench.css are
-  ALL removed. `expanded` still adds `.selected-mat--archive-open` (historical name) but it's an inert
-  marker now — the growth is a **height-animated wrapper**.
+- **`.selected-mat--archive-open` is LOAD-BEARING again on desktop.** The old cascade stays retired —
+  the `+280px` lower-timeline shift, the mint-bar `224→504` height rule, and the
+  `.bench-cases:has(.selected-mat--archive-open)` height mirror in bench.css are all gone, and the
+  growth is still the height-animated wrapper. But the class is **no longer an inert marker**: it
+  selects the mint spine's lower terminus (see "Mint spine — the Slangbusters span"). Its only other
+  CSS consumer sits inside the `max-width:767px` block, and mobile never
+  renders `.selected-tl`, so the two can't collide. Don't delete it as dead weight.
 - Expand/collapse of the Slangbusters children is a height-animated wrapper — its own entry, see "Expand/collapse is a height-animated wrapper" below.
-- The `D` delay map (Timeline.tsx) is a clean sequential top-to-bottom stagger (values are independent now, not the old during-bar-growth train formula from the retired archive panel). The three case studies have a SEPARATE `CHILD_D` expand stagger, relative to the dropdown opening (not to `D`).
+- The `D` delay map (Timeline.tsx) is the ORIGINAL **hand-tuned train**, restored verbatim — Phase 1
+  pre-bar → Phase 2 during the blue bar's growth → Phase 3 the Slangbusters stack → Phase 4 the
+  nameplates. The in-code header is authoritative: **do not retune it to a flat sequential stagger**
+  (an earlier claim in this entry that the values were "independent now" was wrong). The mint reorder
+  RE-ASSIGNED the five authored mint values verbatim to the new top-to-bottom order — `barMint →
+  slangTop → cardMint → slangBot → dropdown`; nothing was retuned. The three case studies have a
+  SEPARATE `CHILD_D` expand stagger, relative to the dropdown opening (not to `D`).
 - **Ecochain fix:** `--ecochain-240` was an off-white that read as invisible on the mat; saturated
   green (`hsl(95 72% 42%)`). Carried over.
 - **§2a:** nameplates swapped (Marks above Names); the Now dot has a living pulse
   (`.selected-tl__pulse` sibling ring + `now-pulse` keyframe — survives the dot's `clip-path`/crescent;
   own reduced-motion guard). The cap is `.selected-tl__cap` (dot in the rail, "Now" tucked left,
   greeting right).
-- **Hover cascades** mirror terra/blue, re-pointed to the group structure. The base dim now dims DEEP
-  (`.selected-tl:has(…) > *` PLUS `… .selected-tl__rail > *` / `… .selected-tl__cards > *`) because a
-  group bundles multiple projects; the re-light selectors (naming a card/bar/year class) TIE on
+- **Hover cascades** mirror terra/blue, re-pointed to the group structure. The base dim reaches DEEP
+  past the group wrappers via a DESCENDANT `.selected-tl:has(…) :is(…leaf class list…)` (not a child
+  combinator — a group bundles multiple projects, so `> *` would stop at the group); the re-light
+  selectors (naming a card/bar/year class) TIE on
   specificity and win by SOURCE ORDER. An intermediate per-group dim was tried and removed (it
   out-specified the re-light). Child hover dims only the OTHER children + saturates the hovered bar.
   All `filter: opacity()`, gated on `data-armed`.
 - Case-study sibling-repel on hover is its own entry — see "Sibling-repel on child hover" below.
 - **Entrance motion is always top-to-bottom** (`y: -8 → 0`); never a positive initial `y`. Dots pop in place (SPRING_POP, staggered), never fade. Year labels stay set in `--font-mono`.
+
+## Mint spine — the Slangbusters span
+
+**What it is.** One absolute bar (`.selected-tl__bar-mint`) that spans EXACTLY the Slangbusters span:
+top at the Slangbusters card's top, bottom at the last dated thing inside the span. Measured: spine
+top − card top = 0.0px; collapsed, spine bottom − card bottom = 0.0px; expanded, the end lands on the
+Codezeros segment (+1.8px, that row's own inset).
+
+**Where.** `.selected-tl__group--mint` in `selected.css` is itself the spine's containing block AND
+the flow column — **`.selected-tl__mint-spinebox` no longer exists**; it became redundant once the
+toggle moved inside the span. Group `gap` stays `0` (the unchanged height-animation contract). Three
+tokens live on the group:
+
+- `--sb-beat` — one rhythm through the whole mint stack (card → toggle → aleyr → eco → code).
+- `--sb-hint-room` — room under the LAST child for its absolute hover hint, which the children-wrap's
+  `overflow:hidden` would otherwise clip.
+- `--sb-toggle-h` — the AUTHORED height of `.selected-tl__dropdown-btn` (it replaced a fixed `2px`
+  padding). The collapsed spine measures against it, so it must stay a token, never an emergent
+  label + chevron sum. **`.selected-tl__dropdown` must stay `display: flex`.** The button inside is
+  `inline-flex`, so a BLOCK wrapper takes its height from the LINE BOX — the button plus the strut's
+  descender space — not from the button. That made the wrapper ~3px taller than the token at mat 540
+  while matching it exactly at the 688 baseline, and since the collapsed spine measures the token,
+  the bar overran the Slangbusters card by the difference. The failure is INVISIBLE at the design
+  width and grows as you move away from it (found by a mat-width sweep, not by looking). Don't
+  "simplify" the single-child flex wrapper back to a block.
+
+The lower terminus is **state-keyed**, because the toggle is only INSIDE the span when the case
+studies are out: collapsed, `bottom: calc(var(--sb-beat) + var(--sb-toggle-h))` stops the bar above
+the toggle; expanded, `.selected-mat--archive-open .selected-tl__bar-mint` sets
+`bottom: var(--sb-hint-room)` so the bar ends ON the Codezeros segment rather than in the reserved
+hint room. Both values are tokens; the inset transitions on `--dur-settle` so the end sweeps down
+with the reflow.
+
+**Why.** The bar previously ran `top:0; bottom:0` against a group that INCLUDED the dropdown header
+and its gap, so it started well ABOVE the card (45.9px at `--bu` 1.0, 54px at 1.19) — a duration bar
+drawn over a button, and the reason the "20" looked stranded below its own bar top.
+
+**What breaks.** `.selected-tl__bar-mint` needs its OWN `transition` rule in the hover block, listing
+`bottom var(--dur-settle)` alongside `filter`/`background`. Folded into the shared
+`filter, background` shorthand higher up it is CLOBBERED and the bar's end SNAPS while the wrapper
+glides — the same shorthand trap documented under "Sibling-repel on child hover". `HEIGHT_SETTLE` in
+Timeline.tsx mirrors `--dur-settle` so the bar's end and the wrapper's height land together; move one
+and the other must follow. Reintroducing a spinebox wrapper, or moving the toggle back above the
+card, puts the header back inside the span and re-breaks the top edge.
+
+## Year anchoring — one centre-anchored primitive
+
+**What it is.** Every year label is CENTRE-anchored via `translateY(±50%)`, and every offset comes
+from one of two tokens declared on `.selected-tl`:
+
+- `--year-top-drop` — year CENTRE below a span's TOP edge, i.e. the card top (`2025`, `slang-top`).
+- `--year-role-lift` — year CENTRE above a card's BOTTOM edge, i.e. the role row (`q425`, `23`,
+  `slang-bot`).
+
+`--year-gutter` is the year-right-edge → spine gutter. Child years keep `top:50%` +
+`translateY(-50%)` (centred on their own row).
+
+**Where.** `selected.css` — the token block on `.selected-tl`, then `.selected-tl__group--blue >
+.selected-tl__year` (grid items: `align-self` + margin place an EDGE, the translate converts that to
+a CENTRE) and the absolute `.selected-tl__year--slang-*` rules in the mint rail. Both idioms resolve
+to the same line from the same token.
+
+**Why.** Three idioms used to coexist for one intent: blue years placed an EDGE (grid `align-self` +
+margin, NO translate), `slang-top` placed a CENTRE (absolute `top` WITH translate), `slang-bot` placed
+an edge with no translate. That mismatch — not an authored decision — is why the two "card top"
+markers sat 5px apart. `--year-role-lift` also replaced a `22·--bu` magic number repeated in THREE
+rules (`--q425`, `--23`, `--slang-bot`), which could drift apart independently. Measured result: at
+`--bu` 1.0 nothing moved except `slang-top`, which came down 5px onto `2025`'s line; at 1.19 the
+role-row years went from −2.2px off to −0.2px.
+
+**Why it's safe.** Year elements are `motion.span`s animating OPACITY ONLY, so there is no persistent
+Framer inline transform to fight (unlike `.selected-tl__row--child` — see "Sibling-repel on child
+hover"). **TRAP: if anything ever animates `y` on a year, the CSS `translateY` dies silently** and
+every year falls back to an edge anchor.
+
+**What breaks.** `--year-role-lift` is only exact because `.project-card__arrow` is `--bu`-native
+(see "Timeline type + `--bu` sizing"). Re-freezing the card footer, or re-hardcoding an offset in one
+of the five parent-year rules, slides the years back off the role row.
 
 ## Timeline type + `--bu` sizing
 
@@ -357,15 +451,23 @@ for the body.
 
 **Where.** `.selected-tl` and its cards/bars/years, driven by the `--bu` spine `.bench-cases` sets (see "Mat as a framed sheet" for the `--tl-w`/`--bu` derivation).
 
-**What breaks.** Reintroducing a fixed-px size anywhere in the timeline breaks the one-unit scaling — every dimension must stay `calc(N * var(--bu))` or it stops tracking the mat.
+**Resolved case — `.project-card__arrow`.** It was the LAST fixed-px geometry in the timeline (`20px`)
+and it was load-bearing in the wrong direction: it froze the card footer's height while the year
+offsets scaled, so the years slid off the role row on any mat wider than the 688 baseline. It is now
+`calc(20 * var(--bu))`. Both `IconExternalLink` and `IconChevronRight` carry a `viewBox`, so the CSS
+size cleanly overrides their `size` prop. The residual error is the card's 1px border, which
+legitimately does not scale — bounded at ±0.2px across the whole 540→820 mat range. See "Year
+anchoring — one centre-anchored primitive".
+
+**What breaks.** Reintroducing a fixed-px size anywhere in the timeline breaks the one-unit scaling — every dimension must stay `calc(N * var(--bu))` or it stops tracking the mat; on the card footer specifically it also drags the year labels off the role row.
 
 ## Expand/collapse is a height-animated wrapper
 
 **What it is.** Expand/collapse of the Slangbusters children (`.selected-tl__children-wrap`) is a `motion.div` animating `height: 0↔auto` (`HEIGHT_SETTLE` tween on `--ease-paper`, NO overshoot — a bounced height visibly jumps past and snaps back) so the Slangbusters card below, the mint spine, and the mat all glide as ONE flow change (CSS can't transition `height:auto`; before this the structural reflow snapped while only the children faded).
 
-**Where.** The gap-to-parent-card is a **margin on the LAST child, NOT padding** — an explicit `height:0` clips a child margin to true zero (no end-jump on unmount), but `box-sizing` padding floors at the padding value and would snap; at `height:auto` the flex box still includes the margin, so the last child's hover hint sits in it and `overflow:hidden` never clips it. The spinebox `gap` is therefore `0` (the wrap carries inter-row + pre-card spacing INSIDE its animated height). `PAPER_EASE` in Timeline.tsx mirrors `--ease-paper` (cousin of TransitionSlot's `EASE`).
+**Where.** Spacing sits on BOTH ends of the wrap, on the CHILDREN and INSIDE the animated height: `> :first-child { margin-top: var(--sb-beat) }` is the toggle → first-child lead-in, `> :last-child { margin-bottom: var(--sb-hint-room) }` is now purely hover-hint room. There is **no parent card below any more** — the Slangbusters card sits ABOVE the toggle (see "Mint spine — the Slangbusters span"), so the old "gap to the card below" framing no longer applies; the spacing contract itself is unchanged. MARGIN, NOT PADDING: an explicit `height:0` clips a child margin to true zero (no end-jump on unmount), but `box-sizing` padding floors at the padding value and would snap; at `height:auto` the flex box still includes the margin, so the last child's hover hint sits in it and `overflow:hidden` never clips it. `.selected-tl__group--mint`'s `gap` is therefore `0` (the wrap carries all its spacing inside its animated height). `PAPER_EASE` in Timeline.tsx mirrors `--ease-paper` (cousin of TransitionSlot's `EASE`); `HEIGHT_SETTLE`'s duration mirrors `--dur-settle` so the mint spine's terminus lands with the height.
 
-**What breaks.** Reintroducing a `gap` on the spinebox double-counts spacing against the wrap's animated height; padding instead of a last-child margin snaps the close.
+**What breaks.** Reintroducing a `gap` on `.selected-tl__group--mint` double-counts spacing against the wrap's animated height; padding instead of child margins snaps the close.
 
 ## Sibling-repel on child hover
 
