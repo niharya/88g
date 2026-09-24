@@ -2,7 +2,7 @@
 
 Verbatim reference for all site metadata — page titles, descriptions, Open Graph blocks, Twitter cards, canonical URLs, OG images, JSON-LD structured data, robots, and sitemap. Edit the source files, not this doc — run `/release` to surface drift.
 
-**Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/all/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `app/robots.ts`, `app/sitemap.ts`, `public/blast-radius/index.html` (hand-authored `<head>`, not an `app/` route)
+**Sources:** `app/layout.tsx`, `app/page.tsx`, `app/marks/page.tsx`, `app/shape-of-product/page.tsx`, `app/(works)/biconomy/page.tsx`, `app/(works)/rr/page.tsx`, `app/(works)/all/page.tsx`, `app/resume/page.tsx`, `app/privacy/page.tsx`, `public/robots.txt`, `public/llms.txt`, `app/sitemap.ts`, `public/blast-radius/index.html` (hand-authored `<head>`, not an `app/` route)
 
 This file is the SEO/social mental model. For reading-copy by route, see the per-route MDs in this folder.
 
@@ -310,30 +310,35 @@ are inside the canonical `<script>` and are correct as written.
 
 ## robots.txt {#robots}
 
-> User-agent: *
-> Allow: /
+Open to search, answer engines, user-requested fetches and training. One
+`User-agent: *` group plus three named groups (search + answer engines, user
+fetches, training) that are functionally identical today and exist so one bot
+can be flipped without touching the others. All groups disallow `/api/` and
+`/csp-report`.
+
+> Content-Signal: search=yes, ai-input=yes, ai-train=yes
 > Sitemap: https://nihar.works/sitemap.xml
-> Host: https://nihar.works
-> — [`robots.ts`](../../app/robots.ts)
+> — [`public/robots.txt`](../../public/robots.txt)
+
+Static file, not `app/robots.ts`: Next's `MetadataRoute.Robots` can't emit
+`Content-Signal`. Served `text/plain; charset=utf-8` via `netlify.toml`.
+
+## llms.txt {#llms}
+
+Name, then each route linked by its page title with its meta description
+verbatim, then the three footer profiles. No blockquote yet.
+— [`public/llms.txt`](../../public/llms.txt)
 
 ## sitemap.xml {#sitemap}
 
-Routes published, with priority:
+Routes published: `/`, `/all`, `/biconomy`, `/rr`, `/marks`,
+`/shape-of-product`, `/resume`, `/privacy`. No `changefreq` / `priority`
+(Google ignores both).
 
-| URL | Change frequency | Priority |
-|---|---|---|
-| `/` | monthly | 1.0 |
-| `/all` | monthly | 0.9 |
-| `/biconomy` | yearly | 0.8 |
-| `/rr` | yearly | 0.8 |
-| `/marks` | monthly | 0.7 |
-| `/shape-of-product` | monthly | 0.6 |
-| `/resume` | yearly | 0.5 |
-| `/privacy` | yearly | 0.3 |
-
+`lastmod` is each route's content date from `app/lib/lastmod.json`, written by
+`npm run lastmod` during `/release` from `git log`; a route with no entry ships
+without one.
 — [`sitemap.ts`](../../app/sitemap.ts)
-
-Notes: `lastModified` is set to `new Date()` at request time — every fetch reports "modified now." Worth tightening if SEO precision matters.
 
 ---
 
@@ -342,5 +347,5 @@ Notes: `lastModified` is set to `new Date()` at request time — every fetch rep
 - **Dev-only routes** (`/_dev-tools/lqip-lab`, `/_dev-tools/sticker-lab`, `/_preview/404`) have minimal metadata (just `title`) and are intentionally not in the sitemap. Not catalogued here.
 - **Title template** (`%s · Nihar`) applies to every route that sets `title` as a string. `title: "Resume · Interfaces To Infrastructure"` renders as `"Resume · Interfaces To Infrastructure · Nihar"` in the browser tab.
 - **OG image fallback chain:** routes without an OG block inherit root layout's `/og-image.png`. Routes with their own OG block override fully — fields you don't set are not inherited per-block (this is Next.js metadata behavior).
-- **JSON-LD lives in two places** today: landing (Person + WebSite) and `/rr` (CreativeWork). Other routes don't carry structured data.
+- **JSON-LD lives in three places** today: landing (Person + WebSite), `/rr` and `/biconomy` (CreativeWork). Other routes don't carry structured data.
 - **Same description string is reused** across `metadata.description`, `openGraph.description`, and `twitter.description` for each route — changing one means changing all three.
