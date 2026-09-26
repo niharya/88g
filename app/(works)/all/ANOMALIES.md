@@ -44,6 +44,9 @@ Historical (retired archive panel — kept for archaeology, not load-bearing on 
 Current (mobile pass, whole route):
 - **Responsive anomalies — mobile pass** — the cohesive mobile pass: intro card cqi re-base, one shared 24px gutter, timeline mat FOOTGUN, MobileCases/CasesSheet, showcase open interaction.
 
+Current (route-level guards):
+- **Reduced motion** — the CSS blanket's keying/`!important` contract and the scoped `MotionConfig` that covers the Framer entrances it can't reach.
+
 ---
 
 ## Overview (Work Essay redesign) — current
@@ -365,7 +368,7 @@ for the body.
   out-specified the re-light). Child hover dims only the OTHER children + saturates the hovered bar.
   All `filter: opacity()`, gated on `data-armed`.
 - Case-study sibling-repel on hover is its own entry — see "Sibling-repel on child hover" below.
-- **Entrance motion is always top-to-bottom** (`y: -8 → 0`); never a positive initial `y`. Dots pop in place (SPRING_POP, staggered), never fade. Year labels stay set in `--font-mono`.
+- **Entrance motion is always top-to-bottom** (`y: -8 → 0`); never a positive initial `y`. Dots pop in place (SPRING_POP, staggered), never fade — **on the default path**. Under `prefers-reduced-motion` the `MotionConfig reducedMotion="user"` in `SelectedContent.tsx` snaps `scale`/`y` and lets `opacity` run, so the dots arrive full-size and FADE. That inversion is deliberate and is the only sanctioned fade — `pop` IS `scale`, so there is no reduced-motion form of it. See "Reduced motion". Year labels stay set in `--font-mono`.
 
 ## Mint spine — the Slangbusters span
 
@@ -467,6 +470,19 @@ anchoring — one centre-anchored primitive".
 
 **Where.** Spacing sits on BOTH ends of the wrap, on the CHILDREN and INSIDE the animated height: `> :first-child { margin-top: var(--sb-beat) }` is the toggle → first-child lead-in, `> :last-child { margin-bottom: var(--sb-hint-room) }` is now purely hover-hint room. There is **no parent card below any more** — the Slangbusters card sits ABOVE the toggle (see "Mint spine — the Slangbusters span"), so the old "gap to the card below" framing no longer applies; the spacing contract itself is unchanged. MARGIN, NOT PADDING: an explicit `height:0` clips a child margin to true zero (no end-jump on unmount), but `box-sizing` padding floors at the padding value and would snap; at `height:auto` the flex box still includes the margin, so the last child's hover hint sits in it and `overflow:hidden` never clips it. `.selected-tl__group--mint`'s `gap` is therefore `0` (the wrap carries all its spacing inside its animated height). `PAPER_EASE` in Timeline.tsx mirrors `--ease-paper` (cousin of TransitionSlot's `EASE`); `HEIGHT_SETTLE`'s duration mirrors `--dur-settle` so the mint spine's terminus lands with the height.
 
+**Reduced motion — the half-state is deliberate here, do NOT "fix" it.** `height` is in Framer's
+`positionalKeys` set (`motion-dom/render/utils/keys-position.mjs` — `width`, `height`, `top`, `left`,
+`right`, `bottom`, + all transforms), and the gate is
+`shouldReduceMotion && positionalKeys.has(key) ? { type: false } : valueTransition`. So under the route's
+`MotionConfig reducedMotion="user"` the wrapper's `height` SNAPS while its `opacity` (not a positional
+key) still animates, and the children still fade in on the `CHILD_D` stagger with `y` snapped. That is
+*visually the same signature* as the pre-wrapper bug described above — structure snaps, children fade —
+and a future session WILL be tempted to re-fix it. Don't: on the reduced path the snap is the correct
+outcome (the reader asked for no movement) and the opacity residue is the sanctioned remainder. The
+alternative, if it ever reads wrong, is to drop `opacity` from the wrapper + child variants under
+`useReducedMotion()` so the expand is wholly instant — considered and NOT taken, because it trades a
+calm fade for a hard pop-in to satisfy a rule about movement, which fades are not.
+
 **What breaks.** Reintroducing a `gap` on `.selected-tl__group--mint` double-counts spacing against the wrap's animated height; padding instead of child margins snaps the close.
 
 ## Sibling-repel on child hover
@@ -478,6 +494,11 @@ anchoring — one centre-anchored primitive".
 **Why.** Framer keeps a PERSISTENT inline `transform` on the motion row (`.selected-tl__row--child`, e.g. `translateY(-8px→0)`), so a CSS transform there is silently overridden (the same inline-style trap this file documents for `opacity`). The rail spine stays fixed; the parent mint card never moves.
 
 **What breaks.** GOTCHA: the dim cascade (see "Desktop timeline — FLOW layout" → hover cascades) sets `transition: filter, background` on every `.project-card` (no transform), so the repel needs a higher-specificity rule (`.selected-tl .project-card--compact { transition: transform … }`) or the 6px SNAPS; the child rows + bars (`.selected-tl__row--child`, `.selected-tl__bar-sb`) also need the filter-transition or their dim snaps while the listed years fade — keep the reaction gliding as one.
+
+**Reduced motion.** The route blanket zeroes `transition` on ALL of these at once, so the 6px repel and
+the whole dim cascade snap TOGETHER. That is not the mixed-state failure above — the failure is a
+*partial* snap; a uniform one still reads "as one". Nulling the repel transform outright was considered
+and rejected: it changes composition, not motion, which is out of scope for a motion guard.
 
 ## Mobile cases (MobileCases.tsx + CasesSheet.tsx)
 - A **separate composition** behind a `matchMedia(MOBILE_BP)` gate in SelectedContent (mirrors the
@@ -761,7 +782,7 @@ The archive timeline is a vertical strip of colored bars, year labels, and entry
 | codezeros | Codezeros    | Creative Director | 2018 | Nested inside mint |
 | mint      | Slangbusters | Creative Director | 2018–20 | Long, contains aleyr/olive/codezeros |
 
-All five archive projects use page-local tokens in `selected.css` under `.selected-workbench`, derived from actual brand hex values with a primary/secondary color system:
+All five archive projects use page-local tokens in `selected.css` under `.workbench:has(.bench-workbench)` (the "Route tokens" block at the top of the file), derived from actual brand hex values with a primary/secondary color system:
 - Primary hue → light fill (`-100`, or `-80` for mint), `-800` (text; also the standalone Connektion bar's border), `-960` (borders on the mint bar and the nested bars). The `-800`/`-960` border mix is shipped and deliberate — read `selected.css` for the per-bar choice.
 - Secondary hue → `-240` (hover bar fill)
 
@@ -1144,7 +1165,7 @@ Transition: `0.35s ease-in-out` on both filter and background, applied to all in
 
 - Where in the chronological order does it go?
 - Is it standalone or nested inside another bar?
-- Pick a color token. Use globals if it exists, otherwise define page-local tokens in `selected.css` under `.selected-workbench`.
+- Pick a color token. Use globals if it exists, otherwise define page-local tokens in `selected.css` under `.workbench:has(.bench-workbench)` (the "Route tokens" block).
 
 ### 2. Calculate positions
 
@@ -1361,3 +1382,78 @@ A cohesive mobile pass across the whole route (intro card + timeline + showcase)
 - **Relative open-positioning (no hardcoded px).** `ShowcaseBottomSheet` measures the docked card's height via `offsetHeight` (transform-immune, so the rise translate doesn't corrupt it) → `cardTop = innerHeight − cardHeight`. Short artifacts position their caption `--space-40` above the card top; TALL artifacts (taller than the room above the card — itself a relative test) pin near the top. A `.sc-scroll-room` class (100vh grid bottom-padding) is toggled ONLY while open so even the LAST tile can scroll to its target (there's otherwise no scroll space past it); it's off-screen + backdrop-covered and removed on close.
 
 *Last updated: 1 July 2026.*
+
+
+## Reduced motion
+
+**What it is.** `/all`'s `prefers-reduced-motion` guard is TWO halves that must be maintained together:
+
+1. **The CSS blanket** (`selected.css`, bottom) — `.bench-workbench` + `*` + both pseudos, with
+   `transition: none !important; animation: none !important`. The same idiom every major route ships
+   (`rr.css`, `biconomy.css`, `marks.css`, `landing.css`).
+2. **`<MotionConfig reducedMotion="user">`** (`SelectedContent.tsx`) wrapping the Longform subtree.
+
+**Why two.** The blanket is CSS-only. Framer drives WAAPI (`element.animate()`) plus inline style
+writes, neither of which a `transition`/`animation` declaration can touch. `Timeline.tsx` (25) and
+`MobileCases.tsx` (7) hold ~32 mount-time entrances that the blanket cannot reach. That gap is
+specific to this route: `/rr` has 2 mount-time Framer entrances and `/biconomy` 6, so a CSS-only
+guard was genuinely sufficient there. The blanket predates the timeline's migration from CSS
+keyframes to Framer; the guard simply didn't follow the motion.
+
+**Why `!important`, given the root ban.** The blanket is `(0,1,0)` and exists to silence rules of
+higher specificity — the `:has()` dim cascade and `.selected-tl .project-card--compact` `(0,2,0)`.
+Without `!important` it loses to exactly the rules it is for. This is a terminal override, not a
+specificity shortcut, which is what the root ban targets. Four sibling routes share the idiom;
+diverging on one would be the worse outcome. It must also stay a **blanket, not a list** — the dim
+cascade's documented failure is a *mixed* snap/glide, so zeroing every participant in one sweep is
+what preserves "the reaction glides as one" in its reduced form.
+
+**Why `MotionConfig` is scoped to `SelectedContent`, not `BenchEssay`.** The Showcase media already
+hand-wires reduced motion with per-component decisions — `LifecycleGauge` (matchMedia + its own CSS
+block), `RrInterface/Scene` → `CardPanel`'s `reducedMotion` prop (which deliberately KEEPS
+`scale: 1, opacity: 1` and drops only the idle bob), `ShowcasePiece`. A route-wide `MotionConfig`
+would override those authored choices. `SelectedContent`'s `<section>` is exactly `Timeline` +
+`MobileCases` and nothing else. WorkPanel's `TAB_BODY_VARIANTS` swap and TransitionSlot are
+ANCESTORS, so both sit outside the context and are unaffected (TransitionSlot's exit-dim is WAAPI
+anyway, so the blanket can't reach it either — it survives both halves).
+
+**Note the asymmetry.** The two halves are NOT scoped alike: the blanket sweeps `.bench-workbench *`,
+which includes the whole Showcase subtree. That is fine in effect (showcase.css's own guards do the
+same thing, just without `!important`), but don't read the MotionConfig's careful scoping as applying
+to both.
+
+**History — why this was broken.** The blanket was keyed to `.selected-workbench`, the page root's
+pre-rename name (the wrapper became `.bench-workbench`; `globals.css` "Route tokens" carries the
+keep-in-sync note). After the rename it matched nothing, so the route shipped with no CSS
+reduced-motion guard at all for some time. The route was never fully naked — `bench.css` (ticket
+condense, poem, card entrance), `showcase.css` ×3, `LifecycleGauge`, and the two now-dot pulses all
+had, and still have, live targeted guards. The blanket is a superset over those, not a replacement:
+**do not delete the targeted guards as "redundant"** — they are what a future re-scoping of the
+blanket would fall back on.
+
+**Known gaps (accepted, not oversights).**
+- **Portaled nodes escape the blanket.** `.sc-note--sheet` / `.sc-backdrop` portal to `document.body`,
+  outside `.bench-workbench`, so `sc-sheet-rise` still runs under reduced motion. Showcase-scoped;
+  fix belongs in `showcase.css`, not here.
+- **Portaled nodes and `animationend` are the two ways to fall out of the blanket.** The first is
+  listed above. The second is the general rule the `LifecycleGauge` bug taught us — see below.
+
+**Never gate state cleanup on `animationend` under this blanket.** `LifecycleGauge` did: `.is-pressed`
+was added on user click and removed ONLY by an `animationend` listener, while the component's own
+reduced-motion rule set `.lcg.is-pressed { animation: none }`. No animation → no event → the class
+stranded, and the needle kept its `saturate(0.15) brightness(0.7)` press filter permanently after the
+first click. Note the deadlock is **self-contained** — it travels with the component to any host,
+blanket or not — but on `/all` the blanket's `animation: none !important` also removes the CSS escape
+hatch, so the fix has to be in JS. Fixed by gating the class on the `reduce` flag the component
+already reads (mirroring how `motionBlur` early-returns), so it is never added on a path where nothing
+will remove it. **The general rule: under a blanket that zeroes `animation` and `transition`, any
+`animationend`/`transitionend` listener is a cleanup path that will not fire.** Grep for both before
+adding one anywhere under `.bench-workbench`.
+
+**What breaks.** Renaming the page root again without re-keying the blanket silently disables half the
+guard with no visible symptom on a normal machine — this exact failure, a second time. Removing
+`!important` lets the dim/repel cascade win. Hoisting `MotionConfig` to `BenchEssay` or the layout
+overrides the Showcase's hand-tuned reduced-motion decisions. `app/components/Img/img.css` DEPENDS on
+this blanket existing: it names the sweep and keeps a load-bearing plain `opacity: 1` so images stay
+visible when the sweep kills its reveal keyframe — delete the blanket and that comment goes stale in
+the other direction.

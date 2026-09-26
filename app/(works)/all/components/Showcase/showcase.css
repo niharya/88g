@@ -187,7 +187,7 @@
 
 /* ── Showcase section wrapper ───────────────────────────────────────────── */
 /* Sits below the reverted AboutCard + Timeline (.selected-layout) inside    */
-/* .selected-workbench. The layout above has min-height 777px (1249px when   */
+/* .bench-workbench. The layout above has min-height 777px (1249px when      */
 /* archive is open), so the showcase naturally lands underneath. A generous  */
 /* top margin separates the two movements; the showcase reads as its own.    */
 

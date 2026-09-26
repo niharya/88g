@@ -270,7 +270,7 @@ against the per-route blanket sweeps listed below.
 
 **Why — the cascade here is counter-intuitive.** Every major route ships a
 blanket reduced-motion sweep: `.route-biconomy *`, `.route-rr *`,
-`.route-marks *`, `.selected-workbench *`, `.landing *`, each with
+`.route-marks *`, `.bench-workbench *`, `.landing *`, each with
 `transition: none !important; animation: none !important` on the element and
 both pseudo-elements. Those `!important` declarations kill **any** animation
 this file sets, including the reduced one. So on every route that carries an

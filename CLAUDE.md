@@ -52,6 +52,7 @@ Paper-physical language: things glide, settle, and land — never snap, bounce, 
 3. No bounce, no overshoot; springs dampened-settle only (documented deviations live in route ANOMALIES). Native scroll — no smooth-scroll libraries, no hijacking. Scroll-mapped transforms (`useScroll`+`useTransform`+`useSpring`) where they materially help; plain CSS when CSS is enough.
 4. Section-reveal choreography (mat glides → content places → nav-sled docks) is specced in `LIBRARY.md` → "Sheet".
 5. Cross-shell: `(works)/` routes transition via TransitionSlot; outside routes via CrossShellVeil, which needs **both halves** (outgoing hook + incoming fader). Never mix the two idioms on one route.
+6. **Reduced motion is a per-route CSS blanket** (`.route-*`/`.bench-workbench` + `*`, `transition`/`animation: none !important`) — so on any blanketed route an `animationend`/`transitionend` listener **will not fire**, and state cleanup must never hang off one. The blanket is also CSS-only: Framer drives WAAPI, so a route with mount-time Framer motion needs a scoped `MotionConfig reducedMotion="user"` as its second half (`/all` is the reference). Keep targeted per-element guards alongside the blanket, not instead of it.
 
 ## Responsive (banned + pointer)
 

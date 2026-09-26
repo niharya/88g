@@ -1,6 +1,6 @@
 # /all — protective digest
 
-Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-loads for any file under `app/(works)/all/`. (Public route **`/all`**; **"bench"**/**"selected"** are internal CODENAMES. The `/selected` redirect + `/cases`/`/showcase` rewrites live in `next.config.mjs` — `docs/vocabulary.md` → "Works hub: /all slug ↔ codenames".)
+Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-loads for any file under `app/(works)/all/`. (**"bench"**/**"selected"** are internal CODENAMES for **`/all`**. The `/selected` redirect + `/cases`/`/showcase` rewrites live in `next.config.mjs` — `docs/vocabulary.md` → "Works hub: /all slug ↔ codenames".)
 
 **Archive:** [`./ANOMALIES.md`](./ANOMALIES.md) — rationale, position math, what-breaks. Spec: [`./DESIGN.md`](./DESIGN.md). Read the archive section before structurally changing anything named below.
 
@@ -51,6 +51,8 @@ Part of the 88g doc family (root `CLAUDE.md` → "The document family"). Auto-lo
 - `--ecochain-240` is a saturated green (the off-white read invisible on the mat); the Now dot's pulse is a separate `.selected-tl__pulse` ring, not a pseudo — it must not collide with the dot's clip-path. ANOMALIES.md → "Desktop timeline — FLOW layout"
 - Mobile is a separate composition (`MobileCases`/`CasesSheet`) behind a `matchMedia` gate; `CasesSheet` renders INLINE — portaling breaks its route-scoped colour tokens. ANOMALIES.md → "Mobile cases (MobileCases.tsx + CasesSheet.tsx)"
 - selected.css's tablet `@media` block was removed as stale — `.bench-cases` centres the mat down to ~704px. ANOMALIES.md → "Tablet cases layout"
+
+- Reduced motion needs BOTH halves: `.bench-workbench` blanket/scoped `MotionConfig`. ANOMALIES.md → "Reduced motion"
 
 ## Don't-touch digest — mobile responsive pass
 

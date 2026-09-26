@@ -9,8 +9,19 @@
 // matchMedia(MOBILE_BP), not a CSS reflow of the rail. Both never coexist,
 // so no duplicated content. The gate mirrors the showcase's isMobile pattern
 // (single source of truth: Showcase/responsive.ts).
+//
+// Reduced motion: the route blanket in selected.css is CSS-only, and Framer
+// drives WAAPI + inline styles, so it cannot reach the ~32 mount-time entrances
+// in Timeline/MobileCases. `MotionConfig reducedMotion="user"` is the Framer
+// half of that guard. It is scoped HERE, not at BenchEssay, deliberately: the
+// Showcase media (LifecycleGauge, RrInterface/Scene + CardPanel, ShowcasePiece)
+// already hand-wires reduced motion with per-component decisions, and a
+// route-wide MotionConfig would override them. WorkPanel's tab swap and
+// TransitionSlot are ANCESTORS, so both stay outside this context.
+// See ANOMALIES.md → "Reduced motion".
 
 import { useState, useEffect, useCallback } from 'react'
+import { MotionConfig } from 'framer-motion'
 import Timeline from './Timeline'
 import MobileCases from './MobileCases'
 import { MOBILE_BP } from './Showcase/responsive'
@@ -44,7 +55,9 @@ export default function SelectedContent() {
       // Only the desktop dropdown sets it.
       className={`selected-mat mat${expanded ? ' selected-mat--archive-open' : ''}`}
     >
-      {isMobile ? <MobileCases /> : <Timeline expanded={expanded} onToggle={handleToggle} />}
+      <MotionConfig reducedMotion="user">
+        {isMobile ? <MobileCases /> : <Timeline expanded={expanded} onToggle={handleToggle} />}
+      </MotionConfig>
     </section>
   )
 }

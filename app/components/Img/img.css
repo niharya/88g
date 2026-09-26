@@ -104,7 +104,7 @@
  *
  * `opacity: 1` is the load-bearing half and must never be removed. Every major
  * route ships a blanket `animation: none !important` sweep under reduced motion
- * (`.route-biconomy *`, `.route-rr *`, `.route-marks *`, `.selected-workbench *`,
+ * (`.route-biconomy *`, `.route-rr *`, `.route-marks *`, `.bench-workbench *`,
  * `.landing *`). Those `!important` declarations kill ANY animation this file
  * sets, including the reduced one below. Without a plain `opacity: 1` to fall
  * back on, `.img__inner`'s base `opacity: 0` would stand and every non-cached

@@ -1163,7 +1163,7 @@
      old mobile flow rules are gone. Only the mat's edge-to-edge bleed (below)
      is still live: MobileCases sits inside it as a full-bleed grid surface.
      (The bench shell owns the workbench, nav, and intro card now — the old
-     `.selected-workbench`/`.selected-layout`/`.selected-nav-row`/`.about-card-p`
+     `.bench-workbench`/`.selected-layout`/`.selected-nav-row`/`.about-card-p`
      mobile rules targeted classes that no longer render on this route.) */
 
   /* ── Mat: edge-to-edge graph-paper surface ──────────────────────────────── */
@@ -1353,12 +1353,26 @@
 
 
 /* ── Reduced motion ─────────────────────────────────────────────────────── */
+/* The route-level blanket, the same idiom every major route ships (rr.css,
+   biconomy.css, marks.css, landing.css). `!important` is SANCTIONED here and is
+   the reason it works: the blanket is (0,1,0) and has to outrank the higher-
+   specificity rules it exists to silence — the `:has()` dim cascade and
+   `.selected-tl .project-card--compact` (0,2,0). This is a terminal override,
+   not a specificity shortcut; the root ban targets the latter.
+   It must stay a BLANKET rather than a list: the dim/repel cascade's documented
+   failure is a MIXED snap/glide, so zeroing every participant at once is what
+   keeps the reaction reading "as one".
+   Keyed to `.bench-workbench` — the live page root (all/page.tsx). It was
+   stranded on the pre-rename `.selected-workbench` and matched nothing; see
+   ANOMALIES.md → "Reduced motion".
+   CSS only: Framer drives WAAPI, so Timeline/MobileCases are covered separately
+   by the MotionConfig in SelectedContent.tsx. */
 
 @media (prefers-reduced-motion: reduce) {
-  .selected-workbench,
-  .selected-workbench *,
-  .selected-workbench *::before,
-  .selected-workbench *::after {
+  .bench-workbench,
+  .bench-workbench *,
+  .bench-workbench *::before,
+  .bench-workbench *::after {
     transition: none !important;
     animation: none !important;
   }

@@ -115,9 +115,23 @@ export default function LifecycleGauge({
 
     const advance = () => {
       pause();
-      box.classList.remove("is-pressed");
-      void box.offsetWidth; // restart the press animation
-      box.classList.add("is-pressed");
+      // The press beat is skipped entirely under reduced motion, not muted.
+      // `is-pressed` is cleared by `animationend` ALONE, and this component's
+      // own reduced-motion rule below sets `.lcg.is-pressed { animation: none }`
+      // — so the animation never runs, the event never fires, and the class
+      // strands, leaving the needle in its dimmed/desaturated press filter
+      // permanently after one click. That deadlock is self-contained (it
+      // travels with the component anywhere, blanket or not); on /all the
+      // route blanket additionally makes it unfixable from CSS, since its
+      // `animation: none !important` outranks any relaxing of that rule.
+      // The cure is to never add the class on a path where nothing will
+      // remove it. See all/ANOMALIES.md → "Reduced motion — the route blanket
+      // and its Framer half".
+      if (!reduce) {
+        box.classList.remove("is-pressed");
+        void box.offsetWidth; // restart the press animation
+        box.classList.add("is-pressed");
+      }
       if (active >= stages.length - 1) rewind();
       else setActive(active + 1);
     };
