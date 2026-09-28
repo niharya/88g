@@ -10,6 +10,8 @@
 // wrong — this is simply the mobile composition of the resume page. The framed
 // sheet is the same material as /privacy, in a colourway of its own.
 
+import { roles } from './data'
+
 export default function ResumeSheet({ pdfHref }: { pdfHref: string }) {
   return (
     <div className="resume-sheet">
@@ -38,6 +40,23 @@ export default function ResumeSheet({ pdfHref }: { pdfHref: string }) {
             Most of my career happened because I kept going one layer deeper.
           </p>
 
+          {/* The roles, as real text: this sheet is also the <object>'s fallback,
+              so crawlers read it on every device while desktop humans see the
+              PDF itself. Facts live in ./data.ts. */}
+          <section className="resume-sheet__roles" aria-labelledby="resume-roles-label">
+            <h2 id="resume-roles-label" className="resume-sheet__roles-label">Experience</h2>
+            <ol className="resume-sheet__role-list">
+              {roles.map((r) => (
+                <li key={`${r.company}-${r.start}`} className="resume-sheet__role">
+                  <h3 className="resume-sheet__role-company">{r.company}</h3>
+                  <p className="resume-sheet__role-meta">
+                    {r.title} · <time dateTime={r.start}>{r.period}</time>
+                  </p>
+                  <p className="resume-sheet__role-scope t-p4">{r.scope}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
           <a
             className="resume-sheet__action"
             href={pdfHref}

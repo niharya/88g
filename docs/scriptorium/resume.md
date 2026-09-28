@@ -2,7 +2,7 @@
 
 Verbatim copy reference. Edit the source files, not this doc — run `/release` to surface drift.
 
-**Sources:** `app/resume/page.tsx`, `app/resume/ResumeSheet.tsx`, `app/resume/ResumeViewer.tsx`
+**Sources:** `app/resume/page.tsx`, `app/resume/ResumeSheet.tsx`, `app/resume/ResumeViewer.tsx`, `app/resume/data.ts`
 
 ---
 
@@ -25,6 +25,14 @@ line: for most people who see it, nothing went wrong.
 
 > "Most of my career happened because I kept going one layer deeper."
 > — [`ResumeSheet.tsx`](../../app/resume/ResumeSheet.tsx) (`.resume-sheet__lead`) — also the route's `metadata.description`
+
+> "Experience"
+> — [`ResumeSheet.tsx`](../../app/resume/ResumeSheet.tsx) (`.resume-sheet__roles-label`)
+
+The roles beneath it (company · title · dates · one line of scope, six entries,
+reverse-chronological) are data, not authored strings — they live in
+[`data.ts`](../../app/resume/data.ts), which is the verbatim record. No phone
+or email appears on the page.
 
 > "Open the PDF"
 > — [`ResumeSheet.tsx`](../../app/resume/ResumeSheet.tsx) (`.resume-sheet__action-label`)

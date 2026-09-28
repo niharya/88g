@@ -153,6 +153,63 @@
   text-wrap: balance;
 }
 
+/* Roles — the resume as text, centred like the rest of the card. Each entry
+   reads company → title · dates → one line of scope; entries part on a
+   hairline, the same ink-at-0.35 as the rule above. */
+.resume-sheet__roles {
+  margin-top: var(--space-32);
+}
+.resume-sheet__roles-label {
+  margin: 0 0 var(--space-16);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 400;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'opsz' 18;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.resume-sheet__role-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.resume-sheet__role {
+  padding: var(--space-16) 0;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.resume-sheet__role:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 35%, transparent);
+}
+.resume-sheet__role-company {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 400;
+  font-variation-settings: 'SOFT' 0, 'WONK' 1;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.resume-sheet__role-meta {
+  margin: var(--space-4) 0 0;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-variation-settings: 'wdth' 120, 'wght' 640, 'opsz' 18;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+/* A date range never splits across lines ("Jan 2025 / – present"). */
+.resume-sheet__role-meta time {
+  white-space: nowrap;
+}
+.resume-sheet__role-scope {
+  margin: var(--space-8) auto 0;
+  max-width: 38ch;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
 /* Action — the one control on the sheet. Outlined at rest, filled on hover;
    it must read as the thing to press without shouting. */
 .resume-sheet__action {
