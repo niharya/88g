@@ -112,7 +112,9 @@ exactly. When they drift, phones get desktop sheet metrics or vice versa.
 the sheet is not a degraded view of the PDF — it *is* the page, so it is authored
 for that job: no "your browser couldn't display this" line, because for the people
 who see it nothing went wrong. It carries the star mark, the title, the standfirst,
-the route's own positioning line, one action, and the file's weight.
+the route's own positioning line, the roles (from `data.ts`), one action, and the
+file's weight. The roles are real text on purpose: the sheet is also the
+`<object>`'s fallback, so crawlers read them on every device.
 
 **Where.** `ResumeSheet.tsx` + the `@media (max-width: 767px), (max-height: 500px)`
 block in `resume.css`, which adjusts padding and two type sizes only. No
