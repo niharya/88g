@@ -1,3 +1,5 @@
+'use client'
+
 // InvitationCard — the blue "broadside": engraved double-frame, the three-paragraph
 // manifesto in gradient-clipped Fraunces, a mint startooth crown + divider, and
 // the script closing (mono kicker + pinyon signature).
@@ -8,6 +10,10 @@
 // as a child in Phase 3.
 
 import type { ReactNode } from 'react'
+import { useYearsSince } from '../../../../lib/useYearsSince'
+
+// The practice count in the first paragraph runs from this year.
+const PRACTICE_START_YEAR = 2015
 
 // Filled startooth marks — verbatim paths from the design handoff. `fill`
 // inherits via currentColor from `.bench-mark` (set to --mint-720).
@@ -32,6 +38,8 @@ function DividerDiamond() {
 }
 
 export default function InvitationCard({ children }: { children?: ReactNode }) {
+  const years = useYearsSince(PRACTICE_START_YEAR)
+
   return (
     <div className="bench-card">
       <div className="bench-card__keyline" />
@@ -46,19 +54,19 @@ export default function InvitationCard({ children }: { children?: ReactNode }) {
 
         {/* Manifesto */}
         <p className="bench-poem">
-          Over the past 10 years I’ve made interfaces, brands, a culture,
-          posters, even names and games.
+          Over the past {years} years I’ve made interfaces, brands, a studio
+          culture, posters, even names and games.
         </p>
 
         <p className="bench-poem bench-poem--second">
-          None of it came from a fixed method. Every project sets its own
-          conditions, from the briefs to the timelines and agendas, and reading
-          those forces is the work.
+          None of it came from a fixed method. Every project set its own
+          conditions, from the briefs to the timelines and agendas and
+          responding to those forces was my work. Is my work.
         </p>
 
         <p className="bench-poem bench-poem--second">
-          This portfolio, for instance: no rounded corners, no dark mode, to see
-          what it would make me build instead.
+          This portfolio, for instance, has a few rules. No rounded corners, no
+          dark mode, just to see what it would make me build instead.
         </p>
 
         {/* Divider */}
