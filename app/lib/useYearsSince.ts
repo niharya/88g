@@ -1,6 +1,6 @@
 'use client'
 
-// useYearsSince — a live "years since <year>" count that is hydration-safe.
+// useYearsSince: a live "years since <year>" count that is hydration-safe.
 //
 // Same shape as useGreeting, for the same reason: reading the clock during
 // render bakes the build machine's date into the prerendered HTML and the
