@@ -28,15 +28,15 @@ Top-left marker above the invitation card; links home.
 The three-paragraph manifesto in gradient-clipped Fraunces. Natural wrap — no authored `<br>` line breaks.
 
 First paragraph:
-> "Over the past 10 years I’ve made interfaces, brands, a culture, posters, even names and games."
+> "Over the past {years} years I’ve made interfaces, brands, a studio culture, posters, even names and games." (`{years}` counts from 2015, live: `useYearsSince`)
 > — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
 Second paragraph:
-> "None of it came from a fixed method. Every project sets its own conditions, from the briefs to the timelines and agendas, and reading those forces is the work."
+> "None of it came from a fixed method. Every project set its own conditions, from the briefs to the timelines and agendas and responding to those forces was my work. Is my work."
 > — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
 Third paragraph:
-> "This portfolio, for instance: no rounded corners, no dark mode, to see what it would make me build instead."
+> "This portfolio, for instance, has a few rules. No rounded corners, no dark mode, just to see what it would make me build instead."
 > — [`Essay/InvitationCard.tsx`](../../app/(works)/all/components/Essay/InvitationCard.tsx)
 
 ## Invitation card — closing {#card-closing}

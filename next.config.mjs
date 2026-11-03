@@ -69,6 +69,8 @@ const nextConfig = {
   env: {
     // Client-side copy of the version (see APP_VERSION note above).
     NEXT_PUBLIC_APP_VERSION: APP_VERSION,
+    // Seed for app/lib/useYearsSince.ts: the year the static HTML was built.
+    NEXT_PUBLIC_BUILD_YEAR: String(new Date().getFullYear()),
   },
   images: {
     formats: ['image/avif', 'image/webp'],

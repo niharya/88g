@@ -30,6 +30,7 @@ File-path links resolve from repo root on GitHub. This file isn't rendered by th
 - **Page boot mark (startooth)** — `app/layout.tsx` + globals.css; font-gate hold mark; per-route recolor via `:root:has()` blocks.
 - **Security headers** — `next.config.mjs` (source of truth) + `netlify.toml` (identical copy for CDN files) + `scripts/smoke.mjs`; the two lists MUST stay in sync; Netlify's `[[headers]]` never reach Next-rendered pages.
 - **useGreeting** — `app/lib/useGreeting.ts`; the ONLY sanctioned way to render the time-of-day greeting (hydration-safe); consumers: landing hero, /all Timeline, /shape-of-product SignOffCard.
+- **useYearsSince**: `app/lib/useYearsSince.ts`; hydration-safe live "years since" count, seeded with the build year (`NEXT_PUBLIC_BUILD_YEAR`) and swapped before paint; consumers: /all InvitationCard.
 - **Small utils** — `app/lib/greeting.ts` (read it through `useGreeting`, never in render), `app/lib/titleCase.ts`.
 - **useExpand** — `app/lib/useExpand.ts`; non-modal overlay hook (`is-overlay-open` body class pauses dominance-snap); consumers: /rr Intro + Outcome.
 - **scrollGlide** — `app/lib/scrollGlide.ts`; singleton rAF scroll tween under `--ease-paper`; consumers: /marks + useDominanceSnap.
