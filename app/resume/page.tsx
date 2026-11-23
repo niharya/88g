@@ -29,7 +29,7 @@ import './resume.css'
 // drop-in replacement: rename the file, update PDF_FILE here. No rewrite chain
 // to keep in sync.
 
-const PDF_FILE = '/nihar-bhagat-resume-2025.pdf'
+const PDF_FILE = '/nihar-bhagat-resume-2026.pdf'
 // `#navpanes=0&view=FitH` hides the PDF sidebar and fits the page to the frame
 // width. Fragments are viewer hints only — harmless where unsupported.
 const PDF_EMBED = `${PDF_FILE}#navpanes=0&view=FitH`

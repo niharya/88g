@@ -41,7 +41,7 @@ const ROUTE_SOURCES = {
   '/rr':               [...code('app/(works)/rr'), 'public/images/rr'],
   '/marks':            [...code('app/marks'), ':(glob)app/marks/**/*.svg', 'public/marks'],
   '/shape-of-product': code('app/shape-of-product'),
-  '/resume':           [...code('app/resume'), 'public/nihar-bhagat-resume-2025.pdf'],
+  '/resume':           [...code('app/resume'), 'public/nihar-bhagat-resume-2026.pdf'],
   '/privacy':          code('app/privacy'),
 }
 

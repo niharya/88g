@@ -87,7 +87,7 @@ async function checkRoutes() {
 // file ever comes back X-Frame-Options: DENY again, the browser refuses to
 // render it and the route is a blank page. That is the original bug.
 async function checkResume() {
-  const pdf = await get('/nihar-bhagat-resume-2025.pdf', { method: 'HEAD' })
+  const pdf = await get('/nihar-bhagat-resume-2026.pdf', { method: 'HEAD' })
   pdf.status === 200
     ? ok('resume PDF → 200')
     : bad(`resume PDF → ${pdf.status} (expected 200 — has the file been renamed?)`)

@@ -66,7 +66,7 @@ export default function ResumeSheet({ pdfHref }: { pdfHref: string }) {
             <span className="resume-sheet__action-label">Open the PDF</span>
           </a>
 
-          <p className="resume-sheet__meta t-p4">1.8 MB · opens in a new tab</p>
+          <p className="resume-sheet__meta t-p4">420 KB · opens in a new tab</p>
         </article>
       </div>
     </div>
