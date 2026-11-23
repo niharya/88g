@@ -37,7 +37,7 @@ or email appears on the page.
 > "Open the PDF"
 > — [`ResumeSheet.tsx`](../../app/resume/ResumeSheet.tsx) (`.resume-sheet__action-label`)
 
-> "1.8 MB · opens in a new tab"
+> "420 KB · opens in a new tab"
 > — [`ResumeSheet.tsx`](../../app/resume/ResumeSheet.tsx) (`.resume-sheet__meta`)
 
 ## Assistive-tech link {#plain-link}
